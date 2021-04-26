@@ -5,18 +5,14 @@ TARGETS = gnl_colorshell.so gnl_assert.so
 
 .PHONY: all clean cleanall
 
-
 all: $(TARGETS)
 VPATH = src
 
-gnl_assert.so: gnl_assert.o
-	$(CC) -shared -o lib/$@.so lib/gnl_assert.o
-
-gnl_colorshell.so: gnl_colorshell.o
-	$(CC) -shared -o lib/$@.so lib/gnl_colorshell.o
+%.so: %.o
+	$(CC) -shared -o lib/$@ lib/$<.o
 
 %.o: %.c
-	$(CC) $(CFLAGS) $(INCLUDES) $(OPTFLAGS) -c -fPIC $< -o lib/$@
+	$(CC) $(CFLAGS) $(INCLUDES) $(OPTFLAGS) -c -fPIC $< -o lib/$@.o
 
 clean:
 	-rm -f lib/*.o lib/*.so
