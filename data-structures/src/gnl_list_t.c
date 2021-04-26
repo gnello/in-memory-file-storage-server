@@ -2,6 +2,8 @@
  * This is a simple linked list implementation, it does not intend to be
  * exhaustive but it's nice :)
  */
+
+#include <stdio.h>
 #include <stdlib.h>
 
 typedef struct gnl_list {
@@ -13,6 +15,8 @@ int gnl_list_insert(gnl_list_t **list, void *el) {
     gnl_list_t *new_node = (gnl_list_t*)malloc(sizeof(gnl_list_t));
 
     if (new_node == NULL) {
+        perror("malloc");
+
         return -1;
     }
 
@@ -29,6 +33,8 @@ int gnl_list_append(gnl_list_t **list, void *el) {
     gnl_list_t *current = NULL;
 
     if (new_node == NULL) {
+        perror("malloc");
+
         return -1;
     }
 

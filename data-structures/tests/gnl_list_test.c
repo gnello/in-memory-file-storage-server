@@ -1,21 +1,7 @@
 #include <stdio.h>
 #include <string.h>
 #include "../src/gnl_list_t.c"
-#include "../../helpers/src/colorshell.c" //TODO: trasformare in libreria .so
-
-//TODO: spostare da parte
-void tmp_assert(int (*fun)(), char *fun_desc);
-
-//TODO: spostare da parte
-void tmp_assert(int (*fun)(), char *fun_desc) {
-    if (fun() == 0) {
-        gnl_printf_green("PASSED");
-    } else {
-        gnl_printf_red("FAILED");
-    }
-
-    printf(" %s\n", fun_desc);
-}
+#include "../../helpers/src/gnl_assert.c" //TODO: trasformare in libreria .so
 
 int can_insert_int() {
     gnl_list_t *list = NULL;
@@ -232,15 +218,19 @@ int can_delete_a_string() {
 int main() {
     gnl_printf_yellow("> gnl_list tests:\n\n");
 
-    tmp_assert(can_insert_int, "can insert an int element at the beginning of the list.");
-    tmp_assert(can_append_int, "can append an int element at the end of the list.");
-    tmp_assert(can_find_an_int, "can check whether an int element is present into the list.");
-    tmp_assert(can_delete_an_int, "can delete an int element from the list.");
+    gnl_assert(can_insert_int, "can insert an int element at the beginning of the list.");
+    gnl_assert(can_append_int, "can append an int element at the end of the list.");
+    gnl_assert(can_find_an_int, "can check whether an int element is present into the list.");
+    gnl_assert(can_delete_an_int, "can delete an int element from the list.");
 
-    tmp_assert(can_insert_string, "can insert a string element at the beginning of the list.");
-    tmp_assert(can_append_string, "can append a string element at the end of the list.");
-    tmp_assert(can_find_a_string, "can check whether a string element is present into the list.");
-    tmp_assert(can_delete_a_string, "can delete a string element from the list.");
+    gnl_assert(can_insert_string, "can insert a string element at the beginning of the list.");
+    gnl_assert(can_append_string, "can append a string element at the end of the list.");
+    gnl_assert(can_find_a_string, "can check whether a string element is present into the list.");
+    gnl_assert(can_delete_a_string, "can delete a string element from the list.");
+
+    // the gnl_list_destroy method is implicit tested in every
+    // assert, if you don't believe it, run this tests with
+    // valgrind and look for memory leaks, good luck!
 
     printf("\n");
 }
