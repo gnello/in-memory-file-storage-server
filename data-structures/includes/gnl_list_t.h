@@ -1,6 +1,6 @@
 
-#ifndef GNL_LINKED_LIST_H
-#define GNL_LINKED_LIST_H
+#ifndef GNL_LIST_H
+#define GNL_LIST_H
 
 extern typedef struct gnl_list gnl_list_t;
 
@@ -53,4 +53,4 @@ extern int gnl_list_delete(gnl_list_t **list, const void *el);
  */
 extern int gnl_list_destroy(gnl_list_t **list);
 
-#endif //GNL_LINKED_LIST_H
+#endif //GNL_LIST_H
