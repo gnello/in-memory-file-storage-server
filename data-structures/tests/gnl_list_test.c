@@ -229,7 +229,7 @@ int main() {
     gnl_assert(can_find_a_string, "can check whether a string element is present into the list.");
     gnl_assert(can_delete_a_string, "can delete a string element from the list.");
 
-    // the gnl_list_destroy method is implicit tested in every
+    // the gnl_list_destroy method is implicitly tested in every
     // assert, if you don't believe it, run this tests with
     // valgrind and look for memory leaks, good luck!
 

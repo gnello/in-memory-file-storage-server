@@ -226,7 +226,7 @@ int main() {
     gnl_assert(can_use_a_fifo_queue, "can use a FIFO queue.");
     gnl_assert(can_use_a_lifo_queue, "can use a LIFO queue.");
 
-    // the gnl_queue_destroy method is implicit tested in every
+    // the gnl_queue_destroy method is implicitly tested in every
     // assert, if you don't believe it, run this tests with
     // valgrind and look for memory leaks, good luck!
 
