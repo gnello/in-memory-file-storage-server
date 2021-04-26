@@ -7,19 +7,16 @@ TARGETS = gnl_colorshell.so gnl_assert.so
 
 
 all: $(TARGETS)
-VPATH = src:lib
+VPATH = src
 
 gnl_assert.so: gnl_assert.o
-	$(CC) -shared -o lib/libgnl_assert.so lib/gnl_assert.o
+	$(CC) -shared -o lib/$@.so lib/gnl_assert.o
 
 gnl_colorshell.so: gnl_colorshell.o
-	$(CC) -shared -o lib/libgnl_colorshell.so lib/gnl_colorshell.o
+	$(CC) -shared -o lib/$@.so lib/gnl_colorshell.o
 
-gnl_assert.o: gnl_assert.c
-	$(CC) $(CFLAGS) $(INCLUDES) $(OPTFLAGS) -c -fPIC src/gnl_assert.c -o lib/gnl_assert.o
-
-gnl_colorshell.o: gnl_colorshell.c
-	$(CC) $(CFLAGS) $(INCLUDES) $(OPTFLAGS) -c -fPIC src/gnl_colorshell.c -o lib/gnl_colorshell.o
+%.o: %.c
+	$(CC) $(CFLAGS) $(INCLUDES) $(OPTFLAGS) -c -fPIC $< -o lib/$@
 
 clean:
 	-rm -f lib/*.o lib/*.so

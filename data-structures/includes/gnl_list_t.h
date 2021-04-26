@@ -2,7 +2,7 @@
 #ifndef GNL_LIST_H
 #define GNL_LIST_H
 
-extern typedef struct gnl_list gnl_list_t;
+typedef struct gnl_list_t gnl_list_t;
 
 /**
  * Insert the element "el" onto the back of a linked list "list".

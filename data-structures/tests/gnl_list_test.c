@@ -1,7 +1,8 @@
 #include <stdio.h>
 #include <string.h>
+#include "../../helpers/includes/gnl_colorshell.h"
+#include "../../helpers/includes/gnl_assert.h"
 #include "../src/gnl_list_t.c"
-#include "../../helpers/src/gnl_assert.c" //TODO: trasformare in libreria .so
 
 int can_insert_int() {
     gnl_list_t *list = NULL;

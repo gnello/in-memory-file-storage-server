@@ -5,11 +5,12 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include "../includes/gnl_list_t.h"
 
-typedef struct gnl_list {
+struct gnl_list_t {
     void *el;
-    struct gnl_list *next;
-} gnl_list_t;
+    struct gnl_list_t *next;
+};
 
 int gnl_list_insert(gnl_list_t **list, void *el) {
     gnl_list_t *new_node = (gnl_list_t*)malloc(sizeof(gnl_list_t));
