@@ -1,7 +1,7 @@
 CC = gcc
 CFLAGS += -std=c99 -Wall -pedantic -g
 LIBS +=
-TARGETS = src/colorshell
+TARGETS = src/gnl_colorshell
 
 .PHONY: all clean cleanall
 .SUFFIXES: .c .h

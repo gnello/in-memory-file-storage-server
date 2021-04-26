@@ -1,7 +1,7 @@
 CC = gcc
 CFLAGS += -std=c99 -Wall -pedantic -g
 LIBS +=
-TARGETS = gnl_list_test
+TARGETS = gnl_list_test gnl_queue_test
 
 .PHONY: all clean cleanall
 .SUFFIXES: .c .h
