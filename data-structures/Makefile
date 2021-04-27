@@ -9,10 +9,10 @@ all: $(TARGETS)
 VPATH = src
 
 %.so: %.o
-	$(CC) -shared -o lib/lib$@ lib/$<.o
+	$(CC) -shared -o lib/lib$@ lib/$<
 
 %.o: %.c
-	$(CC) $(CFLAGS) $(INCLUDES) $(OPTFLAGS) -c -fPIC $< -o lib/$@.o
+	$(CC) $(CFLAGS) $(INCLUDES) $(OPTFLAGS) -c -fPIC $< -o lib/$@
 
 clean:
 	-rm -f lib/*.o lib/*.so
