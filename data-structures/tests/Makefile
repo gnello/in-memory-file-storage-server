@@ -5,7 +5,7 @@ TARGETS = gnl_list_test gnl_queue_test
 
 .PHONY: all clean cleanall
 .SUFFIXES: .c .h
-
+#TODO: add library .so
 all: $(TARGETS)
 
 %: %.c

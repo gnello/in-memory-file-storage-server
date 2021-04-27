@@ -1,8 +1,8 @@
 #include <stdio.h>
 #include <string.h>
-#include "../../helpers/includes/gnl_colorshell.h"
-#include "../../helpers/includes/gnl_assert.h"
-#include "../includes/gnl_queue_t.h"
+#include <gnl_colorshell.h>
+#include <gnl_assert.h>
+#include "../src/gnl_queue_t.c"
 
 int can_create_a_queue() {
     gnl_queue_t *queue;

@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <string.h>
-#include "../../helpers/includes/gnl_colorshell.h"
-#include "../../helpers/includes/gnl_assert.h"
+#include <gnl_colorshell.h>
+#include <gnl_assert.h>
 #include "../src/gnl_list_t.c"
 
 int can_insert_int() {
