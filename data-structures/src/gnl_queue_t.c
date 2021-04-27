@@ -5,7 +5,7 @@
 
 #include <stdlib.h>
 #include <errno.h>
-#include "gnl_list_t.c" //TODO: include .h (già compilato?)
+#include "gnl_list_t.c"
 #include "../includes/gnl_queue_t.h"
 
 const int GNL_FIFO_QUEUE = 0;

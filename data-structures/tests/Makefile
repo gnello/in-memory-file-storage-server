@@ -1,11 +1,11 @@
 CC = gcc
 CFLAGS += -std=c99 -Wall -pedantic -g
-LIBS +=
+LIBS += -Wl,-rpath,./../../helpers/lib -L./../../helpers/lib -lgnl_colorshell -lgnl_assert -I./../../helpers/includes
 TARGETS = gnl_list_test gnl_queue_test
 
 .PHONY: all clean cleanall
 .SUFFIXES: .c .h
-#TODO: add library .so
+
 all: $(TARGETS)
 
 %: %.c
