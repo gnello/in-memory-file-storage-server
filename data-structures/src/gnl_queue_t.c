@@ -5,16 +5,17 @@
 
 #include <stdlib.h>
 #include <errno.h>
-#include "gnl_list_t.c"
+#include "gnl_list_t.c" //TODO: include .h (già compilato?)
+#include "../includes/gnl_queue_t.h"
 
 const int GNL_FIFO_QUEUE = 0;
 const int GNL_LIFO_QUEUE = 1;
 
-typedef struct gnl_queue {
+struct gnl_queue_t {
     gnl_list_t *list;
     size_t size;
     int type;
-} gnl_queue_t;
+};
 
 gnl_queue_t *gnl_queue_init(int type) {
     if (type != GNL_FIFO_QUEUE && type != GNL_LIFO_QUEUE) {

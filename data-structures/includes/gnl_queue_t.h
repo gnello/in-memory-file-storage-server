@@ -2,7 +2,7 @@
 #ifndef GNL_QUEUE_H
 #define GNL_QUEUE_H
 
-extern typedef struct gnl_queue gnl_queue_t;
+typedef struct gnl_queue_t gnl_queue_t;
 
 extern const int GNL_FIFO_QUEUE;
 extern const int GNL_LIFO_QUEUE;
