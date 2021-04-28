@@ -12,8 +12,5 @@ all: $(TARGETS)
 %: %.c
 	$(CC) $(CFLAGS) $(INCLUDES) $(OPTFLAGS) -o $@ $< $(LDFLAGS) $(LIBS)
 
-%.o: %.c
-	$(CC) $(CFLAGS) $(INCLUDES) $(OPTFLAGS) -o $@ $<
-
 clean:
 	-rm -f $(TARGETS)
