@@ -16,6 +16,3 @@ VPATH = src
 
 clean:
 	-rm -f lib/*.o lib/*.so
-
-cleanall	: clean
-	-rm -f *.o *~
