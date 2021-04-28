@@ -13,3 +13,6 @@ data-structures:
 clean:
 	cd ./helpers && $(MAKE) clean
 	cd ./data-structures && $(MAKE) clean
+
+clean-dev: clean
+	cd ./data-structures/tests && $(MAKE) clean

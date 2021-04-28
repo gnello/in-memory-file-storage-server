@@ -17,6 +17,3 @@ all: $(TARGETS)
 
 clean:
 	-rm -f $(TARGETS)
-
-cleanall	: clean
-	-rm -f *.o *~
