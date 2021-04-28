@@ -211,6 +211,34 @@ int can_use_a_lifo_queue() {
     return 0;
 }
 
+int can_get_null_on_wrong_queue_init_type() {
+    gnl_ts_queue_t *queue;
+
+    queue = gnl_ts_queue_init(99);
+
+    if (queue != NULL) {
+        return -1;
+    }
+
+    return 0;
+}
+
+int can_get_null_on_an_empty_queue_dequeue() {
+    gnl_ts_queue_t *queue;
+
+    queue = gnl_ts_queue_init(GNL_QUEUE_LIFO);
+
+    void *res = gnl_ts_queue_pop(&queue);
+
+    if (res != NULL) {
+        return -1;
+    }
+
+    gnl_ts_queue_destroy(&queue);
+
+    return 0;
+}
+
 int main() {
     gnl_printf_yellow("> gnl_ts_queue_t tests:\n\n");
 
@@ -225,6 +253,9 @@ int main() {
     gnl_assert(can_get_the_queue_size, "can get the size of a thread-safe queue.");
     gnl_assert(can_use_a_fifo_queue, "can use a FIFO thread-safe queue.");
     gnl_assert(can_use_a_lifo_queue, "can use a LIFO thread-safe queue.");
+
+    gnl_assert(can_get_null_on_wrong_queue_init_type, "can get null on wrong thread-safe queue init type.");
+    gnl_assert(can_get_null_on_an_empty_queue_dequeue, "can get null on empty thread-safe queue pop.");
 
     // the gnl_ts_queue_destroy method is implicitly tested in every
     // assert, if you don't believe it, run this tests with

@@ -17,6 +17,11 @@ struct gnl_ts_queue_t {
 };
 
 gnl_ts_queue_t *gnl_ts_queue_init(int type) {
+    if (type != GNL_TS_QUEUE_FIFO && type != GNL_TS_QUEUE_LIFO) {
+        errno = EINVAL;
+        return NULL;
+    }
+
     gnl_ts_queue_t *queue = (gnl_ts_queue_t*)malloc(sizeof(gnl_ts_queue_t));
     if (queue == NULL) {
         perror("malloc");
