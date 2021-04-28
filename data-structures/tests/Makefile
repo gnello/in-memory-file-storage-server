@@ -4,13 +4,16 @@ LIBS += -Wl,-rpath,./../../helpers/lib -L./../../helpers/lib -lgnl_colorshell -l
 INCLUDES += -I./../../helpers/includes
 TARGETS = gnl_list_test gnl_queue_test gnl_ts_queue_test
 
-.PHONY: all clean cleanall
+.PHONY: all clean helpers
 .SUFFIXES: .c .h
 
 all: $(TARGETS)
 
-%: %.c
+%: %.c helpers
 	$(CC) $(CFLAGS) $(INCLUDES) $(OPTFLAGS) -o $@ $< $(LDFLAGS) $(LIBS)
+
+helpers:
+	cd ./../../helpers && $(MAKE)
 
 clean:
 	-rm -f $(TARGETS)

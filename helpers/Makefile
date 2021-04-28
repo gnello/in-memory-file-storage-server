@@ -3,7 +3,7 @@ CFLAGS = -std=c99 -Wall -pedantic
 
 TARGETS = gnl_colorshell.so gnl_assert.so
 
-.PHONY: all clean cleanall
+.PHONY: all clean
 
 all: $(TARGETS)
 VPATH = src

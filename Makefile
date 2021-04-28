@@ -4,7 +4,7 @@ LIBS += -Wl,-rpath,./data-structures/lib -L./data-structures/lib -lgnl_ts_queue_
 INCLUDES += -I./data-structures/includes
 TARGETS = main
 
-.PHONY: all clean helpers data-structures
+.PHONY: all clean clean-dev helpers data-structures
 
 VPATH = src
 
