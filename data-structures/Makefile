@@ -1,7 +1,7 @@
 CC = gcc
 CFLAGS = -std=c99 -Wall -pedantic
 
-TARGETS = gnl_list_t.so gnl_queue_t.so
+TARGETS = gnl_list_t.so gnl_queue_t.so gnl_ts_queue_t.so
 
 .PHONY: all clean cleanall
 

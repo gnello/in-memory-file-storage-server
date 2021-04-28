@@ -2,16 +2,16 @@
 #ifndef GNL_QUEUE_H
 #define GNL_QUEUE_H
 
-typedef struct gnl_queue_t gnl_queue_t;
+extern const int GNL_QUEUE_FIFO;
+extern const int GNL_QUEUE_LIFO;
 
-extern const int GNL_FIFO_QUEUE;
-extern const int GNL_LIFO_QUEUE;
+typedef struct gnl_queue_t gnl_queue_t;
 
 /**
  * Create a new queue.
  *
  * @param type          The type of the queue. Possible values:
- *                      GNL_FIFO_QUEUE, GNL_LIFO_QUEUE.
+ *                      GNL_QUEUE_FIFO, GNL_QUEUE_LIFO.
  *
  * @return gnl_queue_t  Returns the new queue created on success,
  *                      NULL otherwise.

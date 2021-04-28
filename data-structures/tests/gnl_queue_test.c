@@ -7,7 +7,7 @@
 int can_create_a_queue() {
     gnl_queue_t *queue;
 
-    queue = gnl_queue_init(GNL_FIFO_QUEUE);
+    queue = gnl_queue_init(GNL_QUEUE_FIFO);
 
     if (queue == NULL) {
         return -1;
@@ -21,7 +21,7 @@ int can_create_a_queue() {
 int can_enqueue_an_int() {
     gnl_queue_t *queue;
 
-    queue = gnl_queue_init(GNL_FIFO_QUEUE);
+    queue = gnl_queue_init(GNL_QUEUE_FIFO);
 
     if (queue == NULL) {
         return -1;
@@ -46,7 +46,7 @@ int can_enqueue_an_int() {
 int can_dequeue_an_int() {
     gnl_queue_t *queue;
 
-    queue = gnl_queue_init(GNL_FIFO_QUEUE);
+    queue = gnl_queue_init(GNL_QUEUE_FIFO);
 
     if (queue == NULL) {
         return -1;
@@ -79,7 +79,7 @@ int can_dequeue_an_int() {
 int can_enqueue_a_string() {
     gnl_queue_t *queue;
 
-    queue = gnl_queue_init(GNL_FIFO_QUEUE);
+    queue = gnl_queue_init(GNL_QUEUE_FIFO);
 
     if (queue == NULL) {
         return -1;
@@ -104,7 +104,7 @@ int can_enqueue_a_string() {
 int can_dequeue_a_string() {
     gnl_queue_t *queue;
 
-    queue = gnl_queue_init(GNL_FIFO_QUEUE);
+    queue = gnl_queue_init(GNL_QUEUE_FIFO);
 
     if (queue == NULL) {
         return -1;
@@ -137,7 +137,7 @@ int can_dequeue_a_string() {
 int can_get_the_queue_size() {
     gnl_queue_t *queue;
 
-    queue = gnl_queue_init(GNL_FIFO_QUEUE);
+    queue = gnl_queue_init(GNL_QUEUE_FIFO);
 
     if (queue == NULL) {
         return -1;
@@ -160,7 +160,7 @@ int can_get_the_queue_size() {
 int can_use_a_fifo_queue() {
     gnl_queue_t *queue;
 
-    queue = gnl_queue_init(GNL_FIFO_QUEUE);
+    queue = gnl_queue_init(GNL_QUEUE_FIFO);
 
     int size = 150;
     int store[size];
@@ -187,7 +187,7 @@ int can_use_a_fifo_queue() {
 int can_use_a_lifo_queue() {
     gnl_queue_t *queue;
 
-    queue = gnl_queue_init(GNL_LIFO_QUEUE);
+    queue = gnl_queue_init(GNL_QUEUE_LIFO);
 
     int size = 150;
     int store[size];
@@ -212,7 +212,7 @@ int can_use_a_lifo_queue() {
 }
 
 int main() {
-    gnl_printf_yellow("> gnl_queue tests:\n\n");
+    gnl_printf_yellow("> gnl_queue_t tests:\n\n");
 
     gnl_assert(can_create_a_queue, "can create a queue.");
 

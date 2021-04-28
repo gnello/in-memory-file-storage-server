@@ -8,8 +8,8 @@
 #include "gnl_list_t.c"
 #include "../includes/gnl_queue_t.h"
 
-const int GNL_FIFO_QUEUE = 0;
-const int GNL_LIFO_QUEUE = 1;
+const int GNL_QUEUE_FIFO = 0;
+const int GNL_QUEUE_LIFO = 1;
 
 struct gnl_queue_t {
     gnl_list_t *list;
@@ -18,7 +18,7 @@ struct gnl_queue_t {
 };
 
 gnl_queue_t *gnl_queue_init(int type) {
-    if (type != GNL_FIFO_QUEUE && type != GNL_LIFO_QUEUE) {
+    if (type != GNL_QUEUE_FIFO && type != GNL_QUEUE_LIFO) {
         errno = EINVAL;
         return NULL;
     }
@@ -50,14 +50,14 @@ void gnl_queue_destroy(gnl_queue_t **q) {
 int gnl_queue_push(gnl_queue_t **q, void *el) {
     int res = -1;
 
-    if ((*q)->type == GNL_FIFO_QUEUE) {
+    if ((*q)->type == GNL_QUEUE_FIFO) {
         res = gnl_list_append(&((*q)->list), el);
-    } else if ((*q)->type == GNL_LIFO_QUEUE) {
+    } else if ((*q)->type == GNL_QUEUE_LIFO) {
         res = gnl_list_insert(&((*q)->list), el);
     }
 
     if (res < 0) {
-        perror((*q)->type == GNL_FIFO_QUEUE ? "gnl_list_append" : "gnl_list_insert");
+        perror((*q)->type == GNL_QUEUE_FIFO ? "gnl_list_append" : "gnl_list_insert");
 
         return -1;
     }
