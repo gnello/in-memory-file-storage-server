@@ -4,7 +4,7 @@ LIBS += -Wl,-rpath,./../../helpers/lib -L./../../helpers/lib -lgnl_colorshell -l
 INCLUDES += -I./../../helpers/includes
 TARGETS = gnl_list_test gnl_queue_test gnl_ts_queue_test
 
-.PHONY: all clean helpers
+.PHONY: all clean helpers tests
 .SUFFIXES: .c .h
 
 all: $(TARGETS)
@@ -17,3 +17,7 @@ helpers:
 
 clean:
 	-rm -f $(TARGETS)
+
+tests:
+	@echo "\nRunning data structures suite test...\n\n"
+	@$(foreach test,$(TARGETS),./$(test);)

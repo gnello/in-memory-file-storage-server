@@ -4,7 +4,7 @@ LIBS += -Wl,-rpath,./data-structures/lib -L./data-structures/lib -lgnl_ts_queue_
 INCLUDES += -I./data-structures/includes
 TARGETS = main
 
-.PHONY: all clean clean-dev helpers data-structures
+.PHONY: all dev tests clean clean-dev helpers data-structures
 
 VPATH = src
 
@@ -18,6 +18,10 @@ helpers:
 
 data-structures:
 	cd ./data-structures && $(MAKE)
+
+# run all the tests present in this project
+tests: all
+	cd ./data-structures && $(MAKE) tests
 
 clean:
 	rm -f $(TARGETS)
