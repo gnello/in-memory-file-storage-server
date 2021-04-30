@@ -4,6 +4,7 @@ LIBS += -Wl,-rpath,./../../helpers/lib -L./../../helpers/lib -lgnl_colorshell -l
 INCLUDES += -I./../../helpers/includes
 TARGETS = gnl_list_test gnl_queue_test gnl_ts_queue_test
 TARGETSPATH = ../../dist/data-structures/tests
+REALTARGETSPATH = $(realpath $(TARGETSPATH))
 
 .PHONY: all clean helpers tests
 .SUFFIXES: .c .h
@@ -11,14 +12,14 @@ TARGETSPATH = ../../dist/data-structures/tests
 all: $(TARGETS)
 
 %: %.c helpers
-	$(CC) $(CFLAGS) $(INCLUDES) $(OPTFLAGS) -o $(TARGETSPATH)/$@ $< $(LDFLAGS) $(LIBS)
+	$(CC) $(CFLAGS) $(INCLUDES) $(OPTFLAGS) -o $(REALTARGETSPATH)/$@ $< $(LDFLAGS) $(LIBS)
 
 helpers:
 	cd ./../../helpers && $(MAKE)
 
 clean:
-	cd $(TARGETSPATH) && rm -f $(TARGETS)
+	cd $(REALTARGETSPATH) && rm -f $(TARGETS)
 
 tests:
 	@echo "\nRunning data structures suite test...\n\n"
-	@$(foreach test,$(TARGETS),./$(TARGETSPATH)/$(test);)
+	@$(foreach test,$(TARGETS),./$(REALTARGETSPATH)/$(test);)

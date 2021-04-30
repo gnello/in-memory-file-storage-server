@@ -4,6 +4,7 @@ LIBS += -Wl,-rpath,./dist/data-structures/lib -L./dist/data-structures/lib -lgnl
 INCLUDES += -I./data-structures/includes
 TARGETS = main
 TARGETSPATH = ./dist
+REALTARGETSPATH = $(realpath $(TARGETSPATH))
 
 .PHONY: all dev tests clean clean-dev helpers data-structures
 
@@ -12,7 +13,7 @@ VPATH = src
 all: $(TARGETS)
 
 %: %.c data-structures
-	$(CC) $(CFLAGS) $(INCLUDES) $(OPTFLAGS) -o $(TARGETSPATH)/$@ $< $(LDFLAGS) $(LIBS)
+	$(CC) $(CFLAGS) $(INCLUDES) $(OPTFLAGS) -o $(REALTARGETSPATH)/$@ $< $(LDFLAGS) $(LIBS)
 
 helpers:
 	cd ./helpers && $(MAKE)
@@ -29,7 +30,7 @@ tests: all
 	cd ./data-structures && $(MAKE) tests
 
 clean:
-	cd $(TARGETSPATH) && rm -f $(TARGETS)
+	cd $(REALTARGETSPATH) && rm -f $(TARGETS)
 	cd ./helpers && $(MAKE) clean
 	cd ./data-structures && $(MAKE) clean
 
