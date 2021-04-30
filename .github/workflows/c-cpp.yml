@@ -13,12 +13,11 @@ jobs:
 
     steps:
     - uses: actions/checkout@v2
-    - run: cd data-structures/tests
     - run: make dev
     - uses: actions/upload-artifact@v2
       with:
         name: build
-        path: .
+        path: dist
 
   test:
 

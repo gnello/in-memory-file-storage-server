@@ -11,7 +11,7 @@ VPATH = src
 all: $(TARGETS)
 
 %: %.c data-structures
-	$(CC) $(CFLAGS) $(INCLUDES) $(OPTFLAGS) -o $@ $< $(LDFLAGS) $(LIBS)
+	$(CC) $(CFLAGS) $(INCLUDES) $(OPTFLAGS) -o dist/$@ $< $(LDFLAGS) $(LIBS)
 
 helpers:
 	cd ./helpers && $(MAKE)
