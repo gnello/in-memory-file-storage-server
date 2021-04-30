@@ -22,5 +22,4 @@ jobs:
 
     steps:
     - uses: actions/checkout@v2
-    - run: cd data-structures/tests
-    - run: ./*.c
+    - run: make -s tests
