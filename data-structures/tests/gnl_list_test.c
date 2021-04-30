@@ -217,7 +217,7 @@ int can_delete_a_string() {
 }
 
 int main() {
-    gnl_printf_yellow("> gnl_list_t tests:\n\n");
+    gnl_printf_yellow("> gnl_list_t test:\n\n");
 
     gnl_assert(can_insert_int, "can insert an int element at the beginning of the list.");
     gnl_assert(can_append_int, "can append an int element at the end of the list.");
