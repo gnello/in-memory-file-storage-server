@@ -10,7 +10,7 @@ all: $(TARGETS)
 VPATH = src
 
 %.so: %.o
-	$(CC) -shared -o $(TARGETPATH)/lib$@ lib/$<
+	$(CC) -shared -o $(TARGETPATH)/lib$@ $(TARGETPATH)/$<
 
 %.o: %.c
 	$(CC) $(CFLAGS) $(INCLUDES) $(OPTFLAGS) -c -fPIC $< -o $(TARGETPATH)/$@
