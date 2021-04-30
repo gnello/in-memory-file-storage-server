@@ -19,6 +19,10 @@ helpers:
 data-structures:
 	cd ./data-structures && $(MAKE)
 
+# build all the project, test files included
+dev: all
+	cd ./data-structures && $(MAKE) dev
+
 # run all the tests present in this project
 tests: all
 	cd ./data-structures && $(MAKE) tests

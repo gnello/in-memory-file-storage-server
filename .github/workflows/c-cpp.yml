@@ -14,7 +14,7 @@ jobs:
     steps:
     - uses: actions/checkout@v2
     - run: cd data-structures/tests
-    - run: make
+    - run: make dev
     
   test:
 

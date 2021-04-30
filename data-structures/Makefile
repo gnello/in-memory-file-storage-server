@@ -3,7 +3,7 @@ CFLAGS = -std=c99 -Wall -pedantic
 
 TARGETS = gnl_list_t.so gnl_queue_t.so gnl_ts_queue_t.so
 
-.PHONY: all clean tests
+.PHONY: all dev clean tests
 
 all: $(TARGETS)
 VPATH = src
@@ -13,6 +13,9 @@ VPATH = src
 
 %.o: %.c
 	$(CC) $(CFLAGS) $(INCLUDES) $(OPTFLAGS) -c -fPIC $< -o lib/$@
+
+dev:
+	cd ./tests && $(MAKE)
 
 clean:
 	-rm -f lib/*.o lib/*.so
