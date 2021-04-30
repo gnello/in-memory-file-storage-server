@@ -5,8 +5,7 @@
 int main() {
     gnl_ts_queue_t *queue;
 
-    queue = gnl_ts_queue_init(GNL_TS_QUEUE_FIFO);
-    //queue = gnl_ts_queue_init(GNL_TS_QUEUE_LIFO);
+    queue = gnl_ts_queue_init();
 
     if (queue == NULL) {
         perror("gnl_ts_queue_init");
@@ -17,16 +16,16 @@ int main() {
     char *a = "Hello";
     char *b = "World";
     char *c = "!";
-    gnl_ts_queue_push(&queue, a);
-    gnl_ts_queue_push(&queue, b);
-    gnl_ts_queue_push(&queue, c);
+    gnl_ts_queue_enqueue(queue, a);
+    gnl_ts_queue_enqueue(queue, b);
+    gnl_ts_queue_enqueue(queue, c);
 
-    printf("%s", (char *)gnl_ts_queue_pop(&queue));
-    printf("%s", (char *)gnl_ts_queue_pop(&queue));
-    printf("%s", (char *)gnl_ts_queue_pop(&queue));
+    printf("%s", (char *)gnl_ts_queue_dequeue(queue));
+    printf("%s", (char *)gnl_ts_queue_dequeue(queue));
+    printf("%s", (char *)gnl_ts_queue_dequeue(queue));
     printf("\n");
 
-    gnl_ts_queue_destroy(&queue);
+    gnl_ts_queue_destroy(queue);
 
     return 0;
 }
