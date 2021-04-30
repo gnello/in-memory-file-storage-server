@@ -3,8 +3,8 @@
  * but it's nice :)
  */
 
+#include <stdio.h>
 #include <stdlib.h>
-#include <errno.h>
 #include "../includes/gnl_queue_t.h"
 
 // the node of the queue
