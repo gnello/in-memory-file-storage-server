@@ -31,10 +31,5 @@ jobs:
     steps:
     - uses: actions/checkout@v2
     - uses: actions/download-artifact@v2
-      with:
-        name: data-structures-build
-    - uses: actions/download-artifact@v2
-      with:
-        name: helpers-build
     - run: cd data-structures-build
     - run: make -s tests
