@@ -26,7 +26,7 @@ dev: all
 	cd ./data-structures && $(MAKE) dev
 
 # run all the tests present in this project
-tests: all
+tests: all helpers
 	cd ./data-structures && $(MAKE) tests
 
 clean:

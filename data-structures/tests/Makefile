@@ -21,5 +21,5 @@ clean:
 	cd $(REALTARGETSPATH) && rm -f $(TARGETS)
 
 tests:
-	@echo "\nRunning data structures suite test...\n\n"
-	@$(foreach test,$(TARGETS),cd $(REALTARGETSPATH) && ./$(test);)
+	echo "\nRunning data structures suite test...\n\n"
+	$(foreach test,$(TARGETS),$(REALTARGETSPATH)/$(test);)
