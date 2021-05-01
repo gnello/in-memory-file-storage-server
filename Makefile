@@ -5,7 +5,7 @@ INCLUDES += -I./data-structures/includes
 TARGETS = main
 TARGETSPATH = ./dist
 
-.PHONY: all dev tests clean clean-dev helpers data-structures
+.PHONY: all dev tests clean clean-dev helpers data-structures tests-valgrind
 
 VPATH = src
 
@@ -26,7 +26,11 @@ dev: all
 
 # run all the tests present in this project
 tests: all helpers
-	cd ./data-structures && $(MAKE) tests
+	cd ./data-structures/tests && $(MAKE) tests
+
+# run all tests present in this project with valgrind
+tests-valgrind: all helpers
+	cd ./data-structures/tests && $(MAKE) tests-valgrind
 
 clean:
 	cd $(TARGETSPATH) && rm -f $(TARGETS)

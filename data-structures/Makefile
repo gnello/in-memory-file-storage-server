@@ -4,7 +4,7 @@ CFLAGS = -std=c99 -Wall -pedantic
 TARGETS = gnl_list_t.so gnl_queue_t.so gnl_ts_queue_t.so gnl_stack_t.so
 TARGETSPATH = ./lib
 
-.PHONY: all dev clean tests
+.PHONY: all dev clean
 
 all: $(TARGETS)
 VPATH = src
@@ -20,6 +20,3 @@ dev:
 
 clean:
 	cd $(TARGETSPATH) && rm -f *.o *.so
-
-tests:
-	cd ./tests && $(MAKE) tests

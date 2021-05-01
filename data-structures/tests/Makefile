@@ -5,7 +5,7 @@ HELPERSPATH = ./../../helpers
 LIBS += -Wl,-rpath,$(HELPERSPATH)/lib -L$(HELPERSPATH)/lib -lgnl_colorshell -lgnl_assert
 INCLUDES += -I$(HELPERSPATH)/includes
 
-.PHONY: all clean helpers tests
+.PHONY: all clean helpers tests tests-valgrind
 .SUFFIXES: .c .h
 
 all: $(TARGETS)
@@ -22,3 +22,7 @@ clean:
 tests:
 	echo "\nRunning data structures suite test...\n\n"
 	$(foreach test,$(TARGETS),./$(test);)
+
+tests-valgrind:
+	echo "\nRunning data structures suite test...\n\n"
+	$(foreach test,$(TARGETS),echo "\n> running $(test) with valgrind...\n"; valgrind ./$(test); echo "\n";)
