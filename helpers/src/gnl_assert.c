@@ -1,4 +1,5 @@
 #include "./gnl_colorshell.c"
+#include "../includes/gnl_assert.h"
 
 void gnl_assert(int (*fun)(), char *fun_desc) {
     if (fun() == 0) {
