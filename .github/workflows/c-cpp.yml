@@ -13,6 +13,7 @@ jobs:
 
     steps:
     - uses: actions/checkout@v2
+    - run: cp .env.example .env
     - run: make dev
     - uses: actions/upload-artifact@v2
       with:
