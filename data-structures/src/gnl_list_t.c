@@ -13,7 +13,7 @@ struct gnl_list_t {
 };
 
 int gnl_list_insert(gnl_list_t **list, void *el) {
-    gnl_list_t *new_node = (gnl_list_t*)malloc(sizeof(gnl_list_t));
+    gnl_list_t *new_node = (struct gnl_list_t *)malloc(sizeof(struct gnl_list_t));
 
     if (new_node == NULL) {
         perror("malloc");
@@ -22,15 +22,15 @@ int gnl_list_insert(gnl_list_t **list, void *el) {
     }
 
     new_node->el = el;
-    new_node->next = (*list);
+    new_node->next = *list;
 
-    (*list) = new_node;
+    *list = new_node;
 
     return 0;
 }
 
 int gnl_list_append(gnl_list_t **list, void *el) {
-    gnl_list_t *new_node = (gnl_list_t*)malloc(sizeof(gnl_list_t));
+    gnl_list_t *new_node = (struct gnl_list_t *)malloc(sizeof(struct gnl_list_t));
     gnl_list_t *current = NULL;
 
     if (new_node == NULL) {
