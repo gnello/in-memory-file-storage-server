@@ -14,14 +14,13 @@ jobs:
     steps:
     - uses: actions/checkout@v2
     - run: make dev
-    - run: chmod -R +x ./* 
     - uses: actions/upload-artifact@v2
       with:
-        name: data-structures-build
+        name: data-structures
         path: data-structures
     - uses: actions/upload-artifact@v2
       with:
-        name: helpers-build
+        name: helpers
         path: helpers
         
   test:
@@ -33,6 +32,6 @@ jobs:
     - uses: actions/checkout@v2
     - uses: actions/download-artifact@v2
     - run: chmod -R +x ./* 
-      working-directory: data-structures-build/tests
+      working-directory: data-structures/tests
     - run: make -s tests
-      working-directory: data-structures-build/tests
+      working-directory: data-structures/tests
