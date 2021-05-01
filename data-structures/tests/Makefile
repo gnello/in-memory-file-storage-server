@@ -1,6 +1,6 @@
 CC = gcc
 CFLAGS += -std=c99 -Wall -pedantic -g
-TARGETS = gnl_list_test gnl_queue_test gnl_ts_queue_test
+TARGETS = gnl_list_test gnl_queue_test gnl_ts_queue_test gnl_stack_test
 HELPERSPATH = ./../../helpers
 LIBS += -Wl,-rpath,$(HELPERSPATH)/lib -L$(HELPERSPATH)/lib -lgnl_colorshell -lgnl_assert
 INCLUDES += -I$(HELPERSPATH)/includes
