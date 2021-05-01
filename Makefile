@@ -1,6 +1,6 @@
 CC = gcc
 CFLAGS += -std=c99 -Wall -pedantic -g
-LIBS += -Wl,-rpath,./data-structures/lib -L./data-structures/lib -lgnl_ts_queue_t
+LIBS += -Wl,-rpath,./data-structures/lib -L./data-structures/lib -lgnl_ts_queue_t -lgnl_ts_stack_t
 INCLUDES += -I./data-structures/includes
 TARGETS = main
 TARGETSPATH = ./dist

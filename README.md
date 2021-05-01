@@ -9,7 +9,7 @@ make
 ```
 then you can start the program
 ```shell
-cd dist/ && ./main
+./dist/main
 ```
 
 ## Tests
