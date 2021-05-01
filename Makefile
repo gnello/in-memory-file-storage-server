@@ -1,9 +1,14 @@
+include .env
+export
+
 CC = gcc
 CFLAGS += -std=c99 -Wall -pedantic -g
-LIBS += -Wl,-rpath,./data-structures/lib -L./data-structures/lib -lgnl_ts_queue_t -lgnl_ts_stack_t
-INCLUDES += -I./data-structures/includes
+
+LIBS += -Wl,-rpath,$(DATA_STRUCTURES_LIB) -L$(DATA_STRUCTURES_LIB) -lgnl_ts_queue_t -lgnl_ts_stack_t
+INCLUDES += -I$(DATA_STRUCTURES_INCLUDES)
+
 TARGETS = main
-TARGETSPATH = ./dist
+TARGETS_PATH = ./dist
 
 .PHONY: all dev tests clean clean-dev helpers data-structures tests-valgrind
 
@@ -12,7 +17,7 @@ VPATH = src
 all: $(TARGETS)
 
 %: %.c data-structures
-	$(CC) $(CFLAGS) $(INCLUDES) $(OPTFLAGS) -o $(TARGETSPATH)/$@ $< $(LDFLAGS) $(LIBS)
+	$(CC) $(CFLAGS) $(INCLUDES) $(OPTFLAGS) -o $(TARGETS_PATH)/$@ $< $(LDFLAGS) $(LIBS)
 
 helpers:
 	cd ./helpers && $(MAKE)
@@ -21,7 +26,7 @@ data-structures:
 	cd ./data-structures && $(MAKE)
 
 # build all the project, test files included
-dev: all
+dev: all helpers
 	cd ./data-structures && $(MAKE) dev
 
 # run all the tests present in this project
@@ -33,7 +38,7 @@ tests-valgrind:
 	cd ./data-structures/tests && $(MAKE) tests-valgrind
 
 clean:
-	cd $(TARGETSPATH) && rm -f $(TARGETS)
+	cd $(TARGETS_PATH) && rm -f $(TARGETS)
 	cd ./helpers && $(MAKE) clean
 	cd ./data-structures && $(MAKE) clean
 

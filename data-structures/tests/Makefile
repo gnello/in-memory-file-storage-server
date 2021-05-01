@@ -1,20 +1,26 @@
+ROOT=../../
+
+include $(ROOT)/.env
+export
+
 CC = gcc
 CFLAGS += -std=c99 -Wall -pedantic -g
-TARGETS = gnl_list_test gnl_queue_test gnl_ts_queue_test gnl_stack_test gnl_ts_stack_test
-HELPERSPATH = ./../../helpers
-LIBS += -Wl,-rpath,$(HELPERSPATH)/lib -L$(HELPERSPATH)/lib -lgnl_colorshell -lgnl_assert
-INCLUDES += -I$(HELPERSPATH)/includes
 
-.PHONY: all clean helpers tests tests-valgrind
+HELPERS_PATH_LIB = $(ROOT)/$(HELPERS_LIB)
+HELPERS_PATH_INCLUDES = $(ROOT)/$(HELPERS_INCLUDES)
+
+LIBS = -Wl,-rpath,$(HELPERS_PATH_LIB) -L$(HELPERS_PATH_LIB) -lgnl_colorshell -lgnl_assert
+INCLUDES = -I$(HELPERS_PATH_INCLUDES)
+
+TARGETS = gnl_list_test gnl_queue_test gnl_ts_queue_test gnl_stack_test gnl_ts_stack_test
+
+.PHONY: all clean tests tests-valgrind
 .SUFFIXES: .c .h
 
 all: $(TARGETS)
 
-%: %.c helpers
+%: %.c
 	$(CC) $(CFLAGS) $(INCLUDES) $(OPTFLAGS) -o $@ $< $(LDFLAGS) $(LIBS)
-
-helpers:
-	cd ./../../helpers && $(MAKE)
 
 clean:
 	-rm -f $(TARGETS)

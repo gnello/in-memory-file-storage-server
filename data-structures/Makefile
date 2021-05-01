@@ -1,8 +1,13 @@
+ROOT=../
+
+include $(ROOT)/.env
+export
+
 CC = gcc
 CFLAGS = -std=c99 -Wall -pedantic
 
 TARGETS = gnl_list_t.so gnl_queue_t.so gnl_ts_queue_t.so gnl_stack_t.so gnl_ts_stack_t.so
-TARGETSPATH = ./lib
+TARGETS_PATH = ./lib
 
 .PHONY: all dev clean
 
@@ -10,13 +15,13 @@ all: $(TARGETS)
 VPATH = src
 
 %.so: %.o
-	$(CC) -shared -o $(TARGETSPATH)/lib$@ $(TARGETSPATH)/$<
+	$(CC) -shared -o $(TARGETS_PATH)/lib$@ $(TARGETS_PATH)/$<
 
 %.o: %.c
-	$(CC) $(CFLAGS) $(INCLUDES) $(OPTFLAGS) -c -fPIC $< -o $(TARGETSPATH)/$@
+	$(CC) $(CFLAGS) $(INCLUDES) $(OPTFLAGS) -c -fPIC $< -o $(TARGETS_PATH)/$@
 
 dev:
 	cd ./tests && $(MAKE)
 
 clean:
-	cd $(TARGETSPATH) && rm -f *.o *.so
+	cd $(TARGETS_PATH) && rm -f *.o *.so
