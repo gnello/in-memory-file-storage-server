@@ -1,10 +1,10 @@
 CC = gcc
 CFLAGS += -std=c99 -Wall -pedantic -g
-LIBS += -Wl,-rpath,./../../helpers/lib -L./../../helpers/lib -lgnl_colorshell -lgnl_assert
-INCLUDES += -I./../../helpers/includes
 TARGETS = gnl_list_test gnl_queue_test gnl_ts_queue_test
 TARGETSPATH = ./../../dist/data-structures/tests
 REALTARGETSPATH = $(realpath $(TARGETSPATH))
+LIBS += -Wl,-rpath,$(REALTARGETSPATH)/../../helpers/lib -L$(REALTARGETSPATH)/../../helpers/lib -lgnl_colorshell -lgnl_assert
+INCLUDES += -I$(REALTARGETSPATH)/../../helpers/includes
 
 .PHONY: all clean helpers tests
 .SUFFIXES: .c .h
@@ -22,4 +22,4 @@ clean:
 
 tests:
 	@echo "\nRunning data structures suite test...\n\n"
-	@$(foreach test,$(TARGETS),./$(REALTARGETSPATH)/$(test);)
+	@$(foreach test,$(TARGETS),cd $(REALTARGETSPATH) && ./$(test);)

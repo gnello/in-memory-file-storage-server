@@ -5,12 +5,12 @@ TARGETS = gnl_list_t.so gnl_queue_t.so gnl_ts_queue_t.so
 TARGETSPATH = ./../dist/data-structures/lib
 REALTARGETSPATH = $(realpath $(TARGETSPATH))
 
-.PHONY: all dev clean tests
+.PHONY: all dev copyheaders clean tests
 
 all: $(TARGETS)
 VPATH = src
 
-%.so: %.o
+%.so: %.o copyheaders
 	$(CC) -shared -o $(REALTARGETSPATH)/lib$@ $(REALTARGETSPATH)/$<
 
 %.o: %.c
@@ -19,8 +19,11 @@ VPATH = src
 dev:
 	cd ./tests && $(MAKE)
 
+copyheaders:
+	cp includes/* $(REALTARGETSPATH)/../includes
+
 clean:
-	cd $(REALTARGETSPATH) && rm -f *.o *.so
+	cd $(REALTARGETSPATH) && rm -f *.o *.so && cd ../includes && rm -f *.h
 
 tests:
 	cd ./tests && $(MAKE) tests
