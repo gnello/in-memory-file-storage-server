@@ -2,22 +2,18 @@ CC = gcc
 CFLAGS = -std=c99 -Wall -pedantic
 
 TARGETS = gnl_colorshell.so gnl_assert.so
-TARGETSPATH = ./../dist/helpers/lib
-REALTARGETSPATH = $(realpath $(TARGETSPATH))
+TARGETSPATH = ./lib
 
-.PHONY: all clean copyheaders
+.PHONY: all clean
 
 all: $(TARGETS)
 VPATH = src
 
-%.so: %.o copyheaders
-	$(CC) -shared -o $(REALTARGETSPATH)/lib$@ $(REALTARGETSPATH)/$<.o
+%.so: %.o
+	$(CC) -shared -o $(TARGETSPATH)/lib$@ $(TARGETSPATH)/$<.o
 
 %.o: %.c
-	$(CC) $(CFLAGS) $(INCLUDES) $(OPTFLAGS) -c -fPIC $< -o $(REALTARGETSPATH)/$@.o
-
-copyheaders:
-	cp includes/* $(REALTARGETSPATH)/../includes
+	$(CC) $(CFLAGS) $(INCLUDES) $(OPTFLAGS) -c -fPIC $< -o $(TARGETSPATH)/$@.o
 
 clean:
-	-rm -f $(REALTARGETSPATH)/*.o $(REALTARGETSPATH)/*.so $(REALTARGETSPATH)/../includes/*.h
+	-rm -f $(TARGETSPATH)/*.o $(TARGETSPATH)/*.so

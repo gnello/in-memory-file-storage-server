@@ -1,10 +1,9 @@
 CC = gcc
 CFLAGS += -std=c99 -Wall -pedantic -g
 TARGETS = gnl_list_test gnl_queue_test gnl_ts_queue_test
-TARGETSPATH = ./../../dist/data-structures/tests
-REALTARGETSPATH = $(realpath $(TARGETSPATH))
-LIBS += -Wl,-rpath,$(REALTARGETSPATH)/../../helpers/lib -L$(REALTARGETSPATH)/../../helpers/lib -lgnl_colorshell -lgnl_assert
-INCLUDES += -I$(REALTARGETSPATH)/../../helpers/includes
+HELPERSPATH = ./../../helpers
+LIBS += -Wl,-rpath,$(HELPERSPATH)/lib -L$(HELPERSPATH)/lib -lgnl_colorshell -lgnl_assert
+INCLUDES += -I$(HELPERSPATH)/includes
 
 .PHONY: all clean helpers tests
 .SUFFIXES: .c .h
@@ -12,14 +11,14 @@ INCLUDES += -I$(REALTARGETSPATH)/../../helpers/includes
 all: $(TARGETS)
 
 %: %.c helpers
-	$(CC) $(CFLAGS) $(INCLUDES) $(OPTFLAGS) -o $(REALTARGETSPATH)/$@ $< $(LDFLAGS) $(LIBS)
+	$(CC) $(CFLAGS) $(INCLUDES) $(OPTFLAGS) -o $@ $< $(LDFLAGS) $(LIBS)
 
 helpers:
 	cd ./../../helpers && $(MAKE)
 
 clean:
-	cd $(REALTARGETSPATH) && rm -f $(TARGETS)
+	-rm -f $(TARGETS)
 
 tests:
 	echo "\nRunning data structures suite test...\n\n"
-	$(foreach test,$(TARGETS),$(REALTARGETSPATH)/$(test);)
+	$(foreach test,$(TARGETS),./$(test);)
