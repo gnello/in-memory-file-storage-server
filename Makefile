@@ -25,11 +25,11 @@ dev: all
 	cd ./data-structures && $(MAKE) dev
 
 # run all the tests present in this project
-tests: all helpers
+tests:
 	cd ./data-structures/tests && $(MAKE) tests
 
 # run all tests present in this project with valgrind
-tests-valgrind: all helpers
+tests-valgrind:
 	cd ./data-structures/tests && $(MAKE) tests-valgrind
 
 clean:

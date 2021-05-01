@@ -19,13 +19,13 @@ make dev
 ```
 then you can run the tests
 ```shell
-make tests
+make -s tests
 ```
 
 ### Valgrind
 To run the tests with valgrind simply run the following command
 ```shell
-make tests-valgrind
+make -s tests-valgrind
 ```
 
 ## Clean
