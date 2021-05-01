@@ -32,5 +32,7 @@ jobs:
     steps:
     - uses: actions/checkout@v2
     - uses: actions/download-artifact@v2
+    - run: chmod -R +x ./* 
+      working-directory: data-structures-build/tests
     - run: make -s tests
       working-directory: data-structures-build/tests
