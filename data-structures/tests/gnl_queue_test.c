@@ -172,7 +172,12 @@ int can_use_a_fifo_queue() {
 
     int res;
     for (size_t i=0; i<size; i++) {
-        res = *(int *)gnl_queue_dequeue(queue);
+        void *dequeued = gnl_queue_dequeue(queue);
+        if (dequeued == NULL) {
+            return -1;
+        }
+
+        res = *(int *)dequeued;
 
         if (res != i) {
             return -1;
