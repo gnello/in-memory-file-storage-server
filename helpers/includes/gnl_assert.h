@@ -10,6 +10,6 @@
  * @param fun       The callable function of which check the result.
  * @param fun_desc  The message to print after the assert message.
  */
-extern void gnl_assert(int (*fun)(), char *fun_desc);
+extern void gnl_assert(int (*fun)(), const char *fun_desc);
 
 #endif //GNL_ASSERT_H

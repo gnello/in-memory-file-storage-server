@@ -9,7 +9,7 @@
  *
  * @return          The standard printf return.
  */
-extern int gnl_printf_red(const char * message);
+extern int gnl_printf_red(char * message);
 
 /**
  * Print the message in green.
@@ -18,7 +18,7 @@ extern int gnl_printf_red(const char * message);
  *
  * @return          The standard printf return.
  */
-extern int gnl_printf_green(const char * message);
+extern int gnl_printf_green(char * message);
 
 /**
  * Print the message in yellow.
@@ -27,7 +27,7 @@ extern int gnl_printf_green(const char * message);
  *
  * @return          The standard printf return.
  */
-extern int gnl_printf_yellow(const char * message);
+extern int gnl_printf_yellow(char * message);
 
 /**
  * Print the message in blu.
@@ -36,7 +36,7 @@ extern int gnl_printf_yellow(const char * message);
  *
  * @return          The standard printf return.
  */
-extern int gnl_printf_blu(const char * message);
+extern int gnl_printf_blu(char * message);
 
 /**
  * Print the message in magenta.
@@ -45,7 +45,7 @@ extern int gnl_printf_blu(const char * message);
  *
  * @return          The standard printf return.
  */
-extern int gnl_printf_magenta(const char * message);
+extern int gnl_printf_magenta(char * message);
 
 /**
  * Print the message in cyan.
@@ -54,7 +54,7 @@ extern int gnl_printf_magenta(const char * message);
  *
  * @return          The standard printf return.
  */
-extern int gnl_printf_cyan(const char * message);
+extern int gnl_printf_cyan(char * message);
 
 /**
  * Print the message in white.
@@ -63,6 +63,6 @@ extern int gnl_printf_cyan(const char * message);
  *
  * @return          The standard printf return.
  */
-extern int gnl_printf_white(const char * message);
+extern int gnl_printf_white(char * message);
 
 #endif //GNL_COLORSHELL_H

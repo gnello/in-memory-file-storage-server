@@ -10,30 +10,30 @@
 #define WHT "\x1B[37m"
 #define RESET "\x1B[0m"
 
-int gnl_printf_red(char * message) {
+int gnl_printf_red(const char * message) {
     return printf(RED "%s" RESET, message);
 }
 
-int gnl_printf_green(char * message) {
+int gnl_printf_green(const char * message) {
     return printf(GRN "%s" RESET, message);
 }
 
-int gnl_printf_yellow(char * message) {
+int gnl_printf_yellow(const char * message) {
     return printf(YEL "%s" RESET, message);
 }
 
-int gnl_printf_blu(char * message) {
+int gnl_printf_blu(const char * message) {
     return printf(BLU "%s" RESET, message);
 }
 
-int gnl_printf_magenta(char * message) {
+int gnl_printf_magenta(const char * message) {
     return printf(MAG "%s" RESET, message);
 }
 
-int gnl_printf_cyan(char * message) {
+int gnl_printf_cyan(const char * message) {
     return printf(CYN "%s" RESET, message);
 }
 
-int gnl_printf_white(char * message) {
+int gnl_printf_white(const char * message) {
     return printf(WHT "%s" RESET, message);
 }
