@@ -4,7 +4,7 @@
 
 /**
  * Check whether the return of *fun() is success or error
- * and print a green or red assert message depends on it,
+ * and print a green or red assert message depending on it,
  * followed by the fun_desc string.
  *
  * @param fun       The callable function of which check the result.
