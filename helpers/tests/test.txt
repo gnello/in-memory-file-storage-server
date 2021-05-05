@@ -1,0 +1,11 @@
+# This is a test file used by the gnl_txtenv_test.c file
+
+ENV=test
+
+# random comment
+
+TEST1=test1
+TEST2=test2
+
+TEST3=test3
+TEST3=override
