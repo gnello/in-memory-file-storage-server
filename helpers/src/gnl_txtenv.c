@@ -1,3 +1,6 @@
+/*
+ * This define allows the use of strtok_r and setenv functions.
+ */
 #define _POSIX_C_SOURCE 200112L
 
 #include <stdio.h>
@@ -100,3 +103,6 @@ int gnl_txtenv_load(const char * path, int overwrite) {
 
 #undef BUFFER_SIZE
 #undef _POSIX_C_SOURCE
+
+// restore the original POSIX_C_SOURCE
+#define _POSIX_C_SOURCE 200809L
