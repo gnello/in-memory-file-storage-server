@@ -6,7 +6,7 @@ export
 CC = gcc
 CFLAGS = -std=c99 -Wall -pedantic
 
-TARGETS = gnl_colorshell.so gnl_assert.so
+TARGETS = gnl_colorshell.so gnl_assert.so gnl_txtenv.so
 TARGETS_PATH = ./lib
 
 .PHONY: all clean

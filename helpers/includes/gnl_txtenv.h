@@ -1,68 +1,14 @@
 
-#ifndef GNL_COLORSHELL_H
-#define GNL_COLORSHELL_H
+#ifndef GNL_TXTENV_H
+#define GNL_TXTENV_H
 
 /**
- * Print the message in red.
  *
- * @param message   The message to print.
+ * @param path      The path of the .txt config file.
+ * @param overwrite If !=0 overwrite an existing env variable.
  *
- * @return          The standard printf return.
+ * @return          Returns 0 on success, -1 on failure.
  */
-extern int gnl_printf_red(char * message);
+extern int gnl_txtenv_load(const char * path, int overwrite);
 
-/**
- * Print the message in green.
- *
- * @param message   The message to print.
- *
- * @return          The standard printf return.
- */
-extern int gnl_printf_green(char * message);
-
-/**
- * Print the message in yellow.
- *
- * @param message   The message to print.
- *
- * @return          The standard printf return.
- */
-extern int gnl_printf_yellow(char * message);
-
-/**
- * Print the message in blu.
- *
- * @param message   The message to print.
- *
- * @return          The standard printf return.
- */
-extern int gnl_printf_blu(char * message);
-
-/**
- * Print the message in magenta.
- *
- * @param message   The message to print.
- *
- * @return          The standard printf return.
- */
-extern int gnl_printf_magenta(char * message);
-
-/**
- * Print the message in cyan.
- *
- * @param message   The message to print.
- *
- * @return          The standard printf return.
- */
-extern int gnl_printf_cyan(char * message);
-
-/**
- * Print the message in white.
- *
- * @param message   The message to print.
- *
- * @return          The standard printf return.
- */
-extern int gnl_printf_white(char * message);
-
-#endif //GNL_COLORSHELL_H
+#endif //GNL_TXTENV_H

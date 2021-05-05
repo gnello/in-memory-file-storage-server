@@ -32,10 +32,12 @@ dev: all helpers
 # run all the tests present in this project
 tests:
 	cd ./data-structures/tests && $(MAKE) tests
+	cd ./helpers/tests && $(MAKE) tests
 
 # run all tests present in this project with valgrind
 tests-valgrind:
 	cd ./data-structures/tests && $(MAKE) tests-valgrind
+	cd ./helpers/tests && $(MAKE) tests-valgrind
 
 clean:
 	cd $(TARGETS_PATH) && rm -f $(TARGETS)
