@@ -13,12 +13,18 @@ jobs:
 
     steps:
     - uses: actions/checkout@v2
+
+    # build
     - run: cp .env.example .env
     - run: make dev
+
+    # upload data-structures
     - uses: actions/upload-artifact@v2
       with:
         name: data-structures
         path: data-structures
+
+    # upload helpers
     - uses: actions/upload-artifact@v2
       with:
         name: helpers
@@ -31,9 +37,17 @@ jobs:
 
     steps:
     - uses: actions/checkout@v2
+
+      # test data-structures
     - uses: actions/download-artifact@v2
     - run: chmod -R +x ./* 
       working-directory: data-structures/tests
-    - run: cp .env.example .env
     - run: make -s tests
       working-directory: data-structures/tests
+
+    # test helpers
+    - uses: actions/download-artifact@v2
+    - run: chmod -R +x ./*
+      working-directory: helpers/tests
+    - run: make -s tests
+      working-directory: helpers/tests
