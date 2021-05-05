@@ -27,7 +27,8 @@ data-structures:
 
 # build all the project, test files included
 dev: all helpers
-	cd ./data-structures && $(MAKE) dev
+	cd ./data-structures/tests && $(MAKE)
+	cd ./helpers/tests && $(MAKE)
 
 # run all the tests present in this project
 tests:
@@ -46,3 +47,4 @@ clean:
 
 clean-dev: clean
 	cd ./data-structures/tests && $(MAKE) clean
+	cd ./helpers/tests && $(MAKE) clean

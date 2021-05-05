@@ -20,8 +20,5 @@ VPATH = src
 %.o: %.c
 	$(CC) $(CFLAGS) $(INCLUDES) $(OPTFLAGS) -c -fPIC $< -o $(TARGETS_PATH)/$@
 
-dev:
-	cd ./tests && $(MAKE)
-
 clean:
 	cd $(TARGETS_PATH) && rm -f *.o *.so
