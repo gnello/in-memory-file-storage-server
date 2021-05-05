@@ -4,7 +4,7 @@
 
 ## Usage
 
-###Compiling:
+### Compiling:
 
 - `make`: Compiles the main in `bin/main`
 - `make helpers` : Compiles the helpers library in `helpers/lib`
