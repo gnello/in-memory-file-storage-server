@@ -27,12 +27,14 @@ extern int gnl_list_append(gnl_list_t **list, void *el);
 /**
  * Check whether the element "el" is present into the list.
  *
- * @param list  The list where to search fot the element "el".
- * @param el    The element to be searched.
+ * @param list      The list where to search fot the element "el".
+ * @param el        The element to be searched.
+ * @param compare   The eventual function to use to make the comparison,
+ *                  if NULL is passed a standard comparison will be performed.
  *
- * @return int  Returns 1 if the element is present, 0 otherwise.
+ * @return int      Returns 1 if the element is present, 0 otherwise.
  */
-extern int gnl_list_search(gnl_list_t *list, const void *el);
+extern int gnl_list_search(gnl_list_t *list, const void *el, int (*compare)(const void *a, const void *b));
 
 /**
  * Remove an element "el" from a linked list "list".

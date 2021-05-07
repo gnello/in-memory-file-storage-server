@@ -58,12 +58,18 @@ int gnl_list_append(gnl_list_t **list, void *el) {
     return 0;
 }
 
-int gnl_list_search(gnl_list_t *list, const void *el) {
+int gnl_list_search(gnl_list_t *list, const void *el, int (*compare)(const void *a, const void *b)) {
     gnl_list_t *current = list;
 
     while (current != NULL) {
-        if (current->el == el) {
-            return 1;
+        if (compare == NULL) {
+            if (current->el == el) {
+                return 1;
+            }
+        } else {
+            if (compare(current->el, el) == 0) {
+                return 1;
+            }
         }
         current = current->next;
     }
