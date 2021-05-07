@@ -9,7 +9,9 @@
  *
  * @param fun       The callable function of which check the result.
  * @param fun_desc  The message to print after the assert message.
+ *
+ * @return int      Returns the return value of fun().
  */
-extern void gnl_assert(int (*fun)(), const char *fun_desc);
+extern int gnl_assert(int (*fun)(), const char *fun_desc);
 
 #endif //GNL_ASSERT_H
