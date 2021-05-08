@@ -386,7 +386,7 @@ int can_delete_a_struct() {
         return -1;
     }
 
-    gnl_list_delete(&list, &el4);
+    //gnl_list_delete(&list, &el4);
 
     int res = gnl_list_search((void *)list, (void *)&el4, test_cmp);
 
