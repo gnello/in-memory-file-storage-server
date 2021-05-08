@@ -386,7 +386,7 @@ int can_delete_a_struct() {
         return -1;
     }
 
-    //gnl_list_delete(&list, &el4);
+    gnl_list_delete(&list, &el4);
 
     int res = gnl_list_search((void *)list, (void *)&el4, test_cmp);
 
@@ -396,38 +396,26 @@ int can_delete_a_struct() {
 }
 
 int main() {
-    int tests = 12;
-    int res[tests];
-
     gnl_printf_yellow("> gnl_list_t test:\n\n");
 
+    gnl_assert(can_insert_int, "can insert an int element at the beginning of the list.");
+    gnl_assert(can_append_int, "can append an int element at the end of the list.");
+    gnl_assert(can_find_an_int, "can check whether an int element is present into the list.");
+    gnl_assert(can_delete_an_int, "can delete an int element from the list.");
 
-    res[0] = gnl_assert(can_insert_int, "can insert an int element at the beginning of the list.");
-    res[1] = gnl_assert(can_append_int, "can append an int element at the end of the list.");
-    res[2] = gnl_assert(can_find_an_int, "can check whether an int element is present into the list.");
-    res[3] = gnl_assert(can_delete_an_int, "can delete an int element from the list.");
+    gnl_assert(can_insert_string, "can insert a string element at the beginning of the list.");
+    gnl_assert(can_append_string, "can append a string element at the end of the list.");
+    gnl_assert(can_find_a_string, "can check whether a string element is present into the list.");
+    gnl_assert(can_delete_a_string, "can delete a string element from the list.");
 
-    res[4] = gnl_assert(can_insert_string, "can insert a string element at the beginning of the list.");
-    res[5] = gnl_assert(can_append_string, "can append a string element at the end of the list.");
-    res[6] = gnl_assert(can_find_a_string, "can check whether a string element is present into the list.");
-    res[7] = gnl_assert(can_delete_a_string, "can delete a string element from the list.");
-
-    res[8] = gnl_assert(can_insert_struct, "can insert a struct element at the beginning of the list.");
-    res[9] = gnl_assert(can_append_struct, "can append a struct element at the end of the list.");
-    res[10] = gnl_assert(can_find_struct, "can check whether a struct element is present into the list.");
-    res[11] = gnl_assert(can_delete_a_struct, "can delete a struct element from the list.");
+    gnl_assert(can_insert_struct, "can insert a struct element at the beginning of the list.");
+    gnl_assert(can_append_struct, "can append a struct element at the end of the list.");
+    gnl_assert(can_find_struct, "can check whether a struct element is present into the list.");
+    gnl_assert(can_delete_a_struct, "can delete a struct element from the list.");
 
     // the gnl_list_destroy method is implicitly tested in every
     // assert, if you don't believe it, run this tests with
     // valgrind and look for memory leaks, good luck!
 
     printf("\n");
-
-    for (size_t i=0; i<tests; i++) {
-        if (res[i] != 0) {
-            return -1;
-        }
-    }
-
-    return 0;
 }
