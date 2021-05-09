@@ -1,52 +1,17 @@
 
-#ifndef GNL_TS_STACK_H
-#define GNL_TS_STACK_H
+#ifndef GNL_MIN_HEAP_H
+#define GNL_MIN_HEAP_H
 
-typedef struct gnl_ts_stack_t gnl_ts_stack_t;
+typedef struct gnl_min_heap_t gnl_min_heap_t;
 
-/**
- * Create a new thread-safe stack.
- *
- * @return stack_t  Returns the new thread-safe stack created on success,
- *                  NULL otherwise.
- */
-extern gnl_ts_stack_t *gnl_ts_stack_init();
+extern gnl_min_heap_t *gnl_min_heap_init();
 
-/**
- * Destroy a thread-safe stack.
- *
- * @param s     The stack to be destroyed.
- *
- * @return int  Returns 0 on success, -1 otherwise.
- */
-extern int gnl_ts_stack_destroy(gnl_ts_stack_t *s);
+extern void gnl_min_heap_destroy(gnl_min_heap_t *mh);
 
-/**
- * Put an element "el" into the stack "s".
- *
- * @param s     The stack where to enstack the element.
- * @param el    The element.
- *
- * @return int  Returns 0 on success, -1 otherwise.
- */
-extern int gnl_ts_stack_push(gnl_ts_stack_t *s, void *el);
+extern int gnl_min_heap_insert(gnl_min_heap_t *mh, void *el, int key);
 
-/**
- * Delete and return an element from the stack "s".
- *
- * @param s         The stack from where to destack the element.
- *
- * @return void*    Returns the element on success, if the
- *                  stack "s" is empty returns NULL.
- */
-extern void *gnl_ts_stack_pop(gnl_ts_stack_t *s);
+extern void *gnl_min_heap_extract_min(gnl_min_heap_t *mh);
 
-/**
- * Return the size of the stack "s".
- *
- * @param s     The stack from where to get the size.
- * @return int  Returns the stack size.
- */
-extern unsigned long gnl_ts_stack_size(gnl_ts_stack_t *s);
+extern int gnl_min_heap_decrease_key(gnl_min_heap_t *mh, int i, int key);
 
-#endif //GNL_TS_STACK_H
+#endif //GNL_MIN_HEAP_H

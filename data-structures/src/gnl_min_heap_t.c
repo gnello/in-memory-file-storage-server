@@ -1,97 +1,154 @@
 /*
- * This is a simple stack implementation, it does not intend to be exhaustive
- * but it's nice :)
+ * This is a simple min heap implementation, it does not intend to be exhaustive
+ * but it'mh nice :)
  */
 
 #include <stdio.h>
 #include <stdlib.h>
-#include "../includes/gnl_stack_t.h"
+#include <errno.h>
+#include <limits.h>
+#include "../includes/gnl_min_heap_t.h"
 
-// the node of the stack
-struct gnl_stack_node {
+// the node of the min heap
+struct gnl_min_heap_node {
     void *data;
-    struct gnl_stack_node *next;
+    int key;
 };
 
-// the stack
-struct gnl_stack_t {
-    struct gnl_stack_node *top;
+// the min heap
+struct gnl_min_heap_t {
     unsigned long size;
+    struct gnl_min_heap_node *list;
 };
 
-gnl_stack_t *gnl_stack_init() {
-    gnl_stack_t *stack = (struct gnl_stack_t *)malloc(sizeof(struct gnl_stack_t));
-
-    if (stack == NULL) {
-        perror("malloc");
-
-        return NULL;
-    }
-
-    // init the stack implementation data
-    stack->top = NULL;
-    stack->size = 0;
-
-    return stack;
+static int parent(int i) {
+    return i/2;
 }
 
-void gnl_stack_destroy(gnl_stack_t *s) {
-    if (s != NULL) {
-        // destroy every node
-        while(s->top != NULL) {
-            struct gnl_stack_node *temp = s->top;
-            s->top = s->top->next;
-
-            free(temp);
-        }
-
-        free(s);
-    }
+static int left(int i) {
+    return 2*i;
 }
 
-int gnl_stack_push(gnl_stack_t *s, void *el) {
-    // create the new stack node
-    struct gnl_stack_node *temp = (struct gnl_stack_node *)malloc(sizeof(struct gnl_stack_node));
+static int right(int i) {
+    return (2*i) + 1;
+}
 
-    if (temp == NULL) {
-        perror("malloc");
-
-        return -1;
-    }
-
-    temp->data = el;
-    temp->next = NULL;
-
-    // put the element into the top of the stack
-    if (s->top != NULL) {
-        temp->next = s->top;
-    }
-
-    s->top = temp;
-    s->size++;
+static int swap(gnl_min_heap_t *mh, int i, int j) {
+    struct gnl_min_heap_node tmp = mh->list[i];
+    mh->list[i] = mh->list[j];
+    mh->list[j] = tmp;
 
     return 0;
 }
 
-void *gnl_stack_pop(gnl_stack_t *s) {
-    // if stack is empty return NULL.
-    if (s->top == NULL) {
+static int min_heapify(gnl_min_heap_t *mh, int i) {
+    int l = left(i);
+    int r = right(i);
+    int smallest = i;
+
+    if (l < mh->size && (*(mh->list + l)).key < (*(mh->list + i)).key) {
+        smallest = l;
+    }
+
+    if (r < mh->size && (*(mh->list + r)).key < (*(mh->list + smallest)).key) {
+        smallest = r;
+    }
+
+    if (smallest != i) {
+        swap(mh, i, smallest);
+        min_heapify(mh, smallest);
+    }
+
+    return 0;
+}
+
+gnl_min_heap_t *gnl_min_heap_init() {
+    gnl_min_heap_t *mh = (struct gnl_min_heap_t *)malloc(sizeof(struct gnl_min_heap_t));
+
+    if (mh == NULL) {
+        perror("malloc");
+
         return NULL;
     }
 
-    // move top to the next node
-    struct gnl_stack_node *temp = s->top;
+    // init the min heap implementation data
+    mh->list = NULL;
+    mh->size = 0;
 
-    s->top = s->top->next;
-    s->size--;
-
-    void *data = temp->data;
-
-    free(temp);
-
-    return data;
+    return mh;
 }
 
-unsigned long gnl_stack_size(const gnl_stack_t *s) {
-    return s->size;
+
+void gnl_min_heap_destroy(gnl_min_heap_t *mh) {
+    if (mh != NULL) {
+        if (mh->list) {
+            free(mh->list);
+        }
+        free(mh);
+    }
 }
+
+
+int gnl_min_heap_insert(gnl_min_heap_t *mh, void *el, int key) {
+    // allocate space for the new node of the min heap
+    struct gnl_min_heap_node *temp;
+    temp = realloc(mh->list, (mh->size + 1) * sizeof(struct gnl_min_heap_node));
+
+    if (temp == NULL) {
+        perror("realloc");
+
+        return -1;
+    }
+
+    mh->list = temp;
+
+    struct gnl_min_heap_node node;
+    node.data = el;
+    node.key = INT_MAX;
+
+    *(mh->list + mh->size) = node;
+
+    if (gnl_min_heap_decrease_key(mh, mh->size, key) != 0) {
+        //TODO: cosa fare con errno? va fatto galleggiare?
+        return -1;
+    }
+
+    mh->size++;
+
+    return 0;
+}
+
+void *gnl_min_heap_extract_min(gnl_min_heap_t *mh) {
+    if (mh->size < 1) {
+        errno = EPERM;
+
+        return NULL;
+    }
+
+    void *min = (*(mh->list)).data;
+
+    mh->size--;
+    mh->list = (mh->list + mh->size);
+
+    min_heapify(mh, 0);
+
+    return min;
+}
+
+int gnl_min_heap_decrease_key(gnl_min_heap_t *mh, int i, int key) {
+    if (key > (*(mh->list + i)).key) {
+        errno = EINVAL;
+
+        return -1;
+    }
+
+    (*(mh->list + i)).key = key;
+
+    while (i > 0 && (*(mh->list + parent(i))).key > (*(mh->list + i)).key) {
+        swap(mh, i, parent(i));
+        i = parent(i);
+    }
+
+    return 0;
+}
+

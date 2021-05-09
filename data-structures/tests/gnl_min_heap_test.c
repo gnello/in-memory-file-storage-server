@@ -2,205 +2,71 @@
 #include <string.h>
 #include <gnl_colorshell.h>
 #include <gnl_assert.h>
-#include "../src/gnl_stack_t.c"
+#include "../src/gnl_min_heap_t.c"
+#include "./data_provider.c"
 
-int can_create_a_stack() {
-    gnl_stack_t *stack;
+int can_create_a_min_heap() {
+    gnl_min_heap_t *mh;
 
-    stack = gnl_stack_init();
+    mh = gnl_min_heap_init();
 
-    if (stack == NULL) {
+    if (mh == NULL) {
         return -1;
     }
 
-    gnl_stack_destroy(stack);
+    gnl_min_heap_destroy(mh);
 
     return 0;
 }
 
-int can_push_an_int() {
-    gnl_stack_t *stack;
+int can_insert_int() {
+    gnl_min_heap_t *mh;
 
-    stack = gnl_stack_init();
+    mh = gnl_min_heap_init();
 
-    if (stack == NULL) {
+    if (mh == NULL) {
         return -1;
     }
 
-    if (gnl_stack_size(stack) != 0) {
+    if (mh->size != 0) {
         return -1;
     }
 
-    int expected = 1;
-    gnl_stack_push(stack, &expected);
+    gnl_min_heap_insert(mh, &test_int_el1, 1);
 
-    if (gnl_stack_size(stack) == 0) {
+    if (mh->size == 0) {
         return -1;
     }
 
-    gnl_stack_destroy(stack);
+    gnl_min_heap_destroy(mh);
 
     return 0;
 }
 
-int can_pop_an_int() {
-    gnl_stack_t *stack;
+int can_extract_min() {
+    gnl_min_heap_t *mh;
 
-    stack = gnl_stack_init();
+    mh = gnl_min_heap_init();
 
-    if (stack == NULL) {
+    if (mh == NULL) {
         return -1;
     }
 
-    int expected = 99;
-    gnl_stack_push(stack, &expected);
-
-    if (gnl_stack_size(stack) == 0) {
+    if (mh->size != 0) {
         return -1;
     }
 
-    void *res = gnl_stack_pop(stack);
+    gnl_min_heap_insert(mh, &test_int_el1, 2);
+    gnl_min_heap_insert(mh, &test_int_el2, 0);
+    //gnl_min_heap_insert(mh, &test_int_el3, 3);
+    //gnl_min_heap_insert(mh, &test_int_el4, 1);
+    //gnl_min_heap_insert(mh, &test_int_el5, 4);
 
-    if (res == NULL) {
+    if (*(int *)gnl_min_heap_extract_min(mh) != test_int_el2) {
         return -1;
     }
 
-    int actual = *(int *)res;
-
-    if (expected != actual) {
-        return -1;
-    }
-
-    gnl_stack_destroy(stack);
-
-    return 0;
-}
-
-int can_push_a_string() {
-    gnl_stack_t *stack;
-
-    stack = gnl_stack_init();
-
-    if (stack == NULL) {
-        return -1;
-    }
-
-    if (gnl_stack_size(stack) != 0) {
-        return -1;
-    }
-
-    char *expected = "this is a test.";
-    gnl_stack_push(stack, expected);
-
-    if (gnl_stack_size(stack) == 0) {
-        return -1;
-    }
-
-    gnl_stack_destroy(stack);
-
-    return 0;
-}
-
-int can_pop_a_string() {
-    gnl_stack_t *stack;
-
-    stack = gnl_stack_init();
-
-    if (stack == NULL) {
-        return -1;
-    }
-
-    char *expected = "this is a test.";
-    gnl_stack_push(stack, expected);
-
-    if (gnl_stack_size(stack) == 0) {
-        return -1;
-    }
-
-    void *res = gnl_stack_pop(stack);
-
-    if (res == NULL) {
-        return -1;
-    }
-
-    char *actual = (char *)res;
-
-    if (strcmp(expected, actual) != 0) {
-        return -1;
-    }
-
-    gnl_stack_destroy(stack);
-
-    return 0;
-}
-
-int can_get_the_stack_size() {
-    gnl_stack_t *stack;
-
-    stack = gnl_stack_init();
-
-    if (stack == NULL) {
-        return -1;
-    }
-
-    int expected = 150;
-    for (size_t i=0; i<expected; i++) {
-        gnl_stack_push(stack, &i);
-    }
-
-    if (gnl_stack_size(stack) != expected) {
-        return -1;
-    }
-
-    gnl_stack_destroy(stack);
-
-    return 0;
-}
-
-int can_use_a_lifo_stack() {
-    gnl_stack_t *stack;
-
-    stack = gnl_stack_init();
-
-    int size = 150;
-    int store[size];
-
-    for (size_t i=0; i<size; i++) {
-        store[i] = i;
-        gnl_stack_push(stack, &store[i]);
-    }
-
-    int res;
-    for (size_t i=1; i<=size; i++) {
-        void *popped = gnl_stack_pop(stack);
-        if (popped == NULL) {
-            return -1;
-        }
-
-        res = *(int *)popped;
-
-        if (res != (size - i)) {
-            return -1;
-        }
-    }
-
-    gnl_stack_destroy(stack);
-
-    return 0;
-}
-
-int can_get_null_on_an_empty_stack_pop() {
-    gnl_stack_t *stack;
-
-    stack = gnl_stack_init();
-
-    void *res = gnl_stack_pop(stack);
-
-    if (res != NULL) {
-        return -1;
-    }
-
-    gnl_stack_destroy(stack);
+    gnl_min_heap_destroy(mh);
 
     return 0;
 }
@@ -208,20 +74,11 @@ int can_get_null_on_an_empty_stack_pop() {
 int main() {
     gnl_printf_yellow("> gnl_stack_t tests:\n\n");
 
-    gnl_assert(can_create_a_stack, "can create a stack.");
+    gnl_assert(can_create_a_min_heap, "can create a min heap.");
+    gnl_assert(can_insert_int, "can insert an int element into a min heap.");
+    gnl_assert(can_extract_min, "can extract the min of a min heap.");
 
-    gnl_assert(can_push_an_int, "can push an int element into a stack.");
-    gnl_assert(can_pop_an_int, "can pop an int element from a stack.");
-
-    gnl_assert(can_push_a_string, "can push a string element into a stack.");
-    gnl_assert(can_pop_a_string, "can pop a string element from a stack.");
-
-    gnl_assert(can_get_the_stack_size, "can get the size of a stack.");
-    gnl_assert(can_use_a_lifo_stack, "can respect the LIFO protocol.");
-
-    gnl_assert(can_get_null_on_an_empty_stack_pop, "can get null on empty stack pop.");
-
-    // the gnl_stack_destroy method is implicitly tested in every
+    // the gnl_min_heap_destroy method is implicitly tested in every
     // assert, if you don't believe it, run this tests with
     // valgrind and look for memory leaks, good luck!
 
