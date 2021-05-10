@@ -2,6 +2,17 @@
 #ifndef GNL_STACK_H
 #define GNL_STACK_H
 
+/**
+ * Holds the stack information.
+ *
+ * struct gnl_stack_t {
+ *     struct gnl_stack_node *top;
+ *     unsigned long size;
+ * };
+ *
+ * top  The pointer to the first element of the stack.
+ * size The size of the stack.
+ */
 typedef struct gnl_stack_t gnl_stack_t;
 
 /**

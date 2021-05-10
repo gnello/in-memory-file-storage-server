@@ -19,7 +19,6 @@ struct gnl_min_heap_node {
 struct gnl_min_heap_t {
     unsigned long size;
     struct gnl_min_heap_node *list;
-    void *hash;
 };
 
 /**

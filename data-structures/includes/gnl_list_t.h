@@ -2,6 +2,17 @@
 #ifndef GNL_LIST_H
 #define GNL_LIST_H
 
+/**
+ * Holds the list information.
+ *
+ * struct gnl_list_t {
+ *     void *el;
+ *     struct gnl_list_t *next;
+ * };
+ *
+ * el   The element of the list node.
+ * next The pointer to the next element of the list.
+ */
 typedef struct gnl_list_t gnl_list_t;
 
 /**
