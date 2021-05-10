@@ -29,18 +29,21 @@ int can_insert_int() {
     }
 
     if (mh->size != 0) {
+        gnl_min_heap_destroy(mh);
         return -1;
     }
 
     gnl_min_heap_insert(mh, &test_int_el1, 1);
 
+    int res = 0;
+
     if (mh->size == 0) {
-        return -1;
+        res = -1;
     }
 
     gnl_min_heap_destroy(mh);
 
-    return 0;
+    return res;
 }
 
 int can_extract_min() {
@@ -53,22 +56,107 @@ int can_extract_min() {
     }
 
     if (mh->size != 0) {
+        gnl_min_heap_destroy(mh);
         return -1;
     }
 
     gnl_min_heap_insert(mh, &test_int_el1, 2);
     gnl_min_heap_insert(mh, &test_int_el2, 0);
-    //gnl_min_heap_insert(mh, &test_int_el3, 3);
-    //gnl_min_heap_insert(mh, &test_int_el4, 1);
-    //gnl_min_heap_insert(mh, &test_int_el5, 4);
+    gnl_min_heap_insert(mh, &test_int_el3, 3);
+    gnl_min_heap_insert(mh, &test_int_el4, 1);
+    gnl_min_heap_insert(mh, &test_int_el5, 4);
+
+    int res = 0;
 
     if (*(int *)gnl_min_heap_extract_min(mh) != test_int_el2) {
-        return -1;
+        res = -1;
     }
 
     gnl_min_heap_destroy(mh);
 
-    return 0;
+    return res;
+}
+
+int can_decrease_key() {
+    gnl_min_heap_t *mh;
+
+    mh = gnl_min_heap_init();
+
+    if (mh == NULL) {
+        return -1;
+    }
+
+    if (mh->size != 0) {
+        gnl_min_heap_destroy(mh);
+        return -1;
+    }
+
+    gnl_min_heap_insert(mh, &test_int_el1, 2);
+    gnl_min_heap_insert(mh, &test_int_el2, 0);
+    gnl_min_heap_insert(mh, &test_int_el3, 3);
+    gnl_min_heap_insert(mh, &test_int_el4, 1);
+    gnl_min_heap_insert(mh, &test_int_el5, 4);
+
+    //heap: el2 -> el4 -> el3 -> el1 -> el5
+
+    gnl_min_heap_decrease_key(mh, 2, -1);
+
+    int res = 0;
+
+    if (*(int *)gnl_min_heap_extract_min(mh) != test_int_el3) {
+        res = -1;
+    }
+
+    gnl_min_heap_destroy(mh);
+
+    return res;
+}
+
+int can_respect_heap_property() {
+    gnl_min_heap_t *mh;
+
+    mh = gnl_min_heap_init();
+
+    if (mh == NULL) {
+        return -1;
+    }
+
+    if (mh->size != 0) {
+        gnl_min_heap_destroy(mh);
+        return -1;
+    }
+
+    gnl_min_heap_insert(mh, &test_int_el1, 2);
+    gnl_min_heap_insert(mh, &test_int_el2, 0);
+    gnl_min_heap_insert(mh, &test_int_el3, 3);
+    gnl_min_heap_insert(mh, &test_int_el4, 1);
+    gnl_min_heap_insert(mh, &test_int_el5, 4);
+
+    int res = 0;
+
+    if (*(int *)gnl_min_heap_extract_min(mh) != test_int_el2) {
+        res = -1;
+    }
+
+    if (*(int *)gnl_min_heap_extract_min(mh) != test_int_el4) {
+        res = -1;
+    }
+
+    if (*(int *)gnl_min_heap_extract_min(mh) != test_int_el1) {
+        res = -1;
+    }
+
+    if (*(int *)gnl_min_heap_extract_min(mh) != test_int_el3) {
+        res = -1;
+    }
+
+    if (*(int *)gnl_min_heap_extract_min(mh) != test_int_el5) {
+        res = -1;
+    }
+
+    gnl_min_heap_destroy(mh);
+
+    return res;
 }
 
 int main() {
@@ -77,6 +165,8 @@ int main() {
     gnl_assert(can_create_a_min_heap, "can create a min heap.");
     gnl_assert(can_insert_int, "can insert an int element into a min heap.");
     gnl_assert(can_extract_min, "can extract the min of a min heap.");
+    gnl_assert(can_decrease_key, "can decrease a key of a min heap.");
+    gnl_assert(can_respect_heap_property, "can achieve the min heap property.");
 
     // the gnl_min_heap_destroy method is implicitly tested in every
     // assert, if you don't believe it, run this tests with

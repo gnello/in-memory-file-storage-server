@@ -1,6 +1,6 @@
 /*
  * This is a simple min heap implementation, it does not intend to be exhaustive
- * but it'mh nice :)
+ * but it's nice :)
  */
 
 #include <stdio.h>
@@ -19,24 +19,25 @@ struct gnl_min_heap_node {
 struct gnl_min_heap_t {
     unsigned long size;
     struct gnl_min_heap_node *list;
+    struct gnl_min_heap_node *start_list_pointer;
 };
 
 static int parent(int i) {
-    return i/2;
+    return (i-1)/2;
 }
 
 static int left(int i) {
-    return 2*i;
+    return (2*i)+1;
 }
 
 static int right(int i) {
-    return (2*i) + 1;
+    return (2*i) + 2;
 }
 
 static int swap(gnl_min_heap_t *mh, int i, int j) {
-    struct gnl_min_heap_node tmp = mh->list[i];
-    mh->list[i] = mh->list[j];
-    mh->list[j] = tmp;
+    struct gnl_min_heap_node tmp = *(mh->list + i);
+    *(mh->list + i) = *(mh->list + j);
+    *(mh->list + j) = tmp;
 
     return 0;
 }
@@ -73,6 +74,7 @@ gnl_min_heap_t *gnl_min_heap_init() {
 
     // init the min heap implementation data
     mh->list = NULL;
+    mh->start_list_pointer = NULL;
     mh->size = 0;
 
     return mh;
@@ -81,8 +83,8 @@ gnl_min_heap_t *gnl_min_heap_init() {
 
 void gnl_min_heap_destroy(gnl_min_heap_t *mh) {
     if (mh != NULL) {
-        if (mh->list) {
-            free(mh->list);
+        if (mh->start_list_pointer != NULL) {
+            free(mh->start_list_pointer);
         }
         free(mh);
     }
@@ -101,6 +103,7 @@ int gnl_min_heap_insert(gnl_min_heap_t *mh, void *el, int key) {
     }
 
     mh->list = temp;
+    mh->start_list_pointer = temp;
 
     struct gnl_min_heap_node node;
     node.data = el;
@@ -128,7 +131,7 @@ void *gnl_min_heap_extract_min(gnl_min_heap_t *mh) {
     void *min = (*(mh->list)).data;
 
     mh->size--;
-    mh->list = (mh->list + mh->size);
+    *(mh->list) = *(mh->list + mh->size);
 
     min_heapify(mh, 0);
 
