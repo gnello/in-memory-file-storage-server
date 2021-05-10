@@ -3,6 +3,7 @@
 #include <gnl_colorshell.h>
 #include <gnl_assert.h>
 #include "../src/gnl_list_t.c"
+#include "./data_provider.c"
 
 struct test {
     char *a;
@@ -30,20 +31,14 @@ int test_cmp(const void *actual, const void *expected) {
 int can_insert_int() {
     gnl_list_t *list = NULL;
 
-    int el1 = 1;
-    int el2 = 2;
-    int el3 = 3;
-    int el4 = 4;
-    int el5 = 5;
-
-    gnl_list_insert(&list, &el1);
-    gnl_list_insert(&list, &el2);
-    gnl_list_insert(&list, &el3);
-    gnl_list_insert(&list, &el4);
-    gnl_list_insert(&list, &el5);
+    gnl_list_insert(&list, &test_int_el1);
+    gnl_list_insert(&list, &test_int_el2);
+    gnl_list_insert(&list, &test_int_el3);
+    gnl_list_insert(&list, &test_int_el4);
+    gnl_list_insert(&list, &test_int_el5);
 
     int res = 0;
-    if (*((int *)(list->el)) != el5) {
+    if (*((int *)(list->el)) != test_int_el5) {
         res = -1;
     }
 
@@ -55,18 +50,12 @@ int can_insert_int() {
 int can_append_int() {
     gnl_list_t *list = NULL;
 
-    int el1 = 1;
-    int el2 = 2;
-    int el3 = 3;
-    int el4 = 4;
-    int el5 = 5;
+    gnl_list_insert(&list, &test_int_el1);
+    gnl_list_insert(&list, &test_int_el2);
+    gnl_list_insert(&list, &test_int_el3);
+    gnl_list_insert(&list, &test_int_el4);
 
-    gnl_list_insert(&list, &el1);
-    gnl_list_insert(&list, &el2);
-    gnl_list_insert(&list, &el3);
-    gnl_list_insert(&list, &el4);
-
-    gnl_list_append(&list, &el5);
+    gnl_list_append(&list, &test_int_el5);
 
     gnl_list_t *current = list;
     while (current->next != NULL) {
@@ -74,7 +63,7 @@ int can_append_int() {
     }
 
     int res = 0;
-    if (*((int *)(current->el)) != el5) {
+    if (*((int *)(current->el)) != test_int_el5) {
         res = -1;
     }
 
@@ -86,19 +75,15 @@ int can_append_int() {
 int can_find_an_int() {
     gnl_list_t *list = NULL;
 
-    int el1 = 1;
-    int el2 = 2;
-    int el3 = 3;
-
-    if (gnl_list_search(list, &el2, NULL) != 0) {
+    if (gnl_list_search(list, &test_int_el2, NULL) != 0) {
         return -1;
     }
 
-    gnl_list_insert(&list, &el1);
-    gnl_list_insert(&list, &el2);
-    gnl_list_insert(&list, &el3);
+    gnl_list_insert(&list, &test_int_el1);
+    gnl_list_insert(&list, &test_int_el2);
+    gnl_list_insert(&list, &test_int_el3);
 
-    int res = !gnl_list_search(list, &el2, NULL);
+    int res = !gnl_list_search(list, &test_int_el2, NULL);
 
     gnl_list_destroy(&list);
 
@@ -108,25 +93,19 @@ int can_find_an_int() {
 int can_delete_an_int() {
     gnl_list_t *list = NULL;
 
-    int el1 = 1;
-    int el2 = 2;
-    int el3 = 3;
-    int el4 = 4;
-    int el5 = 5;
+    gnl_list_insert(&list, &test_int_el1);
+    gnl_list_insert(&list, &test_int_el2);
+    gnl_list_insert(&list, &test_int_el3);
+    gnl_list_insert(&list, &test_int_el4);
+    gnl_list_insert(&list, &test_int_el5);
 
-    gnl_list_insert(&list, &el1);
-    gnl_list_insert(&list, &el2);
-    gnl_list_insert(&list, &el3);
-    gnl_list_insert(&list, &el4);
-    gnl_list_insert(&list, &el5);
-
-    if (gnl_list_search(list, &el4, NULL) != 1) {
+    if (gnl_list_search(list, &test_int_el4, NULL) != 1) {
         return -1;
     }
 
-    gnl_list_delete(&list, &el4);
+    gnl_list_delete(&list, &test_int_el4);
 
-    int res = gnl_list_search(list, &el4, NULL);
+    int res = gnl_list_search(list, &test_int_el4, NULL);
 
     gnl_list_destroy(&list);
 
@@ -136,20 +115,14 @@ int can_delete_an_int() {
 int can_insert_string() {
     gnl_list_t *list = NULL;
 
-    char *el1 = "Lorem ipsum dolor sit amet";
-    char *el2 = "consectetur adipiscing elit";
-    char *el3 = "Nam posuere lectus sit amet malesuada dapibus";
-    char *el4 = "Proin volutpat";
-    char *el5 = "nisi at varius semper";
-
-    gnl_list_insert(&list, el1);
-    gnl_list_insert(&list, el2);
-    gnl_list_insert(&list, el3);
-    gnl_list_insert(&list, el4);
-    gnl_list_insert(&list, el5);
+    gnl_list_insert(&list, test_string_el1);
+    gnl_list_insert(&list, test_string_el2);
+    gnl_list_insert(&list, test_string_el3);
+    gnl_list_insert(&list, test_string_el4);
+    gnl_list_insert(&list, test_string_el5);
 
     int res = 0;
-    if (strcmp((char *)(list->el), el5) != 0) {
+    if (strcmp((char *)(list->el), test_string_el5) != 0) {
         res = -1;
     }
 
@@ -161,18 +134,12 @@ int can_insert_string() {
 int can_append_string() {
     gnl_list_t *list = NULL;
 
-    char *el1 = "Lorem ipsum dolor sit amet";
-    char *el2 = "consectetur adipiscing elit";
-    char *el3 = "Nam posuere lectus sit amet malesuada dapibus";
-    char *el4 = "Proin volutpat";
-    char *el5 = "nisi at varius semper";
+    gnl_list_insert(&list, test_string_el1);
+    gnl_list_insert(&list, test_string_el2);
+    gnl_list_insert(&list, test_string_el3);
+    gnl_list_insert(&list, test_string_el4);
 
-    gnl_list_insert(&list, el1);
-    gnl_list_insert(&list, el2);
-    gnl_list_insert(&list, el3);
-    gnl_list_insert(&list, el4);
-
-    gnl_list_append(&list, el5);
+    gnl_list_append(&list, test_string_el5);
 
     gnl_list_t *current = list;
     while (current->next != NULL) {
@@ -180,7 +147,7 @@ int can_append_string() {
     }
 
     int res = 0;
-    if (strcmp((char *)(current->el), el5) != 0) {
+    if (strcmp((char *)(current->el), test_string_el5) != 0) {
         res = -1;
     }
 
@@ -192,19 +159,15 @@ int can_append_string() {
 int can_find_a_string() {
     gnl_list_t *list = NULL;
 
-    char *el1 = "Lorem ipsum dolor sit amet";
-    char *el2 = "consectetur adipiscing elit";
-    char *el3 = "Nam posuere lectus sit amet malesuada dapibus";
-
-    if (gnl_list_search(list, el2, NULL) != 0) {
+    if (gnl_list_search(list, test_string_el2, NULL) != 0) {
         return -1;
     }
 
-    gnl_list_insert(&list, el1);
-    gnl_list_insert(&list, el2);
-    gnl_list_insert(&list, el3);
+    gnl_list_insert(&list, test_string_el1);
+    gnl_list_insert(&list, test_string_el2);
+    gnl_list_insert(&list, test_string_el3);
 
-    int res = !gnl_list_search(list, el2, NULL);
+    int res = !gnl_list_search(list, test_string_el2, NULL);
 
     gnl_list_destroy(&list);
 
@@ -214,25 +177,19 @@ int can_find_a_string() {
 int can_delete_a_string() {
     gnl_list_t *list = NULL;
 
-    char *el1 = "Lorem ipsum dolor sit amet";
-    char *el2 = "consectetur adipiscing elit";
-    char *el3 = "Nam posuere lectus sit amet malesuada dapibus";
-    char *el4 = "Proin volutpat";
-    char *el5 = "nisi at varius semper";
+    gnl_list_insert(&list, test_string_el1);
+    gnl_list_insert(&list, test_string_el2);
+    gnl_list_insert(&list, test_string_el3);
+    gnl_list_insert(&list, test_string_el4);
+    gnl_list_insert(&list, test_string_el5);
 
-    gnl_list_insert(&list, el1);
-    gnl_list_insert(&list, el2);
-    gnl_list_insert(&list, el3);
-    gnl_list_insert(&list, el4);
-    gnl_list_insert(&list, el5);
-
-    if (gnl_list_search(list, el4, NULL) != 1) {
+    if (gnl_list_search(list, test_string_el4, NULL) != 1) {
         return -1;
     }
 
-    gnl_list_delete(&list, el4);
+    gnl_list_delete(&list, test_string_el4);
 
-    int res = gnl_list_search(list, el4, NULL);
+    int res = gnl_list_search(list, test_string_el4, NULL);
 
     gnl_list_destroy(&list);
 
@@ -242,34 +199,14 @@ int can_delete_a_string() {
 int can_insert_struct() {
     gnl_list_t *list = NULL;
 
-    struct test el1;
-    el1.a = "Lorem ipsum dolor sit amet";
-    el1.b = 1;
-
-    struct test el2;
-    el2.a = "consectetur adipiscing elit";
-    el2.b = 2;
-
-    struct test el3;
-    el3.a = "Nam posuere lectus sit amet malesuada dapibus";
-    el3.b = 3;
-
-    struct test el4;
-    el4.a = "Proin volutpat";
-    el4.b = 4;
-
-    struct test el5;
-    el5.a = "nisi at varius semper";
-    el5.b = 5;
-
-    gnl_list_insert(&list, &el1);
-    gnl_list_insert(&list, &el2);
-    gnl_list_insert(&list, &el3);
-    gnl_list_insert(&list, &el4);
-    gnl_list_insert(&list, &el5);
+    gnl_list_insert(&list, &test_struct_el1);
+    gnl_list_insert(&list, &test_struct_el2);
+    gnl_list_insert(&list, &test_struct_el3);
+    gnl_list_insert(&list, &test_struct_el4);
+    gnl_list_insert(&list, &test_struct_el5);
 
     int res = 0;
-    if (test_cmp(list->el, (void *)&el5) != 0) {
+    if (test_cmp(list->el, (void *)&test_struct_el5) != 0) {
         res = -1;
     }
 
@@ -281,32 +218,12 @@ int can_insert_struct() {
 int can_append_struct() {
     gnl_list_t *list = NULL;
 
-    struct test el1;
-    el1.a = "Lorem ipsum dolor sit amet";
-    el1.b = 1;
+    gnl_list_insert(&list, &test_struct_el1);
+    gnl_list_insert(&list, &test_struct_el2);
+    gnl_list_insert(&list, &test_struct_el3);
+    gnl_list_insert(&list, &test_struct_el4);
 
-    struct test el2;
-    el2.a = "consectetur adipiscing elit";
-    el2.b = 2;
-
-    struct test el3;
-    el3.a = "Nam posuere lectus sit amet malesuada dapibus";
-    el3.b = 3;
-
-    struct test el4;
-    el4.a = "Proin volutpat";
-    el4.b = 4;
-
-    struct test el5;
-    el5.a = "nisi at varius semper";
-    el5.b = 5;
-
-    gnl_list_insert(&list, &el1);
-    gnl_list_insert(&list, &el2);
-    gnl_list_insert(&list, &el3);
-    gnl_list_insert(&list, &el4);
-
-    gnl_list_append(&list, &el5);
+    gnl_list_append(&list, &test_struct_el5);
 
     gnl_list_t *current = list;
     while (current->next != NULL) {
@@ -314,7 +231,7 @@ int can_append_struct() {
     }
 
     int res = 0;
-    if (test_cmp(current->el, (void *)&el5) != 0) {
+    if (test_cmp(current->el, (void *)&test_struct_el5) != 0) {
         res = -1;
     }
 
@@ -326,27 +243,15 @@ int can_append_struct() {
 int can_find_struct() {
     gnl_list_t *list = NULL;
 
-    struct test el1;
-    el1.a = "Lorem ipsum dolor sit amet";
-    el1.b = 1;
-
-    struct test el2;
-    el2.a = "consectetur adipiscing elit";
-    el2.b = 2;
-
-    struct test el3;
-    el3.a = "Nam posuere lectus sit amet malesuada dapibus";
-    el3.b = 3;
-
-    if (gnl_list_search((void *)list, (void *)&el2, test_cmp) != 0) {
+    if (gnl_list_search((void *)list, (void *)&test_struct_el2, test_cmp) != 0) {
         return -1;
     }
 
-    gnl_list_insert(&list, &el1);
-    gnl_list_insert(&list, &el2);
-    gnl_list_insert(&list, &el3);
+    gnl_list_insert(&list, &test_struct_el1);
+    gnl_list_insert(&list, &test_struct_el2);
+    gnl_list_insert(&list, &test_struct_el3);
 
-    int res = !gnl_list_search((void *)list, (void *)&el2, test_cmp);
+    int res = !gnl_list_search((void *)list, (void *)&test_struct_el2, test_cmp);
 
     gnl_list_destroy(&list);
 
@@ -356,39 +261,19 @@ int can_find_struct() {
 int can_delete_a_struct() {
     gnl_list_t *list = NULL;
 
-    struct test el1;
-    el1.a = "Lorem ipsum dolor sit amet";
-    el1.b = 1;
+    gnl_list_insert(&list, &test_struct_el1);
+    gnl_list_insert(&list, &test_struct_el2);
+    gnl_list_insert(&list, &test_struct_el3);
+    gnl_list_insert(&list, &test_struct_el4);
+    gnl_list_insert(&list, &test_struct_el5);
 
-    struct test el2;
-    el2.a = "consectetur adipiscing elit";
-    el2.b = 2;
-
-    struct test el3;
-    el3.a = "Nam posuere lectus sit amet malesuada dapibus";
-    el3.b = 3;
-
-    struct test el4;
-    el4.a = "Proin volutpat";
-    el4.b = 4;
-
-    struct test el5;
-    el5.a = "nisi at varius semper";
-    el5.b = 5;
-
-    gnl_list_insert(&list, &el1);
-    gnl_list_insert(&list, &el2);
-    gnl_list_insert(&list, &el3);
-    gnl_list_insert(&list, &el4);
-    gnl_list_insert(&list, &el5);
-
-    if (gnl_list_search((void *)list, (void *)&el4, test_cmp) != 1) {
+    if (gnl_list_search((void *)list, (void *)&test_struct_el4, test_cmp) != 1) {
         return -1;
     }
 
-    gnl_list_delete(&list, &el4);
+    gnl_list_delete(&list, &test_struct_el4);
 
-    int res = gnl_list_search((void *)list, (void *)&el4, test_cmp);
+    int res = gnl_list_search((void *)list, (void *)&test_struct_el4, test_cmp);
 
     gnl_list_destroy(&list);
 

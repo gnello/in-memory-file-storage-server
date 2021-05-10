@@ -3,6 +3,7 @@
 #include <gnl_colorshell.h>
 #include <gnl_assert.h>
 #include "../src/gnl_queue_t.c"
+#include "./data_provider.c"
 
 int can_create_a_queue() {
     gnl_queue_t *queue;
@@ -31,8 +32,7 @@ int can_enqueue_an_int() {
         return -1;
     }
 
-    int expected = 1;
-    gnl_queue_enqueue(queue, &expected);
+    gnl_queue_enqueue(queue, &test_int_el1);
 
     if (gnl_queue_size(queue) == 0) {
         return -1;
@@ -52,8 +52,7 @@ int can_dequeue_an_int() {
         return -1;
     }
 
-    int expected = 99;
-    gnl_queue_enqueue(queue, &expected);
+    gnl_queue_enqueue(queue, &test_int_el1);
 
     if (gnl_queue_size(queue) == 0) {
         return -1;
@@ -67,7 +66,7 @@ int can_dequeue_an_int() {
 
     int actual = *(int *)res;
 
-    if (expected != actual) {
+    if (actual != test_int_el1) {
         return -1;
     }
 
@@ -89,8 +88,7 @@ int can_enqueue_a_string() {
         return -1;
     }
 
-    char *expected = "this is a test.";
-    gnl_queue_enqueue(queue, expected);
+    gnl_queue_enqueue(queue, test_string_el1);
 
     if (gnl_queue_size(queue) == 0) {
         return -1;
@@ -110,8 +108,7 @@ int can_dequeue_a_string() {
         return -1;
     }
 
-    char *expected = "this is a test.";
-    gnl_queue_enqueue(queue, expected);
+    gnl_queue_enqueue(queue, test_string_el1);
 
     if (gnl_queue_size(queue) == 0) {
         return -1;
@@ -125,7 +122,7 @@ int can_dequeue_a_string() {
 
     char *actual = (char *)res;
 
-    if (strcmp(expected, actual) != 0) {
+    if (strcmp(actual, test_string_el1) != 0) {
         return -1;
     }
 

@@ -15,27 +15,11 @@ char *test_string_el3 = "Nam posuere lectus sit amet malesuada dapibus";
 char *test_string_el4 = "Proin volutpat";
 char *test_string_el5 = "nisi at varius semper";
 
-#define TEST_STRUCT(el) {                   \
-struct test_struct test_struct_el(el);      \
-test_struct_el(el).a = test_string_el(el);  \
-test_struct_el(el).b = test_int_el(el);     \
-}
-//
-//struct test_struct test_struct_el2;
-//test_struct_el2.a = test_string_el2;
-//test_struct_el2.b = test_int_el2;
-//
-//struct test_struct test_struct_el3;
-//test_struct_el3.a = test_string_el3;
-//test_struct_el3.b = test_int_el3;
-//
-//struct test_struct test_struct_el4;
-//test_struct_el4.a = test_string_el4;
-//test_struct_el4.b = test_int_el4;
-//
-//struct test_struct test_struct_el5;
-//test_struct_el5.a = test_string_el6;
-//test_struct_el5.b = test_int_el5;
+struct test_struct test_struct_el1 = {"Lorem ipsum dolor sit amet", 1};
+struct test_struct test_struct_el2 = {"consectetur adipiscing elit", 2};
+struct test_struct test_struct_el3 = {"Nam posuere lectus sit amet malesuada dapibus", 3};
+struct test_struct test_struct_el4 = {"Proin volutpat", 4};
+struct test_struct test_struct_el5 = {"nisi at varius semper", 5};
 
 int test_struct_cmp(const void *actual, const void *expected) {
     struct test_struct actual_struct;
