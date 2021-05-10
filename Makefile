@@ -8,7 +8,7 @@ LIBS += -Wl,-rpath,$(DATA_STRUCTURES_LIB) -L$(DATA_STRUCTURES_LIB) -lgnl_ts_queu
 INCLUDES += -I$(DATA_STRUCTURES_INCLUDES)
 
 TARGETS = main
-TARGETS_PATH = ./dist
+#TARGETS_PATH = ./dist
 
 .PHONY: all dev tests clean clean-dev helpers data-structures tests-valgrind
 
