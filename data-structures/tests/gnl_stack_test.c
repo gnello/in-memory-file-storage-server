@@ -3,6 +3,7 @@
 #include <gnl_colorshell.h>
 #include <gnl_assert.h>
 #include "../src/gnl_stack_t.c"
+#include "./data_provider.c"
 
 int can_create_a_stack() {
     gnl_stack_t *stack;
@@ -31,8 +32,7 @@ int can_push_an_int() {
         return -1;
     }
 
-    int expected = 1;
-    gnl_stack_push(stack, &expected);
+    gnl_stack_push(stack, &test_int_el1);
 
     if (gnl_stack_size(stack) == 0) {
         return -1;
@@ -52,8 +52,7 @@ int can_pop_an_int() {
         return -1;
     }
 
-    int expected = 99;
-    gnl_stack_push(stack, &expected);
+    gnl_stack_push(stack, &test_int_el1);
 
     if (gnl_stack_size(stack) == 0) {
         return -1;
@@ -67,7 +66,7 @@ int can_pop_an_int() {
 
     int actual = *(int *)res;
 
-    if (expected != actual) {
+    if (test_int_el1 != actual) {
         return -1;
     }
 
@@ -89,8 +88,7 @@ int can_push_a_string() {
         return -1;
     }
 
-    char *expected = "this is a test.";
-    gnl_stack_push(stack, expected);
+    gnl_stack_push(stack, test_string_el1);
 
     if (gnl_stack_size(stack) == 0) {
         return -1;
@@ -110,8 +108,7 @@ int can_pop_a_string() {
         return -1;
     }
 
-    char *expected = "this is a test.";
-    gnl_stack_push(stack, expected);
+    gnl_stack_push(stack, test_string_el1);
 
     if (gnl_stack_size(stack) == 0) {
         return -1;
@@ -125,7 +122,7 @@ int can_pop_a_string() {
 
     char *actual = (char *)res;
 
-    if (strcmp(expected, actual) != 0) {
+    if (strcmp(test_string_el1, actual) != 0) {
         return -1;
     }
 
