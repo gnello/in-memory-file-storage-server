@@ -160,13 +160,13 @@ int can_respect_heap_property() {
 }
 
 int main() {
-    gnl_printf_yellow("> gnl_stack_t tests:\n\n");
+    gnl_printf_yellow("> gnl_min_heap_t tests:\n\n");
 
     gnl_assert(can_create_a_min_heap, "can create a min heap.");
     gnl_assert(can_insert_int, "can insert an int element into a min heap.");
     gnl_assert(can_extract_min, "can extract the min of a min heap.");
     gnl_assert(can_decrease_key, "can decrease a key of a min heap.");
-    gnl_assert(can_respect_heap_property, "can achieve the min heap property.");
+    gnl_assert(can_respect_heap_property, "can respect the min heap property.");
 
     // the gnl_min_heap_destroy method is implicitly tested in every
     // assert, if you don't believe it, run this tests with
