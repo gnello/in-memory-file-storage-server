@@ -7,7 +7,7 @@ CC = gcc
 CFLAGS += -std=c99 -Wall -pedantic -g
 
 LIBS += -Wl,-rpath,$(ROOT)/$(DATA_STRUCTURES_LIB) -L$(ROOT)/$(DATA_STRUCTURES_LIB) -lgnl_queue_t
-INCLUDES += -I$(ROOT)/$(DATA_STRUCTURES_INCLUDES)
+INCLUDES += -I$(ROOT)/$(DATA_STRUCTURES_INCLUDE)
 
 TARGETS = main
 

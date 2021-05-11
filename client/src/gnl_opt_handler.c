@@ -2,26 +2,68 @@
 #include <stdlib.h>
 #include <getopt.h>
 #include <errno.h>
+#include <libgen.h>
 #include <gnl_queue_t.h>
+#include "../include/gnl_opt_handler.h"
 
-typedef int (*gnl_opt_handler)(const char *);
+#define SHORT_OPTS "hf:w:W:D:r:R::d:t:l:u:c:p"
+#define PRINTF_H_INITIAL_SPACE "  "
+#define PRINTF_H_TAB "%-28s"
 
-struct opt_handler {
+extern int errno;
+extern char *optarg;
+extern int opterr, optind;
+
+struct gnl_opt_handler {
     int delay;
     gnl_queue_t *command_queue;
     int debug;
 };
 
-struct opt {
+struct gnl_opt_handler_el {
     char opt;
     void *arg;
 };
 
-#define SHORT_OPTS "hf:w:W:D:r:R::d:t:l:u:c:p"
+static int arg_h(const char* param) { //7
+    printf("Usage: %s [options]\n", param);
+    printf("Write and read files to and from the In Memory Storage Server.\n");
+    printf("Example: %s -r file1 -d /dev/null -w ./mydir\n", param);
+    printf("\n");
+    printf("Options:\n");
 
-//static int arg_h(const char* param) { //7
-//    return 0;
-//}
+    printf(PRINTF_H_INITIAL_SPACE PRINTF_H_TAB "Print this message and exit.\n", "-h");
+    printf(PRINTF_H_INITIAL_SPACE PRINTF_H_TAB "Connect to the FILENAME socket.\n", "-f FILENAME");
+
+    printf(PRINTF_H_INITIAL_SPACE PRINTF_H_TAB "Send DIRNAME files to the Server.\n", "-w DIRNAME[,N=0]");
+    printf(PRINTF_H_INITIAL_SPACE PRINTF_H_TAB "If N is specified, send N files of DIRNAME\n", "");
+    printf(PRINTF_H_INITIAL_SPACE PRINTF_H_TAB "to the Server.\n", "");
+
+    printf(PRINTF_H_INITIAL_SPACE PRINTF_H_TAB "Send any given FILE to the Server.\n", "-W FILE1[,FILE2...]");
+
+    printf(PRINTF_H_INITIAL_SPACE PRINTF_H_TAB "Write the files trashed by the Server following\n", "-D DIRNAME");
+    printf(PRINTF_H_INITIAL_SPACE PRINTF_H_TAB "a -w or -W option into DIRNAME.\n", "");
+
+    printf(PRINTF_H_INITIAL_SPACE PRINTF_H_TAB "Read FILE from the Server.\n", "-r FILE1[,FILE2...]");
+
+    printf(PRINTF_H_INITIAL_SPACE PRINTF_H_TAB "Read all files stored on the Server.\n", "-R [N=0]");
+    printf(PRINTF_H_INITIAL_SPACE PRINTF_H_TAB "If N is specified, read N random files from\n", "");
+    printf(PRINTF_H_INITIAL_SPACE PRINTF_H_TAB "the Server.\n", "");
+
+    printf(PRINTF_H_INITIAL_SPACE PRINTF_H_TAB "Write the files read from the Server following\n", "-d DIRNAME");
+    printf(PRINTF_H_INITIAL_SPACE PRINTF_H_TAB "a -r or -R option into DIRNAME.\n", "");
+
+    printf(PRINTF_H_INITIAL_SPACE PRINTF_H_TAB "Wait TIME milliseconds between sequential requests\n", "-t TIME");
+    printf(PRINTF_H_INITIAL_SPACE PRINTF_H_TAB "to the Server.\n", "");
+
+    printf(PRINTF_H_INITIAL_SPACE PRINTF_H_TAB "Acquire the lock on FILE.\n", "-l FILE1[,FILE2...]");
+    printf(PRINTF_H_INITIAL_SPACE PRINTF_H_TAB "Release the lock on FILE.\n", "-u FILE1[,FILE2...]");
+
+    printf(PRINTF_H_INITIAL_SPACE PRINTF_H_TAB "Remove FILE from the Server.\n", "-c FILE1[,FILE2...]");
+    printf(PRINTF_H_INITIAL_SPACE PRINTF_H_TAB "Print the log of the requests made to the server.\n", "-p");
+
+    exit(EXIT_FAILURE);
+}
 //
 //static int arg_f(const char* param) { //3
 //    return 0;
@@ -71,15 +113,26 @@ struct opt {
 //    return 0;
 //}
 
-extern int gnl_opt_handler_init(int argc, char* argv[]) {
-    struct opt_handler opt_handler;
+void printQueue(struct gnl_opt_handler handler) {
+    struct gnl_opt_handler_el el;
+    void *el_void;
+
+    while ((el_void = gnl_queue_dequeue(handler.command_queue)) != NULL) {
+        el = *(struct gnl_opt_handler_el *)el_void;
+        printf("command: %c %s\n", el.opt, (char *)el.arg);
+    }
+}
+
+struct gnl_opt_handler *gnl_opt_handler_init(int argc, char* argv[]) {
+    struct gnl_opt_handler opt_handler;
     opt_handler.command_queue = gnl_queue_init();
 
     int opt;
     int temp;
     char *ptr = NULL;
-    struct opt opt_el;
+    struct gnl_opt_handler_el opt_el[argc];
 
+    int i=0;
     while ((opt = getopt(argc, argv, SHORT_OPTS)) != -1) {
         switch (opt) {
             case 't':
@@ -91,18 +144,27 @@ extern int gnl_opt_handler_init(int argc, char* argv[]) {
                 opt_handler.debug = 1;
                 break;
 
-            case '?':
-                printf("ah\n");
+            case 'h':
+                // basename removes path information.
+                // POSIX version, can modify the argument.
+                arg_h(basename(argv[0]));
+                /* NOT REACHED */
                 break;
+
+            case '?':
+                return NULL;
 
             default:
-                opt_el.opt = opt;
-                opt_el.arg = optarg;
-
-                gnl_queue_enqueue(opt_handler.command_queue, (void *)&opt_el);
+                opt_el[i].opt = opt;
+                opt_el[i].arg = optarg;
+                gnl_queue_enqueue(opt_handler.command_queue, (void *)&opt_el[i]);
                 break;
         }
+
+        i++;
     }
+
+    printQueue(opt_handler);
 
     return 0;
 }
