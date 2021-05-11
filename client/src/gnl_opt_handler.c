@@ -41,7 +41,7 @@ static int arg_h(const char* param) { //7
 
     printf(PRINTF_H_INITIAL_SPACE PRINTF_H_TAB "Send any given FILE to the Server.\n", "-W FILE1[,FILE2...]");
 
-    printf(PRINTF_H_INITIAL_SPACE PRINTF_H_TAB "Write the files trashed by the Server following\n", "-D DIRNAME");
+    printf(PRINTF_H_INITIAL_SPACE PRINTF_H_TAB "Store the files trashed by the Server following\n", "-D DIRNAME");
     printf(PRINTF_H_INITIAL_SPACE PRINTF_H_TAB "a -w or -W option into DIRNAME.\n", "");
 
     printf(PRINTF_H_INITIAL_SPACE PRINTF_H_TAB "Read FILE from the Server.\n", "-r FILE1[,FILE2...]");
@@ -50,7 +50,7 @@ static int arg_h(const char* param) { //7
     printf(PRINTF_H_INITIAL_SPACE PRINTF_H_TAB "If N is specified, read N random files from\n", "");
     printf(PRINTF_H_INITIAL_SPACE PRINTF_H_TAB "the Server.\n", "");
 
-    printf(PRINTF_H_INITIAL_SPACE PRINTF_H_TAB "Write the files read from the Server following\n", "-d DIRNAME");
+    printf(PRINTF_H_INITIAL_SPACE PRINTF_H_TAB "Store the files read from the Server following\n", "-d DIRNAME");
     printf(PRINTF_H_INITIAL_SPACE PRINTF_H_TAB "a -r or -R option into DIRNAME.\n", "");
 
     printf(PRINTF_H_INITIAL_SPACE PRINTF_H_TAB "Wait TIME milliseconds between sequential requests\n", "-t TIME");
