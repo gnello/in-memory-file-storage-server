@@ -18,7 +18,7 @@ VPATH = src
 	$(CC) -shared -o $(TARGETS_PATH)/lib$@ $(TARGETS_PATH)/$<.o
 
 %.o: %.c
-	$(CC) $(CFLAGS) $(INCLUDES) $(OPTFLAGS) -c -fPIC $< -o $(TARGETS_PATH)/$@.o
+	$(CC) $(CFLAGS) $(INCLUDE) $(OPTFLAGS) -c -fPIC $< -o $(TARGETS_PATH)/$@.o
 
 clean:
 	-rm -f $(TARGETS_PATH)/*.o $(TARGETS_PATH)/*.so

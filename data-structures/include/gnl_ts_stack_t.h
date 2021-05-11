@@ -2,6 +2,17 @@
 #ifndef GNL_TS_STACK_H
 #define GNL_TS_STACK_H
 
+/**
+ * Holds the thread-safe stack information.
+ *
+ * struct gnl_ts_stack_t {
+ *     pthread_mutex_t mtx;
+ *     gnl_stack_t *s;
+ * };
+ *
+ * mtx  The mutex var of the thread-safe stack.
+ * s    The stack data-structure.
+ */
 typedef struct gnl_ts_stack_t gnl_ts_stack_t;
 
 /**

@@ -5,10 +5,10 @@ CC = gcc
 CFLAGS += -std=c99 -Wall -pedantic -g
 
 LIBS += -Wl,-rpath,$(DATA_STRUCTURES_LIB) -L$(DATA_STRUCTURES_LIB) -lgnl_ts_queue_t -lgnl_ts_stack_t
-INCLUDES += -I$(DATA_STRUCTURES_INCLUDES)
+INCLUDE += -I$(DATA_STRUCTURES_INCLUDE)
 
 TARGETS = main
-#TARGETS_PATH = ./dist
+TARGETS_PATH = ./
 
 .PHONY: all dev tests clean clean-dev helpers data-structures tests-valgrind
 
@@ -17,7 +17,7 @@ VPATH = src
 all: $(TARGETS)
 
 %: %.c data-structures
-	$(CC) $(CFLAGS) $(INCLUDES) $(OPTFLAGS) -o $(TARGETS_PATH)/$@ $< $(LDFLAGS) $(LIBS)
+	$(CC) $(CFLAGS) $(INCLUDE) $(OPTFLAGS) -o $(TARGETS_PATH)/$@ $< $(LDFLAGS) $(LIBS)
 
 helpers:
 	cd ./helpers && $(MAKE)

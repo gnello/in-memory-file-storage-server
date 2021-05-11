@@ -5,7 +5,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include "../includes/gnl_stack_t.h"
+#include "../include/gnl_stack_t.h"
 
 // the node of the stack
 struct gnl_stack_node {

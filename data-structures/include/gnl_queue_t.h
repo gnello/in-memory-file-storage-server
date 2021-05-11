@@ -2,6 +2,19 @@
 #ifndef GNL_QUEUE_H
 #define GNL_QUEUE_H
 
+/**
+ * Holds the queue information.
+ *
+ * struct gnl_queue_t {
+ *     struct gnl_queue_node *front;
+ *     struct gnl_queue_node *rear;
+ *     unsigned long size;
+ * };
+ *
+ * front    The head pointer of the queue.
+ * rear     The tail pointer of the queue.
+ * size     The size of the queue.
+ */
 typedef struct gnl_queue_t gnl_queue_t;
 
 /**

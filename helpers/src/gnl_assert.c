@@ -1,5 +1,5 @@
 #include "./gnl_colorshell.c"
-#include "../includes/gnl_assert.h"
+#include "../include/gnl_assert.h"
 
 int gnl_assert(int (*fun)(), const char *fun_desc) {
     int res = fun();

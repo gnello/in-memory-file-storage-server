@@ -2,6 +2,17 @@
 #ifndef GNL_MIN_HEAP_H
 #define GNL_MIN_HEAP_H
 
+/**
+ * Holds the min heap information.
+ *
+ * struct gnl_min_heap_t {
+ *     unsigned long size;
+ *     struct gnl_min_heap_node *list;
+ * };
+ *
+ * size The size of the min heap.
+ * list The pointer to the list elements of the min heap.
+ */
 typedef struct gnl_min_heap_t gnl_min_heap_t;
 
 /**

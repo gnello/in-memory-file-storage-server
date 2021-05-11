@@ -2,6 +2,17 @@
 #ifndef GNL_TS_QUEUE_H
 #define GNL_TS_QUEUE_H
 
+/**
+ * Holds the thread-safe queue information.
+ *
+ * struct gnl_ts_queue_t {
+ *     pthread_mutex_t mtx;
+ *     gnl_queue_t *q;
+ * };
+ *
+ * mtx  The mutex var of the thread-safe queue.
+ * q    The queue data-structure.
+ */
 typedef struct gnl_ts_queue_t gnl_ts_queue_t;
 
 /**
