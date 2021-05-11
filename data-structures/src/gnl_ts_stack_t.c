@@ -6,7 +6,7 @@
 #include <stdlib.h>
 #include <pthread.h>
 #include "gnl_stack_t.c"
-#include "../includes/gnl_ts_stack_t.h"
+#include "../include/gnl_ts_stack_t.h"
 
 struct gnl_ts_stack_t {
     pthread_mutex_t mtx;

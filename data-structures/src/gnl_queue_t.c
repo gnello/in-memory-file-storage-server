@@ -5,7 +5,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include "../includes/gnl_queue_t.h"
+#include "../include/gnl_queue_t.h"
 
 // the node of the queue
 struct gnl_queue_node {

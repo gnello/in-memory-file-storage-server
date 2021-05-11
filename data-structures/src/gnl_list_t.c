@@ -5,7 +5,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include "../includes/gnl_list_t.h"
+#include "../include/gnl_list_t.h"
 
 struct gnl_list_t {
     void *el;

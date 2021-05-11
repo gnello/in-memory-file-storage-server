@@ -7,7 +7,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
-#include "../includes/gnl_txtenv.h"
+#include "../include/gnl_txtenv.h"
 
 #define BUFFER_SIZE 128
 

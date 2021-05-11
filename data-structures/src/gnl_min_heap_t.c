@@ -7,7 +7,7 @@
 #include <stdlib.h>
 #include <errno.h>
 #include <limits.h>
-#include "../includes/gnl_min_heap_t.h"
+#include "../include/gnl_min_heap_t.h"
 
 // the node of the min heap
 struct gnl_min_heap_node {

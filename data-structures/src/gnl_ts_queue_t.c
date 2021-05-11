@@ -6,7 +6,7 @@
 #include <stdlib.h>
 #include <pthread.h>
 #include "gnl_queue_t.c"
-#include "../includes/gnl_ts_queue_t.h"
+#include "../include/gnl_ts_queue_t.h"
 
 struct gnl_ts_queue_t {
     pthread_mutex_t mtx;

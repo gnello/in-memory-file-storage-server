@@ -7,10 +7,10 @@ CC = gcc
 CFLAGS += -std=c99 -Wall -pedantic -g
 
 HELPERS_PATH_LIB = $(ROOT)/$(HELPERS_LIB)
-HELPERS_PATH_INCLUDES = $(ROOT)/$(HELPERS_INCLUDES)
+HELPERS_PATH_INCLUDE = $(ROOT)/$(HELPERS_INCLUDE)
 
 LIBS = -Wl,-rpath,$(HELPERS_PATH_LIB) -L$(HELPERS_PATH_LIB) -lgnl_colorshell -lgnl_assert
-INCLUDES = -I$(HELPERS_PATH_INCLUDES)
+INCLUDE = -I$(HELPERS_PATH_INCLUDE)
 
 TARGETS = gnl_txtenv_test
 
@@ -20,7 +20,7 @@ TARGETS = gnl_txtenv_test
 all: $(TARGETS)
 
 %: %.c
-	$(CC) $(CFLAGS) $(INCLUDES) $(OPTFLAGS) -o $@ $< $(LDFLAGS) $(LIBS)
+	$(CC) $(CFLAGS) $(INCLUDE) $(OPTFLAGS) -o $@ $< $(LDFLAGS) $(LIBS)
 
 clean:
 	-rm -f $(TARGETS)
