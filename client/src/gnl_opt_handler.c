@@ -62,8 +62,9 @@ static int arg_h(const char* param) { //7
     printf(PRINTF_H_INITIAL_SPACE PRINTF_H_TAB "Remove FILE from the Server.\n", "-c FILE1[,FILE2...]");
     printf(PRINTF_H_INITIAL_SPACE PRINTF_H_TAB "Print the log of the requests made to the server.\n", "-p");
 
-    exit(EXIT_FAILURE);
+    return 0;
 }
+
 //
 //static int arg_f(const char* param) { //3
 //    return 0;
@@ -113,41 +114,71 @@ static int arg_h(const char* param) { //7
 //    return 0;
 //}
 
-void printQueue(struct gnl_opt_handler handler) {
+/**
+ * Print the handler instance.
+ *
+ * @param handler   The handler to be printed;
+ */
+void printQueue(struct gnl_opt_handler *handler) {
     struct gnl_opt_handler_el el;
     void *el_void;
 
-    while ((el_void = gnl_queue_dequeue(handler.command_queue)) != NULL) {
+    printf("debug: %d\n", handler->debug);
+    printf("delay: %d\n", handler->delay);
+
+    while ((el_void = gnl_queue_dequeue(handler->command_queue)) != NULL) {
         el = *(struct gnl_opt_handler_el *)el_void;
+
         printf("command: %c %s\n", el.opt, (char *)el.arg);
     }
 }
 
+/**
+ * Free all the allocated memory.
+ *
+ * @param handler   The handler to be freed;
+ */
+static void shutdown(struct gnl_opt_handler *handler) {
+    gnl_queue_destroy(handler->command_queue);
+    free(handler);
+}
+
 struct gnl_opt_handler *gnl_opt_handler_init(int argc, char* argv[]) {
-    struct gnl_opt_handler opt_handler;
-    opt_handler.command_queue = gnl_queue_init();
+    struct gnl_opt_handler *opt_handler = (struct gnl_opt_handler *)malloc(sizeof(struct gnl_opt_handler));
+
+    // initialize struct
+    opt_handler->debug = 0;
+    opt_handler->delay = 0;
+    opt_handler->command_queue = NULL;
 
     int opt;
+    struct gnl_opt_handler_el opt_el[argc];
+    int res;
+
+    // strtol vars
     int temp;
     char *ptr = NULL;
-    struct gnl_opt_handler_el opt_el[argc];
 
+    // start arguments parse
     int i=0;
     while ((opt = getopt(argc, argv, SHORT_OPTS)) != -1) {
         switch (opt) {
             case 't':
                 temp = strtol(optarg, &ptr, 10); //TODO: https://stackoverflow.com/questions/26080829/detecting-strtol-failure/26083517
-                opt_handler.delay = temp;
+                opt_handler->delay = temp;
                 break;
 
             case 'p':
-                opt_handler.debug = 1;
+                opt_handler->debug = 1;
                 break;
 
             case 'h':
                 // basename removes path information.
                 // POSIX version, can modify the argument.
                 arg_h(basename(argv[0]));
+                shutdown(opt_handler);
+
+                exit(EXIT_FAILURE);
                 /* NOT REACHED */
                 break;
 
@@ -155,18 +186,34 @@ struct gnl_opt_handler *gnl_opt_handler_init(int argc, char* argv[]) {
                 return NULL;
 
             default:
+                // initialize the command queue
+                if (opt_handler->command_queue == NULL) {
+                    opt_handler->command_queue = gnl_queue_init();
+                    if (opt_handler->command_queue == NULL) {
+                        errno = ENOMEM;
+                        shutdown(opt_handler);
+
+                        return NULL;
+                    }
+                }
+
                 opt_el[i].opt = opt;
                 opt_el[i].arg = optarg;
-                gnl_queue_enqueue(opt_handler.command_queue, (void *)&opt_el[i]);
+                res = gnl_queue_enqueue(opt_handler->command_queue, (void *)&opt_el[i]);
+
+                if (res == -1) {
+                    errno = ENOMEM;
+                    shutdown(opt_handler);
+
+                    return NULL;
+                }
+
+                i++;
                 break;
         }
-
-        i++;
     }
 
-    printQueue(opt_handler);
-
-    return 0;
+    return opt_handler;
 }
 
 #undef SHORT_OPTS

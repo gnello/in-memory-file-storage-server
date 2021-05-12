@@ -5,8 +5,11 @@ int main(int argc, char * argv[]) {
     res = gnl_opt_handler_init(argc, argv);
 
     if (res == NULL) {
-        return -1;
+        perror("gnl_opt_handler_init");
+        exit(EXIT_FAILURE);
     }
+
+    printQueue(res);
 
     return 0;
 }
