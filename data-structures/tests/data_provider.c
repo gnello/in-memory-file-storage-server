@@ -1,8 +1,13 @@
+#include <stdlib.h>
 #include <string.h>
 
 struct test_struct {
     char *a;
     int b;
+};
+
+struct test_complex_struct {
+    struct test_struct *c;
 };
 
 int test_int_el1 = 1;
@@ -41,3 +46,8 @@ int test_struct_cmp(const void *actual, const void *expected) {
     return 0;
 }
 
+struct test_complex_struct *test_complex_struct_init() {
+    struct test_complex_struct *el = (struct test_complex_struct*)malloc(sizeof(struct test_complex_struct));
+
+    return el;
+}

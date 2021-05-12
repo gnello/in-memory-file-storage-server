@@ -37,12 +37,16 @@ gnl_queue_t *gnl_queue_init() {
     return queue;
 }
 
-void gnl_queue_destroy(gnl_queue_t *q) {
+void gnl_queue_destroy(gnl_queue_t *q, void (*destroy)(void *data)) {
     if (q != NULL) {
         // destroy every node
         while(q->front != NULL) {
             struct gnl_queue_node *temp = q->front;
             q->front = q->front->next;
+
+            if (destroy != NULL) {
+                destroy(temp->data);
+            }
 
             free(temp);
         }
