@@ -9,9 +9,8 @@ int main(int argc, char * argv[]) {
         exit(EXIT_FAILURE);
     }
 
-    printQueue(res);
+    gnl_opt_handler_handle(res);
 
-    printf("destroy\n");
     gnl_opt_handler_destroy(res);
 
     return 0;

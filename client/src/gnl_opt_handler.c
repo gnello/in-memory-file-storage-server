@@ -15,8 +15,8 @@ extern char *optarg;
 extern int opterr, optind;
 
 struct gnl_opt_handler {
-    int delay;
     gnl_queue_t *command_queue;
+    char *socket_filename;
     int debug;
 };
 
@@ -25,12 +25,14 @@ struct gnl_opt_handler_el {
     void *arg;
 };
 
-static int arg_h(const char* param) { //7
-    printf("Usage: %s [options]\n", param);
+static int handle_arg_h(const char* program_name) { //7
+    printf("Usage: %s [options]\n", program_name);
     printf("Write and read files to and from the In Memory Storage Server.\n");
-    printf("Example: %s -r file1 -d /dev/null -w ./mydir\n", param);
+    printf("Example: %s -r file1 -d /dev/null -w ./mydir\n", program_name);
     printf("\n");
-    printf("Options:\n");
+    printf("The order of the options matters, the options will be handled in the order\n");
+    printf("they appear.\n");
+    printf("\n");
 
     printf(PRINTF_H_INITIAL_SPACE PRINTF_H_TAB "Print this message and exit.\n", "-h");
     printf(PRINTF_H_INITIAL_SPACE PRINTF_H_TAB "Connect to the FILENAME socket.\n", "-f FILENAME");
@@ -123,13 +125,14 @@ void printQueue(struct gnl_opt_handler *handler) {
     struct gnl_opt_handler_el el;
     void *el_void;
 
+    printf("socket_filename: %s\n", handler->socket_filename);
     printf("debug: %d\n", handler->debug);
-    printf("delay: %d\n", handler->delay);
 
     while ((el_void = gnl_queue_dequeue(handler->command_queue)) != NULL) {
         el = *(struct gnl_opt_handler_el *)el_void;
 
         printf("command: %c %s\n", el.opt, (char *)el.arg);
+        free(el_void);
     }
 }
 
@@ -138,34 +141,31 @@ struct gnl_opt_handler *gnl_opt_handler_init(int argc, char* argv[]) {
 
     // initialize struct
     opt_handler->debug = 0;
-    opt_handler->delay = 0;
+    opt_handler->socket_filename = NULL;
     opt_handler->command_queue = NULL;
 
     int opt;
     struct gnl_opt_handler_el *opt_el;
     int res;
 
-    // strtol vars
-    int temp;
-    char *ptr = NULL;
-
     // start arguments parse
     int i=0;
     while ((opt = getopt(argc, argv, SHORT_OPTS)) != -1) {
+        //TODO: controllare che -f, -h e -p non siano ripetuti
         switch (opt) {
-            case 't':
-                temp = strtol(optarg, &ptr, 10); //TODO: https://stackoverflow.com/questions/26080829/detecting-strtol-failure/26083517
-                opt_handler->delay = temp;
-                break;
-
             case 'p':
                 opt_handler->debug = 1;
+                break;
+
+            case 'f':
+                //TODO: controllare che non serva strcpy
+                opt_handler->socket_filename = optarg;
                 break;
 
             case 'h':
                 // basename removes path information.
                 // POSIX version, can modify the argument.
-                arg_h(basename(argv[0]));
+                handle_arg_h(basename(argv[0]));
                 gnl_opt_handler_destroy(opt_handler);
 
                 exit(EXIT_FAILURE);
@@ -207,13 +207,37 @@ struct gnl_opt_handler *gnl_opt_handler_init(int argc, char* argv[]) {
     return opt_handler;
 }
 
-void a(void *a) {
-    printf("command: %s\n", (char *)a);
+void gnl_opt_handler_destroy(gnl_opt_handler *handler) {
+    gnl_queue_destroy(handler->command_queue, free);
+    free(handler);
 }
 
-void gnl_opt_handler_destroy(gnl_opt_handler *handler) {
-    gnl_queue_destroy(handler->command_queue, a);
-    free(handler);
+int gnl_opt_handler_handle(gnl_opt_handler *handler) {
+    //TODO: handle queue
+
+    int time = 0;
+
+    struct gnl_opt_handler_el el;
+    struct gnl_opt_handler_el previous_el;
+    void *raw_el;
+    char *ptr = NULL;
+
+    while ((raw_el = gnl_queue_dequeue(handler->command_queue)) != NULL) {
+        el = *(struct gnl_opt_handler_el *)raw_el;
+
+        // update the requests delay if it is necessary
+        if (el.opt == 't') {
+            //TODO: è giusto fare qui la conversione?
+            time = strtol(el.arg, &ptr, 10); //TODO: https://stackoverflow.com/questions/26080829/detecting-strtol-failure/26083517
+        }
+
+        printf("command: %c %s\n", el.opt, (char *)el.arg);
+
+        previous_el = el;
+        free(raw_el);
+    }
+
+    return 0;
 }
 
 #undef SHORT_OPTS
