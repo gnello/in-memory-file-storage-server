@@ -38,7 +38,7 @@ gnl_ts_queue_t *gnl_ts_queue_init() {
     return queue;
 }
 
-int gnl_ts_queue_destroy(gnl_ts_queue_t *q) {
+int gnl_ts_queue_destroy(gnl_ts_queue_t *q, void (*destroy)(void *data)) {
     int pthread_res;
     pthread_mutex_t mtx;
 
@@ -60,7 +60,7 @@ int gnl_ts_queue_destroy(gnl_ts_queue_t *q) {
         return 0;
     }
 
-    gnl_queue_destroy((q->q));
+    gnl_queue_destroy((q->q), destroy);
 
     pthread_res = pthread_mutex_destroy(&(q->mtx));
     if (pthread_res == -1) {

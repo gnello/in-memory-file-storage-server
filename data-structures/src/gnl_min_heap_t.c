@@ -113,9 +113,15 @@ gnl_min_heap_t *gnl_min_heap_init() {
     return mh;
 }
 
-void gnl_min_heap_destroy(gnl_min_heap_t *mh) {
+void gnl_min_heap_destroy(gnl_min_heap_t *mh, void (*destroy)(void *data)) {
     if (mh != NULL) {
         if (mh->list != NULL) {
+            if (destroy != NULL) {
+                for (size_t i=0; i<mh->size; i++) {
+                    destroy((*(mh->list + i)).data);
+                }
+            }
+
             free(mh->list);
         }
         free(mh);

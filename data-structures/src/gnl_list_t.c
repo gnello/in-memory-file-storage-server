@@ -103,12 +103,17 @@ int gnl_list_delete(gnl_list_t **list, const void *el) {
     return 0;
 }
 
-int gnl_list_destroy(gnl_list_t **list) {
+int gnl_list_destroy(gnl_list_t **list, void (*destroy)(void *data)) {
     gnl_list_t *current = *list;
     gnl_list_t *next;
 
     while (current != NULL) {
         next = current->next;
+
+        if (destroy != NULL) {
+            destroy(current->el);
+        }
+
         free(current);
         current = next;
     }

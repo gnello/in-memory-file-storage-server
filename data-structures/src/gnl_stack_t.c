@@ -35,12 +35,16 @@ gnl_stack_t *gnl_stack_init() {
     return stack;
 }
 
-void gnl_stack_destroy(gnl_stack_t *s) {
+void gnl_stack_destroy(gnl_stack_t *s, void (*destroy)(void *data)) {
     if (s != NULL) {
         // destroy every node
         while(s->top != NULL) {
             struct gnl_stack_node *temp = s->top;
             s->top = s->top->next;
+
+            if (destroy != NULL) {
+                destroy(temp->data);
+            }
 
             free(temp);
         }

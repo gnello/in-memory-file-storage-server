@@ -38,7 +38,7 @@ gnl_ts_stack_t *gnl_ts_stack_init() {
     return stack;
 }
 
-int gnl_ts_stack_destroy(gnl_ts_stack_t *s) {
+int gnl_ts_stack_destroy(gnl_ts_stack_t *s, void (*destroy)(void *data)) {
     int pthread_res;
     pthread_mutex_t mtx;
 
@@ -60,7 +60,7 @@ int gnl_ts_stack_destroy(gnl_ts_stack_t *s) {
         return 0;
     }
 
-    gnl_stack_destroy((s->s));
+    gnl_stack_destroy((s->s), destroy);
 
     pthread_res = pthread_mutex_destroy(&(s->mtx));
     if (pthread_res == -1) {

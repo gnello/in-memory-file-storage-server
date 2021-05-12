@@ -14,7 +14,7 @@ int can_create_a_ts_queue() {
         return -1;
     }
 
-    gnl_ts_queue_destroy(queue);
+    gnl_ts_queue_destroy(queue, NULL);
 
     return 0;
 }
@@ -38,7 +38,7 @@ int can_enqueue_an_int() {
         return -1;
     }
 
-    gnl_ts_queue_destroy(queue);
+    gnl_ts_queue_destroy(queue, NULL);
 
     return 0;
 }
@@ -70,7 +70,7 @@ int can_dequeue_an_int() {
         return -1;
     }
 
-    gnl_ts_queue_destroy(queue);
+    gnl_ts_queue_destroy(queue, NULL);
 
     return 0;
 }
@@ -94,7 +94,7 @@ int can_enqueue_a_string() {
         return -1;
     }
 
-    gnl_ts_queue_destroy(queue);
+    gnl_ts_queue_destroy(queue, NULL);
 
     return 0;
 }
@@ -126,7 +126,31 @@ int can_dequeue_a_string() {
         return -1;
     }
 
-    gnl_ts_queue_destroy(queue);
+    gnl_ts_queue_destroy(queue, NULL);
+
+    return 0;
+}
+
+int can_destroy_queue_complex_struct() {
+    gnl_ts_queue_t *queue;
+
+    queue = gnl_ts_queue_init();
+
+    if (queue == NULL) {
+        return -1;
+    }
+
+    gnl_ts_queue_enqueue(queue, test_complex_struct_init());
+    gnl_ts_queue_enqueue(queue, test_complex_struct_init());
+    gnl_ts_queue_enqueue(queue, test_complex_struct_init());
+    gnl_ts_queue_enqueue(queue, test_complex_struct_init());
+    gnl_ts_queue_enqueue(queue, test_complex_struct_init());
+
+    if (gnl_ts_queue_size(queue) == 0) {
+        return -1;
+    }
+
+    gnl_ts_queue_destroy(queue, free);
 
     return 0;
 }
@@ -149,7 +173,7 @@ int can_get_the_queue_size() {
         return -1;
     }
 
-    gnl_ts_queue_destroy(queue);
+    gnl_ts_queue_destroy(queue, NULL);
 
     return 0;
 }
@@ -181,7 +205,7 @@ int can_use_a_fifo_queue() {
         }
     }
 
-    gnl_ts_queue_destroy(queue);
+    gnl_ts_queue_destroy(queue, NULL);
 
     return 0;
 }
@@ -197,7 +221,7 @@ int can_get_null_on_an_empty_queue_dequeue() {
         return -1;
     }
 
-    gnl_ts_queue_destroy(queue);
+    gnl_ts_queue_destroy(queue, NULL);
 
     return 0;
 }
@@ -212,6 +236,8 @@ int main() {
 
     gnl_assert(can_enqueue_a_string, "can push a string element into a thread-safe queue.");
     gnl_assert(can_dequeue_a_string, "can pop a string element from a thread-safe queue.");
+
+    gnl_assert(can_destroy_queue_complex_struct, "can destroy a complex struct elements thread-safe queue.");
 
     gnl_assert(can_get_the_queue_size, "can get the size of a thread-safe queue.");
     gnl_assert(can_use_a_fifo_queue, "can respect the FIFO protocol.");

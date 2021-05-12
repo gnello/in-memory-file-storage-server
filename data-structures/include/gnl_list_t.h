@@ -60,10 +60,12 @@ extern int gnl_list_delete(gnl_list_t **list, const void *el);
 /**
  * Destroy the entire list.
  *
- * @param list  The list to be destroyed.
+ * @param list      The list to be destroyed.
+ * @param destroy   The destroy function to free complex data,
+ *                  if NULL is passed a standard free will be performed.
  *
- * @return      Returns always 0 (for now...).
+ * @return          Returns always 0 (for now...).
  */
-extern int gnl_list_destroy(gnl_list_t **list);
+extern int gnl_list_destroy(gnl_list_t **list, void (*destroy)(void *data));
 
 #endif //GNL_LIST_H
