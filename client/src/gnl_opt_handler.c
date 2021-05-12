@@ -152,7 +152,7 @@ struct gnl_opt_handler *gnl_opt_handler_init(int argc, char* argv[]) {
     opt_handler->command_queue = NULL;
 
     int opt;
-    struct gnl_opt_handler_el opt_el[argc];
+    struct gnl_opt_handler_el *opt_el;
     int res;
 
     // strtol vars
@@ -197,9 +197,10 @@ struct gnl_opt_handler *gnl_opt_handler_init(int argc, char* argv[]) {
                     }
                 }
 
-                opt_el[i].opt = opt;
-                opt_el[i].arg = optarg;
-                res = gnl_queue_enqueue(opt_handler->command_queue, (void *)&opt_el[i]);
+                opt_el = (struct gnl_opt_handler_el *)malloc(argc * sizeof(struct gnl_opt_handler_el));
+                opt_el->opt = opt;
+                opt_el->arg = optarg;
+                res = gnl_queue_enqueue(opt_handler->command_queue, (void *)opt_el);
 
                 if (res == -1) {
                     errno = ENOMEM;
