@@ -46,7 +46,7 @@ int main() {
     printf("%s", (char *)gnl_ts_stack_pop(stack));
     printf("\n");
 
-    gnl_ts_queue_destroy(queue);
+    gnl_ts_queue_destroy(queue, NULL);
 
     return 0;
 }
