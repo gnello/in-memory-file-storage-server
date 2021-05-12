@@ -14,7 +14,7 @@ int can_create_a_min_heap() {
         return -1;
     }
 
-    gnl_min_heap_destroy(mh);
+    gnl_min_heap_destroy(mh, NULL);
 
     return 0;
 }
@@ -29,7 +29,7 @@ int can_insert_int() {
     }
 
     if (mh->size != 0) {
-        gnl_min_heap_destroy(mh);
+        gnl_min_heap_destroy(mh, NULL);
         return -1;
     }
 
@@ -41,7 +41,7 @@ int can_insert_int() {
         res = -1;
     }
 
-    gnl_min_heap_destroy(mh);
+    gnl_min_heap_destroy(mh, NULL);
 
     return res;
 }
@@ -56,7 +56,7 @@ int can_extract_min() {
     }
 
     if (mh->size != 0) {
-        gnl_min_heap_destroy(mh);
+        gnl_min_heap_destroy(mh, NULL);
         return -1;
     }
 
@@ -72,7 +72,7 @@ int can_extract_min() {
         res = -1;
     }
 
-    gnl_min_heap_destroy(mh);
+    gnl_min_heap_destroy(mh, NULL);
 
     return res;
 }
@@ -87,7 +87,7 @@ int can_decrease_key() {
     }
 
     if (mh->size != 0) {
-        gnl_min_heap_destroy(mh);
+        gnl_min_heap_destroy(mh, NULL);
         return -1;
     }
 
@@ -107,7 +107,7 @@ int can_decrease_key() {
         res = -1;
     }
 
-    gnl_min_heap_destroy(mh);
+    gnl_min_heap_destroy(mh, NULL);
 
     return res;
 }
@@ -122,7 +122,7 @@ int can_respect_heap_property() {
     }
 
     if (mh->size != 0) {
-        gnl_min_heap_destroy(mh);
+        gnl_min_heap_destroy(mh, NULL);
         return -1;
     }
 
@@ -154,9 +154,34 @@ int can_respect_heap_property() {
         res = -1;
     }
 
-    gnl_min_heap_destroy(mh);
+    gnl_min_heap_destroy(mh, NULL);
 
     return res;
+}
+
+int can_destroy_min_heap_complex_struct() {
+    gnl_min_heap_t *mh;
+
+    mh = gnl_min_heap_init();
+
+    if (mh == NULL) {
+        return -1;
+    }
+
+    if (mh->size != 0) {
+        gnl_min_heap_destroy(mh, NULL);
+        return -1;
+    }
+
+    gnl_min_heap_insert(mh, test_complex_struct_init(), 2);
+    gnl_min_heap_insert(mh, test_complex_struct_init(), 0);
+    gnl_min_heap_insert(mh, test_complex_struct_init(), 3);
+    gnl_min_heap_insert(mh, test_complex_struct_init(), 1);
+    gnl_min_heap_insert(mh, test_complex_struct_init(), 4);
+
+    gnl_min_heap_destroy(mh, free);
+
+    return 0;
 }
 
 int main() {
@@ -167,6 +192,8 @@ int main() {
     gnl_assert(can_extract_min, "can extract the min of a min heap.");
     gnl_assert(can_decrease_key, "can decrease a key of a min heap.");
     gnl_assert(can_respect_heap_property, "can respect the min heap property.");
+
+    gnl_assert(can_destroy_min_heap_complex_struct, "can destroy a complex struct elements min heap.");
 
     // the gnl_min_heap_destroy method is implicitly tested in every
     // assert, if you don't believe it, run this tests with

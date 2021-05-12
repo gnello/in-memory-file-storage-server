@@ -42,7 +42,7 @@ int can_insert_int() {
         res = -1;
     }
 
-    gnl_list_destroy(&list);
+    gnl_list_destroy(&list, NULL);
 
     return res;
 }
@@ -67,7 +67,7 @@ int can_append_int() {
         res = -1;
     }
 
-    gnl_list_destroy(&list);
+    gnl_list_destroy(&list, NULL);
 
     return res;
 }
@@ -85,7 +85,7 @@ int can_find_an_int() {
 
     int res = !gnl_list_search(list, &test_int_el2, NULL);
 
-    gnl_list_destroy(&list);
+    gnl_list_destroy(&list, NULL);
 
     return res;
 }
@@ -107,7 +107,7 @@ int can_delete_an_int() {
 
     int res = gnl_list_search(list, &test_int_el4, NULL);
 
-    gnl_list_destroy(&list);
+    gnl_list_destroy(&list, NULL);
 
     return res;
 }
@@ -126,7 +126,7 @@ int can_insert_string() {
         res = -1;
     }
 
-    gnl_list_destroy(&list);
+    gnl_list_destroy(&list, NULL);
 
     return res;
 }
@@ -151,7 +151,7 @@ int can_append_string() {
         res = -1;
     }
 
-    gnl_list_destroy(&list);
+    gnl_list_destroy(&list, NULL);
 
     return res;
 }
@@ -169,7 +169,7 @@ int can_find_a_string() {
 
     int res = !gnl_list_search(list, test_string_el2, NULL);
 
-    gnl_list_destroy(&list);
+    gnl_list_destroy(&list, NULL);
 
     return res;
 }
@@ -191,7 +191,7 @@ int can_delete_a_string() {
 
     int res = gnl_list_search(list, test_string_el4, NULL);
 
-    gnl_list_destroy(&list);
+    gnl_list_destroy(&list, NULL);
 
     return res;
 }
@@ -210,7 +210,7 @@ int can_insert_struct() {
         res = -1;
     }
 
-    gnl_list_destroy(&list);
+    gnl_list_destroy(&list, NULL);
 
     return res;
 }
@@ -235,7 +235,7 @@ int can_append_struct() {
         res = -1;
     }
 
-    gnl_list_destroy(&list);
+    gnl_list_destroy(&list, NULL);
 
     return res;
 }
@@ -253,7 +253,7 @@ int can_find_struct() {
 
     int res = !gnl_list_search((void *)list, (void *)&test_struct_el2, test_cmp);
 
-    gnl_list_destroy(&list);
+    gnl_list_destroy(&list, NULL);
 
     return res;
 }
@@ -275,9 +275,23 @@ int can_delete_a_struct() {
 
     int res = gnl_list_search((void *)list, (void *)&test_struct_el4, test_cmp);
 
-    gnl_list_destroy(&list);
+    gnl_list_destroy(&list, NULL);
 
     return res;
+}
+
+int can_destroy_list_complex_struct() {
+    gnl_list_t *list = NULL;
+
+    gnl_list_insert(&list, (void *)test_complex_struct_init());
+    gnl_list_insert(&list, (void *)test_complex_struct_init());
+    gnl_list_insert(&list, (void *)test_complex_struct_init());
+    gnl_list_insert(&list, (void *)test_complex_struct_init());
+    gnl_list_insert(&list, (void *)test_complex_struct_init());
+
+    gnl_list_destroy(&list, free);
+
+    return 0;
 }
 
 int main() {
@@ -297,6 +311,8 @@ int main() {
     gnl_assert(can_append_struct, "can append a struct element at the end of the list.");
     gnl_assert(can_find_struct, "can check whether a struct element is present into the list.");
     gnl_assert(can_delete_a_struct, "can delete a struct element from the list.");
+
+    gnl_assert(can_destroy_list_complex_struct, "can destroy a complex struct elements list.");
 
     // the gnl_list_destroy method is implicitly tested in every
     // assert, if you don't believe it, run this tests with

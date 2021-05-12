@@ -14,7 +14,7 @@ int can_create_a_stack() {
         return -1;
     }
 
-    gnl_stack_destroy(stack);
+    gnl_stack_destroy(stack, NULL);
 
     return 0;
 }
@@ -38,7 +38,7 @@ int can_push_an_int() {
         return -1;
     }
 
-    gnl_stack_destroy(stack);
+    gnl_stack_destroy(stack, NULL);
 
     return 0;
 }
@@ -70,7 +70,7 @@ int can_pop_an_int() {
         return -1;
     }
 
-    gnl_stack_destroy(stack);
+    gnl_stack_destroy(stack, NULL);
 
     return 0;
 }
@@ -94,7 +94,7 @@ int can_push_a_string() {
         return -1;
     }
 
-    gnl_stack_destroy(stack);
+    gnl_stack_destroy(stack, NULL);
 
     return 0;
 }
@@ -126,7 +126,31 @@ int can_pop_a_string() {
         return -1;
     }
 
-    gnl_stack_destroy(stack);
+    gnl_stack_destroy(stack, NULL);
+
+    return 0;
+}
+
+int can_destroy_stack_complex_struct() {
+    gnl_stack_t *stack;
+
+    stack = gnl_stack_init();
+
+    if (stack == NULL) {
+        return -1;
+    }
+
+    gnl_stack_push(stack, test_complex_struct_init());
+    gnl_stack_push(stack, test_complex_struct_init());
+    gnl_stack_push(stack, test_complex_struct_init());
+    gnl_stack_push(stack, test_complex_struct_init());
+    gnl_stack_push(stack, test_complex_struct_init());
+
+    if (gnl_stack_size(stack) == 0) {
+        return -1;
+    }
+
+    gnl_stack_destroy(stack, free);
 
     return 0;
 }
@@ -149,7 +173,7 @@ int can_get_the_stack_size() {
         return -1;
     }
 
-    gnl_stack_destroy(stack);
+    gnl_stack_destroy(stack, NULL);
 
     return 0;
 }
@@ -181,7 +205,7 @@ int can_use_a_lifo_stack() {
         }
     }
 
-    gnl_stack_destroy(stack);
+    gnl_stack_destroy(stack, NULL);
 
     return 0;
 }
@@ -197,7 +221,7 @@ int can_get_null_on_an_empty_stack_pop() {
         return -1;
     }
 
-    gnl_stack_destroy(stack);
+    gnl_stack_destroy(stack, NULL);
 
     return 0;
 }
@@ -212,6 +236,8 @@ int main() {
 
     gnl_assert(can_push_a_string, "can push a string element into a stack.");
     gnl_assert(can_pop_a_string, "can pop a string element from a stack.");
+
+    gnl_assert(can_destroy_stack_complex_struct, "can destroy a complex struct elements stack.");
 
     gnl_assert(can_get_the_stack_size, "can get the size of a stack.");
     gnl_assert(can_use_a_lifo_stack, "can respect the LIFO protocol.");

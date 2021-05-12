@@ -26,9 +26,11 @@ extern gnl_min_heap_t *gnl_min_heap_init();
 /**
  * Destroy a min heap.
  *
- * @param mh    The min heap to be destroyed.
+ * @param mh        The min heap to be destroyed.
+ * @param destroy   The destroy function to free complex data,
+ *                  if NULL is passed a standard free will be performed.
  */
-extern void gnl_min_heap_destroy(gnl_min_heap_t *mh);
+extern void gnl_min_heap_destroy(gnl_min_heap_t *mh, void (*destroy)(void *data));
 
 /**
  * Insert an element "el" into the min heap "mh".

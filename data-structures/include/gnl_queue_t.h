@@ -29,7 +29,7 @@ extern gnl_queue_t *gnl_queue_init();
  * Destroy a queue.
  *
  * @param q         The queue to be destroyed.
- * @param destroy   The destroy function to free complex data.
+ * @param destroy   The destroy function to free complex data,
  *                  if NULL is passed a standard free will be performed.
  */
 extern void gnl_queue_destroy(gnl_queue_t *q, void (*destroy)(void *data));

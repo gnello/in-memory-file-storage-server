@@ -27,10 +27,12 @@ extern gnl_ts_stack_t *gnl_ts_stack_init();
  * Destroy a thread-safe stack.
  *
  * @param s     The stack to be destroyed.
+ * @param destroy   The destroy function to free complex data,
+ *                  if NULL is passed a standard free will be performed.
  *
  * @return int  Returns 0 on success, -1 otherwise.
  */
-extern int gnl_ts_stack_destroy(gnl_ts_stack_t *s);
+extern int gnl_ts_stack_destroy(gnl_ts_stack_t *s, void (*destroy)(void *data));
 
 /**
  * Put an element "el" into the stack "s".

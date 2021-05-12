@@ -197,6 +197,10 @@ int can_destroy_queue_complex_struct() {
     }
 
     gnl_queue_enqueue(queue, (void *)test_complex_struct_init());
+    gnl_queue_enqueue(queue, (void *)test_complex_struct_init());
+    gnl_queue_enqueue(queue, (void *)test_complex_struct_init());
+    gnl_queue_enqueue(queue, (void *)test_complex_struct_init());
+    gnl_queue_enqueue(queue, (void *)test_complex_struct_init());
 
     if (gnl_queue_size(queue) == 0) {
         return -1;

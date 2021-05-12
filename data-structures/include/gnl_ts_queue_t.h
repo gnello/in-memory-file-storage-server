@@ -26,11 +26,13 @@ extern gnl_ts_queue_t *gnl_ts_queue_init();
 /**
  * Destroy a thread-safe queue.
  *
- * @param q     The queue to be destroyed.
+ * @param q         The queue to be destroyed.
+ * @param destroy   The destroy function to free complex data,
+ *                  if NULL is passed a standard free will be performed.
  *
- * @return int  Returns 0 on success, -1 otherwise.
+ * @return int      Returns 0 on success, -1 otherwise.
  */
-extern int gnl_ts_queue_destroy(gnl_ts_queue_t *q);
+extern int gnl_ts_queue_destroy(gnl_ts_queue_t *q, void (*destroy)(void *data));
 
 /**
  * Put an element "el" into the queue "q".
