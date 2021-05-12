@@ -133,16 +133,6 @@ void printQueue(struct gnl_opt_handler *handler) {
     }
 }
 
-/**
- * Free all the allocated memory.
- *
- * @param handler   The handler to be freed;
- */
-static void shutdown(struct gnl_opt_handler *handler) {
-    gnl_queue_destroy(handler->command_queue);
-    free(handler);
-}
-
 struct gnl_opt_handler *gnl_opt_handler_init(int argc, char* argv[]) {
     struct gnl_opt_handler *opt_handler = (struct gnl_opt_handler *)malloc(sizeof(struct gnl_opt_handler));
 
@@ -176,7 +166,7 @@ struct gnl_opt_handler *gnl_opt_handler_init(int argc, char* argv[]) {
                 // basename removes path information.
                 // POSIX version, can modify the argument.
                 arg_h(basename(argv[0]));
-                shutdown(opt_handler);
+                gnl_opt_handler_destroy(opt_handler);
 
                 exit(EXIT_FAILURE);
                 /* NOT REACHED */
@@ -191,7 +181,7 @@ struct gnl_opt_handler *gnl_opt_handler_init(int argc, char* argv[]) {
                     opt_handler->command_queue = gnl_queue_init();
                     if (opt_handler->command_queue == NULL) {
                         errno = ENOMEM;
-                        shutdown(opt_handler);
+                        gnl_opt_handler_destroy(opt_handler);
 
                         return NULL;
                     }
@@ -204,7 +194,7 @@ struct gnl_opt_handler *gnl_opt_handler_init(int argc, char* argv[]) {
 
                 if (res == -1) {
                     errno = ENOMEM;
-                    shutdown(opt_handler);
+                    gnl_opt_handler_destroy(opt_handler);
 
                     return NULL;
                 }
@@ -215,6 +205,15 @@ struct gnl_opt_handler *gnl_opt_handler_init(int argc, char* argv[]) {
     }
 
     return opt_handler;
+}
+
+void a(void *a) {
+    printf("command: %s\n", (char *)a);
+}
+
+void gnl_opt_handler_destroy(gnl_opt_handler *handler) {
+    gnl_queue_destroy(handler->command_queue, a);
+    free(handler);
 }
 
 #undef SHORT_OPTS

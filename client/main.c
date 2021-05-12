@@ -11,5 +11,8 @@ int main(int argc, char * argv[]) {
 
     printQueue(res);
 
+    printf("destroy\n");
+    gnl_opt_handler_destroy(res);
+
     return 0;
 }
