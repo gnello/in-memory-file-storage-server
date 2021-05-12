@@ -131,6 +131,62 @@ int can_dequeue_a_string() {
     return 0;
 }
 
+int can_enqueue_a_struct() {
+    gnl_queue_t *queue;
+
+    queue = gnl_queue_init();
+
+    if (queue == NULL) {
+        return -1;
+    }
+
+    if (gnl_queue_size(queue) != 0) {
+        return -1;
+    }
+
+    gnl_queue_enqueue(queue, (void *)&test_struct_el1);
+
+    if (gnl_queue_size(queue) == 0) {
+        return -1;
+    }
+
+    gnl_queue_destroy(queue);
+
+    return 0;
+}
+
+int can_dequeue_a_struct() {
+    gnl_queue_t *queue;
+
+    queue = gnl_queue_init();
+
+    if (queue == NULL) {
+        return -1;
+    }
+
+    gnl_queue_enqueue(queue, (void *)&test_struct_el1);
+
+    if (gnl_queue_size(queue) == 0) {
+        return -1;
+    }
+
+    void *res = gnl_queue_dequeue(queue);
+
+    if (res == NULL) {
+        return -1;
+    }
+
+    char *actual = (char *)res;
+
+    if (test_struct_cmp(actual, (void *)&test_struct_el1) != 0) {
+        return -1;
+    }
+
+    gnl_queue_destroy(queue);
+
+    return 0;
+}
+
 int can_get_the_queue_size() {
     gnl_queue_t *queue;
 
@@ -212,6 +268,9 @@ int main() {
 
     gnl_assert(can_enqueue_a_string, "can push a string element into a queue.");
     gnl_assert(can_dequeue_a_string, "can pop a string element from a queue.");
+
+    gnl_assert(can_enqueue_a_struct, "can push a struct element into a queue.");
+    gnl_assert(can_dequeue_a_struct, "can pop a struct element from a queue.");
 
     gnl_assert(can_get_the_queue_size, "can get the size of a queue.");
     gnl_assert(can_use_a_fifo_queue, "can respect the FIFO protocol.");

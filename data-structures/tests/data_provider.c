@@ -1,3 +1,5 @@
+#include <string.h>
+
 struct test_struct {
     char *a;
     int b;
