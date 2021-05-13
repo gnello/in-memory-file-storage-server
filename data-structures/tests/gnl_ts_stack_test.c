@@ -226,6 +226,15 @@ int can_get_null_on_an_empty_stack_pop() {
     return 0;
 }
 
+int can_pass_null_stack() {
+    gnl_ts_stack_push(NULL, NULL);
+    gnl_ts_stack_pop(NULL);
+    gnl_ts_stack_size(NULL);
+    gnl_ts_stack_destroy(NULL, NULL);
+
+    return 0;
+}
+
 int main() {
     gnl_printf_yellow("> gnl_ts_stack_t test:\n\n");
 
@@ -243,6 +252,8 @@ int main() {
     gnl_assert(can_use_a_lifo_stack, "can respect the LIFO protocol.");
 
     gnl_assert(can_get_null_on_an_empty_stack_pop, "can get null on empty thread-safe stack pop.");
+
+    gnl_assert(can_pass_null_stack, "can give a null stack safely to the thread-safe stack interface.");
 
     // the gnl_ts_stack_destroy method is implicitly tested in every
     // assert, if you don't believe it, run this tests with

@@ -226,6 +226,15 @@ int can_get_null_on_an_empty_queue_dequeue() {
     return 0;
 }
 
+int can_pass_null_queue() {
+    gnl_ts_queue_enqueue(NULL, NULL);
+    gnl_ts_queue_dequeue(NULL);
+    gnl_ts_queue_size(NULL);
+    gnl_ts_queue_destroy(NULL, NULL);
+
+    return 0;
+}
+
 int main() {
     gnl_printf_yellow("> gnl_ts_queue_t test:\n\n");
 
@@ -243,6 +252,8 @@ int main() {
     gnl_assert(can_use_a_fifo_queue, "can respect the FIFO protocol.");
 
     gnl_assert(can_get_null_on_an_empty_queue_dequeue, "can get null on empty thread-safe queue pop.");
+
+    gnl_assert(can_pass_null_queue, "can give a null queue safely to the thread-safe queue interface.");
 
     // the gnl_ts_queue_destroy method is implicitly tested in every
     // assert, if you don't believe it, run this tests with

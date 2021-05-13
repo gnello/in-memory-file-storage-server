@@ -5,7 +5,16 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <errno.h>
 #include "../include/gnl_queue_t.h"
+
+#define NULL_VALIDATOR(queue, error_code, return_code) {    \
+    if (queue == NULL) {                                    \
+        errno = error_code;                                 \
+                                                            \
+        return return_code;                                 \
+    }                                                       \
+}
 
 // the node of the queue
 struct gnl_queue_node {
@@ -23,11 +32,7 @@ struct gnl_queue_t {
 gnl_queue_t *gnl_queue_init() {
     gnl_queue_t *queue = (gnl_queue_t *)malloc(sizeof(gnl_queue_t));
 
-    if (queue == NULL) {
-        perror("malloc");
-
-        return NULL;
-    }
+    NULL_VALIDATOR(queue, ENOMEM, NULL)
 
     // init the queue implementation data
     queue->front = NULL;
@@ -56,14 +61,12 @@ void gnl_queue_destroy(gnl_queue_t *q, void (*destroy)(void *data)) {
 }
 
 int gnl_queue_enqueue(gnl_queue_t *q, void *el) {
+    NULL_VALIDATOR(q, EINVAL, -1)
+
     // create the new queue node
     struct gnl_queue_node *temp = (struct gnl_queue_node *)malloc(sizeof(struct gnl_queue_node));
 
-    if (temp == NULL) {
-        perror("malloc");
-
-        return -1;
-    }
+    NULL_VALIDATOR(temp, ENOMEM, -1)
 
     temp->data = el;
     temp->next = NULL;
@@ -84,6 +87,8 @@ int gnl_queue_enqueue(gnl_queue_t *q, void *el) {
 }
 
 void *gnl_queue_dequeue(gnl_queue_t *q) {
+    NULL_VALIDATOR(q, EINVAL, NULL)
+
     // if queue is empty return NULL.
     if (q->front == NULL) {
         return NULL;
@@ -109,5 +114,9 @@ void *gnl_queue_dequeue(gnl_queue_t *q) {
 }
 
 unsigned long gnl_queue_size(const gnl_queue_t *q) {
+    NULL_VALIDATOR(q, EINVAL, -1)
+
     return q->size;
 }
+
+#undef NULL_VALIDATOR

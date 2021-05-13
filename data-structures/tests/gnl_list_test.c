@@ -294,6 +294,18 @@ int can_destroy_list_complex_struct() {
     return 0;
 }
 
+int can_pass_null_list() {
+    gnl_list_t *list = NULL;
+
+    gnl_list_append(&list, &test_int_el1);
+    gnl_list_insert(&list, &test_int_el1);
+    gnl_list_search(list, NULL, NULL);
+    gnl_list_delete(&list, NULL);
+    gnl_list_destroy(&list, NULL);
+
+    return 0;
+}
+
 int main() {
     gnl_printf_yellow("> gnl_list_t test:\n\n");
 
@@ -313,6 +325,8 @@ int main() {
     gnl_assert(can_delete_a_struct, "can delete a struct element from the list.");
 
     gnl_assert(can_destroy_list_complex_struct, "can destroy a complex struct elements list.");
+
+    gnl_assert(can_pass_null_list, "can give a null list safely to the list interface.");
 
     // the gnl_list_destroy method is implicitly tested in every
     // assert, if you don't believe it, run this tests with
