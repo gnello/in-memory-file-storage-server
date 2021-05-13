@@ -214,6 +214,7 @@ void gnl_opt_handler_destroy(gnl_opt_handler *handler) {
 
 int gnl_opt_handler_handle(gnl_opt_handler *handler) {
     //TODO: handle queue
+    //TODO: il timer meglio gestirlo con una sleep o con una signal alarm?
 
     int time = 0;
 
