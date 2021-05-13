@@ -242,3 +242,5 @@ int gnl_opt_handler_handle(gnl_opt_handler *handler) {
 }
 
 #undef SHORT_OPTS
+#undef PRINTF_H_INITIAL_SPACE
+#undef PRINTF_H_TAB
