@@ -4,9 +4,11 @@
 
 typedef struct gnl_opt_handler gnl_opt_handler;
 
-extern struct gnl_opt_handler *gnl_opt_handler_init(int argc, char* argv[]);
+extern struct gnl_opt_handler *gnl_opt_handler_init();
 
 extern void gnl_opt_handler_destroy(gnl_opt_handler *handler);
+
+extern int gnl_opt_handler_parse_opt(gnl_opt_handler *handler, int argc, char* argv[]);
 
 extern int gnl_opt_handler_handle(gnl_opt_handler *handler);
 

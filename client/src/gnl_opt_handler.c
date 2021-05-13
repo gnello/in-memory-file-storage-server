@@ -136,14 +136,31 @@ void printQueue(struct gnl_opt_handler *handler) {
     }
 }
 
-struct gnl_opt_handler *gnl_opt_handler_init(int argc, char* argv[]) {
-    struct gnl_opt_handler *opt_handler = (struct gnl_opt_handler *)malloc(sizeof(struct gnl_opt_handler));
+struct gnl_opt_handler *gnl_opt_handler_init() {
+    struct gnl_opt_handler *handler = (struct gnl_opt_handler *)malloc(sizeof(struct gnl_opt_handler));
+
+    if (handler == NULL) {
+        errno = ENOMEM;
+
+        return NULL;
+    }
 
     // initialize struct
-    opt_handler->debug = 0;
-    opt_handler->socket_filename = NULL;
-    opt_handler->command_queue = NULL;
+    handler->debug = 0;
+    handler->socket_filename = NULL;
+    handler->command_queue = gnl_queue_init();
 
+    if (handler->command_queue == NULL) {
+        errno = ENOMEM;
+        gnl_opt_handler_destroy(handler);
+
+        return NULL;
+    }
+
+    return handler;
+}
+
+int gnl_opt_handler_parse_opt(struct gnl_opt_handler *handler, int argc, char* argv[]) {
     int opt;
     struct gnl_opt_handler_el *opt_el;
     int res;
@@ -154,49 +171,37 @@ struct gnl_opt_handler *gnl_opt_handler_init(int argc, char* argv[]) {
         //TODO: controllare che -f, -h e -p non siano ripetuti
         switch (opt) {
             case 'p':
-                opt_handler->debug = 1;
+                handler->debug = 1;
                 break;
 
             case 'f':
-                //TODO: controllare che non serva strcpy
-                opt_handler->socket_filename = optarg;
+                handler->socket_filename = optarg;
                 break;
 
             case 'h':
                 // basename removes path information.
                 // POSIX version, can modify the argument.
                 handle_arg_h(basename(argv[0]));
-                gnl_opt_handler_destroy(opt_handler);
+                gnl_opt_handler_destroy(handler);
 
                 exit(EXIT_FAILURE);
                 /* NOT REACHED */
                 break;
 
             case '?':
-                return NULL;
+                return -1;
 
             default:
-                // initialize the command queue
-                if (opt_handler->command_queue == NULL) {
-                    opt_handler->command_queue = gnl_queue_init();
-                    if (opt_handler->command_queue == NULL) {
-                        errno = ENOMEM;
-                        gnl_opt_handler_destroy(opt_handler);
-
-                        return NULL;
-                    }
-                }
-
                 opt_el = (struct gnl_opt_handler_el *)malloc(argc * sizeof(struct gnl_opt_handler_el));
                 opt_el->opt = opt;
                 opt_el->arg = optarg;
-                res = gnl_queue_enqueue(opt_handler->command_queue, (void *)opt_el);
+                res = gnl_queue_enqueue(handler->command_queue, (void *)opt_el);
 
                 if (res == -1) {
                     errno = ENOMEM;
-                    gnl_opt_handler_destroy(opt_handler);
+                    gnl_opt_handler_destroy(handler);
 
-                    return NULL;
+                    return -1;
                 }
 
                 i++;
@@ -204,7 +209,7 @@ struct gnl_opt_handler *gnl_opt_handler_init(int argc, char* argv[]) {
         }
     }
 
-    return opt_handler;
+    return 0;
 }
 
 void gnl_opt_handler_destroy(gnl_opt_handler *handler) {
@@ -226,10 +231,12 @@ int gnl_opt_handler_handle(gnl_opt_handler *handler) {
     while ((raw_el = gnl_queue_dequeue(handler->command_queue)) != NULL) {
         el = *(struct gnl_opt_handler_el *)raw_el;
 
-        // update the requests delay if it is necessary
-        if (el.opt == 't') {
-            //TODO: è giusto fare qui la conversione?
-            time = strtol(el.arg, &ptr, 10); //TODO: https://stackoverflow.com/questions/26080829/detecting-strtol-failure/26083517
+        switch (el.opt) {
+            // update the requests delay
+            case 't':
+                //TODO: è giusto fare qui la conversione?
+                time = strtol(el.arg, &ptr, 10); //TODO: https://stackoverflow.com/questions/26080829/detecting-strtol-failure/26083517
+                break;
         }
 
         printf("command: %c %s\n", el.opt, (char *)el.arg);
