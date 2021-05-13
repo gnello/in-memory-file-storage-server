@@ -5,8 +5,17 @@
 
 #include <stdlib.h>
 #include <pthread.h>
+#include <errno.h>
 #include "gnl_stack_t.c"
 #include "../include/gnl_ts_stack_t.h"
+
+#define NULL_VALIDATOR(stack, error_code, return_code) {    \
+    if (stack == NULL) {                                    \
+        errno = error_code;                                 \
+                                                            \
+        return return_code;                                 \
+    }                                                       \
+}
 
 struct gnl_ts_stack_t {
     pthread_mutex_t mtx;
@@ -15,11 +24,8 @@ struct gnl_ts_stack_t {
 
 gnl_ts_stack_t *gnl_ts_stack_init() {
     gnl_ts_stack_t *stack = (gnl_ts_stack_t*)malloc(sizeof(gnl_ts_stack_t));
-    if (stack == NULL) {
-        perror("malloc");
 
-        return NULL;
-    }
+    NULL_VALIDATOR(stack, ENOMEM, NULL)
 
     int pthread_res = pthread_mutex_init(&(stack->mtx), NULL);
     if (pthread_res == -1) {
@@ -29,11 +35,8 @@ gnl_ts_stack_t *gnl_ts_stack_init() {
     }
 
     stack->s = gnl_stack_init();
-    if (stack->s == NULL) {
-        perror("gnl_stack_init");
 
-        return NULL;
-    }
+    NULL_VALIDATOR(stack->s, ENOMEM, NULL)
 
     return stack;
 }
@@ -89,6 +92,8 @@ int gnl_ts_stack_destroy(gnl_ts_stack_t *s, void (*destroy)(void *data)) {
 }
 
 int gnl_ts_stack_push(gnl_ts_stack_t *s, void *el) {
+    NULL_VALIDATOR(s, EINVAL, -1)
+
     int pthread_res;
 
     pthread_res = pthread_mutex_lock(&(s->mtx));
@@ -116,6 +121,8 @@ int gnl_ts_stack_push(gnl_ts_stack_t *s, void *el) {
 }
 
 void *gnl_ts_stack_pop(gnl_ts_stack_t *s) {
+    NULL_VALIDATOR(s, EINVAL, NULL)
+
     int pthread_res;
 
     if (gnl_ts_stack_size(s) == 0) {
@@ -142,6 +149,8 @@ void *gnl_ts_stack_pop(gnl_ts_stack_t *s) {
 }
 
 unsigned long gnl_ts_stack_size(gnl_ts_stack_t *s) {
+    NULL_VALIDATOR(s, EINVAL, -1)
+
     int pthread_res;
 
     pthread_res = pthread_mutex_lock(&(s->mtx));
@@ -162,3 +171,5 @@ unsigned long gnl_ts_stack_size(gnl_ts_stack_t *s) {
 
     return temp;
 }
+
+#undef NULL_VALIDATOR

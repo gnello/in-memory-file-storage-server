@@ -5,8 +5,17 @@
 
 #include <stdlib.h>
 #include <pthread.h>
+#include <errno.h>
 #include "gnl_queue_t.c"
 #include "../include/gnl_ts_queue_t.h"
+
+#define NULL_VALIDATOR(queue, error_code, return_code) {    \
+    if (queue == NULL) {                                    \
+        errno = error_code;                                 \
+                                                            \
+        return return_code;                                 \
+    }                                                       \
+}
 
 struct gnl_ts_queue_t {
     pthread_mutex_t mtx;
@@ -15,11 +24,8 @@ struct gnl_ts_queue_t {
 
 gnl_ts_queue_t *gnl_ts_queue_init() {
     gnl_ts_queue_t *queue = (gnl_ts_queue_t*)malloc(sizeof(gnl_ts_queue_t));
-    if (queue == NULL) {
-        perror("malloc");
 
-        return NULL;
-    }
+    NULL_VALIDATOR(queue, ENOMEM, NULL)
 
     int pthread_res = pthread_mutex_init(&(queue->mtx), NULL);
     if (pthread_res == -1) {
@@ -29,11 +35,7 @@ gnl_ts_queue_t *gnl_ts_queue_init() {
     }
 
     queue->q = gnl_queue_init();
-    if (queue->q == NULL) {
-        perror("gnl_queue_init");
-
-        return NULL;
-    }
+    NULL_VALIDATOR(queue->q, ENOMEM, NULL)
 
     return queue;
 }
@@ -89,6 +91,8 @@ int gnl_ts_queue_destroy(gnl_ts_queue_t *q, void (*destroy)(void *data)) {
 }
 
 int gnl_ts_queue_enqueue(gnl_ts_queue_t *q, void *el) {
+    NULL_VALIDATOR(q, EINVAL, -1)
+
     int pthread_res;
 
     pthread_res = pthread_mutex_lock(&(q->mtx));
@@ -116,6 +120,8 @@ int gnl_ts_queue_enqueue(gnl_ts_queue_t *q, void *el) {
 }
 
 void *gnl_ts_queue_dequeue(gnl_ts_queue_t *q) {
+    NULL_VALIDATOR(q, EINVAL, NULL)
+
     int pthread_res;
 
     if (gnl_ts_queue_size(q) == 0) {
@@ -142,6 +148,8 @@ void *gnl_ts_queue_dequeue(gnl_ts_queue_t *q) {
 }
 
 unsigned long gnl_ts_queue_size(gnl_ts_queue_t *q) {
+    NULL_VALIDATOR(q, EINVAL, -1)
+
     int pthread_res;
 
     pthread_res = pthread_mutex_lock(&(q->mtx));
@@ -162,3 +170,5 @@ unsigned long gnl_ts_queue_size(gnl_ts_queue_t *q) {
 
     return temp;
 }
+
+#undef NULL_VALIDATOR

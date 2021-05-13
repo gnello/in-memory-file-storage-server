@@ -184,6 +184,15 @@ int can_destroy_min_heap_complex_struct() {
     return 0;
 }
 
+int can_pass_null_min_heap() {
+    gnl_min_heap_insert(NULL, NULL, 0);
+    gnl_min_heap_extract_min(NULL);
+    gnl_min_heap_decrease_key(NULL, 0, 0);
+    gnl_min_heap_destroy(NULL, NULL);
+
+    return 0;
+}
+
 int main() {
     gnl_printf_yellow("> gnl_min_heap_t tests:\n\n");
 
@@ -194,6 +203,8 @@ int main() {
     gnl_assert(can_respect_heap_property, "can respect the min heap property.");
 
     gnl_assert(can_destroy_min_heap_complex_struct, "can destroy a complex struct elements min heap.");
+
+    gnl_assert(can_pass_null_min_heap, "can give a null min heap safely to the min heap interface.");
 
     // the gnl_min_heap_destroy method is implicitly tested in every
     // assert, if you don't believe it, run this tests with
