@@ -9,7 +9,7 @@
 #include <limits.h>
 #include "../include/gnl_min_heap_t.h"
 
-#define NULL_VALIDATOR(min_heap, error_code, return_code) {     \
+#define GNL_NULL_CHECK(min_heap, error_code, return_code) {     \
     if (min_heap == NULL) {                                     \
         errno = error_code;                                     \
                                                                 \
@@ -108,7 +108,7 @@ static int min_heapify(gnl_min_heap_t *mh, int i) {
 gnl_min_heap_t *gnl_min_heap_init() {
     gnl_min_heap_t *mh = (struct gnl_min_heap_t *)malloc(sizeof(struct gnl_min_heap_t));
 
-    NULL_VALIDATOR(mh, ENOMEM, NULL)
+    GNL_NULL_CHECK(mh, ENOMEM, NULL)
 
     // init the min heap implementation data
     mh->list = NULL;
@@ -133,13 +133,13 @@ void gnl_min_heap_destroy(gnl_min_heap_t *mh, void (*destroy)(void *data)) {
 }
 
 int gnl_min_heap_insert(gnl_min_heap_t *mh, void *el, int key) {
-    NULL_VALIDATOR(mh, EINVAL, -1)
+    GNL_NULL_CHECK(mh, EINVAL, -1)
 
     // allocate space for the new node of the min heap
     struct gnl_min_heap_node *temp;
     temp = realloc(mh->list, (mh->size + 1) * sizeof(struct gnl_min_heap_node));
 
-    NULL_VALIDATOR(temp, ENOMEM, -1)
+    GNL_NULL_CHECK(temp, ENOMEM, -1)
 
     mh->list = temp;
 
@@ -160,7 +160,7 @@ int gnl_min_heap_insert(gnl_min_heap_t *mh, void *el, int key) {
 }
 
 void *gnl_min_heap_extract_min(gnl_min_heap_t *mh) {
-    NULL_VALIDATOR(mh, EINVAL, NULL)
+    GNL_NULL_CHECK(mh, EINVAL, NULL)
 
     if (mh->size < 1) {
         errno = EPERM;
@@ -179,7 +179,7 @@ void *gnl_min_heap_extract_min(gnl_min_heap_t *mh) {
 }
 
 int gnl_min_heap_decrease_key(gnl_min_heap_t *mh, int i, int key) {
-    NULL_VALIDATOR(mh, EINVAL, -1)
+    GNL_NULL_CHECK(mh, EINVAL, -1)
 
     if (key > (*(mh->list + i)).key) {
         errno = EINVAL;
@@ -197,4 +197,4 @@ int gnl_min_heap_decrease_key(gnl_min_heap_t *mh, int i, int key) {
     return 0;
 }
 
-#undef NULL_VALIDATOR
+#undef GNL_NULL_CHECK

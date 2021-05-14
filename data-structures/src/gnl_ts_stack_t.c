@@ -9,7 +9,7 @@
 #include "gnl_stack_t.c"
 #include "../include/gnl_ts_stack_t.h"
 
-#define NULL_VALIDATOR(stack, error_code, return_code) {    \
+#define GNL_NULL_CHECK(stack, error_code, return_code) {    \
     if (stack == NULL) {                                    \
         errno = error_code;                                 \
                                                             \
@@ -25,7 +25,7 @@ struct gnl_ts_stack_t {
 gnl_ts_stack_t *gnl_ts_stack_init() {
     gnl_ts_stack_t *stack = (gnl_ts_stack_t*)malloc(sizeof(gnl_ts_stack_t));
 
-    NULL_VALIDATOR(stack, ENOMEM, NULL)
+    GNL_NULL_CHECK(stack, ENOMEM, NULL)
 
     int pthread_res = pthread_mutex_init(&(stack->mtx), NULL);
     if (pthread_res == -1) {
@@ -36,7 +36,7 @@ gnl_ts_stack_t *gnl_ts_stack_init() {
 
     stack->s = gnl_stack_init();
 
-    NULL_VALIDATOR(stack->s, ENOMEM, NULL)
+    GNL_NULL_CHECK(stack->s, ENOMEM, NULL)
 
     return stack;
 }
@@ -92,7 +92,7 @@ int gnl_ts_stack_destroy(gnl_ts_stack_t *s, void (*destroy)(void *data)) {
 }
 
 int gnl_ts_stack_push(gnl_ts_stack_t *s, void *el) {
-    NULL_VALIDATOR(s, EINVAL, -1)
+    GNL_NULL_CHECK(s, EINVAL, -1)
 
     int pthread_res;
 
@@ -121,7 +121,7 @@ int gnl_ts_stack_push(gnl_ts_stack_t *s, void *el) {
 }
 
 void *gnl_ts_stack_pop(gnl_ts_stack_t *s) {
-    NULL_VALIDATOR(s, EINVAL, NULL)
+    GNL_NULL_CHECK(s, EINVAL, NULL)
 
     int pthread_res;
 
@@ -149,7 +149,7 @@ void *gnl_ts_stack_pop(gnl_ts_stack_t *s) {
 }
 
 unsigned long gnl_ts_stack_size(gnl_ts_stack_t *s) {
-    NULL_VALIDATOR(s, EINVAL, -1)
+    GNL_NULL_CHECK(s, EINVAL, -1)
 
     int pthread_res;
 
@@ -172,4 +172,4 @@ unsigned long gnl_ts_stack_size(gnl_ts_stack_t *s) {
     return temp;
 }
 
-#undef NULL_VALIDATOR
+#undef GNL_NULL_CHECK
