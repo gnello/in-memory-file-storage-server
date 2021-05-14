@@ -1,18 +1,30 @@
+#define __USE_POSIX199309
+#define _POSIX_C_SOURCE 199309L
+
 #include <stdio.h>
 #include <stdlib.h>
+#include <time.h>
 #include <getopt.h>
 #include <errno.h>
 #include <libgen.h>
 #include <gnl_queue_t.h>
 #include "../include/gnl_opt_handler.h"
 
-#define SHORT_OPTS "hf:w:W:D:r:R::d:t:l:u:c:p"
-#define PRINTF_H_INITIAL_SPACE "  "
-#define PRINTF_H_TAB "%-28s"
+#define GNL_SHORT_OPTS ":hf:w:W:D:r:R::d:t:l:u:c:p"
+#define GNL_PRINTF_H_INITIAL_SPACE "  "
+#define GNL_PRINTF_H_TAB "%-28s"
+#define GNL_THROW_OPT_EXCEPTION(opt, error, message) {  \
+    errno = EINVAL;                                     \
+    if (opt != NULL) {                                  \
+        *opt = optopt;                                  \
+        *error = message;                               \
+    }                                                   \
+    return -1;                                          \
+}
 
 extern int errno;
 extern char *optarg;
-extern int opterr, optind;
+extern int optopt;
 
 struct gnl_opt_handler {
     gnl_queue_t *command_queue;
@@ -25,44 +37,73 @@ struct gnl_opt_handler_el {
     void *arg;
 };
 
-static int handle_arg_h(const char* program_name) { //7
+/**
+ * Print the two arguments in two columns.
+ *
+ * @param col1_string   The firs column value.
+ * @param col2_string   The second column value.
+ *
+ * @return int          Returns always 0.
+ */
+static int printInTable(char *col1_string, char *col2_string) {
+    printf(GNL_PRINTF_H_INITIAL_SPACE GNL_PRINTF_H_TAB "%s", col1_string, col2_string);
+
+    return 0;
+}
+
+/**
+ * Wait time milliseconds.
+ *
+ * @return  Returns the nanosleep result.
+ */
+static int wait_microseconds(time) {
+    struct timespec ts;
+
+    ts.tv_sec = time / 1000;
+    ts.tv_nsec = (time % 1000) * 1000000;
+
+    return nanosleep(&ts, NULL);
+}
+
+static int print_usage(const char* program_name) { //7
     printf("Usage: %s [options]\n", program_name);
     printf("Write and read files to and from the In Memory Storage Server.\n");
     printf("Example: %s -r file1 -d /dev/null -w ./mydir\n", program_name);
     printf("\n");
     printf("The order of the options matters, the options will be handled in the order\n");
     printf("they appear.\n");
+    printf("The -f, -h, -p options can not be specified more than once.\n");
     printf("\n");
 
-    printf(PRINTF_H_INITIAL_SPACE PRINTF_H_TAB "Print this message and exit.\n", "-h");
-    printf(PRINTF_H_INITIAL_SPACE PRINTF_H_TAB "Connect to the FILENAME socket.\n", "-f FILENAME");
+    printInTable("-h", "Print this message and exit.\n");
+    printInTable("-f FILENAME", "Connect to the FILENAME socket.\n");
 
-    printf(PRINTF_H_INITIAL_SPACE PRINTF_H_TAB "Send DIRNAME files to the Server.\n", "-w DIRNAME[,N=0]");
-    printf(PRINTF_H_INITIAL_SPACE PRINTF_H_TAB "If N is specified, send N files of DIRNAME\n", "");
-    printf(PRINTF_H_INITIAL_SPACE PRINTF_H_TAB "to the Server.\n", "");
+    printInTable("-w DIRNAME[,N=0]", "Send DIRNAME files to the Server.\n");
+    printInTable("", "If N is specified, send N files of DIRNAME\n");
+    printInTable("", "to the Server.\n");
 
-    printf(PRINTF_H_INITIAL_SPACE PRINTF_H_TAB "Send any given FILE to the Server.\n", "-W FILE1[,FILE2...]");
+    printInTable("-W FILE1[,FILE2...]", "Send any given FILE to the Server.\n");
 
-    printf(PRINTF_H_INITIAL_SPACE PRINTF_H_TAB "Store the files trashed by the Server following\n", "-D DIRNAME");
-    printf(PRINTF_H_INITIAL_SPACE PRINTF_H_TAB "a -w or -W option into DIRNAME.\n", "");
+    printInTable("-D DIRNAME", "Store the files trashed by the Server following\n");
+    printInTable("", "a -w or -W option into DIRNAME.\n");
 
-    printf(PRINTF_H_INITIAL_SPACE PRINTF_H_TAB "Read FILE from the Server.\n", "-r FILE1[,FILE2...]");
+    printInTable("-r FILE1[,FILE2...]", "Read FILE from the Server.\n");
 
-    printf(PRINTF_H_INITIAL_SPACE PRINTF_H_TAB "Read all files stored on the Server.\n", "-R [N=0]");
-    printf(PRINTF_H_INITIAL_SPACE PRINTF_H_TAB "If N is specified, read N random files from\n", "");
-    printf(PRINTF_H_INITIAL_SPACE PRINTF_H_TAB "the Server.\n", "");
+    printInTable("-R [N=0]", "Read all files stored on the Server.\n");
+    printInTable("", "If N is specified, read N random files from\n");
+    printInTable("", "the Server.\n");
 
-    printf(PRINTF_H_INITIAL_SPACE PRINTF_H_TAB "Store the files read from the Server following\n", "-d DIRNAME");
-    printf(PRINTF_H_INITIAL_SPACE PRINTF_H_TAB "a -r or -R option into DIRNAME.\n", "");
+    printInTable("-d DIRNAME", "Store the files read from the Server following\n");
+    printInTable("", "a -r or -R option into DIRNAME.\n");
 
-    printf(PRINTF_H_INITIAL_SPACE PRINTF_H_TAB "Wait TIME milliseconds between sequential requests\n", "-t TIME");
-    printf(PRINTF_H_INITIAL_SPACE PRINTF_H_TAB "to the Server.\n", "");
+    printInTable("-t TIME", "Wait TIME milliseconds between sequential requests\n");
+    printInTable("", "to the Server.\n");
 
-    printf(PRINTF_H_INITIAL_SPACE PRINTF_H_TAB "Acquire the lock on FILE.\n", "-l FILE1[,FILE2...]");
-    printf(PRINTF_H_INITIAL_SPACE PRINTF_H_TAB "Release the lock on FILE.\n", "-u FILE1[,FILE2...]");
+    printInTable("-l FILE1[,FILE2...]", "Acquire the lock on FILE.\n");
+    printInTable("-u FILE1[,FILE2...]", "Release the lock on FILE.\n");
 
-    printf(PRINTF_H_INITIAL_SPACE PRINTF_H_TAB "Remove FILE from the Server.\n", "-c FILE1[,FILE2...]");
-    printf(PRINTF_H_INITIAL_SPACE PRINTF_H_TAB "Print the log of the requests made to the server.\n", "-p");
+    printInTable("-c FILE1[,FILE2...]", "Remove FILE from the Server.\n");
+    printInTable("-p", "Print the log of the requests made to the server.\n");
 
     return 0;
 }
@@ -160,37 +201,58 @@ struct gnl_opt_handler *gnl_opt_handler_init() {
     return handler;
 }
 
-int gnl_opt_handler_parse_opt(struct gnl_opt_handler *handler, int argc, char* argv[]) {
+int gnl_opt_handler_parse_opt(struct gnl_opt_handler *handler, int argc, char* argv[], char *opt_err, char **error) {
     int opt;
     struct gnl_opt_handler_el *opt_el;
     int res;
 
     // start arguments parse
-    int i=0;
-    while ((opt = getopt(argc, argv, SHORT_OPTS)) != -1) {
-        //TODO: controllare che -f, -h e -p non siano ripetuti
+    int i = 0;
+    while ((opt = getopt(argc, argv, GNL_SHORT_OPTS)) != -1) {
+        // the -f, -h, -p options can not be specified more than once
         switch (opt) {
+            // enable operations log print
             case 'p':
+                if (handler->debug != 0) {
+                    GNL_THROW_OPT_EXCEPTION(opt_err, error, "option repetition")
+                }
+
                 handler->debug = 1;
                 break;
 
+            // set the socket filename
             case 'f':
+                if (handler->socket_filename != NULL) {
+                    GNL_THROW_OPT_EXCEPTION(opt_err, error, "option already encountered")
+                }
+
                 handler->socket_filename = optarg;
                 break;
 
+            // print the usage message
             case 'h':
-                // basename removes path information.
+                // basename removes path information
                 // POSIX version, can modify the argument.
-                handle_arg_h(basename(argv[0]));
+                print_usage(basename(argv[0]));
                 gnl_opt_handler_destroy(handler);
 
                 exit(EXIT_FAILURE);
                 /* NOT REACHED */
                 break;
 
-            case '?':
-                return -1;
+            // option not valid
+            case ':':
+                GNL_THROW_OPT_EXCEPTION(opt_err, error, "argument required")
+                /* NOT REACHED */
+                break;
 
+            // option not valid
+            case '?':
+                GNL_THROW_OPT_EXCEPTION(opt_err, error, "invalid option")
+                /* NOT REACHED */
+                break;
+
+            // put every other valid option in the command queue
             default:
                 opt_el = (struct gnl_opt_handler_el *)malloc(argc * sizeof(struct gnl_opt_handler_el));
                 opt_el->opt = opt;
@@ -218,9 +280,6 @@ void gnl_opt_handler_destroy(gnl_opt_handler *handler) {
 }
 
 int gnl_opt_handler_handle(gnl_opt_handler *handler) {
-    //TODO: handle queue
-    //TODO: il timer meglio gestirlo con una sleep o con una signal alarm?
-
     int time = 0;
 
     struct gnl_opt_handler_el el;
@@ -234,8 +293,23 @@ int gnl_opt_handler_handle(gnl_opt_handler *handler) {
         switch (el.opt) {
             // update the requests delay
             case 't':
-                //TODO: è giusto fare qui la conversione?
-                time = strtol(el.arg, &ptr, 10); //TODO: https://stackoverflow.com/questions/26080829/detecting-strtol-failure/26083517
+                time = strtol(el.arg, &ptr, 10);
+
+                // if no digits found
+                if ((char *)el.arg == ptr) {
+                    errno = EINVAL;
+
+                    return -1;
+                }
+
+                // if there was an error
+                if (errno != 0) {
+                    return -1;
+                }
+
+                // process next command immediately
+                continue;
+                /* NOT REACHED */
                 break;
         }
 
@@ -243,11 +317,14 @@ int gnl_opt_handler_handle(gnl_opt_handler *handler) {
 
         previous_el = el;
         free(raw_el);
+
+        wait_microseconds(time);
     }
 
     return 0;
 }
 
-#undef SHORT_OPTS
-#undef PRINTF_H_INITIAL_SPACE
-#undef PRINTF_H_TAB
+#undef GNL_SHORT_OPTS
+#undef GNL_PRINTF_H_INITIAL_SPACE
+#undef GNL_PRINTF_H_TAB
+#undef GNL_THROW_OPT_EXCEPTION
