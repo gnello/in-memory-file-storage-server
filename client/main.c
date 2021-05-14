@@ -10,9 +10,9 @@ int main(int argc, char * argv[]) {
     }
 
     gnl_opt_handler_parse_opt(handler, argc, argv);
-    //gnl_opt_handler_handle(handler);
+    gnl_opt_handler_handle(handler);
 
-    printQueue(handler);
+    //printQueue(handler);
 
     gnl_opt_handler_destroy(handler);
 
