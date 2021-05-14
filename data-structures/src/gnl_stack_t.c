@@ -8,7 +8,7 @@
 #include <errno.h>
 #include "../include/gnl_stack_t.h"
 
-#define NULL_VALIDATOR(stack, error_code, return_code) {    \
+#define GNL_NULL_CHECK(stack, error_code, return_code) {    \
     if (stack == NULL) {                                    \
         errno = error_code;                                 \
                                                             \
@@ -31,7 +31,7 @@ struct gnl_stack_t {
 gnl_stack_t *gnl_stack_init() {
     gnl_stack_t *stack = (struct gnl_stack_t *)malloc(sizeof(struct gnl_stack_t));
 
-    NULL_VALIDATOR(stack, ENOMEM, NULL)
+    GNL_NULL_CHECK(stack, ENOMEM, NULL)
 
     // init the stack implementation data
     stack->top = NULL;
@@ -59,12 +59,12 @@ void gnl_stack_destroy(gnl_stack_t *s, void (*destroy)(void *data)) {
 }
 
 int gnl_stack_push(gnl_stack_t *s, void *el) {
-    NULL_VALIDATOR(s, EINVAL, -1)
+    GNL_NULL_CHECK(s, EINVAL, -1)
 
     // create the new stack node
     struct gnl_stack_node *temp = (struct gnl_stack_node *)malloc(sizeof(struct gnl_stack_node));
 
-    NULL_VALIDATOR(temp, ENOMEM, -1)
+    GNL_NULL_CHECK(temp, ENOMEM, -1)
 
     temp->data = el;
     temp->next = NULL;
@@ -81,7 +81,7 @@ int gnl_stack_push(gnl_stack_t *s, void *el) {
 }
 
 void *gnl_stack_pop(gnl_stack_t *s) {
-    NULL_VALIDATOR(s, EINVAL, NULL)
+    GNL_NULL_CHECK(s, EINVAL, NULL)
 
     // if stack is empty return NULL.
     if (s->top == NULL) {
@@ -102,9 +102,9 @@ void *gnl_stack_pop(gnl_stack_t *s) {
 }
 
 unsigned long gnl_stack_size(const gnl_stack_t *s) {
-    NULL_VALIDATOR(s, EINVAL, -1)
+    GNL_NULL_CHECK(s, EINVAL, -1)
 
     return s->size;
 }
 
-#undef NULL_VALIDATOR
+#undef GNL_NULL_CHECK

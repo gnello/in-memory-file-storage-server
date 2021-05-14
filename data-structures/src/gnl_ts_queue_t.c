@@ -9,7 +9,7 @@
 #include "gnl_queue_t.c"
 #include "../include/gnl_ts_queue_t.h"
 
-#define NULL_VALIDATOR(queue, error_code, return_code) {    \
+#define GNL_NULL_CHECK(queue, error_code, return_code) {    \
     if (queue == NULL) {                                    \
         errno = error_code;                                 \
                                                             \
@@ -25,7 +25,7 @@ struct gnl_ts_queue_t {
 gnl_ts_queue_t *gnl_ts_queue_init() {
     gnl_ts_queue_t *queue = (gnl_ts_queue_t*)malloc(sizeof(gnl_ts_queue_t));
 
-    NULL_VALIDATOR(queue, ENOMEM, NULL)
+    GNL_NULL_CHECK(queue, ENOMEM, NULL)
 
     int pthread_res = pthread_mutex_init(&(queue->mtx), NULL);
     if (pthread_res == -1) {
@@ -35,7 +35,7 @@ gnl_ts_queue_t *gnl_ts_queue_init() {
     }
 
     queue->q = gnl_queue_init();
-    NULL_VALIDATOR(queue->q, ENOMEM, NULL)
+    GNL_NULL_CHECK(queue->q, ENOMEM, NULL)
 
     return queue;
 }
@@ -91,7 +91,7 @@ int gnl_ts_queue_destroy(gnl_ts_queue_t *q, void (*destroy)(void *data)) {
 }
 
 int gnl_ts_queue_enqueue(gnl_ts_queue_t *q, void *el) {
-    NULL_VALIDATOR(q, EINVAL, -1)
+    GNL_NULL_CHECK(q, EINVAL, -1)
 
     int pthread_res;
 
@@ -120,7 +120,7 @@ int gnl_ts_queue_enqueue(gnl_ts_queue_t *q, void *el) {
 }
 
 void *gnl_ts_queue_dequeue(gnl_ts_queue_t *q) {
-    NULL_VALIDATOR(q, EINVAL, NULL)
+    GNL_NULL_CHECK(q, EINVAL, NULL)
 
     int pthread_res;
 
@@ -148,7 +148,7 @@ void *gnl_ts_queue_dequeue(gnl_ts_queue_t *q) {
 }
 
 unsigned long gnl_ts_queue_size(gnl_ts_queue_t *q) {
-    NULL_VALIDATOR(q, EINVAL, -1)
+    GNL_NULL_CHECK(q, EINVAL, -1)
 
     int pthread_res;
 
@@ -171,4 +171,4 @@ unsigned long gnl_ts_queue_size(gnl_ts_queue_t *q) {
     return temp;
 }
 
-#undef NULL_VALIDATOR
+#undef GNL_NULL_CHECK

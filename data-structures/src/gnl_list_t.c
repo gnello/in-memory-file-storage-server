@@ -8,7 +8,7 @@
 #include <errno.h>
 #include "../include/gnl_list_t.h"
 
-#define NULL_VALIDATOR(list, error_code, return_code) {     \
+#define GNL_NULL_CHECK(list, error_code, return_code) {     \
     if (list == NULL) {                                     \
         errno = error_code;                                 \
                                                             \
@@ -24,7 +24,7 @@ struct gnl_list_t {
 int gnl_list_insert(gnl_list_t **list, void *el) {
     gnl_list_t *new_node = (struct gnl_list_t *)malloc(sizeof(struct gnl_list_t));
 
-    NULL_VALIDATOR(new_node, ENOMEM, -1)
+    GNL_NULL_CHECK(new_node, ENOMEM, -1)
 
     new_node->el = el;
     new_node->next = *list;
@@ -38,7 +38,7 @@ int gnl_list_append(gnl_list_t **list, void *el) {
     gnl_list_t *new_node = (struct gnl_list_t *)malloc(sizeof(struct gnl_list_t));
     gnl_list_t *current = NULL;
 
-    NULL_VALIDATOR(new_node, ENOMEM, -1)
+    GNL_NULL_CHECK(new_node, ENOMEM, -1)
 
     new_node->el = el;
     new_node->next = NULL;
@@ -79,7 +79,7 @@ int gnl_list_search(gnl_list_t *list, const void *el, int (*compare)(const void 
 }
 
 int gnl_list_delete(gnl_list_t **list, const void *el) {
-    NULL_VALIDATOR(list, EINVAL, -1)
+    GNL_NULL_CHECK(list, EINVAL, -1)
 
     gnl_list_t *temp = *list;
     gnl_list_t *prev;
@@ -107,7 +107,7 @@ int gnl_list_delete(gnl_list_t **list, const void *el) {
 }
 
 int gnl_list_destroy(gnl_list_t **list, void (*destroy)(void *data)) {
-    NULL_VALIDATOR(list, EINVAL, -1)
+    GNL_NULL_CHECK(list, EINVAL, -1)
 
     gnl_list_t *current = *list;
     gnl_list_t *next;
@@ -128,4 +128,4 @@ int gnl_list_destroy(gnl_list_t **list, void (*destroy)(void *data)) {
     return 0;
 }
 
-#undef NULL_VALIDATOR
+#undef GNL_NULL_CHECK
