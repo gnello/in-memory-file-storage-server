@@ -6,13 +6,19 @@ export
 CC = gcc
 CFLAGS = -std=c99 -Wall -pedantic
 
-TARGETS = gnl_imfs_server_api.so
+LIBS += -Wl,-rpath,$(ROOT)$(DATA_STRUCTURES_LIB) -L$(ROOT)$(DATA_STRUCTURES_LIB) -lgnl_list_t -lgnl_queue_t
+INCLUDE += -I$(ROOT)$(DATA_STRUCTURES_INCLUDE)
+
+TARGETS = main gnl_imfss_api.so
 TARGETS_PATH = ./lib
 
 .PHONY: all dev clean
 
 all: $(TARGETS)
 VPATH = src
+
+%: %.c
+	$(CC) $(CFLAGS) $(INCLUDE) $(OPTFLAGS) -o $@ $< $(LDFLAGS) $(LIBS)
 
 %.so: %.o
 	$(CC) -shared -o $(TARGETS_PATH)/lib$@ $(TARGETS_PATH)/$<

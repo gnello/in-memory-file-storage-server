@@ -4,16 +4,16 @@
 THREAD_WORKERS=1
 
 # Capacity of the File Storage Server in MB.
-STORAGE_CAPACITY=100
+CAPACITY=100
 
 # Maximum number of files stored by the File Storage Server.
-STORAGE_LIMIT=100
+LIMIT=100
+
+# Storage replacement policy. Supported policies: FIFO, LRU, LFU.
+REPLACEMENT_POLICY=FIFO
 
 # Absolute path of the socket file.
 SOCKET=/tmp/LSOfilestorage.sk
-
-# Cache replacement policy. Supported policies: FIFO, LRU, LFU.
-CACHE_REPLACEMENT_POLICY=FIFO
 
 # Absolute path of the log file.
 LOG_FILE=/tmp/ffs.log

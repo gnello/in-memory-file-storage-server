@@ -1,0 +1,8 @@
+#ifndef GNL_IN_MEMORY_FILESYSTEM_H
+#define GNL_IN_MEMORY_FILESYSTEM_H
+
+const int REPOL_FIFO = 0;
+const int REPOL_LRU = 1;
+const int REPOL_LFU = 2;
+
+#endif //GNL_IN_MEMORY_FILESYSTEM_H
