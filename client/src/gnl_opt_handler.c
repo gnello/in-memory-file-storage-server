@@ -254,7 +254,7 @@ int gnl_opt_handler_parse_opt(struct gnl_opt_handler *handler, int argc, char* a
 
             // put every other valid option in the command queue
             default:
-                opt_el = (struct gnl_opt_handler_el *)malloc(argc * sizeof(struct gnl_opt_handler_el));
+                opt_el = (struct gnl_opt_handler_el *)malloc(sizeof(struct gnl_opt_handler_el));
                 opt_el->opt = opt;
                 opt_el->arg = optarg;
                 res = gnl_queue_enqueue(handler->command_queue, (void *)opt_el);
