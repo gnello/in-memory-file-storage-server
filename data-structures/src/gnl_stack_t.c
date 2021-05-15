@@ -8,11 +8,11 @@
 #include <errno.h>
 #include "../include/gnl_stack_t.h"
 
-#define GNL_NULL_CHECK(stack, error_code, return_code) {    \
+#define GNL_NULL_CHECK(stack, error_code, return_value) {   \
     if (stack == NULL) {                                    \
         errno = error_code;                                 \
                                                             \
-        return return_code;                                 \
+        return return_value;                                \
     }                                                       \
 }
 

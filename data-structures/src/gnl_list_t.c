@@ -8,11 +8,11 @@
 #include <errno.h>
 #include "../include/gnl_list_t.h"
 
-#define GNL_NULL_CHECK(list, error_code, return_code) {     \
+#define GNL_NULL_CHECK(list, error_code, return_value) {    \
     if (list == NULL) {                                     \
         errno = error_code;                                 \
                                                             \
-        return return_code;                                 \
+        return return_value;                                \
     }                                                       \
 }
 

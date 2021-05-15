@@ -9,11 +9,11 @@
 #include <limits.h>
 #include "../include/gnl_min_heap_t.h"
 
-#define GNL_NULL_CHECK(min_heap, error_code, return_code) {     \
+#define GNL_NULL_CHECK(min_heap, error_code, return_value) {    \
     if (min_heap == NULL) {                                     \
         errno = error_code;                                     \
                                                                 \
-        return return_code;                                     \
+        return return_value;                                    \
     }                                                           \
 }
 
