@@ -63,16 +63,14 @@ static int setenv_from_file(FILE *file, int overwrite) {
 
             // set the var into the system environment
             if ((setenv(key, value, overwrite) != 0)) {
-                perror("setenv");
-
+                // errno bubbling
                 return -1;
             }
         }
     }
 
     if (ferror(file) != 0) {
-        perror("fgets");
-
+        // errno bubbling
         return -1;
     }
 
@@ -86,14 +84,14 @@ int gnl_txtenv_load(const char * path, int overwrite) {
     // open the given env file
     file = fopen(path, "r");
     if (!file) {
-        perror("fopen");
-
+        // errno bubbling
         return -1;
     }
 
     // parse the given env file
     if (setenv_from_file(file, overwrite) != 0) {
-        res = 1;
+        // errno bubbling
+        res = -1;
     }
 
     fclose(file);
