@@ -61,6 +61,11 @@ static int setenv_from_file(FILE *file, int overwrite) {
             key = strtok_r(buffer, "=", &tok);
             value = strtok_r(NULL, "\n", &tok);
 
+            // ignore empty values
+            if (value == NULL) {
+                continue;
+            }
+
             // set the var into the system environment
             if ((setenv(key, value, overwrite) != 0)) {
                 // errno bubbling
