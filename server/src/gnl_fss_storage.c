@@ -1,7 +1,7 @@
+#include <stdlib.h>
 #include <errno.h>
 #include <gnl_list_t.h>
-#include <gnl_queue_t.h>
-#include "../include/gnl_in_memory_filesystem.h"
+#include "../include/gnl_fss_storage.h"
 
 #define GNL_NULL_CHECK(ptr, error_code, return_value) { \
     if (ptr == NULL) {                                  \
@@ -19,18 +19,18 @@ struct gnl_storage_t {
     gnl_list_t *inode;
 };
 
-struct gnl_inode {
-    id;
-    timestamp;
-    last_access;
-    last_modify;
-    file_size;
-    file_ptr;
-};
+//struct gnl_inode {
+//    id;
+//    timestamp;
+//    last_access;
+//    last_modify;
+//    file_size;
+//    file_ptr;
+//};
 
 //TODO: hashtable di inode
 
-struct gnl_storage_t gnl_in_memory_filesystem_init(int capacity, int limit, int replacement_policy) {
+struct gnl_storage_t *gnl_in_memory_filesystem_init(int capacity, int limit, int replacement_policy) {
     struct gnl_storage_t *filesystem = (struct gnl_storage_t *)malloc(sizeof(struct gnl_storage_t));
     GNL_NULL_CHECK(filesystem, ENOMEM, NULL);
 
@@ -40,7 +40,7 @@ struct gnl_storage_t gnl_in_memory_filesystem_init(int capacity, int limit, int 
     if (replacement_policy != REPOL_FIFO && replacement_policy != REPOL_LRU && replacement_policy != REPOL_LFU) {
         errno = EINVAL;
 
-        return -1;
+        return NULL;
     }
 
     filesystem->replacement_policy = replacement_policy;
@@ -49,7 +49,7 @@ struct gnl_storage_t gnl_in_memory_filesystem_init(int capacity, int limit, int 
 }
 
 int gnl_in_memory_filesystem_open(const char *pathname) {
-
+    return 0;
 }
 
 #undef GNL_NULL_CHECK

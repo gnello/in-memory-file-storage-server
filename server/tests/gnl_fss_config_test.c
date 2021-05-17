@@ -1,0 +1,136 @@
+#include <stdio.h>
+#include <string.h>
+#include <gnl_colorshell.h>
+#include <gnl_assert.h>
+#include <gnl_txtenv.h>
+#include <gnl_fss_storage.h>
+#include "../src/gnl_fss_config.c"
+
+int can_load_default() {
+    gnl_fss_config *config = gnl_fss_config_init();
+    if (config == NULL) {
+        return -1;
+    }
+
+    if (config->thread_workers != 10) {
+        return -1;
+    }
+
+    if (config->capacity != 100) {
+        return -1;
+    }
+
+    if (config->limit != 100) {
+        return -1;
+    }
+
+    if (config->replacement_policy != REPOL_FIFO) {
+        return -1;
+    }
+
+    if (strcmp(config->socket, "/tmp/gnl_fss.sk") != 0) {
+        return -1;
+    }
+
+    if (strcmp(config->logfile, "/var/log/gnl_fss.log") != 0) {
+        return -1;
+    }
+
+    return 0;
+}
+
+int can_load_env() {
+    gnl_fss_config *config = gnl_fss_config_init();
+    if (config == NULL) {
+        return -1;
+    }
+
+    if (gnl_txtenv_load("./test.txt", 0) != 0) {
+        return -1;
+    }
+
+    config = gnl_fss_config_init_from_env();
+    if (config == NULL) {
+        return -1;
+    }
+
+    if (config->thread_workers != 2) {
+        return -1;
+    }
+
+    if (config->capacity != 23) {
+        return -1;
+    }
+
+    if (config->limit != 45) {
+        return -1;
+    }
+
+    if (config->replacement_policy != REPOL_LFU) {
+        return -1;
+    }
+
+    if (strcmp(config->socket, "/tmp/fss_test.sk") != 0) {
+        return -1;
+    }
+
+    if (strcmp(config->logfile, "/var/log/fss_test.log") != 0) {
+        return -1;
+    }
+
+    return 0;
+}
+
+int cannot_load_with_error() {
+    gnl_fss_config *config = gnl_fss_config_init();
+    if (config == NULL) {
+        return -1;
+    }
+
+    if (gnl_txtenv_load("./test_invalid_config.txt", 0) != 0) {
+        return -1;
+    }
+
+    config = gnl_fss_config_init_from_env();
+    if (config == NULL) {
+        return -1;
+    }
+
+    if (config->thread_workers != 2) {
+        return -1;
+    }
+
+    if (config->capacity != 23) {
+        return -1;
+    }
+
+    if (config->limit != 45) {
+        return -1;
+    }
+
+    if (config->replacement_policy != REPOL_LFU) {
+        return -1;
+    }
+
+    if (strcmp(config->socket, "/tmp/fss_test.sk") != 0) {
+        return -1;
+    }
+
+    if (strcmp(config->logfile, "/var/log/fss_test.log") != 0) {
+        return -1;
+    }
+
+    return 0;
+}
+
+
+
+int main() {
+    gnl_printf_yellow("> gnl_fss_config test:\n\n");
+
+    gnl_assert(can_load_default, "can load a default configuration.");
+    gnl_assert(can_load_env, "can load the configuration from the env.");
+    gnl_assert(cannot_load_with_error, "cannot load an incorrect configuration from the env.");
+
+    printf("\n");
+}

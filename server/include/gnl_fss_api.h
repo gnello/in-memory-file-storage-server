@@ -15,7 +15,7 @@
  *
  * @return          Returns 0 on success, -1 otherwise.
  */
-extern int gnl_imfss_api_open_connection(const char *sockname, int msec, const struct timespec abstime);
+extern int gnl_fss_api_open_connection(const char *sockname, int msec, const struct timespec abstime);
 
 /**
  * Close the AF_UNIX connection opened on sockname.
@@ -24,7 +24,7 @@ extern int gnl_imfss_api_open_connection(const char *sockname, int msec, const s
  *
  * @return          Returns 0 on success, -1 otherwise.
  */
-extern int gnl_imfss_api_close_connection(const char *sockname);
+extern int gnl_fss_api_close_connection(const char *sockname);
 
 /**
  * Open a file on the server.
@@ -39,7 +39,7 @@ extern int gnl_imfss_api_close_connection(const char *sockname);
  *
  * @return          Returns 0 on success, -1 otherwise.
  */
-extern int gnl_imfss_api_open_file(const char *pathname, int flags);
+extern int gnl_fss_api_open_file(const char *pathname, int flags);
 
 /**
  * Read a file from the server.
@@ -52,7 +52,7 @@ extern int gnl_imfss_api_open_file(const char *pathname, int flags);
  *
  * @return          Returns 0 on success, -1 otherwise.
  */
-extern int gnl_imfss_api_read_file(const char *pathname, void **buf, size_t *size);
+extern int gnl_fss_api_read_file(const char *pathname, void **buf, size_t *size);
 
 /**
  * Read any N files from the server, if the server has less than N files,
@@ -63,12 +63,12 @@ extern int gnl_imfss_api_read_file(const char *pathname, void **buf, size_t *siz
  *
  * @return          Returns the number of file read on success, -1 otherwise.
  */
-extern int gnl_imfss_api_read_N_files(int N, const char *dirname);
+extern int gnl_fss_api_read_N_files(int N, const char *dirname);
 
 /**
  * Write a file to the server.
  * Return success only if the previous operation on the file was
- * gnl_imfss_api_open_file(pathname, O_CREATE| O_LOCK).
+ * gnl_fss_api_open_file(pathname, O_CREATE| O_LOCK).
  *
  * @param pathname  The path of the file to write on the server.
  * @param dirname   The path where to store the eventual trashed file from the server.
@@ -76,7 +76,7 @@ extern int gnl_imfss_api_read_N_files(int N, const char *dirname);
  *
  * @return          Returns 0 on success, -1 otherwise.
  */
-extern int gnl_imfss_api_write_file(const char *pathname, const char *dirname);
+extern int gnl_fss_api_write_file(const char *pathname, const char *dirname);
 
 /**
  * Append a file to the server, this operation is atomic.
@@ -89,7 +89,7 @@ extern int gnl_imfss_api_write_file(const char *pathname, const char *dirname);
  *
  * @return          Returns 0 on success, -1 otherwise.
  */
-extern int gnl_imfss_api_append_to_file(const char *pathname, void *buf, size_t size, const char *dirname);
+extern int gnl_fss_api_append_to_file(const char *pathname, void *buf, size_t size, const char *dirname);
 
 /**
  * Acquire the lock on a file.
@@ -101,7 +101,7 @@ extern int gnl_imfss_api_append_to_file(const char *pathname, void *buf, size_t 
  *
  * @return          Returns 0 on success, -1 otherwise.
  */
-extern int gnl_imfss_api_lock_file(const char *pathname);
+extern int gnl_fss_api_lock_file(const char *pathname);
 
 /**
  * Release the lock from a file.
@@ -111,7 +111,7 @@ extern int gnl_imfss_api_lock_file(const char *pathname);
  *
  * @return          Returns 0 on success, -1 otherwise.
  */
-extern int gnl_imfss_api_unlock_file(const char *pathname);
+extern int gnl_fss_api_unlock_file(const char *pathname);
 
 /**
  * Close a file opened on the server, all the following operations
@@ -121,7 +121,7 @@ extern int gnl_imfss_api_unlock_file(const char *pathname);
  *
  * @return          Returns 0 on success, -1 otherwise.
  */
-extern int gnl_imfss_api_close_file(const char *pathname);
+extern int gnl_fss_api_close_file(const char *pathname);
 
 /**
  * Remove a file from the server.
@@ -131,6 +131,6 @@ extern int gnl_imfss_api_close_file(const char *pathname);
  *
  * @return          Returns 0 on success, -1 otherwise.
  */
-extern int gnl_imfss_api_remove_file(const char *pathname);
+extern int gnl_fss_api_remove_file(const char *pathname);
 
 #endif //GNL_IMFS_SERVER_API_H
