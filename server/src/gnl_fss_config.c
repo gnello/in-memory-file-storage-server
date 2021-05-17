@@ -67,8 +67,8 @@ static int get_int_value_from_env(const char *name) {
  *
  * @param config    The configuration structure.
  */
-struct gnl_fss_config *gnl_fss_config_init() {
-    struct gnl_fss_config *config = (struct gnl_fss_config *)malloc(sizeof(struct gnl_fss_config));
+gnl_fss_config *gnl_fss_config_init() {
+    gnl_fss_config *config = (struct gnl_fss_config *)malloc(sizeof(struct gnl_fss_config));
     GNL_NULL_CHECK(config, ENOMEM, NULL);
 
     config->thread_workers = 10;
@@ -81,8 +81,8 @@ struct gnl_fss_config *gnl_fss_config_init() {
     return config;
 }
 
-struct gnl_fss_config *gnl_fss_config_init_from_env() {
-    struct gnl_fss_config *config = (struct gnl_fss_config *)malloc(sizeof(struct gnl_fss_config));
+gnl_fss_config *gnl_fss_config_init_from_env() {
+    gnl_fss_config *config = (struct gnl_fss_config *)malloc(sizeof(struct gnl_fss_config));
     GNL_NULL_CHECK(config, ENOMEM, NULL);
 
     config->thread_workers = get_int_value_from_env("THREAD_WORKERS");
@@ -101,6 +101,12 @@ struct gnl_fss_config *gnl_fss_config_init_from_env() {
     config->logfile = getenv("LOG_FILE");
 
     return config;
+}
+
+void gnl_fss_config_destroy(gnl_fss_config *config) {
+    if (config != NULL) {
+        free(config);
+    }
 }
 
 #undef GNL_NULL_CHECK

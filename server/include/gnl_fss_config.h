@@ -38,4 +38,11 @@ gnl_fss_config *gnl_fss_config_init();
  */
 gnl_fss_config *gnl_fss_config_init_from_env();
 
+/**
+ * Destroy the entire configuration.
+ *
+ * @param config    The configuration to be destroyed.
+ */
+void gnl_fss_config_destroy(gnl_fss_config *config);
+
 #endif //GNL_FSS_CONFIG_H
