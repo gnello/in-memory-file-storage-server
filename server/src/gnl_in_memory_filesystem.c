@@ -11,7 +11,7 @@
     }                                                   \
 }
 
-struct storage_t {
+struct gnl_storage_t {
     int capacity;
     int limit;
     int replacement_policy;
@@ -19,8 +19,19 @@ struct storage_t {
     gnl_list_t *inode;
 };
 
-struct storage_t gnl_in_memory_filesystem_init(int capacity, int limit, int replacement_policy) {
-    struct storage_t *filesystem = (struct storage_t *)malloc(sizeof(struct storage_t));
+struct gnl_inode {
+    id;
+    timestamp;
+    last_access;
+    last_modify;
+    file_size;
+    file_ptr;
+};
+
+//TODO: hashtable di inode
+
+struct gnl_storage_t gnl_in_memory_filesystem_init(int capacity, int limit, int replacement_policy) {
+    struct gnl_storage_t *filesystem = (struct gnl_storage_t *)malloc(sizeof(struct gnl_storage_t));
     GNL_NULL_CHECK(filesystem, ENOMEM, NULL);
 
     filesystem->capacity = capacity;
@@ -36,3 +47,9 @@ struct storage_t gnl_in_memory_filesystem_init(int capacity, int limit, int repl
 
     return filesystem;
 }
+
+int gnl_in_memory_filesystem_open(const char *pathname) {
+
+}
+
+#undef GNL_NULL_CHECK
