@@ -1,4 +1,5 @@
 #include <stdlib.h>
+#include <time.h>
 #include <errno.h>
 #include <gnl_list_t.h>
 #include "../include/gnl_fss_storage.h"
@@ -11,7 +12,7 @@
     }                                                   \
 }
 
-struct gnl_storage_t {
+struct gnl_fss_storage {
     int capacity;
     int limit;
     int replacement_policy;
@@ -19,36 +20,51 @@ struct gnl_storage_t {
     gnl_list_t *inode;
 };
 
-//struct gnl_inode {
-//    id;
-//    timestamp;
-//    last_access;
-//    last_modify;
-//    file_size;
-//    file_ptr;
-//};
+struct gnl_fss_inode {
+    int id;
+    time_t timestamp;
+    time_t last_access;
+    time_t last_modify;
+    int file_size;
+    int file_ptr;
+};
 
 //TODO: hashtable di inode
 
-struct gnl_storage_t *gnl_in_memory_filesystem_init(int capacity, int limit, int replacement_policy) {
-    struct gnl_storage_t *filesystem = (struct gnl_storage_t *)malloc(sizeof(struct gnl_storage_t));
-    GNL_NULL_CHECK(filesystem, ENOMEM, NULL);
+gnl_fss_storage *gnl_fss_storage_init(int capacity, int limit, int replacement_policy) {
+    gnl_fss_storage *storage = (struct gnl_fss_storage *)malloc(sizeof(struct gnl_fss_storage));
+    GNL_NULL_CHECK(storage, ENOMEM, NULL);
 
-    filesystem->capacity = capacity;
-    filesystem->limit = limit;
+    storage->capacity = capacity;
+    storage->limit = limit;
 
-    if (replacement_policy != REPOL_FIFO && replacement_policy != REPOL_LRU && replacement_policy != REPOL_LFU) {
-        errno = EINVAL;
+    switch (replacement_policy) {
+        case 0: // FIFO
+            // no break
+        case 1: // LRU
+            // no break
+        case 2: // LFU
+            break;
 
-        return NULL;
+        default:
+            errno = EINVAL;
+            return NULL;
+            /* NOT REACHED */
+            break;
     }
 
-    filesystem->replacement_policy = replacement_policy;
+    storage->replacement_policy = replacement_policy;
 
-    return filesystem;
+    return storage;
 }
 
-int gnl_in_memory_filesystem_open(const char *pathname) {
+void gnl_fss_storage_destroy(gnl_fss_storage *storage) {
+    if (storage != NULL) {
+        free(storage);
+    }
+}
+
+int gnl_fss_storage_open(const char *pathname) {
     return 0;
 }
 

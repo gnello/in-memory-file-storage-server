@@ -1,4 +1,7 @@
+#define _POSIX_C_SOURCE 199309L
+
 #include "../include/gnl_fss_api.h"
+#include "./gnl_fss_socket.c"
 
 int gnl_fss_api_open_connection(const char *sockname, int msec, const struct timespec abstime) {
     return 0;
@@ -9,6 +12,14 @@ int gnl_fss_api_close_connection(const char *sockname) {
 }
 
 int gnl_fss_api_open_file(const char *pathname, int flags) {
+    struct gnl_fss_socket_message message;
+
+    message.type = GNL_FSS_SOCKET_OPEN;
+    message.payload.open.pathname = pathname;
+    message.payload.open.flags = flags;
+
+    gnl_fss_socket_send(message);
+
     return 0;
 }
 

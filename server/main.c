@@ -3,6 +3,7 @@
 #include <gnl_fss_opt_handler.h>
 #include <gnl_fss_config.h>
 #include <gnl_fss_storage.h>
+#include <gnl_fss_api.h>
 
 int main(int argc, char * argv[]) {
     char opt_err = '\0';
@@ -23,7 +24,7 @@ int main(int argc, char * argv[]) {
         return -1;
     }
 
-    // if a filename is read on the stdin
+    // if a filename is read on the stdin (-f opt)
     if (filename != NULL) {
         // load configuration into the env
         if (gnl_txtenv_load(filename, 0) != 0) {
@@ -52,11 +53,12 @@ int main(int argc, char * argv[]) {
         }
     }
 
-    printf("capacity: %d\n", config->capacity);
-
     // instance the filesystem
-    //gnl_in_memory_filesystem_init(config->capacity, config->limit, config->replacement_policy);
+    //gnl_fss_storage_init(config->capacity, config->limit, config->replacement_policy);
 
+    gnl_fss_api_open_file("./pino/il/ginepraio", 1);
+
+    gnl_fss_config_destroy(config);
 
     return 0;
 }

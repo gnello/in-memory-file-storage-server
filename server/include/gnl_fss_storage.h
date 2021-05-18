@@ -1,10 +1,14 @@
-#ifndef GNL_IN_MEMORY_FILESYSTEM_H
-#define GNL_IN_MEMORY_FILESYSTEM_H
+#ifndef GNL_FSS_STORAGE_H
+#define GNL_FSS_STORAGE_H
 
 const int REPOL_FIFO = 0;
 const int REPOL_LRU = 1;
 const int REPOL_LFU = 2;
 
-struct gnl_storage_t *gnl_in_memory_filesystem_init(int capacity, int limit, int replacement_policy);
+typedef struct gnl_fss_storage gnl_fss_storage;
 
-#endif //GNL_IN_MEMORY_FILESYSTEM_H
+gnl_fss_storage *gnl_fss_storage_init(int capacity, int limit, int replacement_policy);
+
+void gnl_fss_storage_destroy(gnl_fss_storage *storage);
+
+#endif //GNL_FSS_STORAGE_H
