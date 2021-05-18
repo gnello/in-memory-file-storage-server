@@ -45,16 +45,11 @@ int can_load_default() {
 }
 
 int can_load_env() {
-    gnl_fss_config *config = gnl_fss_config_init();
-    if (config == NULL) {
-        return -1;
-    }
-
     if (gnl_txtenv_load("./test_valid_config.txt", 0) != 0) {
         return -1;
     }
 
-    config = gnl_fss_config_init_from_env();
+    gnl_fss_config *config = gnl_fss_config_init_from_env();
     if (config == NULL) {
         return -1;
     }
@@ -96,21 +91,14 @@ int can_load_env() {
 }
 
 int cannot_load_with_error() {
-    gnl_fss_config *config = gnl_fss_config_init();
-    if (config == NULL) {
-        return -1;
-    }
-
-    if (gnl_txtenv_load("./test_invalid_config.txt", 0) != 0) {
-        return -1;
-    }
-
-    config = gnl_fss_config_init_from_env();
+    gnl_fss_config *config = gnl_fss_config_init_from_env();
     if (config != NULL) {
         return -1;
     }
 
-    gnl_fss_config_destroy(config);
+    if (errno != EINVAL) {
+        return -1;
+    }
 
     return 0;
 }

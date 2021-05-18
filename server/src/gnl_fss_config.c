@@ -11,12 +11,13 @@
     }                                                   \
 }
 
-#define GNL_MINUS1_CHECK(ptr, error_code, return_value) {   \
-    if (ptr == -1) {                                        \
-        errno = error_code;                                 \
-                                                            \
-        return return_value;                                \
-    }                                                       \
+#define GNL_MINUS1_CHECK(ptr, value, error_code, return_value) {    \
+    if (value == -1) {                                              \
+        errno = error_code;                                         \
+        free(ptr);                                                  \
+                                                                    \
+        return return_value;                                        \
+    }                                                               \
 }
 
 struct gnl_fss_config {
@@ -86,16 +87,16 @@ gnl_fss_config *gnl_fss_config_init_from_env() {
     GNL_NULL_CHECK(config, ENOMEM, NULL);
 
     config->thread_workers = get_int_value_from_env("THREAD_WORKERS");
-    GNL_MINUS1_CHECK(config->thread_workers, EINVAL, NULL)
+    GNL_MINUS1_CHECK(config, config->thread_workers, EINVAL, NULL)
 
     config->capacity = get_int_value_from_env("CAPACITY");
-    GNL_MINUS1_CHECK(config->capacity, EINVAL, NULL)
+    GNL_MINUS1_CHECK(config, config->capacity, EINVAL, NULL)
 
     config->limit = get_int_value_from_env("LIMIT");
-    GNL_MINUS1_CHECK(config->limit, EINVAL, NULL)
+    GNL_MINUS1_CHECK(config, config->limit, EINVAL, NULL)
 
     config->replacement_policy = get_int_value_from_env("REPLACEMENT_POLICY");
-    GNL_MINUS1_CHECK(config->limit, EINVAL, NULL)
+    GNL_MINUS1_CHECK(config, config->limit, EINVAL, NULL)
 
     config->socket = getenv("SOCKET");
     config->logfile = getenv("LOG_FILE");
