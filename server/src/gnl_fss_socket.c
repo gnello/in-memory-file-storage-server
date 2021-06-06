@@ -3,18 +3,11 @@
 #include <string.h>
 #include <errno.h>
 #include "./socket/gnl_fss_socket_open.c"
+#include "./socket/macro_beg.c"
 
-const int GNL_FSS_SOCKET_READ = 2;
-const int GNL_FSS_SOCKET_WRITE = 3;
-
-#define GNL_ALLOCATE_MESSAGE(ptr, len) {        \
-    ptr = (char *)malloc(len * sizeof(char));   \
-    if (ptr == NULL) {                          \
-        errno = ENOMEM;                         \
-                                                \
-        return NULL;                            \
-    }                                           \
-}
+enum gnl_fss_socket_op {
+    GNL_FSS_SOCKET_OP_OPEN
+};
 
 struct gnl_fss_socket_read {
     const char *pathname;
@@ -44,7 +37,7 @@ struct gnl_fss_socket_generic {
 };
 
 struct gnl_fss_socket_message {
-    int type;
+    enum gnl_fss_socket_op type;
     union {
         struct gnl_fss_socket_open open;
         struct gnl_fss_socket_read read;
@@ -58,30 +51,75 @@ struct gnl_fss_socket_message {
     } payload;
 };
 
-static char *prepare_message(struct gnl_fss_socket_message message) {
-    char *final_message;
-    int pathname_len;
+/**
+ *
+ * @param message
+ * @param dest
+ * @param op
+ * @return
+ */
+static int attach_metadata(const char *message, char **dest, enum gnl_fss_socket_op op) {
+    GNL_ALLOCATE_MESSAGE(*dest, sizeof(op) + strlen(message) + 1)
+
+    sprintf(*dest, "%d %lu %s", op, strlen(message), message);
+
+    return 0;
+}
+
+/**
+ *
+ * @param message
+ * @param dest
+ * @return
+ */
+static int prepare_message(struct gnl_fss_socket_message message, char **dest) {
+    char *buffer;
 
     switch (message.type) {
-        case 1:
-            pathname_len = strlen(message.payload.open.pathname);
-            GNL_ALLOCATE_MESSAGE(final_message, 3 + sizeof(pathname_len) + gnl_fss_socket_open_size(message.payload.open) + 1)
-
-            sprintf(final_message, "OPN%d%s", pathname_len, message.payload.open.pathname);
+        case GNL_FSS_SOCKET_OP_OPEN:
+            gnl_fss_socket_open_prepare_message(message.payload.open, &buffer);
+            attach_metadata(buffer, dest, GNL_FSS_SOCKET_OP_OPEN);
             break;
 
         default:
             errno = EINVAL;
-            return NULL;
+            return -1;
             /* UNREACHED */
             break;
     }
 
-    return final_message;
+    free(buffer);
+
+    return -1;
+}
+
+/**
+ *
+ * @param message
+ * @param dest
+ * @return
+ */
+struct gnl_fss_socket_message *gnl_fss_socket_read_message(const char *message) {
+    struct gnl_fss_socket_message *socket_message = (struct gnl_fss_socket_message *)malloc(sizeof(struct gnl_fss_socket_message));
+    GNL_NULL_CHECK(socket_message, ENOMEM, NULL)
+
+    size_t message_len;
+
+    enum gnl_fss_socket_op op;
+    sscanf(message, "%d %lu", &socket_message->type, &message_len);
+
+    char mex[message_len];
+    sscanf(message, "%d %lu %s", &socket_message->type, &message_len, mex);
+
+    printf("TYPE: %d, MEX_LEN: %lu, MEX: %s\n", socket_message->type, message_len, mex);
+
+    return socket_message;
 }
 
 int gnl_fss_socket_send(struct gnl_fss_socket_message message) {
-    char *message2 = prepare_message(message);
+    char *message2 = NULL;
+
+    prepare_message(message, &message2);
 
     printf("%s\n", message2);
 
@@ -90,4 +128,4 @@ int gnl_fss_socket_send(struct gnl_fss_socket_message message) {
     return 0;
 }
 
-#undef GNL_ALLOCATE_MESSAGE
+#include "./socket/macro_end.c"

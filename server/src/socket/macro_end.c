@@ -1,0 +1,3 @@
+
+#undef GNL_ALLOCATE_MESSAGE
+#undef GNL_NULL_CHECK

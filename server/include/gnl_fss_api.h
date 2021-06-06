@@ -1,9 +1,12 @@
-#define _POSIX_C_SOURCE 199309L
+//#define _POSIX_C_SOURCE 199309L
 
 #ifndef GNL_IMFS_SERVER_API_H
 #define GNL_IMFS_SERVER_API_H
 
 #include <time.h>
+
+const int O_CREATE = 1;
+const int O_LOCK = 2;
 
 /**
  * Open an AF_UNIX connection to sockname.

@@ -12,6 +12,9 @@
     }                                                   \
 }
 
+/**
+ * In memory storage implementation.
+ */
 struct gnl_fss_storage {
     int capacity;
     int limit;
@@ -20,6 +23,9 @@ struct gnl_fss_storage {
     gnl_list_t *inode;
 };
 
+/**
+ * Describes a file.
+ */
 struct gnl_fss_inode {
     int id;
     time_t timestamp;
@@ -27,6 +33,11 @@ struct gnl_fss_inode {
     time_t last_modify;
     int file_size;
     int file_ptr;
+};
+// https://en.wikipedia.org/wiki/File_descriptor
+struct gnl_fss_file_descriptor { //punta alla tabella dei file
+    int id;
+    struct gnl_fss_inode *inode;
 };
 
 //TODO: hashtable di inode
