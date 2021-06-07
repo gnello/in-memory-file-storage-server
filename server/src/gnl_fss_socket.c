@@ -120,6 +120,20 @@ struct gnl_fss_socket_message *gnl_fss_socket_message_init(enum gnl_fss_socket_o
 /**
  *
  * @param message
+ */
+void gnl_fss_socket_message_destroy(struct gnl_fss_socket_message *message) {
+    switch (message->type) {
+        case GNL_FSS_SOCKET_OP_OPEN:
+            gnl_fss_socket_open_destroy(message->payload.open);
+            break;
+    }
+
+    free(message);
+}
+
+/**
+ *
+ * @param message
  * @param dest
  * @return
  */
@@ -151,15 +165,19 @@ static int prepare_message(struct gnl_fss_socket_message message, char **dest) {
  * @return
  */
 struct gnl_fss_socket_message *gnl_fss_socket_read_message(const char *message) {
-    struct gnl_fss_socket_message *socket_message = (struct gnl_fss_socket_message *)malloc(sizeof(struct gnl_fss_socket_message));
-    GNL_NULL_CHECK(socket_message, ENOMEM, NULL)
+    struct gnl_fss_socket_message *socket_message;
 
     char *payload_message;
-    decode(message, &payload_message, &socket_message->type);
+    enum gnl_fss_socket_op op;
 
-    switch (socket_message->type) {
+    decode(message, &payload_message, &op);
+
+    switch (op) {
         case GNL_FSS_SOCKET_OP_OPEN:
-            socket_message->payload.open = gnl_fss_socket_open_read_message(payload_message);
+            socket_message = gnl_fss_socket_message_init(GNL_FSS_SOCKET_OP_OPEN);
+            GNL_NULL_CHECK(socket_message, ENOMEM, NULL)
+
+            gnl_fss_socket_open_read_message(payload_message, socket_message->payload.open);
             break;
 
         default:
@@ -171,6 +189,8 @@ struct gnl_fss_socket_message *gnl_fss_socket_read_message(const char *message) 
 
     //printf("TYPE: %d, MEX: %s\n", socket_message->type, buffer);
     printf("PATHNAME: %s, FLAGS: %d\n\n", socket_message->payload.open->pathname, socket_message->payload.open->flags);
+
+    free(payload_message);
 
     return socket_message;
 }

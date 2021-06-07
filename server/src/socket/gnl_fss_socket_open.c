@@ -54,30 +54,38 @@ int gnl_fss_socket_open_build_message(const struct gnl_fss_socket_open message, 
 }
 
 /**
- * Read the socket message.
  *
- * @param message   The message.
+ * @param message
+ */
+void gnl_fss_socket_open_destroy(struct gnl_fss_socket_open *message) {
+    if (message != NULL) {
+        free(message->pathname);
+        free(message);
+    }
+}
+
+/**
+ * Read the socket message and fill the "open" struct with it.
+ *
+ * @param message   The message to read.
+ * @param open      The struct to fill with the message.
  *
  * @return          Returns a pointer to the created gnl_fss_socket_open struct
  *                  on success, NULL otherwise.
  */
-struct gnl_fss_socket_open *gnl_fss_socket_open_read_message(const char *message) {
-    // create the open struct
-    struct gnl_fss_socket_open *open = (struct gnl_fss_socket_open *)malloc(sizeof(struct gnl_fss_socket_open));
-    GNL_NULL_CHECK(open, ENOMEM, NULL)
-
+int gnl_fss_socket_open_read_message(const char *message, struct gnl_fss_socket_open *open) {
     // get the pathname length
     size_t pathname_len;
     sscanf(message, "%"MAX_DIGITS"lu", &pathname_len);
 
     // get the pathname string
-    open->pathname = malloc((pathname_len + 1) * sizeof(char));
-    GNL_NULL_CHECK(open->pathname, ENOMEM, NULL)
+    open->pathname = calloc(pathname_len + 1, sizeof(char));
+    GNL_NULL_CHECK(open->pathname, ENOMEM, -1)
 
     int max_digits = atoi(MAX_DIGITS);
     if (max_digits == 0) {
         errno = EINVAL;
-        return NULL;
+        return -1;
     }
 
     strncpy(open->pathname, message + max_digits, pathname_len);
@@ -93,10 +101,10 @@ struct gnl_fss_socket_open *gnl_fss_socket_open_read_message(const char *message
     if ((char *)read_flags == ptr) {
         errno = EINVAL;
 
-        return NULL;
+        return -1;
     }
 
-    return open;
+    return 0;
 }
 
 #undef FLAG_LENGTH

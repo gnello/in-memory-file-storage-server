@@ -22,10 +22,21 @@ int gnl_fss_api_open_file(const char *pathname, int flags) {
 
     gnl_fss_socket_send(*message);
 
-    gnl_fss_socket_read_message("0 30 0000000019./pino/il/ginepraio3");
-    gnl_fss_socket_read_message("0 29 0000000018./pino/il/bischero0");
-    gnl_fss_socket_read_message("0 31 0000000020./pino/il/panettiere1");
-    gnl_fss_socket_read_message("0 31 0000000020./pino/il/gattopardo2");
+    struct gnl_fss_socket_message *msg;
+
+    msg = gnl_fss_socket_read_message("0 30 0000000019./pino/il/ginepraio3");
+    gnl_fss_socket_message_destroy(msg);
+
+    msg = gnl_fss_socket_read_message("0 29 0000000018./pino/il/bischero0");
+    gnl_fss_socket_message_destroy(msg);
+
+    msg = gnl_fss_socket_read_message("0 31 0000000020./pino/il/panettiere1");
+    gnl_fss_socket_message_destroy(msg);
+
+    msg = gnl_fss_socket_read_message("0 31 0000000020./pino/il/gattopardo2");
+    gnl_fss_socket_message_destroy(msg);
+
+    gnl_fss_socket_message_destroy(message);
 
     return 0;
 }
