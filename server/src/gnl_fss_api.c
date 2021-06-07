@@ -2,6 +2,7 @@
 
 #include "../include/gnl_fss_api.h"
 #include "./gnl_fss_socket.c" //TODO: far diventare libreria statica?
+#include "./socket/macro_beg.c"
 
 int gnl_fss_api_open_connection(const char *sockname, int msec, const struct timespec abstime) {
     return 0;
@@ -12,13 +13,8 @@ int gnl_fss_api_close_connection(const char *sockname) {
 }
 
 int gnl_fss_api_open_file(const char *pathname, int flags) {
-    struct gnl_fss_socket_message *message = gnl_fss_socket_message_init(GNL_FSS_SOCKET_OP_OPEN);
-    //TODO: check null
-    message->payload.open->pathname = malloc((strlen(pathname) + 1) * sizeof(char));
-    //TODO: check null
-
-    strcpy(message->payload.open->pathname, pathname);
-    message->payload.open->flags = flags;
+    struct gnl_fss_socket_message *message = gnl_fss_socket_message_init(GNL_FSS_SOCKET_OP_OPEN, 2, pathname, flags);
+    GNL_NULL_CHECK(message, ENOMEM, -1)
 
     gnl_fss_socket_send(*message);
 
@@ -72,3 +68,5 @@ int gnl_fss_api_close_file(const char *pathname) {
 int gnl_fss_api_remove_file(const char *pathname) {
     return 0;
 }
+
+#include "./socket/macro_end.c"

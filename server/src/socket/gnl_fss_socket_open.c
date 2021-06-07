@@ -54,8 +54,38 @@ int gnl_fss_socket_open_build_message(const struct gnl_fss_socket_open message, 
 }
 
 /**
+ * Create a new open struct.
+ */
+struct gnl_fss_socket_open *gnl_fss_socket_open_init() {
+    struct gnl_fss_socket_open *open = (struct gnl_fss_socket_open *)malloc(sizeof(struct gnl_fss_socket_open));
+    GNL_NULL_CHECK(open, ENOMEM, NULL)
+
+    return open;
+}
+
+/**
+ * Create a new open struct with the given arguments.
  *
- * @param message
+ * @param pathname  The pathname.
+ * @param flags     The flags.
+ */
+struct gnl_fss_socket_open *gnl_fss_socket_open_init_with_args(char *pathname, int flags) {
+    struct gnl_fss_socket_open *open = gnl_fss_socket_open_init();
+    GNL_NULL_CHECK(open, ENOMEM, NULL)
+
+    open->pathname = malloc((strlen(pathname) + 1) * sizeof(char));
+    GNL_NULL_CHECK(open->pathname, ENOMEM, NULL)
+
+    strcpy(open->pathname, pathname);
+    open->flags = flags;
+
+    return open;
+}
+
+/**
+ * Destroy the given message.
+ *
+ * @param message   The message to be destroyed.
  */
 void gnl_fss_socket_open_destroy(struct gnl_fss_socket_open *message) {
     if (message != NULL) {

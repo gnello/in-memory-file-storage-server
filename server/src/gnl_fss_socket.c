@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <errno.h>
+#include <stdarg.h>
 #include "./socket/gnl_fss_socket_open.c"
 #include "./socket/macro_beg.c"
 
@@ -93,17 +94,34 @@ static int decode(const char *message, char **dest, enum gnl_fss_socket_op *op) 
     return 0;
 }
 
-struct gnl_fss_socket_message *gnl_fss_socket_message_init(enum gnl_fss_socket_op op) {
+struct gnl_fss_socket_message *gnl_fss_socket_message_init(enum gnl_fss_socket_op op, int num, ...) {
     struct gnl_fss_socket_message *socket_message = (struct gnl_fss_socket_message *)malloc(sizeof(struct gnl_fss_socket_message));
     GNL_NULL_CHECK(socket_message, ENOMEM, NULL)
 
+    // initialize valist for num number of arguments
+    va_list a_list;
+    va_start(a_list, num);
+
     // assign operation type
     socket_message->type = op;
+    char *buffer;
 
     // assign payload object
     switch (op) {
         case GNL_FSS_SOCKET_OP_OPEN:
-            socket_message->payload.open = (struct gnl_fss_socket_open *)malloc(sizeof(struct gnl_fss_socket_open));
+            switch (num) {
+                case 0:
+                    socket_message->payload.open = gnl_fss_socket_open_init();
+                    break;
+                case 2:
+                    buffer = va_arg(a_list, char *);
+                    socket_message->payload.open = gnl_fss_socket_open_init_with_args(buffer, va_arg(a_list, int));
+                    break;
+                default:
+                    errno = EINVAL;
+                    return NULL;
+            }
+
             GNL_NULL_CHECK(socket_message->payload.open, ENOMEM, NULL)
             break;
 
@@ -113,6 +131,9 @@ struct gnl_fss_socket_message *gnl_fss_socket_message_init(enum gnl_fss_socket_o
             /* UNREACHED */
             break;
     }
+
+    // clean memory reserved for valist
+    va_end(a_list);
 
     return socket_message;
 }
@@ -174,7 +195,7 @@ struct gnl_fss_socket_message *gnl_fss_socket_read_message(const char *message) 
 
     switch (op) {
         case GNL_FSS_SOCKET_OP_OPEN:
-            socket_message = gnl_fss_socket_message_init(GNL_FSS_SOCKET_OP_OPEN);
+            socket_message = gnl_fss_socket_message_init(GNL_FSS_SOCKET_OP_OPEN, 0);
             GNL_NULL_CHECK(socket_message, ENOMEM, NULL)
 
             gnl_fss_socket_open_read_message(payload_message, socket_message->payload.open);
