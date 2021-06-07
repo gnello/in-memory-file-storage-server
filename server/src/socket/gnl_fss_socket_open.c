@@ -4,6 +4,9 @@
 #include <errno.h>
 #include "./macro_beg.c"
 
+#define MAX_DIGITS "10"
+#define FLAG_LENGTH 1
+
 /**
  * The open message.
  */
@@ -34,10 +37,18 @@ static int message_size(const struct gnl_fss_socket_open open) {
  *
  * @return          Returns 0 on success, -1 otherwise.
  */
-int gnl_fss_socket_open_prepare_message(const struct gnl_fss_socket_open message, char **dest) {
+int gnl_fss_socket_open_build_message(const struct gnl_fss_socket_open message, char **dest) {
     GNL_ALLOCATE_MESSAGE(*dest, message_size(message) + 1)
 
-    sprintf(*dest, "%lu%s%d", strlen(message.pathname), message.pathname, message.flags);
+    int max_digits = atoi(MAX_DIGITS);
+    if (max_digits == 0) {
+        errno = EINVAL;
+        return -1;
+    }
+
+    int maxlen = message_size(message) + 1 + max_digits + FLAG_LENGTH;
+
+    snprintf(*dest, maxlen, "%0*lu%s%d", max_digits, strlen(message.pathname), message.pathname, message.flags);
 
     return 0;
 }
@@ -51,23 +62,44 @@ int gnl_fss_socket_open_prepare_message(const struct gnl_fss_socket_open message
  *                  on success, NULL otherwise.
  */
 struct gnl_fss_socket_open *gnl_fss_socket_open_read_message(const char *message) {
-    char *buffer = malloc((strlen(message) + 1) * sizeof(char));
-    GNL_NULL_CHECK(buffer, ENOMEM, NULL)
-
-    strcpy(buffer, message);
-
+    // create the open struct
     struct gnl_fss_socket_open *open = (struct gnl_fss_socket_open *)malloc(sizeof(struct gnl_fss_socket_open));
     GNL_NULL_CHECK(open, ENOMEM, NULL)
 
+    // get the pathname length
     size_t pathname_len;
-    sscanf(message, "%lu", &pathname_len);
+    sscanf(message, "%"MAX_DIGITS"lu", &pathname_len);
 
+    // get the pathname string
     open->pathname = malloc((pathname_len + 1) * sizeof(char));
     GNL_NULL_CHECK(open->pathname, ENOMEM, NULL)
 
-    sscanf(buffer, "%lu%s%d", &pathname_len, open->pathname, &open->flags);
+    int max_digits = atoi(MAX_DIGITS);
+    if (max_digits == 0) {
+        errno = EINVAL;
+        return NULL;
+    }
+
+    strncpy(open->pathname, message + max_digits, pathname_len);
+
+    // get the flags
+    char read_flags[FLAG_LENGTH];
+    strncpy(read_flags, message + max_digits + pathname_len, FLAG_LENGTH);
+
+    char *ptr = NULL;
+    open->flags = strtol(read_flags, &ptr, 10);
+
+    // if no digits found
+    if ((char *)read_flags == ptr) {
+        errno = EINVAL;
+
+        return NULL;
+    }
 
     return open;
 }
+
+#undef FLAG_LENGTH
+#undef MAX_DIGITS
 
 #include "./macro_end.c"

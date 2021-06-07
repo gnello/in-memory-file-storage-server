@@ -39,31 +39,82 @@ struct gnl_fss_socket_generic {
 struct gnl_fss_socket_message {
     enum gnl_fss_socket_op type;
     union {
-        struct gnl_fss_socket_open open;
-        struct gnl_fss_socket_read read;
-        struct gnl_fss_socket_read_N read_n;
-        struct gnl_fss_socket_write write;
-        struct gnl_fss_socket_append append;
-        struct gnl_fss_socket_generic lock;
-        struct gnl_fss_socket_generic unlock;
-        struct gnl_fss_socket_generic close;
-        struct gnl_fss_socket_generic remove;
+        struct gnl_fss_socket_open *open;
+        struct gnl_fss_socket_read *read;
+        struct gnl_fss_socket_read_N *read_n;
+        struct gnl_fss_socket_write *write;
+        struct gnl_fss_socket_append *append;
+        struct gnl_fss_socket_generic *lock;
+        struct gnl_fss_socket_generic *unlock;
+        struct gnl_fss_socket_generic *close;
+        struct gnl_fss_socket_generic *remove;
     } payload;
 };
 
 /**
+ * Encode the given socket message and put it into dest.
  *
- * @param message
- * @param dest
- * @param op
- * @return
+ * @param message   The message to encode.
+ * @param dest      The destination where to put the socket message.
+ * @param op        The operation type to encode.
+ *
+ * @return          Returns 0 on success, -1 otherwise.
  */
-static int attach_metadata(const char *message, char **dest, enum gnl_fss_socket_op op) {
-    GNL_ALLOCATE_MESSAGE(*dest, sizeof(op) + strlen(message) + 1)
+static int encode(const char *message, char **dest, enum gnl_fss_socket_op op) {
+    GNL_ALLOCATE_MESSAGE(*dest, sizeof(op) + sizeof(unsigned long) + ((strlen(message) + 1) * sizeof(char)))
 
     sprintf(*dest, "%d %lu %s", op, strlen(message), message);
 
     return 0;
+}
+
+/**
+ * Decode the given socket message.
+ *
+ * @param message   The message to decode.
+ * @param dest      The destination where to put the socket message.
+ * @param op        The pointer where to put the operation type.
+ *
+ * @return          Returns 0 on success, -1 otherwise.
+ */
+static int decode(const char *message, char **dest, enum gnl_fss_socket_op *op) {
+    size_t message_len;
+
+    // get the operation type and the message length
+    sscanf(message, "%d %lu", (int *)op, &message_len);
+
+    // allocate memory
+    *dest = malloc((message_len + 1) * sizeof(char));
+    GNL_NULL_CHECK(*dest, ENOMEM, -1)
+
+    // get the socket message
+    sscanf(message, "%d %lu %s", (int *)op, &message_len, *dest);
+
+    return 0;
+}
+
+struct gnl_fss_socket_message *gnl_fss_socket_message_init(enum gnl_fss_socket_op op) {
+    struct gnl_fss_socket_message *socket_message = (struct gnl_fss_socket_message *)malloc(sizeof(struct gnl_fss_socket_message));
+    GNL_NULL_CHECK(socket_message, ENOMEM, NULL)
+
+    // assign operation type
+    socket_message->type = op;
+
+    // assign payload object
+    switch (op) {
+        case GNL_FSS_SOCKET_OP_OPEN:
+            socket_message->payload.open = (struct gnl_fss_socket_open *)malloc(sizeof(struct gnl_fss_socket_open));
+            GNL_NULL_CHECK(socket_message->payload.open, ENOMEM, NULL)
+            break;
+
+        default:
+            errno = EINVAL;
+            return NULL;
+            /* UNREACHED */
+            break;
+    }
+
+    return socket_message;
 }
 
 /**
@@ -77,8 +128,8 @@ static int prepare_message(struct gnl_fss_socket_message message, char **dest) {
 
     switch (message.type) {
         case GNL_FSS_SOCKET_OP_OPEN:
-            gnl_fss_socket_open_prepare_message(message.payload.open, &buffer);
-            attach_metadata(buffer, dest, GNL_FSS_SOCKET_OP_OPEN);
+            gnl_fss_socket_open_build_message(*message.payload.open, &buffer);
+            encode(buffer, dest, GNL_FSS_SOCKET_OP_OPEN);
             break;
 
         default:
@@ -103,15 +154,23 @@ struct gnl_fss_socket_message *gnl_fss_socket_read_message(const char *message) 
     struct gnl_fss_socket_message *socket_message = (struct gnl_fss_socket_message *)malloc(sizeof(struct gnl_fss_socket_message));
     GNL_NULL_CHECK(socket_message, ENOMEM, NULL)
 
-    size_t message_len;
+    char *payload_message;
+    decode(message, &payload_message, &socket_message->type);
 
-    enum gnl_fss_socket_op op;
-    sscanf(message, "%d %lu", &socket_message->type, &message_len);
+    switch (socket_message->type) {
+        case GNL_FSS_SOCKET_OP_OPEN:
+            socket_message->payload.open = gnl_fss_socket_open_read_message(payload_message);
+            break;
 
-    char mex[message_len];
-    sscanf(message, "%d %lu %s", &socket_message->type, &message_len, mex);
+        default:
+            errno = EINVAL;
+            return NULL;
+            /* UNREACHED */
+            break;
+    }
 
-    printf("TYPE: %d, MEX_LEN: %lu, MEX: %s\n", socket_message->type, message_len, mex);
+    //printf("TYPE: %d, MEX: %s\n", socket_message->type, buffer);
+    printf("PATHNAME: %s, FLAGS: %d\n\n", socket_message->payload.open->pathname, socket_message->payload.open->flags);
 
     return socket_message;
 }
@@ -121,7 +180,7 @@ int gnl_fss_socket_send(struct gnl_fss_socket_message message) {
 
     prepare_message(message, &message2);
 
-    printf("%s\n", message2);
+    printf("sending message: %s\n", message2);
 
     free(message2);
 
