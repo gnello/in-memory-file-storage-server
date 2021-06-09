@@ -94,6 +94,13 @@ static int decode(const char *message, char **dest, enum gnl_fss_socket_op *op) 
     return 0;
 }
 
+/**
+ *
+ * @param op
+ * @param num
+ * @param ...
+ * @return
+ */
 struct gnl_fss_socket_message *gnl_fss_socket_message_init(enum gnl_fss_socket_op op, int num, ...) {
     struct gnl_fss_socket_message *socket_message = (struct gnl_fss_socket_message *)malloc(sizeof(struct gnl_fss_socket_message));
     GNL_NULL_CHECK(socket_message, ENOMEM, NULL)
@@ -104,6 +111,8 @@ struct gnl_fss_socket_message *gnl_fss_socket_message_init(enum gnl_fss_socket_o
 
     // assign operation type
     socket_message->type = op;
+
+    // declare utils vars
     char *buffer;
 
     // assign payload object

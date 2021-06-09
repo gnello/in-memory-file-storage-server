@@ -30,6 +30,47 @@ static int message_size(const struct gnl_fss_socket_open open) {
 }
 
 /**
+ * Create a new open struct.
+ */
+struct gnl_fss_socket_open *gnl_fss_socket_open_init() {
+    struct gnl_fss_socket_open *open = (struct gnl_fss_socket_open *)calloc(1, sizeof(struct gnl_fss_socket_open));
+    GNL_NULL_CHECK(open, ENOMEM, NULL)
+
+    return open;
+}
+
+/**
+ * Create a new open struct with the given arguments.
+ *
+ * @param pathname  The pathname.
+ * @param flags     The flags.
+ */
+struct gnl_fss_socket_open *gnl_fss_socket_open_init_with_args(char *pathname, int flags) {
+    struct gnl_fss_socket_open *open = gnl_fss_socket_open_init();
+    GNL_NULL_CHECK(open, ENOMEM, NULL)
+
+    open->pathname = malloc((strlen(pathname) + 1) * sizeof(char));
+    GNL_NULL_CHECK(open->pathname, ENOMEM, NULL)
+
+    strncpy(open->pathname, pathname, strlen(pathname) + 1);
+    open->flags = flags;
+
+    return open;
+}
+
+/**
+ * Destroy the given message.
+ *
+ * @param message   The message to be destroyed.
+ */
+void gnl_fss_socket_open_destroy(struct gnl_fss_socket_open *message) {
+    if (message != NULL) {
+        free(message->pathname);
+        free(message);
+    }
+}
+
+/**
  * Prepare the socket message and put it into "dest".
  *
  * @param message   The open message.
@@ -54,56 +95,22 @@ int gnl_fss_socket_open_build_message(const struct gnl_fss_socket_open message, 
 }
 
 /**
- * Create a new open struct.
- */
-struct gnl_fss_socket_open *gnl_fss_socket_open_init() {
-    struct gnl_fss_socket_open *open = (struct gnl_fss_socket_open *)malloc(sizeof(struct gnl_fss_socket_open));
-    GNL_NULL_CHECK(open, ENOMEM, NULL)
-
-    return open;
-}
-
-/**
- * Create a new open struct with the given arguments.
- *
- * @param pathname  The pathname.
- * @param flags     The flags.
- */
-struct gnl_fss_socket_open *gnl_fss_socket_open_init_with_args(char *pathname, int flags) {
-    struct gnl_fss_socket_open *open = gnl_fss_socket_open_init();
-    GNL_NULL_CHECK(open, ENOMEM, NULL)
-
-    open->pathname = malloc((strlen(pathname) + 1) * sizeof(char));
-    GNL_NULL_CHECK(open->pathname, ENOMEM, NULL)
-
-    strcpy(open->pathname, pathname);
-    open->flags = flags;
-
-    return open;
-}
-
-/**
- * Destroy the given message.
- *
- * @param message   The message to be destroyed.
- */
-void gnl_fss_socket_open_destroy(struct gnl_fss_socket_open *message) {
-    if (message != NULL) {
-        free(message->pathname);
-        free(message);
-    }
-}
-
-/**
  * Read the socket message and fill the "open" struct with it.
  *
  * @param message   The message to read.
- * @param open      The struct to fill with the message.
+ * @param open      The struct to fill with the message, it must be previously
+ *                  initialized with gnl_fss_socket_open_init.
  *
  * @return          Returns a pointer to the created gnl_fss_socket_open struct
  *                  on success, NULL otherwise.
  */
 int gnl_fss_socket_open_read_message(const char *message, struct gnl_fss_socket_open *open) {
+    if (open == NULL) {
+        errno = EINVAL;
+
+        return -1;
+    }
+
     // get the pathname length
     size_t pathname_len;
     sscanf(message, "%"MAX_DIGITS"lu", &pathname_len);
