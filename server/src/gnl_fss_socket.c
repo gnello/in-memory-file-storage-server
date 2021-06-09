@@ -4,16 +4,12 @@
 #include <errno.h>
 #include <stdarg.h>
 #include "./socket/gnl_fss_socket_open.c"
+#include "./socket/gnl_fss_socket_generic.c"
 #include "./socket/macro_beg.c"
 
 enum gnl_fss_socket_op {
-    GNL_FSS_SOCKET_OP_OPEN
-};
-
-struct gnl_fss_socket_read {
-    const char *pathname;
-    void **buf;
-    size_t *size;
+    GNL_FSS_SOCKET_OP_OPEN,
+    GNL_FSS_SOCKET_OP_READ
 };
 
 struct gnl_fss_socket_read_N {
@@ -33,15 +29,11 @@ struct gnl_fss_socket_append {
     const char *dirname;
 };
 
-struct gnl_fss_socket_generic {
-    const char *pathname;
-};
-
 struct gnl_fss_socket_message {
     enum gnl_fss_socket_op type;
     union {
         struct gnl_fss_socket_open *open;
-        struct gnl_fss_socket_read *read;
+        struct gnl_fss_socket_generic *read;
         struct gnl_fss_socket_read_N *read_n;
         struct gnl_fss_socket_write *write;
         struct gnl_fss_socket_append *append;
@@ -134,6 +126,23 @@ struct gnl_fss_socket_message *gnl_fss_socket_message_init(enum gnl_fss_socket_o
             GNL_NULL_CHECK(socket_message->payload.open, ENOMEM, NULL)
             break;
 
+        case GNL_FSS_SOCKET_OP_READ:
+            switch (num) {
+                case 0:
+                    socket_message->payload.read = gnl_fss_socket_generic_init();
+                    break;
+                case 2:
+                    buffer = va_arg(a_list, char *);
+                    socket_message->payload.read = gnl_fss_socket_generic_init_with_args(buffer);
+                    break;
+                default:
+                    errno = EINVAL;
+                    return NULL;
+            }
+
+            GNL_NULL_CHECK(socket_message->payload.read, ENOMEM, NULL)
+            break;
+
         default:
             errno = EINVAL;
             return NULL;
@@ -156,6 +165,10 @@ void gnl_fss_socket_message_destroy(struct gnl_fss_socket_message *message) {
         case GNL_FSS_SOCKET_OP_OPEN:
             gnl_fss_socket_open_destroy(message->payload.open);
             break;
+
+        case GNL_FSS_SOCKET_OP_READ:
+            gnl_fss_socket_generic_destroy(message->payload.read);
+            break;
     }
 
     free(message);
@@ -174,6 +187,11 @@ static int prepare_message(struct gnl_fss_socket_message message, char **dest) {
         case GNL_FSS_SOCKET_OP_OPEN:
             gnl_fss_socket_open_build_message(*message.payload.open, &buffer);
             encode(buffer, dest, GNL_FSS_SOCKET_OP_OPEN);
+            break;
+
+        case GNL_FSS_SOCKET_OP_READ:
+            gnl_fss_socket_generic_build_message(*message.payload.read, &buffer);
+            encode(buffer, dest, GNL_FSS_SOCKET_OP_READ);
             break;
 
         default:
@@ -208,6 +226,13 @@ struct gnl_fss_socket_message *gnl_fss_socket_read_message(const char *message) 
             GNL_NULL_CHECK(socket_message, ENOMEM, NULL)
 
             gnl_fss_socket_open_read_message(payload_message, socket_message->payload.open);
+            break;
+
+        case GNL_FSS_SOCKET_OP_READ:
+            socket_message = gnl_fss_socket_message_init(GNL_FSS_SOCKET_OP_READ, 0);
+            GNL_NULL_CHECK(socket_message, ENOMEM, NULL)
+
+            gnl_fss_socket_generic_read_message(payload_message, socket_message->payload.read);
             break;
 
         default:
