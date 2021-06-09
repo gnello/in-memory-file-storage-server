@@ -32,6 +32,7 @@ data-structures:
 dev: all helpers
 	cd ./data-structures/tests && $(MAKE)
 	cd ./helpers/tests && $(MAKE)
+	cd ./server/tests && $(MAKE)
 
 # run all the tests present in this project
 tests:
