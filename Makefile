@@ -19,7 +19,7 @@ all: $(TARGETS)
 %: %.c data-structures
 	$(CC) $(CFLAGS) $(INCLUDE) $(OPTFLAGS) -o $(TARGETS_PATH)/$@ $< $(LDFLAGS) $(LIBS)
 
-server:
+server: helpers
 	cd ./server && $(MAKE)
 
 helpers:
