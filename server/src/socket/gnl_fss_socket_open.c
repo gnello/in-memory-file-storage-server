@@ -136,6 +136,7 @@ int gnl_fss_socket_open_read_message(const char *message, struct gnl_fss_socket_
 }
 
 #undef FLAG_LENGTH
-#undef MAX_DIGITS
+#undef MAX_DIGITS_INT
+#undef MAX_DIGITS_CHAR
 
 #include "./macro_end.c"

@@ -116,6 +116,7 @@ int gnl_fss_socket_generic_read_message(const char *message, struct gnl_fss_sock
     return 0;
 }
 
-#undef MAX_DIGITS
+#undef MAX_DIGITS_INT
+#undef MAX_DIGITS_CHAR
 
 #include "./macro_end.c"
