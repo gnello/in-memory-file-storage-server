@@ -24,11 +24,3 @@
         return return_code;                             \
     }                                                   \
 }
-
-#define CONV_TO_INT(from, to) { \
-    to = atoi(from);            \
-    if (to == 0) {              \
-        errno = EINVAL;         \
-        return -1;              \
-    }                           \
-}

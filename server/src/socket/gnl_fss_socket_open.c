@@ -4,7 +4,8 @@
 #include <errno.h>
 #include "./macro_beg.c"
 
-#define MAX_DIGITS "10"
+#define MAX_DIGITS_CHAR "10"
+#define MAX_DIGITS_INT 10
 #define FLAG_LENGTH 1
 
 /**
@@ -26,10 +27,7 @@ struct gnl_fss_socket_open {
  * @return      The size of the open message.
  */
 static int gnl_fss_socket_open_message_size(const struct gnl_fss_socket_open open) {
-    int max_digits;
-    CONV_TO_INT(MAX_DIGITS, max_digits)
-
-    return max_digits + strlen(open.pathname) + FLAG_LENGTH;
+    return MAX_DIGITS_INT + strlen(open.pathname) + FLAG_LENGTH;
 }
 
 /**
@@ -83,16 +81,12 @@ void gnl_fss_socket_open_destroy(struct gnl_fss_socket_open *message) {
  */
 int gnl_fss_socket_open_build_message(const struct gnl_fss_socket_open message, char **dest) {
     int message_size = gnl_fss_socket_open_message_size(message);
-    GNL_MINUS1_CHECK(message_size, EINVAL, -1)
 
     GNL_ALLOCATE_MESSAGE(*dest, message_size + 1)
 
-    int max_digits;
-    CONV_TO_INT(MAX_DIGITS, max_digits)
-
     int maxlen = message_size + 1; // count also the '\0' char
 
-    snprintf(*dest, maxlen, "%0*lu%s%d", max_digits, strlen(message.pathname), message.pathname, message.flags);
+    snprintf(*dest, maxlen, "%0*lu%s%d", MAX_DIGITS_INT, strlen(message.pathname), message.pathname, message.flags);
 
     return 0;
 }
@@ -116,20 +110,17 @@ int gnl_fss_socket_open_read_message(const char *message, struct gnl_fss_socket_
 
     // get the pathname length
     size_t pathname_len;
-    sscanf(message, "%"MAX_DIGITS"lu", &pathname_len);
+    sscanf(message, "%"MAX_DIGITS_CHAR"lu", &pathname_len);
 
     // get the pathname string
     open->pathname = calloc(pathname_len + 1, sizeof(char));
     GNL_NULL_CHECK(open->pathname, ENOMEM, -1)
 
-    int max_digits;
-    CONV_TO_INT(MAX_DIGITS, max_digits)
-
-    strncpy(open->pathname, message + max_digits, pathname_len);
+    strncpy(open->pathname, message + MAX_DIGITS_INT, pathname_len);
 
     // get the flags
     char read_flags[FLAG_LENGTH];
-    strncpy(read_flags, message + max_digits + pathname_len, FLAG_LENGTH);
+    strncpy(read_flags, message + MAX_DIGITS_INT + pathname_len, FLAG_LENGTH);
 
     char *ptr = NULL;
     open->flags = strtol(read_flags, &ptr, 10);

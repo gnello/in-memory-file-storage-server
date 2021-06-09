@@ -4,8 +4,8 @@
 #include <errno.h>
 #include "./macro_beg.c"
 
-#define MAX_DIGITS "10"
-#define FLAG_LENGTH 1
+#define MAX_DIGITS_CHAR "10"
+#define MAX_DIGITS_INT 10
 
 /**
  * The generic message.
@@ -24,10 +24,7 @@ struct gnl_fss_socket_generic {
  *                  -1 otherwise.
  */
 static int gnl_fss_socket_generic_message_size(const struct gnl_fss_socket_generic generic) {
-    int max_digits;
-    CONV_TO_INT(MAX_DIGITS, max_digits)
-
-    return max_digits + strlen(generic.pathname);
+    return MAX_DIGITS_INT + strlen(generic.pathname);
 }
 
 /**
@@ -79,16 +76,12 @@ void gnl_fss_socket_generic_destroy(struct gnl_fss_socket_generic *message) {
  */
 int gnl_fss_socket_generic_build_message(const struct gnl_fss_socket_generic message, char **dest) {
     int message_size = gnl_fss_socket_generic_message_size(message);
-    GNL_MINUS1_CHECK(message_size, EINVAL, -1)
 
     GNL_ALLOCATE_MESSAGE(*dest, message_size + 1)
 
-    int max_digits;
-    CONV_TO_INT(MAX_DIGITS, max_digits)
-
     int maxlen = message_size + 1; // count also the '\0' char
 
-    snprintf(*dest, maxlen, "%0*lu%s", max_digits, strlen(message.pathname), message.pathname);
+    snprintf(*dest, maxlen, "%0*lu%s", MAX_DIGITS_INT, strlen(message.pathname), message.pathname);
 
     return 0;
 }
@@ -112,21 +105,17 @@ int gnl_fss_socket_generic_read_message(const char *message, struct gnl_fss_sock
 
     // get the pathname length
     size_t pathname_len;
-    sscanf(message, "%"MAX_DIGITS"lu", &pathname_len);
+    sscanf(message, "%"MAX_DIGITS_CHAR"lu", &pathname_len);
 
     // get the pathname string
     generic->pathname = calloc(pathname_len + 1, sizeof(char));
     GNL_NULL_CHECK(generic->pathname, ENOMEM, -1)
 
-    int max_digits;
-    CONV_TO_INT(MAX_DIGITS, max_digits)
-
-    strncpy(generic->pathname, message + max_digits, pathname_len);
+    strncpy(generic->pathname, message + MAX_DIGITS_INT, pathname_len);
 
     return 0;
 }
 
-#undef FLAG_LENGTH
 #undef MAX_DIGITS
 
 #include "./macro_end.c"
