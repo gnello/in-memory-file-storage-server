@@ -25,6 +25,12 @@ jobs:
       with:
         name: helpers
         path: helpers
+
+    # upload server
+    - uses: actions/upload-artifact@v2
+      with:
+        name: server
+        path: server
         
   test:
 
@@ -49,3 +55,11 @@ jobs:
     - run: cp .env.example .env
     - run: make -s tests
       working-directory: helpers/tests
+
+    # test server
+    - uses: actions/download-artifact@v2
+    - run: chmod -R +x ./*
+      working-directory: server/tests
+    - run: cp .env.example .env
+    - run: make -s tests
+      working-directory: server/tests
