@@ -6,7 +6,7 @@
 #include "../include/gnl_fss_socket_request.h"
 #include "./socket/gnl_fss_socket_open.c"
 #include "./socket/gnl_fss_socket_generic.c"
-#include "./socket/macro_beg.c"
+#include "./macro_beg.c"
 
 #define GNL_INIT_GENERIC(num, ref, a_list) {                        \
     switch (num) {                                                  \
@@ -318,4 +318,4 @@ int gnl_fss_socket_request_send(struct gnl_fss_socket_request message) {
     return 0;
 }
 
-#include "./socket/macro_end.c"
+#include "./macro_end.c"
