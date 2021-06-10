@@ -1,4 +1,3 @@
-#include <stdio.h> //TODO: messo per test, rimuoverlo?
 #include <stdlib.h>
 #include <string.h>
 #include <errno.h>
@@ -121,7 +120,7 @@ static int decode(const char *message, char **dest, enum gnl_fss_socket_request_
 
     // get the message
     strncpy(*dest, message + MAX_DIGITS_INT + MAX_DIGITS_INT, message_len);
-    
+
     return 0;
 }
 
