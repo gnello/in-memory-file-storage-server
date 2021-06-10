@@ -16,7 +16,7 @@ INCLUDE = -I$(HELPERS_PATH_INCLUDE)
 LIBS += -Wl,-rpath,../lib -L../lib -lgnl_fss_storage
 INCLUDE += -I../include
 
-TARGETS = unit/gnl_fss_config_test unit/socket/gnl_fss_socket_open_test unit/socket/gnl_fss_socket_generic_test
+TARGETS = unit/gnl_fss_config_test unit/socket/gnl_fss_socket_request_open_test unit/socket/gnl_fss_socket_request_generic_test
 
 .PHONY: all clean tests tests-valgrind
 .SUFFIXES: .c .h
