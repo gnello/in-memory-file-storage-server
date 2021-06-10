@@ -1,8 +1,8 @@
 #define _POSIX_C_SOURCE 199309L
 
 #include "../include/gnl_fss_api.h"
-#include "./gnl_fss_socket.c" //TODO: far diventare libreria statica?
-#include "./socket/macro_beg.c"
+#include "./gnl_fss_socket_request.c" //TODO: far diventare libreria statica?
+#include "./macro_beg.c"
 
 int gnl_fss_api_open_connection(const char *sockname, int msec, const struct timespec abstime) {
     return 0;
@@ -13,26 +13,17 @@ int gnl_fss_api_close_connection(const char *sockname) {
 }
 
 int gnl_fss_api_open_file(const char *pathname, int flags) {
-    struct gnl_fss_socket_message *message = gnl_fss_socket_message_init(GNL_FSS_SOCKET_OP_OPEN, 2, pathname, flags);
+    //TODO: check params
+
+    struct gnl_fss_socket_request *message = gnl_fss_socket_request_init(GNL_FSS_SOCKET_REQUEST_OPEN, 2, pathname, flags);
     GNL_NULL_CHECK(message, ENOMEM, -1)
 
-    gnl_fss_socket_send(*message);
+    int res = gnl_fss_socket_request_send(*message);
+    GNL_MINUS1_CHECK(res, EINVAL, -1)
 
-    struct gnl_fss_socket_message *msg;
+    //TODO: codice per la risposta del server
 
-    msg = gnl_fss_socket_read_message("0 30 0000000019./pino/il/ginepraio3");
-    gnl_fss_socket_message_destroy(msg);
-
-    msg = gnl_fss_socket_read_message("0 29 0000000018./pino/il/bischero0");
-    gnl_fss_socket_message_destroy(msg);
-
-    msg = gnl_fss_socket_read_message("0 31 0000000020./pino/il/panettiere1");
-    gnl_fss_socket_message_destroy(msg);
-
-    msg = gnl_fss_socket_read_message("0 31 0000000020./pino/il/gattopardo2");
-    gnl_fss_socket_message_destroy(msg);
-
-    gnl_fss_socket_message_destroy(message);
+    gnl_fss_socket_request_destroy(message);
 
     return 0;
 }
@@ -69,4 +60,4 @@ int gnl_fss_api_remove_file(const char *pathname) {
     return 0;
 }
 
-#include "./socket/macro_end.c"
+#include "./macro_end.c"

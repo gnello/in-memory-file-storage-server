@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <errno.h>
-#include "./macro_beg.c"
+#include "../macro_beg.c"
 
 #define MAX_DIGITS_CHAR "10"
 #define MAX_DIGITS_INT 10
@@ -119,4 +119,4 @@ int gnl_fss_socket_generic_read_message(const char *message, struct gnl_fss_sock
 #undef MAX_DIGITS_INT
 #undef MAX_DIGITS_CHAR
 
-#include "./macro_end.c"
+#include "../macro_end.c"
