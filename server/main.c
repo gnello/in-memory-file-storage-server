@@ -56,7 +56,7 @@ int main(int argc, char * argv[]) {
     // instance the filesystem
     //gnl_fss_storage_init(config->capacity, config->limit, config->replacement_policy);
 
-    gnl_fss_api_open_file("./pino/il/ginepraio", 1 | 2);
+    gnl_fss_api_open_file("~/CLionProjects/SOL/lab/file-storage-server/index.php", 1 | 2);
     gnl_fss_api_open_file("./pino/il/bischero", 1 & 2);
     gnl_fss_api_open_file("./pino/il/panettiere", 1);
     gnl_fss_api_open_file("./pino/il/gattopardo", 2);

@@ -23,11 +23,23 @@ int gnl_fss_api_open_file(const char *pathname, int flags) {
     int res = gnl_fss_socket_request_write(request, &message);
     GNL_MINUS1_CHECK(res, EINVAL, -1)
 
+    gnl_fss_socket_request_destroy(request);
+
+    //TODO: creare gnl_fss_socket_service.c per fare la connessione, la emit, ecc
+
     printf("message: %s\n", message);
+
+    struct gnl_fss_socket_request *read = gnl_fss_socket_request_read(message);
+    printf("Readed message:\n");
+    printf("type: %d\n", read->type);
+    printf("pathname: %s\n", read->payload.open->pathname);
+    printf("flags: %d\n\n", read->payload.open->flags);
+
+    free(message);
 
     //TODO: codice per la risposta del server
 
-    gnl_fss_socket_request_destroy(request);
+    gnl_fss_socket_request_destroy(read);
 
     return 0;
 }

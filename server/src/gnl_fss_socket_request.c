@@ -8,6 +8,9 @@
 #include "./socket/gnl_fss_socket_request_generic.c"
 #include "./macro_beg.c"
 
+#define MAX_DIGITS_CHAR "10"
+#define MAX_DIGITS_INT 10
+
 #define GNL_INIT_GENERIC(num, ref, a_list) {                                \
     switch (num) {                                                          \
         case 0:                                                             \
@@ -65,19 +68,34 @@ struct gnl_fss_socket_request {
 };
 
 /**
+ * Calculate the size of the request.
+ *
+ * @param message   The message of the request.
+ *
+ * @return          Returns he size of the request on success,
+ *                  -1 otherwise.
+ */
+static int size(const char *message) {
+    return MAX_DIGITS_INT + MAX_DIGITS_INT + strlen(message);
+}
+
+/**
  * Encode the given socket message and put it into dest.
  *
  * @param message   The message to encode.
  * @param dest      The destination where to put the socket message.
- * @param type        The operation type to encode.
+ * @param type      The operation type to encode.
  *
  * @return          Returns 0 on success, -1 otherwise.
  */
 static int encode(const char *message, char **dest, enum gnl_fss_socket_request_type type) {
-    GNL_ALLOCATE_MESSAGE(*dest, sizeof(type) + sizeof(unsigned long) + ((strlen(message) + 1) * sizeof(char)))
+    int request_size = size(message);
 
-    //TODO: fare MAXDIGITS per type come fatto per i socket message?
-    sprintf(*dest, "%d %lu %s", type, strlen(message), message);
+    GNL_ALLOCATE_MESSAGE(*dest, request_size + 1)
+
+    int maxlen = request_size + 1; // count also the '\0' char
+
+    snprintf(*dest, maxlen, "%0*d%0*lu%s", MAX_DIGITS_INT, type, MAX_DIGITS_INT, strlen(message), message);
 
     return 0;
 }
@@ -87,7 +105,7 @@ static int encode(const char *message, char **dest, enum gnl_fss_socket_request_
  *
  * @param message   The message to decode.
  * @param dest      The destination where to put the socket message.
- * @param type        The pointer where to put the operation type.
+ * @param type      The pointer where to put the operation type.
  *
  * @return          Returns 0 on success, -1 otherwise.
  */
@@ -95,15 +113,15 @@ static int decode(const char *message, char **dest, enum gnl_fss_socket_request_
     size_t message_len;
 
     // get the operation type and the message length
-    sscanf(message, "%d %lu", (int *)type, &message_len);
+    sscanf(message, "%"MAX_DIGITS_CHAR"d%"MAX_DIGITS_CHAR"lu", (int *)type, &message_len);
 
     // allocate memory
-    *dest = malloc((message_len + 1) * sizeof(char));
+    *dest = calloc(message_len + 1, sizeof(char));
     GNL_NULL_CHECK(*dest, ENOMEM, -1)
 
-    // get the socket message
-    sscanf(message, "%d %lu %s", (int *)type, &message_len, *dest);
-
+    // get the message
+    strncpy(*dest, message + MAX_DIGITS_INT + MAX_DIGITS_INT, message_len);
+    
     return 0;
 }
 
@@ -246,9 +264,6 @@ struct gnl_fss_socket_request *gnl_fss_socket_request_read(const char *message) 
             break;
     }
 
-    //printf("TYPE: %d, MEX: %s\n", socket_request->type, buffer);
-    printf("PATHNAME: %s, FLAGS: %d\n\n", socket_request->payload.open->pathname, socket_request->payload.open->flags);
-
     free(payload_message);
 
     return socket_request;
@@ -260,32 +275,26 @@ int gnl_fss_socket_request_write(gnl_fss_socket_request *request, char **dest) {
     switch (request->type) {
         case GNL_FSS_SOCKET_REQUEST_OPEN:
             gnl_fss_socket_request_open_write(*(request->payload.open), &built_message);
-            encode(built_message, dest, GNL_FSS_SOCKET_REQUEST_OPEN);
             break;
 
         case GNL_FSS_SOCKET_REQUEST_READ:
             gnl_fss_socket_request_generic_write(*(request->payload.read), &built_message);
-            encode(built_message, dest, GNL_FSS_SOCKET_REQUEST_READ);
             break;
 
         case GNL_FSS_SOCKET_REQUEST_LOCK:
             gnl_fss_socket_request_generic_write(*(request->payload.lock), &built_message);
-            encode(built_message, dest, GNL_FSS_SOCKET_REQUEST_LOCK);
             break;
 
         case GNL_FSS_SOCKET_REQUEST_UNLOCK:
             gnl_fss_socket_request_generic_write(*(request->payload.unlock), &built_message);
-            encode(built_message, dest, GNL_FSS_SOCKET_REQUEST_UNLOCK);
             break;
 
         case GNL_FSS_SOCKET_REQUEST_CLOSE:
             gnl_fss_socket_request_generic_write(*(request->payload.close), &built_message);
-            encode(built_message, dest, GNL_FSS_SOCKET_REQUEST_CLOSE);
             break;
 
         case GNL_FSS_SOCKET_REQUEST_REMOVE:
             gnl_fss_socket_request_generic_write(*(request->payload.remove), &built_message);
-            encode(built_message, dest, GNL_FSS_SOCKET_REQUEST_REMOVE);
             break;
 
         default:
@@ -295,9 +304,14 @@ int gnl_fss_socket_request_write(gnl_fss_socket_request *request, char **dest) {
             break;
     }
 
+    encode(built_message, dest, request->type);
+
     free(built_message);
 
     return 0;
 }
+
+#undef MAX_DIGITS_INT
+#undef MAX_DIGITS_CHAR
 
 #include "./macro_end.c"
