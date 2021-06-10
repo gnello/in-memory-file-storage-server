@@ -18,6 +18,11 @@ enum gnl_fss_socket_request_type {
 };
 
 /**
+ * The socket request.
+ */
+typedef struct gnl_fss_socket_request gnl_fss_socket_request;
+
+/**
  * Create a socket request struct with the given type and arguments.
  *
  * @param type  The type of the request.
