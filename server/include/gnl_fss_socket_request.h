@@ -46,7 +46,7 @@ struct gnl_fss_socket_request *gnl_fss_socket_request_init(enum gnl_fss_socket_r
 /**
  * Destroy the socket request.
  *
- * @param request   The socket_request to destroy
+ * @param request   The socket_request to destroy.
  */
 void gnl_fss_socket_request_destroy(struct gnl_fss_socket_request *request);
 
@@ -59,5 +59,15 @@ void gnl_fss_socket_request_destroy(struct gnl_fss_socket_request *request);
  *                  NULL otherwise.
  */
 struct gnl_fss_socket_request *gnl_fss_socket_request_read(const char *request);
+
+/**
+ * Encode the given socket request.
+ *
+ * @param request   The socket_request to encode.
+ * @param dest      The destination where to write the encoded request.
+ *
+ * @return          Returns 0 on success, -1 otherwise.
+ */
+int gnl_fss_socket_request_write(gnl_fss_socket_request *request, char **dest);
 
 #endif //GNL_FSS_SOCKET_REQUEST_H

@@ -173,86 +173,34 @@ struct gnl_fss_socket_request *gnl_fss_socket_request_init(enum gnl_fss_socket_r
     return socket_request;
 }
 
-void gnl_fss_socket_request_destroy(struct gnl_fss_socket_request *message) {
-    switch (message->type) {
+void gnl_fss_socket_request_destroy(struct gnl_fss_socket_request *request) {
+    switch (request->type) {
         case GNL_FSS_SOCKET_REQUEST_OPEN:
-            gnl_fss_socket_open_destroy(message->payload.open);
+            gnl_fss_socket_open_destroy(request->payload.open);
             break;
 
         case GNL_FSS_SOCKET_REQUEST_READ:
-            gnl_fss_socket_generic_destroy(message->payload.read);
+            gnl_fss_socket_generic_destroy(request->payload.read);
             break;
 
         case GNL_FSS_SOCKET_REQUEST_LOCK:
-            gnl_fss_socket_generic_destroy(message->payload.lock);
+            gnl_fss_socket_generic_destroy(request->payload.lock);
             break;
 
         case GNL_FSS_SOCKET_REQUEST_UNLOCK:
-            gnl_fss_socket_generic_destroy(message->payload.unlock);
+            gnl_fss_socket_generic_destroy(request->payload.unlock);
             break;
 
         case GNL_FSS_SOCKET_REQUEST_CLOSE:
-            gnl_fss_socket_generic_destroy(message->payload.close);
+            gnl_fss_socket_generic_destroy(request->payload.close);
             break;
 
         case GNL_FSS_SOCKET_REQUEST_REMOVE:
-            gnl_fss_socket_generic_destroy(message->payload.remove);
+            gnl_fss_socket_generic_destroy(request->payload.remove);
             break;
     }
 
-    free(message);
-}
-
-/**
- *
- * @param message
- * @param dest
- * @return
- */
-static int prepare_message(struct gnl_fss_socket_request message, char **dest) {
-    char *built_message;
-
-    switch (message.type) {
-        case GNL_FSS_SOCKET_REQUEST_OPEN:
-            gnl_fss_socket_open_build_message(*message.payload.open, &built_message);
-            encode(built_message, dest, GNL_FSS_SOCKET_REQUEST_OPEN);
-            break;
-
-        case GNL_FSS_SOCKET_REQUEST_READ:
-            gnl_fss_socket_generic_build_message(*message.payload.read, &built_message);
-            encode(built_message, dest, GNL_FSS_SOCKET_REQUEST_READ);
-            break;
-
-        case GNL_FSS_SOCKET_REQUEST_LOCK:
-            gnl_fss_socket_generic_build_message(*message.payload.lock, &built_message);
-            encode(built_message, dest, GNL_FSS_SOCKET_REQUEST_LOCK);
-            break;
-
-        case GNL_FSS_SOCKET_REQUEST_UNLOCK:
-            gnl_fss_socket_generic_build_message(*message.payload.unlock, &built_message);
-            encode(built_message, dest, GNL_FSS_SOCKET_REQUEST_UNLOCK);
-            break;
-
-        case GNL_FSS_SOCKET_REQUEST_CLOSE:
-            gnl_fss_socket_generic_build_message(*message.payload.close, &built_message);
-            encode(built_message, dest, GNL_FSS_SOCKET_REQUEST_CLOSE);
-            break;
-
-        case GNL_FSS_SOCKET_REQUEST_REMOVE:
-            gnl_fss_socket_generic_build_message(*message.payload.remove, &built_message);
-            encode(built_message, dest, GNL_FSS_SOCKET_REQUEST_REMOVE);
-            break;
-
-        default:
-            errno = EINVAL;
-            return -1;
-            /* UNREACHED */
-            break;
-    }
-
-    free(built_message);
-
-    return 0;
+    free(request);
 }
 
 struct gnl_fss_socket_request *gnl_fss_socket_request_read(const char *message) {
@@ -306,14 +254,48 @@ struct gnl_fss_socket_request *gnl_fss_socket_request_read(const char *message) 
     return socket_request;
 }
 
-int gnl_fss_socket_request_send(struct gnl_fss_socket_request message) {
-    char *message2 = NULL;
+int gnl_fss_socket_request_write(gnl_fss_socket_request *request, char **dest) {
+    char *built_message;
 
-    prepare_message(message, &message2);
+    switch (request->type) {
+        case GNL_FSS_SOCKET_REQUEST_OPEN:
+            gnl_fss_socket_open_build_message(*(request->payload.open), &built_message);
+            encode(built_message, dest, GNL_FSS_SOCKET_REQUEST_OPEN);
+            break;
 
-    printf("sending message: %s\n", message2);
+        case GNL_FSS_SOCKET_REQUEST_READ:
+            gnl_fss_socket_generic_build_message(*(request->payload.read), &built_message);
+            encode(built_message, dest, GNL_FSS_SOCKET_REQUEST_READ);
+            break;
 
-    free(message2);
+        case GNL_FSS_SOCKET_REQUEST_LOCK:
+            gnl_fss_socket_generic_build_message(*(request->payload.lock), &built_message);
+            encode(built_message, dest, GNL_FSS_SOCKET_REQUEST_LOCK);
+            break;
+
+        case GNL_FSS_SOCKET_REQUEST_UNLOCK:
+            gnl_fss_socket_generic_build_message(*(request->payload.unlock), &built_message);
+            encode(built_message, dest, GNL_FSS_SOCKET_REQUEST_UNLOCK);
+            break;
+
+        case GNL_FSS_SOCKET_REQUEST_CLOSE:
+            gnl_fss_socket_generic_build_message(*(request->payload.close), &built_message);
+            encode(built_message, dest, GNL_FSS_SOCKET_REQUEST_CLOSE);
+            break;
+
+        case GNL_FSS_SOCKET_REQUEST_REMOVE:
+            gnl_fss_socket_generic_build_message(*(request->payload.remove), &built_message);
+            encode(built_message, dest, GNL_FSS_SOCKET_REQUEST_REMOVE);
+            break;
+
+        default:
+            errno = EINVAL;
+            return -1;
+            /* UNREACHED */
+            break;
+    }
+
+    free(built_message);
 
     return 0;
 }

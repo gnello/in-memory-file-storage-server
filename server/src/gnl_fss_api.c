@@ -15,15 +15,19 @@ int gnl_fss_api_close_connection(const char *sockname) {
 int gnl_fss_api_open_file(const char *pathname, int flags) {
     //TODO: check params
 
-    struct gnl_fss_socket_request *message = gnl_fss_socket_request_init(GNL_FSS_SOCKET_REQUEST_OPEN, 2, pathname, flags);
-    GNL_NULL_CHECK(message, ENOMEM, -1)
+    struct gnl_fss_socket_request *request = gnl_fss_socket_request_init(GNL_FSS_SOCKET_REQUEST_OPEN, 2, pathname, flags);
+    GNL_NULL_CHECK(request, ENOMEM, -1)
 
-    int res = gnl_fss_socket_request_send(*message);
+    char *message = NULL;
+
+    int res = gnl_fss_socket_request_write(request, &message);
     GNL_MINUS1_CHECK(res, EINVAL, -1)
+
+    printf("message: %s\n", message);
 
     //TODO: codice per la risposta del server
 
-    gnl_fss_socket_request_destroy(message);
+    gnl_fss_socket_request_destroy(request);
 
     return 0;
 }
