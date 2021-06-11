@@ -60,6 +60,7 @@ int main(int argc, char * argv[]) {
     gnl_fss_api_open_file("./pino/il/bischero", 1 & 2);
     gnl_fss_api_open_file("./pino/il/panettiere", 1);
     gnl_fss_api_open_file("./pino/il/gattopardo", 2);
+    gnl_fss_api_open_file("/fake/path", 1 | 2);
 
     gnl_fss_config_destroy(config);
 

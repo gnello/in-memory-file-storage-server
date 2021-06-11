@@ -15,7 +15,7 @@
         case 0:                                                             \
             ref = gnl_fss_socket_request_generic_init();                    \
             break;                                                          \
-        case 2:                                                             \
+        case 1:                                                             \
             buffer = va_arg(a_list, char *);                                \
             ref = gnl_fss_socket_request_generic_init_with_args(buffer);    \
             break;                                                          \
@@ -237,23 +237,23 @@ struct gnl_fss_socket_request *gnl_fss_socket_request_read(const char *message) 
             break;
 
         case GNL_FSS_SOCKET_REQUEST_READ:
-            GNL_GENERIC_READ_MESSAGE(payload_message, socket_request->payload.read, type);
+        GNL_GENERIC_READ_MESSAGE(payload_message, socket_request->payload.read, type);
             break;
 
         case GNL_FSS_SOCKET_REQUEST_LOCK:
-            GNL_GENERIC_READ_MESSAGE(payload_message, socket_request->payload.lock, type);
+        GNL_GENERIC_READ_MESSAGE(payload_message, socket_request->payload.lock, type);
             break;
 
         case GNL_FSS_SOCKET_REQUEST_UNLOCK:
-            GNL_GENERIC_READ_MESSAGE(payload_message, socket_request->payload.unlock, type);
+        GNL_GENERIC_READ_MESSAGE(payload_message, socket_request->payload.unlock, type);
             break;
 
         case GNL_FSS_SOCKET_REQUEST_CLOSE:
-            GNL_GENERIC_READ_MESSAGE(payload_message, socket_request->payload.close, type);
+        GNL_GENERIC_READ_MESSAGE(payload_message, socket_request->payload.close, type);
             break;
 
         case GNL_FSS_SOCKET_REQUEST_REMOVE:
-            GNL_GENERIC_READ_MESSAGE(payload_message, socket_request->payload.remove, type);
+        GNL_GENERIC_READ_MESSAGE(payload_message, socket_request->payload.remove, type);
             break;
 
         default:
