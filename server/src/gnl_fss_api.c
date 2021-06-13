@@ -1,10 +1,31 @@
 #define _POSIX_C_SOURCE 199309L
 
+#include <time.h>
 #include "../include/gnl_fss_api.h"
 #include "./gnl_fss_socket_request.c" //TODO: far diventare libreria statica?
+#include "./socket/gnl_fss_socket_service.c"
 #include "./macro_beg.c"
 
 int gnl_fss_api_open_connection(const char *sockname, int msec, const struct timespec abstime) {
+    // try to connect to the given socket name
+    while (gnl_fss_socket_service_connect(sockname) == -1) {
+        time_t now = time(NULL);
+
+        // max wait time reached, return
+        if (now > abstime.tv_sec) {
+            errno = EAGAIN;
+
+            return -1;
+        }
+
+        // wait the given amount of time
+        struct timespec tim, tim2;
+        tim.tv_sec = 0;
+        tim.tv_nsec = 1000 * msec;
+
+        nanosleep(&tim , &tim2);
+    }
+
     return 0;
 }
 

@@ -1,6 +1,6 @@
 #include <stdio.h>
 #include <gnl_txtenv.h>
-#include <gnl_fss_opt_handler.h>
+#include <gnl_fss_opt_handler.h> //TODO: deve essere .a e non .so
 #include <gnl_fss_config.h>
 #include <gnl_fss_storage.h>
 #include <gnl_fss_api.h>
@@ -56,11 +56,11 @@ int main(int argc, char * argv[]) {
     // instance the filesystem
     //gnl_fss_storage_init(config->capacity, config->limit, config->replacement_policy);
 
-    gnl_fss_api_open_file("~/CLionProjects/SOL/lab/file-storage-server/index.php", 1 | 2);
-    gnl_fss_api_open_file("./pino/il/bischero", 1 & 2);
-    gnl_fss_api_open_file("./pino/il/panettiere", 1);
-    gnl_fss_api_open_file("./pino/il/gattopardo", 2);
-    gnl_fss_api_open_file("/fake/path", 1 | 2);
+    gnl_fss_api_open_file("~/CLionProjects/SOL/lab/file-storage-server/index.php", O_CREATE | O_LOCK);
+    gnl_fss_api_open_file("./pino/il/bischero", O_CREATE & O_LOCK);
+    gnl_fss_api_open_file("./pino/il/panettiere", O_CREATE);
+    gnl_fss_api_open_file("./pino/il/gattopardo", O_LOCK);
+    gnl_fss_api_open_file("/fake/path", O_CREATE | O_LOCK);
 
     gnl_fss_config_destroy(config);
 

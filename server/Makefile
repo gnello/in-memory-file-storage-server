@@ -18,7 +18,14 @@ INCLUDE += -I$(ROOT)$(HELPERS_INCLUDE)
 LIBS += -Wl,-rpath,./lib -L./lib -lgnl_fss_opt_handler -lgnl_fss_api -lgnl_fss_config -lgnl_fss_storage
 INCLUDE += -I./include
 
-TARGETS = gnl_fss_socket_request_open.a gnl_fss_socket_request_generic.a gnl_fss_api.so gnl_fss_config.so gnl_fss_opt_handler.so gnl_fss_storage.so main
+TARGETS =	gnl_fss_socket_request_open.a \
+			gnl_fss_socket_request_generic.a \
+			gnl_fss_api.so \
+			gnl_fss_config.so \
+			gnl_fss_opt_handler.so \
+			gnl_fss_storage.so \
+			main
+
 TARGETS_PATH = ./lib
 
 .PHONY: all dev clean
