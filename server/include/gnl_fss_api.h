@@ -3,6 +3,7 @@
 #define GNL_IMFS_SERVER_API_H
 
 #include <linux/time.h>
+#include <time.h>
 
 const int O_CREATE = 1;
 const int O_LOCK = 2;
