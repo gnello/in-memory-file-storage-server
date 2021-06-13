@@ -2,7 +2,7 @@
 #include <sys/socket.h>
 #include <sys/un.h>
 #include <errno.h>
-#include "../gnl_macro_beg.c"
+#include <gnl_macro_beg.h>
 
 /**
  * Connect to the given socket name.
@@ -30,4 +30,4 @@ int gnl_fss_socket_service_connect(const char *socket_name) {
     return 0;
 }
 
-#include "../gnl_macro_end.c"
+#include <gnl_macro_end.h>

@@ -5,7 +5,7 @@
 #include "../../include/socket/gnl_fss_socket_request.h"
 #include "./gnl_fss_socket_request_open.c"
 #include "./gnl_fss_socket_request_generic.c"
-#include "../gnl_macro_beg.c"
+#include <gnl_macro_beg.h>
 
 #define MAX_DIGITS_CHAR "10"
 #define MAX_DIGITS_INT 10
@@ -313,4 +313,4 @@ int gnl_fss_socket_request_write(gnl_fss_socket_request *request, char **dest) {
 #undef MAX_DIGITS_INT
 #undef MAX_DIGITS_CHAR
 
-#include "../gnl_macro_end.c"
+#include <gnl_macro_end.h>
