@@ -14,7 +14,8 @@ INCLUDE = -I$(HELPERS_PATH_INCLUDE)
 
 TARGETS =	gnl_fss_socket_request_open_test \
 			gnl_fss_socket_request_generic_test \
-			gnl_fss_socket_request_test
+			gnl_fss_socket_request_test \
+			gnl_fss_socket_service_test
 
 .PHONY: all clean tests tests-valgrind
 .SUFFIXES: .c .h
