@@ -1,6 +1,5 @@
 #define _POSIX_C_SOURCE 200112L
 
-#include <time.h>
 #include <errno.h>
 #include <gnl_fss_socket_request.h>
 #include <gnl_fss_socket_service.h>
