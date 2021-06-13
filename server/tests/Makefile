@@ -16,19 +16,32 @@ INCLUDE = -I$(HELPERS_PATH_INCLUDE)
 LIBS += -Wl,-rpath,../lib -L../lib -lgnl_fss_storage
 INCLUDE += -I../include
 
-TARGETS =	unit/gnl_fss_config_test \
-			unit/gnl_fss_api_test
+# socket library
+LIBS += -Wl,-rpath,./mocks -L./mocks
+INCLUDE += -I$(ROOT)$(SOCKET_INCLUDE)
 
-.PHONY: all clean tests tests-valgrind
+TARGETS =	gnl_fss_config_test \
+			gnl_fss_api_test
+
+.PHONY: all clean tests tests-valgrind mocks
 .SUFFIXES: .c .h
 
 all: $(TARGETS)
+VPATH = mocks
 
-%: %.c
+%: %.c mocks
 	$(CC) $(CFLAGS) $(INCLUDE) $(OPTFLAGS) -o $@ $< $(LDFLAGS) $(LIBS)
 
+mocks: gnl_fss_socket_service.so
+
+%.so: %.o
+	$(CC) -shared -o mocks/$@ mocks/$<
+
+%.o: %.c
+	$(CC) $(CFLAGS) $(INCLUDE) $(OPTFLAGS) -c -fPIC $< -o mocks/$@ $(LIBS)
+
 clean:
-	-rm -f $(TARGETS)
+	-rm -f $(TARGETS) && rm -f ./mocks/*.o ./mocks/*.so
 
 tests:
 	echo "\nRunning server suite test...\n\n"

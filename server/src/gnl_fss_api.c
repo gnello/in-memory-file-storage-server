@@ -1,4 +1,4 @@
-#define _POSIX_C_SOURCE 199309L
+#define _POSIX_C_SOURCE 200112L
 
 #include <time.h>
 #include <errno.h>
@@ -20,11 +20,11 @@ int gnl_fss_api_open_connection(const char *sockname, int msec, const struct tim
         }
 
         // wait the given amount of time
-        struct timespec tim, tim2;
+        struct timespec tim;
         tim.tv_sec = 0;
         tim.tv_nsec = 1000 * msec;
 
-        nanosleep(&tim , &tim2);
+        nanosleep(&tim , NULL);
     }
 
     return 0;
