@@ -12,12 +12,9 @@ HELPERS_PATH_INCLUDE = $(ROOT)/$(HELPERS_INCLUDE)
 LIBS = -Wl,-rpath,$(HELPERS_PATH_LIB) -L$(HELPERS_PATH_LIB) -lgnl_colorshell -lgnl_assert -lgnl_txtenv
 INCLUDE = -I$(HELPERS_PATH_INCLUDE)
 
-# server library
-LIBS += -Wl,-rpath,../lib -L../lib -lgnl_fss_storage
-INCLUDE += -I../include
-
-TARGETS =	unit/gnl_fss_config_test \
-			unit/gnl_fss_api_test
+TARGETS =	gnl_fss_socket_request_open_test \
+			gnl_fss_socket_request_generic_test \
+			gnl_fss_socket_request_test
 
 .PHONY: all clean tests tests-valgrind
 .SUFFIXES: .c .h

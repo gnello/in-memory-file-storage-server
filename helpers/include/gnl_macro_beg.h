@@ -1,4 +1,5 @@
 #include <stdlib.h>
+#include <errno.h>
 
 #ifndef GNL_MACRO_BEG_H
 #define GNL_MACRO_BEG_H

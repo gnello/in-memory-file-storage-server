@@ -1,9 +1,10 @@
 #define _POSIX_C_SOURCE 199309L
 
 #include <time.h>
+#include <errno.h>
+#include <gnl_fss_socket_request.h>
+#include <gnl_fss_socket_service.h>
 #include "../include/gnl_fss_api.h"
-#include "./socket/gnl_fss_socket_request.c" //TODO: far diventare libreria statica?
-#include "./socket/gnl_fss_socket_service.c"
 #include <gnl_macro_beg.h>
 
 int gnl_fss_api_open_connection(const char *sockname, int msec, const struct timespec abstime) {
@@ -48,19 +49,9 @@ int gnl_fss_api_open_file(const char *pathname, int flags) {
 
     //TODO: creare gnl_fss_socket_service.c per fare la connessione, la emit, ecc
 
-    printf("message: %s\n", message);
-
-    struct gnl_fss_socket_request *read = gnl_fss_socket_request_read(message);
-    printf("Readed message:\n");
-    printf("type: %d\n", read->type);
-    printf("pathname: %s\n", read->payload.open->pathname);
-    printf("flags: %d\n\n", read->payload.open->flags);
-
     free(message);
 
     //TODO: codice per la risposta del server
-
-    gnl_fss_socket_request_destroy(read);
 
     return 0;
 }

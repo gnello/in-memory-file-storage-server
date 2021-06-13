@@ -2,10 +2,10 @@
 #include <string.h>
 #include <errno.h>
 #include <stdarg.h>
-#include "../../include/socket/gnl_fss_socket_request.h"
 #include "./gnl_fss_socket_request_open.c"
 #include "./gnl_fss_socket_request_generic.c"
 #include <gnl_macro_beg.h>
+#include "../include/gnl_fss_socket_request.h"
 
 #define MAX_DIGITS_CHAR "10"
 #define MAX_DIGITS_INT 10
@@ -124,8 +124,8 @@ static int decode(const char *message, char **dest, enum gnl_fss_socket_request_
     return 0;
 }
 
-struct gnl_fss_socket_request *gnl_fss_socket_request_init(enum gnl_fss_socket_request_type type, int num, ...) {
-    struct gnl_fss_socket_request *socket_request = (struct gnl_fss_socket_request *)malloc(sizeof(struct gnl_fss_socket_request));
+gnl_fss_socket_request *gnl_fss_socket_request_init(enum gnl_fss_socket_request_type type, int num, ...) {
+    gnl_fss_socket_request *socket_request = (gnl_fss_socket_request *)malloc(sizeof(gnl_fss_socket_request));
     GNL_NULL_CHECK(socket_request, ENOMEM, NULL)
 
     // initialize valist for num number of arguments
@@ -190,7 +190,7 @@ struct gnl_fss_socket_request *gnl_fss_socket_request_init(enum gnl_fss_socket_r
     return socket_request;
 }
 
-void gnl_fss_socket_request_destroy(struct gnl_fss_socket_request *request) {
+void gnl_fss_socket_request_destroy(gnl_fss_socket_request *request) {
     switch (request->type) {
         case GNL_FSS_SOCKET_REQUEST_OPEN:
             gnl_fss_socket_request_open_destroy(request->payload.open);
@@ -220,8 +220,8 @@ void gnl_fss_socket_request_destroy(struct gnl_fss_socket_request *request) {
     free(request);
 }
 
-struct gnl_fss_socket_request *gnl_fss_socket_request_read(const char *message) {
-    struct gnl_fss_socket_request *socket_request;
+gnl_fss_socket_request *gnl_fss_socket_request_read(const char *message) {
+    gnl_fss_socket_request *socket_request;
 
     char *payload_message;
     enum gnl_fss_socket_request_type type;

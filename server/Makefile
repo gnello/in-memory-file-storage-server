@@ -14,6 +14,10 @@ INCLUDE += -I$(ROOT)$(DATA_STRUCTURES_INCLUDE)
 LIBS += -Wl,-rpath,$(ROOT)$(HELPERS_LIB) -L$(ROOT)$(HELPERS_LIB) -lgnl_txtenv
 INCLUDE += -I$(ROOT)$(HELPERS_INCLUDE)
 
+# socket library
+LIBS += -Wl,-rpath,$(ROOT)$(SOCKET_LIB) -L$(ROOT)$(SOCKET_LIB)
+INCLUDE += -I$(ROOT)$(SOCKET_INCLUDE)
+
 # server library
 LIBS += -Wl,-rpath,./lib -L./lib -lgnl_fss_opt_handler -lgnl_fss_api -lgnl_fss_config -lgnl_fss_storage
 INCLUDE += -I./include
@@ -26,10 +30,10 @@ TARGETS =	gnl_fss_api.so \
 
 TARGETS_PATH = ./lib
 
-.PHONY: all dev clean
+.PHONY: all clean
 
 all: $(TARGETS)
-VPATH = src:src/socket
+VPATH = src
 
 %: %.c
 	$(CC) $(CFLAGS) $(INCLUDE) $(OPTFLAGS) -o $@ $< $(LDFLAGS) $(LIBS)

@@ -41,14 +41,14 @@ typedef struct gnl_fss_socket_request gnl_fss_socket_request;
  * @return      Returns a gnl_fss_socket_request struct on success,
  *              NULL otherwise.
  */
-struct gnl_fss_socket_request *gnl_fss_socket_request_init(enum gnl_fss_socket_request_type type, int num, ...);
+gnl_fss_socket_request *gnl_fss_socket_request_init(enum gnl_fss_socket_request_type type, int num, ...);
 
 /**
  * Destroy the socket request.
  *
  * @param request   The socket_request to destroy.
  */
-void gnl_fss_socket_request_destroy(struct gnl_fss_socket_request *request);
+void gnl_fss_socket_request_destroy(gnl_fss_socket_request *request);
 
 /**
  * Decode the given socket request.
@@ -58,7 +58,7 @@ void gnl_fss_socket_request_destroy(struct gnl_fss_socket_request *request);
  * @return          Returns a gnl_fss_socket_request struct on success,
  *                  NULL otherwise.
  */
-struct gnl_fss_socket_request *gnl_fss_socket_request_read(const char *request);
+gnl_fss_socket_request *gnl_fss_socket_request_read(const char *request);
 
 /**
  * Encode the given socket request.

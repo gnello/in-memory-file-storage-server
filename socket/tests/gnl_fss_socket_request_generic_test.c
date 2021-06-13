@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <gnl_colorshell.h>
 #include <gnl_assert.h>
-#include "../src/socket/gnl_fss_socket_request_generic.c"
+#include "../src/gnl_fss_socket_request_generic.c"
 
 int can_init() {
     struct gnl_fss_socket_request_generic *generic = gnl_fss_socket_request_generic_init();

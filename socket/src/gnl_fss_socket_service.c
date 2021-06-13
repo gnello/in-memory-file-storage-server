@@ -2,15 +2,9 @@
 #include <sys/socket.h>
 #include <sys/un.h>
 #include <errno.h>
+#include "../include/gnl_fss_socket_service.h"
 #include <gnl_macro_beg.h>
 
-/**
- * Connect to the given socket name.
- *
- * @param socket_name   The name of the socket where to connect.
- *
- * @return              Returns 0 on success, -1 otherwise.
- */
 int gnl_fss_socket_service_connect(const char *socket_name) {
     int fd_skt;
 
