@@ -2,9 +2,9 @@
 
 #include <time.h>
 #include "../include/gnl_fss_api.h"
-#include "./gnl_fss_socket_request.c" //TODO: far diventare libreria statica?
+#include "./socket/gnl_fss_socket_request.c" //TODO: far diventare libreria statica?
 #include "./socket/gnl_fss_socket_service.c"
-#include "./macro_beg.c"
+#include "./gnl_macro_beg.c"
 
 int gnl_fss_api_open_connection(const char *sockname, int msec, const struct timespec abstime) {
     // try to connect to the given socket name
@@ -97,4 +97,4 @@ int gnl_fss_api_remove_file(const char *pathname) {
     return 0;
 }
 
-#include "./macro_end.c"
+#include "./gnl_macro_end.c"
