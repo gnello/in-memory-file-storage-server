@@ -61,7 +61,7 @@ int can_load_overwrite() {
     return 0;
 }
 
-int cannot_load_empty() {
+int can_not_load_empty() {
     if((gnl_txtenv_load("./test.txt", 1)) != 0) {
         return -1;
     }
@@ -78,7 +78,7 @@ int main() {
 
     gnl_assert(can_load_no_overwrite, "can load a config file into the env without overwrite.");
     gnl_assert(can_load_overwrite, "can load a config file into the env with overwrite.");
-    gnl_assert(cannot_load_empty, "cannot load an empty value into the env.");
+    gnl_assert(can_not_load_empty, "can not load an empty value into the env.");
 
     printf("\n");
 }

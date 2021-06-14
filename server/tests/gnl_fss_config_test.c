@@ -89,7 +89,7 @@ int can_load_env() {
     return 0;
 }
 
-int cannot_load_with_error() {
+int can_not_load_with_error() {
     gnl_fss_config *config = gnl_fss_config_init_from_env();
     if (config != NULL) {
         return -1;
@@ -109,7 +109,7 @@ int main() {
 
     gnl_assert(can_load_default, "can load a default configuration.");
     gnl_assert(can_load_env, "can load the configuration from the env.");
-    gnl_assert(cannot_load_with_error, "cannot load an incorrect configuration from the env.");
+    gnl_assert(can_not_load_with_error, "can not load an incorrect configuration from the env.");
 
     // the gnl_fss_config_destroy method is implicitly tested in every
     // assert, if you don't believe it, run this tests with

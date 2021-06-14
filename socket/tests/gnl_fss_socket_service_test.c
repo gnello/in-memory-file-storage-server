@@ -39,7 +39,7 @@ static int socket_destroy() {
     return 0;
 }
 
-int cannot_connect_to_socket() {
+int can_not_connect_to_socket() {
     gnl_fss_socket_service_connect("nonexistent_socket");
 
     if (errno != ENOENT) {
@@ -56,7 +56,7 @@ int can_connect_to_socket() {
 int main() {
     gnl_printf_yellow("> gnl_fss_socket_service test:\n\n");
 
-    gnl_assert(cannot_connect_to_socket, "cannot connect to an nonexistent socket.");
+    gnl_assert(can_not_connect_to_socket, "can not connect to an nonexistent socket.");
 
     socket_create();
     gnl_assert(can_connect_to_socket, "can connect to an existent socket.");
