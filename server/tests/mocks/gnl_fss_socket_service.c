@@ -1,4 +1,3 @@
-#include <stdio.h>
 
 int gnl_fss_socket_service_connect_result;
 
@@ -7,6 +6,5 @@ void mock_gnl_fss_socket_service_set_connect_result(int result) {
 }
 
 int gnl_fss_socket_service_connect(const char *socket_name) {
-    printf("ciao\n");
     return gnl_fss_socket_service_connect_result;
 }

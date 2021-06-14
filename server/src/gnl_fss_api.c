@@ -9,6 +9,12 @@
 int nanosleep(const struct timespec *req, struct timespec *rem);
 
 int gnl_fss_api_open_connection(const char *sockname, int msec, const struct timespec abstime) {
+    if (sockname == NULL || msec <= 0) {
+        errno = EINVAL;
+
+        return -1;
+    }
+
     // try to connect to the given socket name
     while (gnl_fss_socket_service_connect(sockname) == -1) {
         time_t now = time(NULL);
@@ -25,7 +31,7 @@ int gnl_fss_api_open_connection(const char *sockname, int msec, const struct tim
         tim.tv_sec = 0;
         tim.tv_nsec = 1000 * msec;
 
-        nanosleep(&tim , NULL);
+        nanosleep(&tim, NULL);
     }
 
     return 0;
