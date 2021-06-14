@@ -1,10 +1,12 @@
-#define _POSIX_C_SOURCE 200112L
 
+#include <time.h>
 #include <errno.h>
 #include <gnl_fss_socket_request.h>
 #include <gnl_fss_socket_service.h>
 #include "../include/gnl_fss_api.h"
 #include <gnl_macro_beg.h>
+
+int nanosleep(const struct timespec *req, struct timespec *rem);
 
 int gnl_fss_api_open_connection(const char *sockname, int msec, const struct timespec abstime) {
     // try to connect to the given socket name
