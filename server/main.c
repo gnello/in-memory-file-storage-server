@@ -1,9 +1,8 @@
 #include <stdio.h>
 #include <gnl_txtenv.h>
-#include <gnl_fss_opt_handler.h> //TODO: deve essere .a e non .so
-#include <gnl_fss_config.h>
-#include <gnl_fss_storage.h>
-#include <gnl_fss_api.h>
+#include "./src/gnl_fss_opt_handler.c"
+#include "./src/gnl_fss_config.c"
+#include "./src/gnl_fss_api.c"
 
 int main(int argc, char * argv[]) {
     char opt_err = '\0';

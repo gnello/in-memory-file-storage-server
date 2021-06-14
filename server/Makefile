@@ -18,14 +18,7 @@ INCLUDE += -I$(ROOT)$(HELPERS_INCLUDE)
 LIBS += -Wl,-rpath,$(ROOT)$(SOCKET_LIB) -L$(ROOT)$(SOCKET_LIB) -lgnl_fss_socket_request -lgnl_fss_socket_service
 INCLUDE += -I$(ROOT)$(SOCKET_INCLUDE)
 
-# server library
-LIBS += -Wl,-rpath,./lib -L./lib -lgnl_fss_storage
-INCLUDE += -I./include
-
-TARGETS =	gnl_fss_api.so \
-			gnl_fss_config.so \
-			gnl_fss_storage.so \
-			main
+TARGETS = main
 
 TARGETS_PATH = ./lib
 

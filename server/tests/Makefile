@@ -6,6 +6,9 @@ export
 CC = gcc
 CFLAGS += -std=c99 -Wall -pedantic -g
 
+DATA_STRUCTURES_PATH_LIB = $(ROOT)/$(DATA_STRUCTURES_LIB)
+DATA_STRUCTURES_PATH_INCLUDE = $(ROOT)/$(DATA_STRUCTURES_INCLUDE)
+
 HELPERS_PATH_LIB = $(ROOT)/$(HELPERS_LIB)
 HELPERS_PATH_INCLUDE = $(ROOT)/$(HELPERS_INCLUDE)
 
@@ -15,12 +18,13 @@ SERVER_PATH_INCLUDE = $(ROOT)/$(SERVER_INCLUDE)
 SOCKET_PATH_LIB = $(ROOT)/$(SOCKET_LIB)
 SOCKET_PATH_INCLUDE = $(ROOT)/$(SOCKET_INCLUDE)
 
-LIBS = -Wl,-rpath,$(HELPERS_PATH_LIB) -L$(HELPERS_PATH_LIB) -lgnl_colorshell -lgnl_assert -lgnl_txtenv
-INCLUDE = -I$(HELPERS_PATH_INCLUDE)
+# data-structures library
+LIBS += -Wl,-rpath,$(DATA_STRUCTURES_PATH_LIBB) -L$(DATA_STRUCTURES_PATH_LIB) -lgnl_list_t
+INCLUDE += -I$(DATA_STRUCTURES_PATH_INCLUDE)
 
-# server library
-LIBS += -Wl,-rpath,$(SERVER_PATH_LIB) -L$(SERVER_PATH_LIB) -lgnl_fss_storage
-INCLUDE += -I$(SERVER_PATH_INCLUDE)
+# helpers library
+LIBS += -Wl,-rpath,$(HELPERS_PATH_LIB) -L$(HELPERS_PATH_LIB) -lgnl_colorshell -lgnl_assert -lgnl_txtenv
+INCLUDE += -I$(HELPERS_PATH_INCLUDE)
 
 # socket library
 LIBS += -Wl,-rpath,./mocks -L./mocks -Wl,-rpath,$(SOCKET_PATH_LIB) -L$(SOCKET_PATH_LIB) -lgnl_fss_socket_request

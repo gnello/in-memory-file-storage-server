@@ -1,6 +1,6 @@
 #include <stdlib.h>
 #include <errno.h>
-#include <gnl_fss_storage.h>
+#include "./gnl_fss_storage.c"
 #include "../include/gnl_fss_config.h"
 
 #define GNL_NULL_CHECK(ptr, error_code, return_value) { \

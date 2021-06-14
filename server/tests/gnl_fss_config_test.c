@@ -6,7 +6,6 @@
 #include <gnl_colorshell.h>
 #include <gnl_assert.h>
 #include <gnl_txtenv.h>
-#include <gnl_fss_storage.h>
 #include "../src/gnl_fss_config.c"
 
 int can_load_default() {
