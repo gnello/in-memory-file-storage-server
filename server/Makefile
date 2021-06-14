@@ -19,12 +19,11 @@ LIBS += -Wl,-rpath,$(ROOT)$(SOCKET_LIB) -L$(ROOT)$(SOCKET_LIB) -lgnl_fss_socket_
 INCLUDE += -I$(ROOT)$(SOCKET_INCLUDE)
 
 # server library
-LIBS += -Wl,-rpath,./lib -L./lib -lgnl_fss_opt_handler -lgnl_fss_api -lgnl_fss_config -lgnl_fss_storage
+LIBS += -Wl,-rpath,./lib -L./lib -lgnl_fss_storage
 INCLUDE += -I./include
 
 TARGETS =	gnl_fss_api.so \
 			gnl_fss_config.so \
-			gnl_fss_opt_handler.so \
 			gnl_fss_storage.so \
 			main
 
