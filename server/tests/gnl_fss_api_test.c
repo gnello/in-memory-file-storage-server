@@ -88,7 +88,7 @@ int main() {
     gnl_assert(can_not_connect, "can not connect to a socket.");
     gnl_assert(can_connect, "can connect to a socket.");
     gnl_assert(can_not_accept_null_socket, "can not accept a null socket name to open a socket connection.");
-    gnl_assert(can_not_accept_0_msec, "can not accept a msec equal to zero to open a socket connection.");
+    gnl_assert(can_not_accept_0_msec, "can not accept a msec value equal to zero to open a socket connection.");
     gnl_assert(can_not_accept_negative_msec, "can not accept a msec value less than zero to open a socket connection.");
 
     printf("\n");
