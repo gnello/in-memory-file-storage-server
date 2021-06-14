@@ -19,7 +19,7 @@ all: $(TARGETS) server
 %: %.c data-structures
 	$(CC) $(CFLAGS) $(INCLUDE) $(OPTFLAGS) -o $(TARGETS_PATH)/$@ $< $(LDFLAGS) $(LIBS)
 
-server: socket helpers
+server: helpers socket
 	cd ./server && $(MAKE)
 
 socket:
