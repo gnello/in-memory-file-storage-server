@@ -12,10 +12,10 @@ HELPERS_PATH_INCLUDE = $(ROOT)/$(HELPERS_INCLUDE)
 LIBS = -Wl,-rpath,$(HELPERS_PATH_LIB) -L$(HELPERS_PATH_LIB) -lgnl_colorshell -lgnl_assert -lgnl_txtenv
 INCLUDE = -I$(HELPERS_PATH_INCLUDE)
 
-TARGETS =	gnl_fss_socket_request_open_test \
-			gnl_fss_socket_request_generic_test \
-			gnl_fss_socket_request_test \
-			gnl_fss_socket_service_test
+TARGETS =	gnl_socket_request_open_test \
+			gnl_socket_request_generic_test \
+			gnl_socket_request_test \
+			gnl_socket_service_test
 
 .PHONY: all clean tests tests-valgrind
 .SUFFIXES: .c .h

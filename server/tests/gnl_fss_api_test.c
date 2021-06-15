@@ -2,12 +2,12 @@
 #include <gnl_colorshell.h>
 #include <gnl_assert.h>
 #include "../src/gnl_fss_api.c"
-#include "./mocks/gnl_fss_socket_service.c"
+#include "./mocks/gnl_socket_service.c"
 
 #define SOCKET_NAME "./test.sk"
 
 int can_not_connect() {
-    mock_gnl_fss_socket_service_set_connect_result(-1);
+    mock_gnl_socket_service_set_connect_result(-1);
 
     struct timespec tim;
     tim.tv_sec = 0;
@@ -17,7 +17,7 @@ int can_not_connect() {
 }
 
 int can_connect() {
-    mock_gnl_fss_socket_service_set_connect_result(0);
+    mock_gnl_socket_service_set_connect_result(0);
 
     struct timespec tim;
     tim.tv_sec = 0;

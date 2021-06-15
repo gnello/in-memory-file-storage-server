@@ -10,7 +10,7 @@
 /**
  * The generic request.
  */
-struct gnl_fss_socket_request_generic {
+struct gnl_socket_request_generic {
     // the pathname of the file
     char *pathname;
 };
@@ -23,15 +23,15 @@ struct gnl_fss_socket_request_generic {
  * @return          Returns he size of the generic request on success,
  *                  -1 otherwise.
  */
-static int gnl_fss_socket_request_generic_size(const struct gnl_fss_socket_request_generic generic) {
+static int gnl_socket_request_generic_size(const struct gnl_socket_request_generic generic) {
     return MAX_DIGITS_INT + strlen(generic.pathname);
 }
 
 /**
  * Create a new request_generic struct.
  */
-struct gnl_fss_socket_request_generic *gnl_fss_socket_request_generic_init() {
-    struct gnl_fss_socket_request_generic *generic = (struct gnl_fss_socket_request_generic *)calloc(1, sizeof(struct gnl_fss_socket_request_generic));
+struct gnl_socket_request_generic *gnl_socket_request_generic_init() {
+    struct gnl_socket_request_generic *generic = (struct gnl_socket_request_generic *)calloc(1, sizeof(struct gnl_socket_request_generic));
     GNL_NULL_CHECK(generic, ENOMEM, NULL)
 
     return generic;
@@ -42,8 +42,8 @@ struct gnl_fss_socket_request_generic *gnl_fss_socket_request_generic_init() {
  *
  * @param pathname  The pathname.
  */
-struct gnl_fss_socket_request_generic *gnl_fss_socket_request_generic_init_with_args(char *pathname) {
-    struct gnl_fss_socket_request_generic *generic = gnl_fss_socket_request_generic_init();
+struct gnl_socket_request_generic *gnl_socket_request_generic_init_with_args(char *pathname) {
+    struct gnl_socket_request_generic *generic = gnl_socket_request_generic_init();
     GNL_NULL_CHECK(generic, ENOMEM, NULL)
 
     generic->pathname = malloc((strlen(pathname) + 1) * sizeof(char));
@@ -59,7 +59,7 @@ struct gnl_fss_socket_request_generic *gnl_fss_socket_request_generic_init_with_
  *
  * @param request   The request to be destroyed.
  */
-void gnl_fss_socket_request_generic_destroy(struct gnl_fss_socket_request_generic *request) {
+void gnl_socket_request_generic_destroy(struct gnl_socket_request_generic *request) {
     if (request != NULL) {
         free(request->pathname);
         free(request);
@@ -74,8 +74,8 @@ void gnl_fss_socket_request_generic_destroy(struct gnl_fss_socket_request_generi
  *
  * @return          Returns 0 on success, -1 otherwise.
  */
-int gnl_fss_socket_request_generic_write(const struct gnl_fss_socket_request_generic request, char **dest) {
-    int request_size = gnl_fss_socket_request_generic_size(request);
+int gnl_socket_request_generic_write(const struct gnl_socket_request_generic request, char **dest) {
+    int request_size = gnl_socket_request_generic_size(request);
 
     GNL_ALLOCATE_MESSAGE(*dest, request_size + 1)
 
@@ -91,12 +91,12 @@ int gnl_fss_socket_request_generic_write(const struct gnl_fss_socket_request_gen
  *
  * @param request   The generic request message to read.
  * @param generic   The struct to fill with the request, it must be previously
- *                  initialized with gnl_fss_socket_request_generic_init.
+ *                  initialized with gnl_socket_request_generic_init.
  *
- * @return          Returns a pointer to the created gnl_fss_socket_request_generic struct
+ * @return          Returns a pointer to the created gnl_socket_request_generic struct
  *                  on success, NULL otherwise.
  */
-int gnl_fss_socket_request_generic_read(const char *request, struct gnl_fss_socket_request_generic *generic) {
+int gnl_socket_request_generic_read(const char *request, struct gnl_socket_request_generic *generic) {
     if (generic == NULL) {
         errno = EINVAL;
 

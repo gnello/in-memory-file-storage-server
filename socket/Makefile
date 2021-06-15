@@ -9,8 +9,8 @@ CFLAGS = -std=c99 -Wall -g -pedantic
 # helpers library
 INCLUDE += -I$(ROOT)$(HELPERS_INCLUDE)
 
-TARGETS =	gnl_fss_socket_request.so \
-			gnl_fss_socket_service.so
+TARGETS =	gnl_socket_request.so \
+			gnl_socket_service.so
 
 TARGETS_PATH = ./lib
 

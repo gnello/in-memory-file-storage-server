@@ -11,7 +11,7 @@
 /**
  * The open message.
  */
-struct gnl_fss_socket_request_open {
+struct gnl_socket_request_open {
     // the pathname of the file to open
     char *pathname;
 
@@ -26,15 +26,15 @@ struct gnl_fss_socket_request_open {
  *
  * @return      The size of the open message.
  */
-static int gnl_fss_socket_request_open_message_size(const struct gnl_fss_socket_request_open open) {
+static int gnl_socket_request_open_message_size(const struct gnl_socket_request_open open) {
     return MAX_DIGITS_INT + strlen(open.pathname) + FLAG_LENGTH;
 }
 
 /**
  * Create a new open struct.
  */
-struct gnl_fss_socket_request_open *gnl_fss_socket_request_open_init() {
-    struct gnl_fss_socket_request_open *open = (struct gnl_fss_socket_request_open *)calloc(1, sizeof(struct gnl_fss_socket_request_open));
+struct gnl_socket_request_open *gnl_socket_request_open_init() {
+    struct gnl_socket_request_open *open = (struct gnl_socket_request_open *)calloc(1, sizeof(struct gnl_socket_request_open));
     GNL_NULL_CHECK(open, ENOMEM, NULL)
 
     return open;
@@ -46,8 +46,8 @@ struct gnl_fss_socket_request_open *gnl_fss_socket_request_open_init() {
  * @param pathname  The pathname.
  * @param flags     The flags.
  */
-struct gnl_fss_socket_request_open *gnl_fss_socket_request_open_init_with_args(char *pathname, int flags) {
-    struct gnl_fss_socket_request_open *open = gnl_fss_socket_request_open_init();
+struct gnl_socket_request_open *gnl_socket_request_open_init_with_args(char *pathname, int flags) {
+    struct gnl_socket_request_open *open = gnl_socket_request_open_init();
     GNL_NULL_CHECK(open, ENOMEM, NULL)
 
     open->pathname = malloc((strlen(pathname) + 1) * sizeof(char));
@@ -64,7 +64,7 @@ struct gnl_fss_socket_request_open *gnl_fss_socket_request_open_init_with_args(c
  *
  * @param message   The message to be destroyed.
  */
-void gnl_fss_socket_request_open_destroy(struct gnl_fss_socket_request_open *message) {
+void gnl_socket_request_open_destroy(struct gnl_socket_request_open *message) {
     if (message != NULL) {
         free(message->pathname);
         free(message);
@@ -79,8 +79,8 @@ void gnl_fss_socket_request_open_destroy(struct gnl_fss_socket_request_open *mes
  *
  * @return          Returns 0 on success, -1 otherwise.
  */
-int gnl_fss_socket_request_open_write(const struct gnl_fss_socket_request_open message, char **dest) {
-    int message_size = gnl_fss_socket_request_open_message_size(message);
+int gnl_socket_request_open_write(const struct gnl_socket_request_open message, char **dest) {
+    int message_size = gnl_socket_request_open_message_size(message);
 
     GNL_ALLOCATE_MESSAGE(*dest, message_size + 1)
 
@@ -96,12 +96,12 @@ int gnl_fss_socket_request_open_write(const struct gnl_fss_socket_request_open m
  *
  * @param message   The message to read.
  * @param open      The struct to fill with the message, it must be previously
- *                  initialized with gnl_fss_socket_request_open_init.
+ *                  initialized with gnl_socket_request_open_init.
  *
- * @return          Returns a pointer to the created gnl_fss_socket_request_open struct
+ * @return          Returns a pointer to the created gnl_socket_request_open struct
  *                  on success, NULL otherwise.
  */
-int gnl_fss_socket_request_open_read(const char *message, struct gnl_fss_socket_request_open *open) {
+int gnl_socket_request_open_read(const char *message, struct gnl_socket_request_open *open) {
     if (open == NULL) {
         errno = EINVAL;
 

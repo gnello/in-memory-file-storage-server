@@ -1,8 +1,8 @@
 
 #include <time.h>
 #include <errno.h>
-#include <gnl_fss_socket_request.h>
-#include <gnl_fss_socket_service.h>
+#include <gnl_socket_request.h>
+#include <gnl_socket_service.h>
 #include "../include/gnl_fss_api.h"
 #include <gnl_macro_beg.h>
 
@@ -16,7 +16,7 @@ int gnl_fss_api_open_connection(const char *sockname, int msec, const struct tim
     }
 
     // try to connect to the given socket name
-    while (gnl_fss_socket_service_connect(sockname) == -1) {
+    while (gnl_socket_service_connect(sockname) == -1) {
         time_t now = time(NULL);
 
         // max wait time reached, return
@@ -44,17 +44,17 @@ int gnl_fss_api_close_connection(const char *sockname) {
 int gnl_fss_api_open_file(const char *pathname, int flags) {
     //TODO: check params
 
-    struct gnl_fss_socket_request *request = gnl_fss_socket_request_init(GNL_FSS_SOCKET_REQUEST_OPEN, 2, pathname, flags);
+    struct gnl_socket_request *request = gnl_socket_request_init(GNL_SOCKET_REQUEST_OPEN, 2, pathname, flags);
     GNL_NULL_CHECK(request, ENOMEM, -1)
 
     char *message = NULL;
 
-    int res = gnl_fss_socket_request_write(request, &message);
+    int res = gnl_socket_request_write(request, &message);
     GNL_MINUS1_CHECK(res, EINVAL, -1)
 
-    gnl_fss_socket_request_destroy(request);
+    gnl_socket_request_destroy(request);
 
-    //TODO: creare gnl_fss_socket_service.c per fare la connessione, la emit, ecc
+    //TODO: creare gnl_socket_service.c per fare la connessione, la emit, ecc
 
     free(message);
 

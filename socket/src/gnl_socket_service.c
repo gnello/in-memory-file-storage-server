@@ -2,10 +2,10 @@
 #include <sys/socket.h>
 #include <sys/un.h>
 #include <errno.h>
-#include "../include/gnl_fss_socket_service.h"
+#include "../include/gnl_socket_service.h"
 #include <gnl_macro_beg.h>
 
-int gnl_fss_socket_service_connect(const char *socket_name) {
+int gnl_socket_service_connect(const char *socket_name) {
     int fd_skt;
 
     // create the socket address

@@ -4,7 +4,7 @@
 #include <sys/un.h>
 #include <gnl_colorshell.h>
 #include <gnl_assert.h>
-#include "../src/gnl_fss_socket_service.c"
+#include "../src/gnl_socket_service.c"
 #include <gnl_macro_beg.h>
 
 #define SOCKET_NAME "./test.sk"
@@ -40,7 +40,7 @@ static int socket_destroy() {
 }
 
 int can_not_connect_to_socket() {
-    gnl_fss_socket_service_connect("nonexistent_socket");
+    gnl_socket_service_connect("nonexistent_socket");
 
     if (errno != ENOENT) {
         return -1;
@@ -50,11 +50,11 @@ int can_not_connect_to_socket() {
 }
 
 int can_connect_to_socket() {
-    return gnl_fss_socket_service_connect(SOCKET_NAME);
+    return gnl_socket_service_connect(SOCKET_NAME);
 }
 
 int main() {
-    gnl_printf_yellow("> gnl_fss_socket_service test:\n\n");
+    gnl_printf_yellow("> gnl_socket_service test:\n\n");
 
     gnl_assert(can_not_connect_to_socket, "can not connect to an nonexistent socket.");
 
