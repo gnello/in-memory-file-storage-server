@@ -13,6 +13,7 @@ LIBS = -Wl,-rpath,$(HELPERS_PATH_LIB) -L$(HELPERS_PATH_LIB) -lgnl_colorshell -lg
 INCLUDE = -I$(HELPERS_PATH_INCLUDE)
 
 TARGETS =	gnl_socket_request_open_test \
+			gnl_socket_request_read_N_test \
 			gnl_socket_request_generic_test \
 			gnl_socket_request_test \
 			gnl_socket_service_test

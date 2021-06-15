@@ -26,7 +26,7 @@ struct gnl_socket_request_open {
  *
  * @return      The size of the open message.
  */
-static int gnl_socket_request_open_message_size(const struct gnl_socket_request_open open) {
+static int gnl_socket_request_open_size(const struct gnl_socket_request_open open) {
     return MAX_DIGITS_INT + strlen(open.pathname) + FLAG_LENGTH;
 }
 
@@ -62,31 +62,31 @@ struct gnl_socket_request_open *gnl_socket_request_open_init_with_args(char *pat
 /**
  * Destroy the given message.
  *
- * @param message   The message to be destroyed.
+ * @param open  The message to be destroyed.
  */
-void gnl_socket_request_open_destroy(struct gnl_socket_request_open *message) {
-    if (message != NULL) {
-        free(message->pathname);
-        free(message);
+void gnl_socket_request_open_destroy(struct gnl_socket_request_open *open) {
+    if (open != NULL) {
+        free(open->pathname);
+        free(open);
     }
 }
 
 /**
  * Prepare the socket message and put it into "dest".
  *
- * @param message   The open message.
- * @param dest      The destination where to write the socket message.
+ * @param open  The open message.
+ * @param dest  The destination where to write the socket message.
  *
- * @return          Returns 0 on success, -1 otherwise.
+ * @return      Returns 0 on success, -1 otherwise.
  */
-int gnl_socket_request_open_write(const struct gnl_socket_request_open message, char **dest) {
-    int message_size = gnl_socket_request_open_message_size(message);
+int gnl_socket_request_open_write(const struct gnl_socket_request_open open, char **dest) {
+    int open_size = gnl_socket_request_open_size(open);
 
-    GNL_ALLOCATE_MESSAGE(*dest, message_size + 1)
+    GNL_ALLOCATE_MESSAGE(*dest, open_size + 1)
 
-    int maxlen = message_size + 1; // count also the '\0' char
+    int maxlen = open_size + 1; // count also the '\0' char
 
-    snprintf(*dest, maxlen, "%0*lu%s%d", MAX_DIGITS_INT, strlen(message.pathname), message.pathname, message.flags);
+    snprintf(*dest, maxlen, "%0*lu%s%d", MAX_DIGITS_INT, strlen(open.pathname), open.pathname, open.flags);
 
     return 0;
 }
@@ -128,6 +128,7 @@ int gnl_socket_request_open_read(const char *message, struct gnl_socket_request_
     // if no digits found
     if ((char *)read_flags == ptr) {
         errno = EINVAL;
+        free(ptr);
 
         return -1;
     }

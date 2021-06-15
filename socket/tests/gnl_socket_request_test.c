@@ -180,6 +180,96 @@ int can_write_open() {
     return 0;
 }
 
+int can_init_empty_read_N() {
+    struct gnl_socket_request *request = gnl_socket_request_init(GNL_SOCKET_REQUEST_READ_N, 0);
+
+    if (request == NULL) {
+        return -1;
+    }
+
+    if (request->type != GNL_SOCKET_REQUEST_READ_N) {
+        return -1;
+    }
+
+
+    if (request->payload.read_N->dirname != NULL) {
+        return -1;
+    }
+
+    gnl_socket_request_destroy(request);
+
+    return 0;
+}
+
+int can_init_args_read_N() {
+    struct gnl_socket_request *request = gnl_socket_request_init(GNL_SOCKET_REQUEST_READ_N, 2, "/fake/path", 15);
+
+    if (request == NULL) {
+        return -1;
+    }
+
+    if (request->type != GNL_SOCKET_REQUEST_READ_N) {
+        return -1;
+    }
+
+    if (strcmp(request->payload.read_N->dirname, "/fake/path") != 0) {
+        return -1;
+    }
+
+    if (request->payload.read_N->N != 15) {
+        return -1;
+    }
+
+    gnl_socket_request_destroy(request);
+
+    return 0;
+}
+
+int can_read_read_N() {
+    struct gnl_socket_request *request;
+
+    request = gnl_socket_request_read("000000000200000000300000000010/fake/path0000000015");
+    if (request == NULL) {
+        return -1;
+    }
+
+    if (request->type != GNL_SOCKET_REQUEST_READ_N) {
+        return -1;
+    }
+
+    if (strcmp(request->payload.read_N->dirname, "/fake/path") != 0) {
+        return -1;
+    }
+
+    if (request->payload.read_N->N != 15) {
+        return -1;
+    }
+
+    gnl_socket_request_destroy(request);
+
+    return 0;
+}
+
+int can_write_read_N() {
+    struct gnl_socket_request *request = gnl_socket_request_init(GNL_SOCKET_REQUEST_READ_N, 2, "/fake/path", 15);
+
+    if (request == NULL) {
+        return -1;
+    }
+
+    char *message;
+    gnl_socket_request_write(request, &message);
+
+    if (strcmp("000000000200000000300000000010/fake/path0000000015", message) != 0) {
+        return -1;
+    }
+
+    gnl_socket_request_destroy(request);
+    free(message);
+
+    return 0;
+}
+
 int can_init_empty_read() {
     GNL_TEST_EMPTY_GENERIC(GNL_SOCKET_REQUEST_READ)
 }
@@ -272,6 +362,11 @@ int main() {
     gnl_assert(can_init_args_read, "can init a GNL_SOCKET_REQUEST_READ request type with args.");
     gnl_assert(can_read_read, "can read a GNL_SOCKET_REQUEST_READ request type message.");
     gnl_assert(can_write_read, "can write a GNL_SOCKET_REQUEST_READ request type.");
+
+    gnl_assert(can_init_empty_read_N, "can init an empty GNL_SOCKET_REQUEST_READ_N request type.");
+    gnl_assert(can_init_args_read_N, "can init a GNL_SOCKET_REQUEST_READ_N request type with args.");
+    gnl_assert(can_read_read_N, "can read a GNL_SOCKET_REQUEST_READ_N request type message.");
+    gnl_assert(can_write_read_N, "can write a GNL_SOCKET_REQUEST_READ_N request type.");
 
     gnl_assert(can_init_empty_lock, "can init an empty GNL_SOCKET_REQUEST_LOCK request type.");
     gnl_assert(can_init_args_lock, "can init a GNL_SOCKET_REQUEST_LOCK request type with args.");
