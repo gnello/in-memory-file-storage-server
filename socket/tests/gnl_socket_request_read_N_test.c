@@ -10,10 +10,6 @@ int can_init() {
         return -1;
     }
 
-    if (read_N->dirname != NULL) {
-        return -1;
-    }
-
     if (read_N->N > 0) {
         return -1;
     }
@@ -24,11 +20,7 @@ int can_init() {
 }
 
 int can_init_args() {
-    struct gnl_socket_request_read_N *read_N = gnl_socket_request_read_N_init_with_args("/fake/path", 15);
-
-    if (strcmp(read_N->dirname, "/fake/path") != 0) {
-        return -1;
-    }
+    struct gnl_socket_request_read_N *read_N = gnl_socket_request_read_N_init_with_args(15);
 
     if (read_N->N != 15) {
         return -1;
@@ -40,10 +32,10 @@ int can_init_args() {
 }
 
 int can_build_message() {
-    struct gnl_socket_request_read_N *read_N = gnl_socket_request_read_N_init_with_args("/fake/path", 15);
+    struct gnl_socket_request_read_N *read_N = gnl_socket_request_read_N_init_with_args(15);
 
     char *message;
-    char *expected = "0000000010/fake/path0000000015";
+    char *expected = "0000000015";
 
     int res = gnl_socket_request_read_N_write(*read_N, &message);
 
@@ -63,15 +55,11 @@ int can_build_message() {
 
 int can_read_message() {
     struct gnl_socket_request_read_N *read_N = gnl_socket_request_read_N_init();
-    char *message = "0000000010/fake/path0000000015";
+    char *message = "0000000015";
 
     int res = gnl_socket_request_read_N_read(message, read_N);
 
     if (res != 0) {
-        return -1;
-    }
-
-    if (strcmp(read_N->dirname, "/fake/path") != 0) {
         return -1;
     }
 

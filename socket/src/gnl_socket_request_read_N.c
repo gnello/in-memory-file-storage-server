@@ -13,9 +13,6 @@
 struct gnl_socket_request_read_N {
     // the number of random files to read
     int N;
-
-    // the dirname where to put the read files
-    char *dirname;
 };
 
 /**
@@ -26,7 +23,7 @@ struct gnl_socket_request_read_N {
  * @return          The size of the read_N message.
  */
 static int gnl_socket_request_read_N_size(const struct gnl_socket_request_read_N read_N) {
-    return MAX_DIGITS_INT + strlen(read_N.dirname) + MAX_DIGITS_INT;
+    return MAX_DIGITS_INT;
 }
 
 /**
@@ -42,17 +39,12 @@ struct gnl_socket_request_read_N *gnl_socket_request_read_N_init() {
 /**
  * Create a new read_N struct with the given arguments.
  *
- * @param dirname   The dirname where to put the read files.
  * @param N         The number of random files to read.
  */
-struct gnl_socket_request_read_N *gnl_socket_request_read_N_init_with_args(char *dirname, int N) {
+struct gnl_socket_request_read_N *gnl_socket_request_read_N_init_with_args(int N) {
     struct gnl_socket_request_read_N *read_N = gnl_socket_request_read_N_init();
     GNL_NULL_CHECK(read_N, ENOMEM, NULL)
 
-    read_N->dirname = malloc((strlen(dirname) + 1) * sizeof(char));
-    GNL_NULL_CHECK(read_N->dirname, ENOMEM, NULL)
-
-    strncpy(read_N->dirname, dirname, strlen(dirname) + 1);
     read_N->N = N;
 
     return read_N;
@@ -65,7 +57,6 @@ struct gnl_socket_request_read_N *gnl_socket_request_read_N_init_with_args(char 
  */
 void gnl_socket_request_read_N_destroy(struct gnl_socket_request_read_N *read_N) {
     if (read_N != NULL) {
-        free(read_N->dirname);
         free(read_N);
     }
 }
@@ -85,8 +76,7 @@ int gnl_socket_request_read_N_write(const struct gnl_socket_request_read_N read_
 
     int maxlen = read_N_size + 1; // count also the '\0' char
 
-    snprintf(*dest, maxlen, "%0*lu%s%0*d", MAX_DIGITS_INT, strlen(read_N.dirname), read_N.dirname,
-             MAX_DIGITS_INT, read_N.N);
+    snprintf(*dest, maxlen, "%0*d", MAX_DIGITS_INT, read_N.N);
 
     return 0;
 }
@@ -108,19 +98,9 @@ int gnl_socket_request_read_N_read(const char *message, struct gnl_socket_reques
         return -1;
     }
 
-    // get the dirname length
-    size_t dirname_len;
-    sscanf(message, "%"MAX_DIGITS_CHAR"lu", &dirname_len);
-
-    // get the dirname string
-    read_N->dirname = calloc(dirname_len + 1, sizeof(char));
-    GNL_NULL_CHECK(read_N->dirname, ENOMEM, -1)
-
-    strncpy(read_N->dirname, message + MAX_DIGITS_INT, dirname_len);
-
     // get the N
     char message_N[MAX_DIGITS_INT];
-    strncpy(message_N, message + MAX_DIGITS_INT + dirname_len, MAX_DIGITS_INT);
+    strncpy(message_N, message, MAX_DIGITS_INT);
 
     char *ptr = NULL;
     read_N->N = strtol(message_N, &ptr, 10);
