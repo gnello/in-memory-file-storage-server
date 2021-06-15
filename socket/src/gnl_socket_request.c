@@ -2,9 +2,9 @@
 #include <string.h>
 #include <errno.h>
 #include <stdarg.h>
-#include "./gnl_socket_request_open.c"
-#include "./gnl_socket_request_read_N.c"
-#include "./gnl_socket_request_generic.c"
+#include "./gnl_socket_request_sn.c"
+#include "./gnl_socket_request_n.c"
+#include "./gnl_socket_request_s.c"
 #include <gnl_macro_beg.h>
 #include "../include/gnl_socket_request.h"
 
@@ -14,11 +14,11 @@
 #define GNL_INIT_GENERIC(num, ref, a_list) {                                \
     switch (num) {                                                          \
         case 0:                                                             \
-            ref = gnl_socket_request_generic_init();                    \
+            ref = gnl_socket_request_s_init();                    \
             break;                                                          \
         case 1:                                                             \
             buffer = va_arg(a_list, char *);                                \
-            ref = gnl_socket_request_generic_init_with_args(buffer);    \
+            ref = gnl_socket_request_s_init_with_args(buffer);    \
             break;                                                          \
         default:                                                            \
         errno = EINVAL;                                                     \
@@ -32,7 +32,7 @@
     socket_request = gnl_socket_request_init(type, 0);          \
     GNL_NULL_CHECK(socket_request, ENOMEM, NULL)                    \
                                                                     \
-    gnl_socket_request_generic_read(payload_message, ref);      \
+    gnl_socket_request_s_read(payload_message, ref);      \
 }
 
 struct gnl_socket_append {
@@ -44,15 +44,15 @@ struct gnl_socket_append {
 struct gnl_socket_request {
     enum gnl_socket_request_type type;
     union {
-        struct gnl_socket_request_open *open;
-        struct gnl_socket_request_generic *read;
-        struct gnl_socket_request_read_N *read_N;
-        struct gnl_socket_request_generic *write;
+        struct gnl_socket_request_sn *open;
+        struct gnl_socket_request_s *read;
+        struct gnl_socket_request_n *read_N;
+        struct gnl_socket_request_s *write;
         struct gnl_socket_append *append;
-        struct gnl_socket_request_generic *lock;
-        struct gnl_socket_request_generic *unlock;
-        struct gnl_socket_request_generic *close;
-        struct gnl_socket_request_generic *remove;
+        struct gnl_socket_request_s *lock;
+        struct gnl_socket_request_s *unlock;
+        struct gnl_socket_request_s *close;
+        struct gnl_socket_request_s *remove;
     } payload;
 };
 
@@ -133,11 +133,11 @@ gnl_socket_request *gnl_socket_request_init(enum gnl_socket_request_type type, i
         case GNL_SOCKET_REQUEST_OPEN:
             switch (num) {
                 case 0:
-                    socket_request->payload.open = gnl_socket_request_open_init();
+                    socket_request->payload.open = gnl_socket_request_sn_init();
                     break;
                 case 2:
                     buffer = va_arg(a_list, char *);
-                    socket_request->payload.open = gnl_socket_request_open_init_with_args(buffer, va_arg(a_list, int));
+                    socket_request->payload.open = gnl_socket_request_sn_init_with_args(buffer, va_arg(a_list, int));
                     break;
                 default:
                     errno = EINVAL;
@@ -150,10 +150,10 @@ gnl_socket_request *gnl_socket_request_init(enum gnl_socket_request_type type, i
         case GNL_SOCKET_REQUEST_READ_N:
             switch (num) {
                 case 0:
-                    socket_request->payload.read_N = gnl_socket_request_read_N_init();
+                    socket_request->payload.read_N = gnl_socket_request_n_init();
                     break;
                 case 1:
-                    socket_request->payload.read_N = gnl_socket_request_read_N_init_with_args(va_arg(a_list, int));
+                    socket_request->payload.read_N = gnl_socket_request_n_init_with_args(va_arg(a_list, int));
                     break;
                 default:
                     errno = EINVAL;
@@ -203,35 +203,35 @@ gnl_socket_request *gnl_socket_request_init(enum gnl_socket_request_type type, i
 void gnl_socket_request_destroy(gnl_socket_request *request) {
     switch (request->type) {
         case GNL_SOCKET_REQUEST_OPEN:
-            gnl_socket_request_open_destroy(request->payload.open);
+            gnl_socket_request_sn_destroy(request->payload.open);
             break;
 
         case GNL_SOCKET_REQUEST_READ_N:
-            gnl_socket_request_read_N_destroy(request->payload.read_N);
+            gnl_socket_request_n_destroy(request->payload.read_N);
             break;
 
         case GNL_SOCKET_REQUEST_READ:
-            gnl_socket_request_generic_destroy(request->payload.read);
+            gnl_socket_request_s_destroy(request->payload.read);
             break;
 
         case GNL_SOCKET_REQUEST_WRITE:
-            gnl_socket_request_generic_destroy(request->payload.write);
+            gnl_socket_request_s_destroy(request->payload.write);
             break;
 
         case GNL_SOCKET_REQUEST_LOCK:
-            gnl_socket_request_generic_destroy(request->payload.lock);
+            gnl_socket_request_s_destroy(request->payload.lock);
             break;
 
         case GNL_SOCKET_REQUEST_UNLOCK:
-            gnl_socket_request_generic_destroy(request->payload.unlock);
+            gnl_socket_request_s_destroy(request->payload.unlock);
             break;
 
         case GNL_SOCKET_REQUEST_CLOSE:
-            gnl_socket_request_generic_destroy(request->payload.close);
+            gnl_socket_request_s_destroy(request->payload.close);
             break;
 
         case GNL_SOCKET_REQUEST_REMOVE:
-            gnl_socket_request_generic_destroy(request->payload.remove);
+            gnl_socket_request_s_destroy(request->payload.remove);
             break;
     }
 
@@ -251,14 +251,14 @@ gnl_socket_request *gnl_socket_request_read(const char *message) {
             socket_request = gnl_socket_request_init(GNL_SOCKET_REQUEST_OPEN, 0);
             GNL_NULL_CHECK(socket_request, ENOMEM, NULL)
 
-            gnl_socket_request_open_read(payload_message, socket_request->payload.open);
+            gnl_socket_request_sn_read(payload_message, socket_request->payload.open);
             break;
 
         case GNL_SOCKET_REQUEST_READ_N:
             socket_request = gnl_socket_request_init(GNL_SOCKET_REQUEST_READ_N, 0);
             GNL_NULL_CHECK(socket_request, ENOMEM, NULL)
 
-            gnl_socket_request_read_N_read(payload_message, socket_request->payload.read_N);
+            gnl_socket_request_n_read(payload_message, socket_request->payload.read_N);
             break;
 
         case GNL_SOCKET_REQUEST_READ:
@@ -302,35 +302,35 @@ int gnl_socket_request_write(gnl_socket_request *request, char **dest) {
 
     switch (request->type) {
         case GNL_SOCKET_REQUEST_OPEN:
-            gnl_socket_request_open_write(*(request->payload.open), &built_message);
+            gnl_socket_request_sn_write(*(request->payload.open), &built_message);
             break;
 
         case GNL_SOCKET_REQUEST_READ_N:
-            gnl_socket_request_read_N_write(*(request->payload.read_N), &built_message);
+            gnl_socket_request_n_write(*(request->payload.read_N), &built_message);
             break;
 
         case GNL_SOCKET_REQUEST_READ:
-            gnl_socket_request_generic_write(*(request->payload.read), &built_message);
+            gnl_socket_request_s_write(*(request->payload.read), &built_message);
             break;
 
         case GNL_SOCKET_REQUEST_WRITE:
-            gnl_socket_request_generic_write(*(request->payload.write), &built_message);
+            gnl_socket_request_s_write(*(request->payload.write), &built_message);
             break;
 
         case GNL_SOCKET_REQUEST_LOCK:
-            gnl_socket_request_generic_write(*(request->payload.lock), &built_message);
+            gnl_socket_request_s_write(*(request->payload.lock), &built_message);
             break;
 
         case GNL_SOCKET_REQUEST_UNLOCK:
-            gnl_socket_request_generic_write(*(request->payload.unlock), &built_message);
+            gnl_socket_request_s_write(*(request->payload.unlock), &built_message);
             break;
 
         case GNL_SOCKET_REQUEST_CLOSE:
-            gnl_socket_request_generic_write(*(request->payload.close), &built_message);
+            gnl_socket_request_s_write(*(request->payload.close), &built_message);
             break;
 
         case GNL_SOCKET_REQUEST_REMOVE:
-            gnl_socket_request_generic_write(*(request->payload.remove), &built_message);
+            gnl_socket_request_s_write(*(request->payload.remove), &built_message);
             break;
 
         default:

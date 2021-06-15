@@ -14,7 +14,7 @@
         return -1;                                                                          \
     }                                                                                       \
                                                                                             \
-    if (request->payload.read->pathname != NULL) {                                          \
+    if (request->payload.read->string != NULL) {                                          \
         return -1;                                                                          \
     }                                                                                       \
                                                                                             \
@@ -34,7 +34,7 @@
         return -1;                                                                                          \
     }                                                                                                       \
                                                                                                             \
-    if (strcmp(ref->pathname, "/fake/path") != 0) {                                                         \
+    if (strcmp(ref->string, "/fake/path") != 0) {                                                         \
         return -1;                                                                                          \
     }                                                                                                       \
                                                                                                             \
@@ -58,7 +58,7 @@
         return -1;                                                              \
     }                                                                           \
                                                                                 \
-    if (strcmp(ref->pathname, "/fake/path") != 0) {                             \
+    if (strcmp(ref->string, "/fake/path") != 0) {                             \
         return -1;                                                              \
     }                                                                           \
                                                                                 \
@@ -102,7 +102,7 @@ int can_init_empty_open() {
     }
 
 
-    if (request->payload.open->pathname != NULL) {
+    if (request->payload.open->string != NULL) {
         return -1;
     }
 
@@ -122,11 +122,11 @@ int can_init_args_open() {
         return -1;
     }
 
-    if (strcmp(request->payload.open->pathname, "/fake/path") != 0) {
+    if (strcmp(request->payload.open->string, "/fake/path") != 0) {
         return -1;
     }
 
-    if (request->payload.open->flags != 2) {
+    if (request->payload.open->number != 2) {
         return -1;
     }
 
@@ -138,7 +138,7 @@ int can_init_args_open() {
 int can_read_open() {
     struct gnl_socket_request *request;
 
-    request = gnl_socket_request_read("000000000000000000210000000010/fake/path3");
+    request = gnl_socket_request_read("000000000000000000300000000010/fake/path0000000003");
     if (request == NULL) {
         return -1;
     }
@@ -147,11 +147,11 @@ int can_read_open() {
         return -1;
     }
 
-    if (strcmp(request->payload.open->pathname, "/fake/path") != 0) {
+    if (strcmp(request->payload.open->string, "/fake/path") != 0) {
         return -1;
     }
 
-    if (request->payload.open->flags != 3) {
+    if (request->payload.open->number != 3) {
         return -1;
     }
 
@@ -170,7 +170,7 @@ int can_write_open() {
     char *message;
     gnl_socket_request_write(request, &message);
 
-    if (strcmp("000000000000000000210000000010/fake/path3", message) != 0) {
+    if (strcmp("000000000000000000300000000010/fake/path0000000003", message) != 0) {
         return -1;
     }
 
@@ -207,7 +207,7 @@ int can_init_args_read_N() {
         return -1;
     }
 
-    if (request->payload.read_N->N != 15) {
+    if (request->payload.read_N->number != 15) {
         return -1;
     }
 
@@ -228,7 +228,7 @@ int can_read_read_N() {
         return -1;
     }
 
-    if (request->payload.read_N->N != 15) {
+    if (request->payload.read_N->number != 15) {
         return -1;
     }
 

@@ -12,9 +12,9 @@ HELPERS_PATH_INCLUDE = $(ROOT)/$(HELPERS_INCLUDE)
 LIBS = -Wl,-rpath,$(HELPERS_PATH_LIB) -L$(HELPERS_PATH_LIB) -lgnl_colorshell -lgnl_assert -lgnl_txtenv
 INCLUDE = -I$(HELPERS_PATH_INCLUDE)
 
-TARGETS =	gnl_socket_request_open_test \
-			gnl_socket_request_read_N_test \
-			gnl_socket_request_generic_test \
+TARGETS =	gnl_socket_request_sn_test \
+			gnl_socket_request_n_test \
+			gnl_socket_request_s_test \
 			gnl_socket_request_test \
 			gnl_socket_service_test
 
