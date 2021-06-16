@@ -331,43 +331,53 @@ gnl_socket_request *gnl_socket_request_read(const char *message) {
 }
 
 int gnl_socket_request_write(gnl_socket_request *request, char **dest) {
+    GNL_NULL_CHECK(request, EINVAL, -1)
+
+    // the destination must be empty
+    if (*dest != NULL) {
+        errno = EINVAL;
+
+        return -1;
+    }
+
     char *built_message;
+    int res;
 
     switch (request->type) {
         case GNL_SOCKET_REQUEST_OPEN:
-            gnl_socket_request_sn_write(*(request->payload.open), &built_message);
+            res = gnl_socket_request_sn_write(*(request->payload.open), &built_message);
             break;
 
         case GNL_SOCKET_REQUEST_READ_N:
-            gnl_socket_request_n_write(*(request->payload.read_N), &built_message);
+            res = gnl_socket_request_n_write(*(request->payload.read_N), &built_message);
             break;
 
         case GNL_SOCKET_REQUEST_READ:
-            gnl_socket_request_s_write(*(request->payload.read), &built_message);
+            res = gnl_socket_request_s_write(*(request->payload.read), &built_message);
             break;
 
         case GNL_SOCKET_REQUEST_WRITE:
-            gnl_socket_request_sb_write(*(request->payload.write), &built_message);
+            res = gnl_socket_request_sb_write(*(request->payload.write), &built_message);
             break;
 
         case GNL_SOCKET_REQUEST_APPEND:
-            gnl_socket_request_sb_write(*(request->payload.append), &built_message);
+            res = gnl_socket_request_sb_write(*(request->payload.append), &built_message);
             break;
 
         case GNL_SOCKET_REQUEST_LOCK:
-            gnl_socket_request_s_write(*(request->payload.lock), &built_message);
+            res = gnl_socket_request_s_write(*(request->payload.lock), &built_message);
             break;
 
         case GNL_SOCKET_REQUEST_UNLOCK:
-            gnl_socket_request_s_write(*(request->payload.unlock), &built_message);
+            res = gnl_socket_request_s_write(*(request->payload.unlock), &built_message);
             break;
 
         case GNL_SOCKET_REQUEST_CLOSE:
-            gnl_socket_request_s_write(*(request->payload.close), &built_message);
+            res = gnl_socket_request_s_write(*(request->payload.close), &built_message);
             break;
 
         case GNL_SOCKET_REQUEST_REMOVE:
-            gnl_socket_request_s_write(*(request->payload.remove), &built_message);
+            res = gnl_socket_request_s_write(*(request->payload.remove), &built_message);
             break;
 
         default:
@@ -375,6 +385,10 @@ int gnl_socket_request_write(gnl_socket_request *request, char **dest) {
             return -1;
             /* UNREACHED */
             break;
+    }
+
+    if (res != 0) {
+        return -1;
     }
 
     encode(built_message, dest, request->type);

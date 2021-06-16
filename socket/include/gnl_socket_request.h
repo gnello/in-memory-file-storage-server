@@ -64,7 +64,8 @@ gnl_socket_request *gnl_socket_request_read(const char *request);
  * Encode the given socket request.
  *
  * @param request   The socket_request to encode.
- * @param dest      The destination where to write the encoded request.
+ * @param dest      The destination where to write the encoded request,
+ *                  his value must be initialized with NULL.
  *
  * @return          Returns 0 on success, -1 otherwise.
  */

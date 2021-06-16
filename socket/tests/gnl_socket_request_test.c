@@ -74,7 +74,7 @@
         return -1;                                                                                          \
     }                                                                                                       \
                                                                                                             \
-    char *message;                                                                                          \
+    char *message = NULL;                                                                                          \
     gnl_socket_request_write(request, &message);                                                        \
                                                                                                             \
     char expected[41];                                                                                      \
@@ -173,7 +173,7 @@
         return -1;                                                                                          \
     }                                                                                                       \
                                                                                                             \
-    char *message;                                                                                          \
+    char *message = NULL;                                                                                          \
     gnl_socket_request_write(request, &message);                                                        \
                                                                                                             \
     char expected[55];                                                                                      \
@@ -266,7 +266,7 @@ int can_write_open() {
         return -1;
     }
 
-    char *message;
+    char *message = NULL;
     gnl_socket_request_write(request, &message);
 
     if (strcmp("000000000000000000300000000010/fake/path0000000003", message) != 0) {
@@ -343,7 +343,7 @@ int can_write_read_N() {
         return -1;
     }
 
-    char *message;
+    char *message = NULL;
     gnl_socket_request_write(request, &message);
 
     if (strcmp("000000000200000000100000000015", message) != 0) {
@@ -468,6 +468,40 @@ int can_write_remove() {
     GNL_TEST_REQUEST_S_WRITE(GNL_SOCKET_REQUEST_REMOVE)
 }
 
+int can_not_write_empty_request() {
+    char *dest;
+    gnl_socket_request *request = NULL;
+
+    int res = gnl_socket_request_write(request, &dest);
+
+    if (res == 0) {
+        return -1;
+    }
+
+    if (errno != EINVAL) {
+        return -1;
+    }
+
+    return 0;
+}
+
+int can_not_write_not_empty_dest() {
+    char *dest = "fake_string";
+    struct gnl_socket_request *request = gnl_socket_request_init(GNL_SOCKET_REQUEST_OPEN, 0);
+
+    int res = gnl_socket_request_write(request, &dest);
+
+    if (res == 0) {
+        return -1;
+    }
+
+    if (errno != EINVAL) {
+        return -1;
+    }
+
+    return 0;
+}
+
 int main() {
     gnl_printf_yellow("> gnl_socket_request test:\n\n");
 
@@ -510,6 +544,9 @@ int main() {
     gnl_assert(can_init_args_remove, "can init a GNL_SOCKET_REQUEST_REMOVE request type with args.");
     gnl_assert(can_read_remove, "can read a GNL_SOCKET_REQUEST_REMOVE request type message.");
     gnl_assert(can_write_remove, "can write a GNL_SOCKET_REQUEST_REMOVE request type.");
+
+    gnl_assert(can_not_write_empty_request, "can not write an empty request");
+    gnl_assert(can_not_write_not_empty_dest, "can not write into a not empty destination");
 
     // the gnl_socket_request_destroy method is implicitly tested in every
     // assert, if you don't believe it, run this tests with

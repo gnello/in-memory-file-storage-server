@@ -5,7 +5,7 @@
 #define GNL_MACRO_BEG_H
 
 #define GNL_ALLOCATE_MESSAGE(ptr, len) {        \
-    (ptr) = (char *)malloc((len) * sizeof(char));   \
+    (ptr) = (char *)calloc((len), sizeof(char));   \
     if ((ptr) == NULL) {                          \
         errno = ENOMEM;                         \
                                                 \
