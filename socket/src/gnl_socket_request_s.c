@@ -15,7 +15,7 @@ struct gnl_socket_request_s {
 };
 
 /**
- * Calculate the size of the request_s request.
+ * Calculate the size of the request_s.
  *
  * @param request_s The request_s.
  *
@@ -38,7 +38,7 @@ struct gnl_socket_request_s *gnl_socket_request_s_init() {
 /**
  * Create a new request_s with the given arguments.
  *
- * @param string    The string.
+ * @param string    The string of the request_s.
  */
 struct gnl_socket_request_s *gnl_socket_request_s_init_with_args(char *string) {
     struct gnl_socket_request_s *request_s = gnl_socket_request_s_init();

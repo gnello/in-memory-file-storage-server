@@ -3,7 +3,7 @@
 #include <gnl_assert.h>
 #include "../src/gnl_socket_request.c"
 
-#define GNL_TEST_EMPTY_GENERIC(request_type) {                                              \
+#define GNL_TEST_EMPTY_REQUEST_S(request_type, ref) {                                              \
     struct gnl_socket_request *request = gnl_socket_request_init(request_type, 0);  \
                                                                                             \
     if (request == NULL) {                                                                  \
@@ -14,7 +14,7 @@
         return -1;                                                                          \
     }                                                                                       \
                                                                                             \
-    if (request->payload.read->string != NULL) {                                          \
+    if (ref->string != NULL) {                                          \
         return -1;                                                                          \
     }                                                                                       \
                                                                                             \
@@ -23,7 +23,7 @@
     return 0;                                                                               \
 }
 
-#define GNL_TEST_GENERIC_ARGS(request_type, ref) {                                                          \
+#define GNL_TEST_REQUEST_S_ARGS(request_type, ref) {                                                          \
     struct gnl_socket_request *request = gnl_socket_request_init(request_type, 1, "/fake/path");    \
                                                                                                             \
     if (request == NULL) {                                                                                  \
@@ -43,7 +43,7 @@
     return 0;                                                                                               \
 }
 
-#define GNL_TEST_GENERIC_READ(request_type, ref) {                              \
+#define GNL_TEST_REQUEST_S_READ(request_type, ref) {                              \
     struct gnl_socket_request *request;                                     \
                                                                                 \
     char message[41];                                                           \
@@ -67,7 +67,7 @@
     return 0;                                                                   \
 }
 
-#define GNL_TEST_GENERIC_WRITE(request_type) {                                                              \
+#define GNL_TEST_REQUEST_S_WRITE(request_type) {                                                              \
     struct gnl_socket_request *request = gnl_socket_request_init(request_type, 1, "/fake/path");    \
                                                                                                             \
     if (request == NULL) {                                                                                  \
@@ -79,6 +79,105 @@
                                                                                                             \
     char expected[41];                                                                                      \
     sprintf(expected, "%0*d00000000200000000010/fake/path", 10, request_type);                              \
+                                                                                                            \
+    if (strcmp(expected, message) != 0) {                                                                   \
+        return -1;                                                                                          \
+    }                                                                                                       \
+                                                                                                            \
+    gnl_socket_request_destroy(request);                                                                \
+    free(message);                                                                                          \
+                                                                                                            \
+    return 0;                                                                                               \
+}
+
+#define GNL_TEST_EMPTY_REQUEST_SB(request_type, ref) {                                              \
+    struct gnl_socket_request *request = gnl_socket_request_init(request_type, 0);  \
+                                                                                            \
+    if (request == NULL) {                                                                  \
+        return -1;                                                                          \
+    }                                                                                       \
+                                                                                            \
+    if (request->type != request_type) {                                                    \
+        return -1;                                                                          \
+    }                                                                                       \
+                                                                                            \
+    if (ref->string != NULL) {                                          \
+        return -1;                                                                          \
+    }                                                                                         \
+                                                                                            \
+    if (ref->bytes != NULL) {                                          \
+        return -1;                                                                          \
+    }                                                                                       \
+                                                                                            \
+    gnl_socket_request_destroy(request);                                                \
+                                                                                            \
+    return 0;                                                                               \
+}
+
+#define GNL_TEST_REQUEST_SB_ARGS(request_type, ref) {                                                          \
+    struct gnl_socket_request *request = gnl_socket_request_init(request_type, 2, "/fake/path", "\x41\x42\x43\x44");    \
+                                                                                                            \
+    if (request == NULL) {                                                                                  \
+        return -1;                                                                                          \
+    }                                                                                                       \
+                                                                                                            \
+    if (request->type != request_type) {                                                                    \
+        return -1;                                                                                          \
+    }                                                                                                       \
+                                                                                                            \
+    if (strcmp(ref->string, "/fake/path") != 0) {                                                         \
+        return -1;                                                                                          \
+    }                                                                                                          \
+                                                                                                            \
+    if (strcmp(ref->bytes, "ABCD") != 0) {                                                         \
+        return -1;                                                                                          \
+    }                                                                                                       \
+                                                                                                            \
+    gnl_socket_request_destroy(request);                                                                \
+                                                                                                            \
+    return 0;                                                                                               \
+}
+
+#define GNL_TEST_REQUEST_SB_READ(request_type, ref) {                              \
+    struct gnl_socket_request *request;                                     \
+                                                                                \
+    char message[55];                                                           \
+    sprintf(message, "%0*d00000000340000000010/fake/path0000000004ABCD", 10, request_type);   \
+                                                                                \
+    request = gnl_socket_request_read(message);                             \
+    if (request == NULL) {                                                      \
+        return -1;                                                              \
+    }                                                                           \
+                                                                                \
+    if (request->type != request_type) {                                        \
+        return -1;                                                              \
+    }                                                                           \
+                                                                                \
+    if (strcmp(ref->string, "/fake/path") != 0) {                             \
+        return -1;                                                              \
+    }                                                                                      \
+                                                                                \
+    if (strcmp(ref->bytes, "ABCD") != 0) {                             \
+        return -1;                                                              \
+    }                                                                           \
+                                                                                \
+    gnl_socket_request_destroy(request);                                    \
+                                                                                \
+    return 0;                                                                   \
+}
+
+#define GNL_TEST_REQUEST_SB_WRITE(request_type) {                                                              \
+    struct gnl_socket_request *request = gnl_socket_request_init(request_type, 2, "/fake/path", "\x41\x42\x43\x44");    \
+                                                                                                            \
+    if (request == NULL) {                                                                                  \
+        return -1;                                                                                          \
+    }                                                                                                       \
+                                                                                                            \
+    char *message;                                                                                          \
+    gnl_socket_request_write(request, &message);                                                        \
+                                                                                                            \
+    char expected[55];                                                                                      \
+    sprintf(expected, "%0*d00000000340000000010/fake/path0000000004ABCD", 10, request_type);                              \
                                                                                                             \
     if (strcmp(expected, message) != 0) {                                                                   \
         return -1;                                                                                          \
@@ -258,99 +357,115 @@ int can_write_read_N() {
 }
 
 int can_init_empty_read() {
-    GNL_TEST_EMPTY_GENERIC(GNL_SOCKET_REQUEST_READ)
+    GNL_TEST_EMPTY_REQUEST_S(GNL_SOCKET_REQUEST_READ, request->payload.read)
 }
 
 int can_init_args_read() {
-    GNL_TEST_GENERIC_ARGS(GNL_SOCKET_REQUEST_READ, request->payload.read)
+    GNL_TEST_REQUEST_S_ARGS(GNL_SOCKET_REQUEST_READ, request->payload.read)
 }
 
 int can_read_read() {
-    GNL_TEST_GENERIC_READ(GNL_SOCKET_REQUEST_READ, request->payload.read)
+    GNL_TEST_REQUEST_S_READ(GNL_SOCKET_REQUEST_READ, request->payload.read)
 }
 
 int can_write_read() {
-    GNL_TEST_GENERIC_WRITE(GNL_SOCKET_REQUEST_READ)
+    GNL_TEST_REQUEST_S_WRITE(GNL_SOCKET_REQUEST_READ)
 }
 
 int can_init_empty_write() {
-    GNL_TEST_EMPTY_GENERIC(GNL_SOCKET_REQUEST_WRITE)
+    GNL_TEST_EMPTY_REQUEST_SB(GNL_SOCKET_REQUEST_WRITE, request->payload.write)
 }
 
 int can_init_args_write() {
-    GNL_TEST_GENERIC_ARGS(GNL_SOCKET_REQUEST_WRITE, request->payload.write)
+    GNL_TEST_REQUEST_SB_ARGS(GNL_SOCKET_REQUEST_WRITE, request->payload.write)
 }
 
 int can_read_write() {
-    GNL_TEST_GENERIC_READ(GNL_SOCKET_REQUEST_WRITE, request->payload.write)
+    GNL_TEST_REQUEST_SB_READ(GNL_SOCKET_REQUEST_WRITE, request->payload.write)
 }
 
 int can_write_write() {
-    GNL_TEST_GENERIC_WRITE(GNL_SOCKET_REQUEST_WRITE)
+    GNL_TEST_REQUEST_SB_WRITE(GNL_SOCKET_REQUEST_WRITE)
+}
+
+int can_init_empty_append() {
+    GNL_TEST_EMPTY_REQUEST_SB(GNL_SOCKET_REQUEST_APPEND, request->payload.append)
+}
+
+int can_init_args_append() {
+    GNL_TEST_REQUEST_SB_ARGS(GNL_SOCKET_REQUEST_APPEND, request->payload.append)
+}
+
+int can_read_append() {
+    GNL_TEST_REQUEST_SB_READ(GNL_SOCKET_REQUEST_APPEND, request->payload.append)
+}
+
+int can_write_append() {
+    GNL_TEST_REQUEST_SB_WRITE(GNL_SOCKET_REQUEST_APPEND)
 }
 
 int can_init_empty_lock() {
-    GNL_TEST_EMPTY_GENERIC(GNL_SOCKET_REQUEST_LOCK)
+    GNL_TEST_EMPTY_REQUEST_S(GNL_SOCKET_REQUEST_LOCK, request->payload.lock)
 }
 
 int can_init_args_lock() {
-    GNL_TEST_GENERIC_ARGS(GNL_SOCKET_REQUEST_LOCK, request->payload.lock)
+    GNL_TEST_REQUEST_S_ARGS(GNL_SOCKET_REQUEST_LOCK, request->payload.lock)
 }
 
 int can_read_lock() {
-    GNL_TEST_GENERIC_READ(GNL_SOCKET_REQUEST_LOCK, request->payload.lock)
+    GNL_TEST_REQUEST_S_READ(GNL_SOCKET_REQUEST_LOCK, request->payload.lock)
 }
 
 int can_write_lock() {
-    GNL_TEST_GENERIC_WRITE(GNL_SOCKET_REQUEST_LOCK)
+    GNL_TEST_REQUEST_S_WRITE(GNL_SOCKET_REQUEST_LOCK)
 }
 
 int can_init_empty_unlock() {
-    GNL_TEST_EMPTY_GENERIC(GNL_SOCKET_REQUEST_UNLOCK)
+    GNL_TEST_EMPTY_REQUEST_S(GNL_SOCKET_REQUEST_UNLOCK, request->payload.unlock)
 }
 
 int can_init_args_unlock() {
-    GNL_TEST_GENERIC_ARGS(GNL_SOCKET_REQUEST_UNLOCK, request->payload.unlock)
+    GNL_TEST_REQUEST_S_ARGS(GNL_SOCKET_REQUEST_UNLOCK, request->payload.unlock)
 }
 
 int can_read_unlock() {
-    GNL_TEST_GENERIC_READ(GNL_SOCKET_REQUEST_UNLOCK, request->payload.unlock)
+    GNL_TEST_REQUEST_S_READ(GNL_SOCKET_REQUEST_UNLOCK, request->payload.unlock)
 }
 
 int can_write_unlock() {
-    GNL_TEST_GENERIC_WRITE(GNL_SOCKET_REQUEST_UNLOCK)
+    GNL_TEST_REQUEST_S_WRITE(GNL_SOCKET_REQUEST_UNLOCK)
 }
 
 int can_init_empty_close() {
-    GNL_TEST_EMPTY_GENERIC(GNL_SOCKET_REQUEST_CLOSE)
+    GNL_TEST_EMPTY_REQUEST_S(GNL_SOCKET_REQUEST_CLOSE, request->payload.close)
 }
 
 int can_init_args_close() {
-    GNL_TEST_GENERIC_ARGS(GNL_SOCKET_REQUEST_CLOSE, request->payload.close)
+    GNL_TEST_REQUEST_S_ARGS(GNL_SOCKET_REQUEST_CLOSE, request->payload.close)
 }
 
 int can_read_close() {
-    GNL_TEST_GENERIC_READ(GNL_SOCKET_REQUEST_CLOSE, request->payload.close)
+    GNL_TEST_REQUEST_S_READ(GNL_SOCKET_REQUEST_CLOSE, request->payload.close)
 }
 
 int can_write_close() {
-    GNL_TEST_GENERIC_WRITE(GNL_SOCKET_REQUEST_CLOSE)
+    GNL_TEST_REQUEST_S_WRITE(GNL_SOCKET_REQUEST_CLOSE)
 }
 
 int can_init_empty_remove() {
-    GNL_TEST_EMPTY_GENERIC(GNL_SOCKET_REQUEST_REMOVE)
+    GNL_TEST_EMPTY_REQUEST_S(GNL_SOCKET_REQUEST_REMOVE, request->payload.remove)
 }
 
 int can_init_args_remove() {
-    GNL_TEST_GENERIC_ARGS(GNL_SOCKET_REQUEST_REMOVE, request->payload.remove)
+    GNL_TEST_REQUEST_S_ARGS(GNL_SOCKET_REQUEST_REMOVE, request->payload.remove)
 }
 
 int can_read_remove() {
-    GNL_TEST_GENERIC_READ(GNL_SOCKET_REQUEST_REMOVE, request->payload.remove)
+    GNL_TEST_REQUEST_S_READ(GNL_SOCKET_REQUEST_REMOVE, request->payload.remove)
 }
 
 int can_write_remove() {
-    GNL_TEST_GENERIC_WRITE(GNL_SOCKET_REQUEST_REMOVE)
+    GNL_TEST_REQUEST_S_WRITE(GNL_SOCKET_REQUEST_REMOVE)
 }
 
 int main() {
@@ -403,7 +518,7 @@ int main() {
     printf("\n");
 }
 
-#undef GNL_TEST_EMPTY_GENERIC
-#undef GNL_TEST_GENERIC_ARGS
-#undef GNL_TEST_GENERIC_READ
-#undef GNL_TEST_GENERIC_WRITE
+#undef GNL_TEST_EMPTY_REQUEST_S
+#undef GNL_TEST_REQUEST_S_ARGS
+#undef GNL_TEST_REQUEST_S_READ
+#undef GNL_TEST_REQUEST_S_WRITE

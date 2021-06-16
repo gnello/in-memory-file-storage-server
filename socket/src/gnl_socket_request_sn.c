@@ -16,7 +16,7 @@ struct gnl_socket_request_sn {
 };
 
 /**
- * Calculate the size of the read number message.
+ * Calculate the size of the request_sn.
  *
  * @param request_sn    The request_sn.
  *
@@ -39,8 +39,8 @@ struct gnl_socket_request_sn *gnl_socket_request_sn_init() {
 /**
  * Create a new request_sn with the given arguments.
  *
- * @param string    The string where to put the read files.
- * @param number    The number of random files to read.
+ * @param string    The string of the request_sn.
+ * @param number    The number of the request_sn.
  */
 struct gnl_socket_request_sn *gnl_socket_request_sn_init_with_args(char *string, int number) {
     struct gnl_socket_request_sn *request_sn = gnl_socket_request_sn_init();
@@ -123,7 +123,7 @@ int gnl_socket_request_sn_read(const char *message, struct gnl_socket_request_sn
     request_sn->number = strtol(message_N, &ptr, 10);
 
     // if no digits found
-    if ((char *)request_sn == ptr) {
+    if ((char *)message_N == ptr) {
         errno = EINVAL;
         free(ptr);
 

@@ -15,7 +15,7 @@ struct gnl_socket_request_n {
 };
 
 /**
- * Calculate the size of the request.
+ * Calculate the size of the request_n.
  *
  * @param request_n The request_n.
  *
@@ -38,7 +38,7 @@ struct gnl_socket_request_n *gnl_socket_request_n_init() {
 /**
  * Create a new request_n with the given arguments.
  *
- * @param number    The number of random files to read.
+ * @param number    The number of the request_n.
  */
 struct gnl_socket_request_n *gnl_socket_request_n_init_with_args(int number) {
     struct gnl_socket_request_n *request_n = gnl_socket_request_n_init();
