@@ -27,7 +27,7 @@ LIBS += -Wl,-rpath,$(HELPERS_PATH_LIB) -L$(HELPERS_PATH_LIB) -lgnl_colorshell -l
 INCLUDE += -I$(HELPERS_PATH_INCLUDE)
 
 # socket library
-LIBS += -Wl,-rpath,./mocks -L./mocks -Wl,-rpath,$(SOCKET_PATH_LIB) -L$(SOCKET_PATH_LIB) -lgnl_socket_request
+LIBS += -Wl,-rpath,./mocks -L./mocks -Wl,-rpath,$(SOCKET_PATH_LIB) -L$(SOCKET_PATH_LIB) -lgnl_socket_request -lgnl_socket_service
 INCLUDE += -I$(SOCKET_PATH_INCLUDE)
 
 TARGETS =	gnl_fss_config_test \

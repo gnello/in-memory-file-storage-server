@@ -17,6 +17,10 @@ int gnl_fss_api_open_connection(const char *sockname, int msec, const struct tim
 
     // try to connect to the given socket name
     while (gnl_socket_service_connect(sockname) == -1) {
+        if (errno != ENOENT) {
+            return -1;
+        }
+
         time_t now = time(NULL);
 
         // max wait time reached, return
@@ -38,7 +42,7 @@ int gnl_fss_api_open_connection(const char *sockname, int msec, const struct tim
 }
 
 int gnl_fss_api_close_connection(const char *sockname) {
-    return 0;
+    return gnl_socket_service_close(sockname);
 }
 
 int gnl_fss_api_open_file(const char *pathname, int flags) {
