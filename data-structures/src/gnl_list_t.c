@@ -7,14 +7,7 @@
 #include <stdlib.h>
 #include <errno.h>
 #include "../include/gnl_list_t.h"
-
-#define GNL_NULL_CHECK(list, error_code, return_code) {     \
-    if (list == NULL) {                                     \
-        errno = error_code;                                 \
-                                                            \
-        return return_code;                                 \
-    }                                                       \
-}
+#include <gnl_macro_beg.h>
 
 struct gnl_list_t {
     void *el;
@@ -128,4 +121,4 @@ int gnl_list_destroy(gnl_list_t **list, void (*destroy)(void *data)) {
     return 0;
 }
 
-#undef GNL_NULL_CHECK
+#include <gnl_macro_end.h>

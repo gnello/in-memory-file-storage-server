@@ -7,14 +7,7 @@
 #include <stdlib.h>
 #include <errno.h>
 #include "../include/gnl_stack_t.h"
-
-#define GNL_NULL_CHECK(stack, error_code, return_code) {    \
-    if (stack == NULL) {                                    \
-        errno = error_code;                                 \
-                                                            \
-        return return_code;                                 \
-    }                                                       \
-}
+#include <gnl_macro_beg.h>
 
 // the node of the stack
 struct gnl_stack_node {
@@ -107,4 +100,4 @@ unsigned long gnl_stack_size(const gnl_stack_t *s) {
     return s->size;
 }
 
-#undef GNL_NULL_CHECK
+#include <gnl_macro_end.h>

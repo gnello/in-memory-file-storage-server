@@ -8,14 +8,7 @@
 #include <errno.h>
 #include "gnl_queue_t.c"
 #include "../include/gnl_ts_queue_t.h"
-
-#define GNL_NULL_CHECK(queue, error_code, return_code) {    \
-    if (queue == NULL) {                                    \
-        errno = error_code;                                 \
-                                                            \
-        return return_code;                                 \
-    }                                                       \
-}
+#include <gnl_macro_beg.h>
 
 struct gnl_ts_queue_t {
     pthread_mutex_t mtx;
@@ -171,4 +164,4 @@ unsigned long gnl_ts_queue_size(gnl_ts_queue_t *q) {
     return temp;
 }
 
-#undef GNL_NULL_CHECK
+#include <gnl_macro_end.h>

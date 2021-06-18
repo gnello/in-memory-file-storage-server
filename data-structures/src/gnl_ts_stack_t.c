@@ -8,14 +8,7 @@
 #include <errno.h>
 #include "gnl_stack_t.c"
 #include "../include/gnl_ts_stack_t.h"
-
-#define GNL_NULL_CHECK(stack, error_code, return_code) {    \
-    if (stack == NULL) {                                    \
-        errno = error_code;                                 \
-                                                            \
-        return return_code;                                 \
-    }                                                       \
-}
+#include <gnl_macro_beg.h>
 
 struct gnl_ts_stack_t {
     pthread_mutex_t mtx;
@@ -172,4 +165,4 @@ unsigned long gnl_ts_stack_size(gnl_ts_stack_t *s) {
     return temp;
 }
 
-#undef GNL_NULL_CHECK
+#include <gnl_macro_end.h>

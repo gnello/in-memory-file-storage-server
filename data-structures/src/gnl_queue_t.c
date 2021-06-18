@@ -7,14 +7,7 @@
 #include <stdlib.h>
 #include <errno.h>
 #include "../include/gnl_queue_t.h"
-
-#define GNL_NULL_CHECK(queue, error_code, return_code) {    \
-    if (queue == NULL) {                                    \
-        errno = error_code;                                 \
-                                                            \
-        return return_code;                                 \
-    }                                                       \
-}
+#include <gnl_macro_beg.h>
 
 // the node of the queue
 struct gnl_queue_node {
@@ -119,4 +112,4 @@ unsigned long gnl_queue_size(const gnl_queue_t *q) {
     return q->size;
 }
 
-#undef GNL_NULL_CHECK
+#include <gnl_macro_end.h>

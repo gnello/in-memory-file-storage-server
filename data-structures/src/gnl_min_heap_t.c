@@ -8,14 +8,7 @@
 #include <errno.h>
 #include <limits.h>
 #include "../include/gnl_min_heap_t.h"
-
-#define GNL_NULL_CHECK(min_heap, error_code, return_code) {     \
-    if (min_heap == NULL) {                                     \
-        errno = error_code;                                     \
-                                                                \
-        return return_code;                                     \
-    }                                                           \
-}
+#include <gnl_macro_beg.h>
 
 // the node of the min heap
 struct gnl_min_heap_node {
@@ -196,5 +189,4 @@ int gnl_min_heap_decrease_key(gnl_min_heap_t *mh, int i, int key) {
 
     return 0;
 }
-
-#undef GNL_NULL_CHECK
+#include <gnl_macro_end.h>
