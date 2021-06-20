@@ -11,7 +11,7 @@ LIBS = -Wl,-rpath,$(ROOT)$(DATA_STRUCTURES_LIB) -L$(ROOT)$(DATA_STRUCTURES_LIB) 
 INCLUDE = -I$(ROOT)$(DATA_STRUCTURES_INCLUDE)
 
 # helpers library
-LIBS += -Wl,-rpath,$(ROOT)$(HELPERS_LIB) -L$(ROOT)$(HELPERS_LIB) -lgnl_txtenv
+LIBS += -Wl,-rpath,$(ROOT)$(HELPERS_LIB) -L$(ROOT)$(HELPERS_LIB) -lgnl_txtenv -lgnl_print_table
 INCLUDE += -I$(ROOT)$(HELPERS_INCLUDE)
 
 # socket library

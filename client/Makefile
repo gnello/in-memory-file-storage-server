@@ -10,6 +10,10 @@ CFLAGS += -std=c99 -Wall -pedantic -g
 LIBS += -Wl,-rpath,$(ROOT)$(DATA_STRUCTURES_LIB) -L$(ROOT)$(DATA_STRUCTURES_LIB) -lgnl_queue_t
 INCLUDE += -I$(ROOT)$(DATA_STRUCTURES_INCLUDE)
 
+# helpers library
+LIBS += -Wl,-rpath,$(ROOT)$(HELPERS_LIB) -L$(ROOT)$(HELPERS_LIB) -lgnl_print_table
+INCLUDE += -I$(ROOT)$(HELPERS_INCLUDE)
+
 # server library
 LIBS += -Wl,-rpath,$(ROOT)$(SERVER_LIB) -L$(ROOT)$(SERVER_LIB) -lgnl_fss_api
 INCLUDE += -I$(ROOT)$(SERVER_INCLUDE)

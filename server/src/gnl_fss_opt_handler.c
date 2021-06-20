@@ -3,11 +3,10 @@
 #include <getopt.h>
 #include <libgen.h>
 #include <errno.h>
+#include <gnl_print_table.h>
 #include "../include/gnl_fss_opt_handler.h"
 
 #define GNL_SHORT_OPTS ":hf:"
-#define GNL_PRINTF_H_INITIAL_SPACE "  "
-#define GNL_PRINTF_H_TAB "%-28s"
 #define GNL_THROW_OPT_EXCEPTION(opt, error, message) {  \
     errno = EINVAL;                                     \
     if (opt != NULL) {                                  \
@@ -20,20 +19,6 @@
 extern int errno;
 extern char *optarg;
 extern int optopt;
-
-/**
- * Print the two arguments in two columns.
- *
- * @param col1_string   The firs column value.
- * @param col2_string   The second column value.
- *
- * @return int          Returns always 0.
- */
-static int print_in_table(char *col1_string, char *col2_string) {
-    printf(GNL_PRINTF_H_INITIAL_SPACE GNL_PRINTF_H_TAB "%s", col1_string, col2_string);
-
-    return 0;
-}
 
 /**
  * Print usage message.
@@ -90,6 +75,4 @@ int gnl_fss_opt_handler_parse(int argc, char* argv[], char **filepath, char *opt
 }
 
 #undef GNL_SHORT_OPTS
-#undef GNL_PRINTF_H_INITIAL_SPACE
-#undef GNL_PRINTF_H_TAB
 #undef GNL_THROW_OPT_EXCEPTION
