@@ -56,13 +56,15 @@ int gnl_fss_api_open_file(const char *pathname, int flags) {
     int res = gnl_socket_request_write(request, &message);
     GNL_MINUS1_CHECK(res, EINVAL, -1)
 
+    res = gnl_socket_service_emit(message);
+    if (res == -1) {
+        return -1;
+    }
+
     gnl_socket_request_destroy(request);
-
-    //TODO: creare gnl_socket_service.c per fare la connessione, la emit, ecc
-
     free(message);
 
-    //TODO: codice per la risposta del server
+    //TODO: codice per la risposta del server, struct response?
 
     return 0;
 }
