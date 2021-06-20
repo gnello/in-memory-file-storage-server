@@ -10,14 +10,17 @@ INCLUDE += -I$(DATA_STRUCTURES_INCLUDE)
 TARGETS = main
 TARGETS_PATH = ./
 
-.PHONY: all dev tests clean clean-dev server helpers data-structures socket tests-valgrind
+.PHONY: all dev tests clean clean-dev server client helpers data-structures socket tests-valgrind
 
 VPATH = src
 
-all: $(TARGETS) server
+all: $(TARGETS) server client
 
 %: %.c data-structures
 	$(CC) $(CFLAGS) $(INCLUDE) $(OPTFLAGS) -o $(TARGETS_PATH)/$@ $< $(LDFLAGS) $(LIBS)
+
+client: data-structures server
+	cd ./client && $(MAKE)
 
 server: helpers socket
 	cd ./server && $(MAKE)
