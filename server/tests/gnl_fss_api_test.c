@@ -81,6 +81,18 @@ int can_not_accept_negative_msec() {
     return 0;
 }
 
+int can_not_close() {
+    mock_gnl_socket_service_set_close_connection_result(-1);
+
+    return !gnl_fss_api_close_connection(SOCKET_NAME);
+}
+
+int can_close() {
+    mock_gnl_socket_service_set_close_connection_result(0);
+
+    return gnl_fss_api_close_connection(SOCKET_NAME);
+}
+
 int main() {
     gnl_printf_yellow("> gnl_fss_api test:\n\n");
 
@@ -90,6 +102,10 @@ int main() {
     gnl_assert(can_not_accept_null_socket, "can not accept a null socket name to open a socket connection.");
     gnl_assert(can_not_accept_0_msec, "can not accept a msec value equal to zero to open a socket connection.");
     gnl_assert(can_not_accept_negative_msec, "can not accept a msec value less than zero to open a socket connection.");
+
+    // gnl_fss_api_close_connection
+    gnl_assert(can_not_close, "can not close a connection to a socket.");
+    gnl_assert(can_close, "can close a connection to a socket.");
 
     printf("\n");
 }

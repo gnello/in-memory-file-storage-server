@@ -1,3 +1,4 @@
+#include <stdio.h>
 #include <string.h>
 #include <sys/socket.h>
 #include <sys/un.h>
@@ -69,6 +70,14 @@ int gnl_socket_service_close(const char *socket_name) {
     free(socket_service_connection.socket_name);
 
     return 0;
+}
+
+int gnl_socket_service_emit(const char *message) {
+    return write(socket_service_connection.fd, (char *)message, strlen(message) + 1);
+}
+
+int gnl_socket_service_read(char **message, int size) {
+    return read(socket_service_connection.fd, *message, size);
 }
 
 #include <gnl_macro_end.h>

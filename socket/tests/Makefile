@@ -22,7 +22,7 @@ TARGETS =	gnl_socket_request_s_test \
 .PHONY: all clean tests tests-valgrind
 .SUFFIXES: .c .h
 
-all: $(TARGETS)
+all: $(TARGETS) gnl_socket_service_test_server
 
 %: %.c
 	$(CC) $(CFLAGS) $(INCLUDE) $(OPTFLAGS) -o $@ $< $(LDFLAGS) $(LIBS)
@@ -32,6 +32,7 @@ clean:
 
 tests:
 	echo "\nRunning server suite test...\n\n"
+	./gnl_socket_service_test_server &
 	$(foreach test,$(TARGETS),./$(test);)
 
 tests-valgrind:
