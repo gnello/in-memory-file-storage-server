@@ -73,10 +73,22 @@ int gnl_socket_service_close(const char *socket_name) {
 }
 
 int gnl_socket_service_emit(const char *message) {
+    if (socket_service_connection.flag == 0) {
+        errno = EINVAL;
+
+        return -1;
+    }
+
     return write(socket_service_connection.fd, (char *)message, strlen(message) + 1);
 }
 
 int gnl_socket_service_read(char **message, int size) {
+    if (socket_service_connection.flag == 0) {
+        errno = EINVAL;
+
+        return -1;
+    }
+
     return read(socket_service_connection.fd, *message, size);
 }
 

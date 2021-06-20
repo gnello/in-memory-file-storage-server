@@ -14,6 +14,21 @@
     GNL_NULL_CHECK(buffer, ENOMEM, -1)  \
 }
 
+#define CONNECT() {                                         \
+    int count = 0;                                          \
+                                                            \
+    while (gnl_socket_service_connect(SOCKET_NAME) == -1) { \
+        count++;                                            \
+                                                            \
+        if (count > SOCKET_CONNECTION_ATTEMPTS) {           \
+            perror("gnl_socket_service_connect");           \
+            return -1;                                      \
+        }                                                   \
+                                                            \
+        sleep(SOCKET_CONNECTION_WAIT_SEC);                  \
+    }                                                       \
+}
+
 #define CHECK_CONNECTION(buffer) {          \
     gnl_socket_service_read(&buffer, 256);  \
                                             \
@@ -35,8 +50,7 @@ int can_not_connect_to_socket() {
 int can_connect_to_socket() {
     int res;
 
-    res = gnl_socket_service_connect(SOCKET_NAME);
-    GNL_MINUS1_CHECK(res, errno, -1)
+    CONNECT()
 
     char *buffer;
     ALLOCATE_BUFFER(buffer);
@@ -51,8 +65,7 @@ int can_connect_to_socket() {
 int can_not_connect_twice() {
     int res;
 
-    res = gnl_socket_service_connect(SOCKET_NAME);
-    GNL_MINUS1_CHECK(res, errno, -1)
+    CONNECT()
 
     char *buffer;
     ALLOCATE_BUFFER(buffer);
@@ -72,8 +85,7 @@ int can_not_connect_twice() {
 int can_not_close_any_connection() {
     int res;
 
-    res = gnl_socket_service_connect(SOCKET_NAME);
-    GNL_MINUS1_CHECK(res, errno, -1)
+    CONNECT()
 
     char *buffer;
     ALLOCATE_BUFFER(buffer);
@@ -113,18 +125,8 @@ int can_not_close_not_open_connection() {
 
 int can_emit() {
     int res;
-    int count = 0;
 
-    while (gnl_socket_service_connect(SOCKET_NAME) == -1) {
-        count++;
-
-        if (count > SOCKET_CONNECTION_ATTEMPTS) {
-            perror("gnl_socket_service_connect");
-            return -1;
-        }
-
-        sleep(SOCKET_CONNECTION_WAIT_SEC);
-    }
+    CONNECT()
 
     char *buffer;
     ALLOCATE_BUFFER(buffer);
@@ -140,9 +142,47 @@ int can_emit() {
         return -1;
     }
 
-    gnl_socket_service_close(SOCKET_NAME);
+    res = gnl_socket_service_close(SOCKET_NAME);
+    GNL_MINUS1_CHECK(res, errno, -1)
 
     return 0;
+}
+
+int can_not_emit() {
+    int res;
+
+    char *buffer;
+    ALLOCATE_BUFFER(buffer);
+    char *message = "Hello World!";
+
+    res = gnl_socket_service_emit(message);
+    if (res >= 0) {
+        return -1;
+    }
+
+    return 0;
+}
+
+int can_read() {
+    int res;
+
+    CONNECT()
+
+    char *buffer;
+    ALLOCATE_BUFFER(buffer);
+    CHECK_CONNECTION(buffer);
+
+    res = gnl_socket_service_close(SOCKET_NAME);
+    GNL_MINUS1_CHECK(res, errno, -1)
+
+    return 0;
+}
+
+int can_not_read() {
+    char *buffer;
+    ALLOCATE_BUFFER(buffer);
+
+    return !gnl_socket_service_read(&buffer, 256);
 }
 
 int main() {
@@ -151,14 +191,19 @@ int main() {
     // connect
     gnl_assert(can_not_connect_to_socket, "can not connect to an nonexistent socket.");
     gnl_assert(can_connect_to_socket, "can connect to an existent socket.");
-    gnl_assert(can_not_connect_twice, "can not connect twice to any socket.");
+    gnl_assert(can_not_connect_twice, "can not connect twice to a socket.");
 
     // close
     gnl_assert(can_not_close_any_connection, "can not close a connection with different socket name.");
     gnl_assert(can_not_close_not_open_connection, "can not close a not open connection.");
 
     // emit
-    gnl_assert(can_emit, "can send messages throw the socket.");
+    gnl_assert(can_emit, "can send messages through the socket.");
+    gnl_assert(can_not_emit, "can not send messages through a not open connection.");
+
+    // read
+    gnl_assert(can_read, "can read a message from the socket.");
+    gnl_assert(can_not_read, "can not read messages from a not open connection.");
 
     printf("\n");
 }
@@ -167,6 +212,7 @@ int main() {
 #undef SOCKET_CONNECTION_ATTEMPTS
 #undef SOCKET_CONNECTION_WAIT_SEC
 #undef ALLOCATE_BUFFER
+#undef CONNECT
 #undef CHECK_CONNECTION
 
 #include <gnl_macro_end.h>
