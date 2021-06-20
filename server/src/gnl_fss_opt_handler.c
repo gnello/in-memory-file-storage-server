@@ -31,8 +31,8 @@ static void print_usage(const char* program_name) { //7
     printf("Example: %s -f ./config.txt\n", program_name);
     printf("\n");
 
-    print_in_table("-h", "Print this message and exit.\n");
-    print_in_table("-f FILENAME", "Start the server with the FILENAME configuration file.\n");
+    gnl_print_table("-h", "Print this message and exit.\n");
+    gnl_print_table("-f FILENAME", "Start the server with the FILENAME configuration file.\n");
 }
 
 int gnl_fss_opt_handler_parse(int argc, char* argv[], char **filepath, char *opt_err, char **error) {

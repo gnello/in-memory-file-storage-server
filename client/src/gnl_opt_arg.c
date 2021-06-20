@@ -17,35 +17,35 @@ static int arg_h(const char* program_name) { //7
     printf("The -f option must be always specified.\n");
     printf("\n");
 
-    printInTable("-h", "Print this message and exit.\n");
-    printInTable("-f FILENAME", "Connect to the FILENAME socket.\n");
+    gnl_print_table("-h", "Print this message and exit.\n");
+    gnl_print_table("-f FILENAME", "Connect to the FILENAME socket.\n");
 
-    printInTable("-w DIRNAME[,N=0]", "Send DIRNAME files to the Server.\n");
-    printInTable("", "If N is specified, send N files of DIRNAME\n");
-    printInTable("", "to the Server.\n");
+    gnl_print_table("-w DIRNAME[,N=0]", "Send DIRNAME files to the Server.\n");
+    gnl_print_table("", "If N is specified, send N files of DIRNAME\n");
+    gnl_print_table("", "to the Server.\n");
 
-    printInTable("-W FILE1[,FILE2...]", "Send any given FILE/s to the Server.\n");
+    gnl_print_table("-W FILE1[,FILE2...]", "Send any given FILE/s to the Server.\n");
 
-    printInTable("-D DIRNAME", "Store the files trashed by the Server following\n");
-    printInTable("", "a -w or -W option into DIRNAME.\n");
+    gnl_print_table("-D DIRNAME", "Store the files trashed by the Server following\n");
+    gnl_print_table("", "a -w or -W option into DIRNAME.\n");
 
-    printInTable("-r FILE1[,FILE2...]", "Read FILE/s from the Server.\n");
+    gnl_print_table("-r FILE1[,FILE2...]", "Read FILE/s from the Server.\n");
 
-    printInTable("-R [N=0]", "Read all files stored on the Server.\n");
-    printInTable("", "If N is specified, read N random files from\n");
-    printInTable("", "the Server.\n");
+    gnl_print_table("-R [N=0]", "Read all files stored on the Server.\n");
+    gnl_print_table("", "If N is specified, read N random files from\n");
+    gnl_print_table("", "the Server.\n");
 
-    printInTable("-d DIRNAME", "Store the files read from the Server following\n");
-    printInTable("", "a -r or -R option into DIRNAME.\n");
+    gnl_print_table("-d DIRNAME", "Store the files read from the Server following\n");
+    gnl_print_table("", "a -r or -R option into DIRNAME.\n");
 
-    printInTable("-t TIME", "Wait TIME milliseconds between sequential requests\n");
-    printInTable("", "to the Server.\n");
+    gnl_print_table("-t TIME", "Wait TIME milliseconds between sequential requests\n");
+    gnl_print_table("", "to the Server.\n");
 
-    printInTable("-l FILE1[,FILE2...]", "Acquire the lock on FILE/s.\n");
-    printInTable("-u FILE1[,FILE2...]", "Release the lock on FILE/s.\n");
+    gnl_print_table("-l FILE1[,FILE2...]", "Acquire the lock on FILE/s.\n");
+    gnl_print_table("-u FILE1[,FILE2...]", "Release the lock on FILE/s.\n");
 
-    printInTable("-c FILE1[,FILE2...]", "Remove FILE/s from the Server.\n");
-    printInTable("-p", "Print the log of the requests made to the server.\n");
+    gnl_print_table("-c FILE1[,FILE2...]", "Remove FILE/s from the Server.\n");
+    gnl_print_table("-p", "Print the log of the requests made to the server.\n");
 
     return 0;
 }

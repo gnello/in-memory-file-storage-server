@@ -11,6 +11,6 @@
  * @return int          Returns the number of chars written
  *                      on success, -1 otherwise.
  */
-extern int printInTable(char *col1_string, char *col2_string);
+extern int gnl_print_table(char *col1_string, char *col2_string);
 
 #endif //GNL_PRINT_TABLE_H
