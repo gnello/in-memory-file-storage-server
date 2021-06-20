@@ -11,6 +11,9 @@
 #define GNL_SHORT_OPTS ":hf:w:W:D:r:R::d:t:l:u:c:p"
 #define GNL_PRINTF_H_INITIAL_SPACE "  "
 #define GNL_PRINTF_H_TAB "%-28s"
+#define SOCKET_TRY_EVERY_MILLISECONDS 1000
+#define SOCKET_WAIT_SEC 5
+
 #define GNL_THROW_OPT_EXCEPTION(opt, error, message) {  \
     errno = EINVAL;                                     \
     if (opt != NULL) {                                  \
@@ -67,7 +70,7 @@ static int wait_microseconds(int time) {
     return nanosleep(&ts, NULL);
 }
 
-static int print_usage(const char* program_name) { //7
+static int arg_h(const char* program_name) { //7
     printf("Usage: %s [options]\n", program_name);
     printf("Write and read files to and from the In Memory Storage Server.\n");
     printf("Example: %s -f /tmp/fss.sk -r file1 -d /dev/null -w ./mydir\n", program_name);
@@ -75,6 +78,7 @@ static int print_usage(const char* program_name) { //7
     printf("The order of the options matters, the options will be handled in the order\n");
     printf("they appear.\n");
     printf("The -f, -h, -p options can not be specified more than once.\n");
+    printf("The -f option must be always specified.\n");
     printf("\n");
 
     printInTable("-h", "Print this message and exit.\n");
@@ -110,10 +114,23 @@ static int print_usage(const char* program_name) { //7
     return 0;
 }
 
-//
-//static int arg_f(const char* param) { //3
-//    return 0;
-//}
+/**
+ * Connect to the given socket_name.
+ *
+ * @param socket_name   The socket where to connect to.
+ *
+ * @return              Returns 0 on success, -1 otherwise.
+ */
+static int arg_f(const char* socket_name) { //3
+    time_t now = time(0);
+
+    struct timespec tim;
+    tim.tv_sec = now + SOCKET_WAIT_SEC;
+    tim.tv_nsec = 0;
+
+    return gnl_fss_api_open_connection(socket_name, SOCKET_TRY_EVERY_MILLISECONDS, tim);
+}
+
 //
 //static int arg_w(const char* param) { //11
 //    return 0;
@@ -243,7 +260,7 @@ int gnl_opt_handler_parse_opt(struct gnl_opt_handler *handler, int argc, char* a
             case 'h':
                 // basename removes path information
                 // POSIX version, can modify the argument.
-                print_usage(basename(argv[0]));
+                arg_h(basename(argv[0]));
                 gnl_opt_handler_destroy(handler);
 
                 exit(EXIT_FAILURE);
@@ -262,7 +279,7 @@ int gnl_opt_handler_parse_opt(struct gnl_opt_handler *handler, int argc, char* a
                 /* NOT REACHED */
                 break;
 
-            // put every other valid option in the command queue
+            // put every other valid option into the command queue
             default:
                 opt_el = (struct gnl_opt_handler_el *)malloc(sizeof(struct gnl_opt_handler_el));
                 opt_el->opt = opt;
@@ -285,18 +302,10 @@ int gnl_opt_handler_parse_opt(struct gnl_opt_handler *handler, int argc, char* a
 }
 
 int gnl_opt_handler_handle(struct gnl_opt_handler *handler) {
-    int time = 0;
+    int opt_t_value = 0;
 
     // first open the connection to the server
-    struct timespec tim;
-    tim.tv_sec = 0;
-    tim.tv_nsec = 1000000;
-
-    int res = gnl_fss_api_open_connection(handler->socket_filename, 1000, tim);
-    if (res == -1) {
-        return -1;
-    }
-
+    arg_f(handler->socket_filename);
 
     struct gnl_opt_handler_el el;
     struct gnl_opt_handler_el previous_el;
@@ -309,7 +318,7 @@ int gnl_opt_handler_handle(struct gnl_opt_handler *handler) {
         switch (el.opt) {
             // update the requests delay
             case 't':
-                time = strtol(el.arg, &ptr, 10);
+                opt_t_value = strtol(el.arg, &ptr, 10);
 
                 // if no digits found
                 if ((char *)el.arg == ptr) {
@@ -334,7 +343,7 @@ int gnl_opt_handler_handle(struct gnl_opt_handler *handler) {
         previous_el = el;
         free(raw_el);
 
-        wait_microseconds(time);
+        wait_microseconds(opt_t_value);
     }
 
     return 0;
@@ -343,4 +352,5 @@ int gnl_opt_handler_handle(struct gnl_opt_handler *handler) {
 #undef GNL_SHORT_OPTS
 #undef GNL_PRINTF_H_INITIAL_SPACE
 #undef GNL_PRINTF_H_TAB
+#undef SOCKET_WAIT_SEC
 #undef GNL_THROW_OPT_EXCEPTION
