@@ -20,4 +20,25 @@ extern int gnl_socket_service_connect(const char *socket_name);
  */
 extern int gnl_socket_service_close(const char *socket_name);
 
+/**
+ * Send a message through the previously opened connection.
+ *
+ * @param message   The message to send.
+ *
+ * @return          Returns the number of bytes sent on success,
+ *                  -1 otherwise.
+ */
+extern int gnl_socket_service_emit(const char *message);
+
+/**
+ * Read a message from the previously opened connection.
+ *
+ * @param message   The pointer where to write the read message.
+ * @param size      The number of bytes to read.
+ *
+ * @return          Returns the number of bytes read on success,
+ *                  -1 otherwise.
+ */
+extern int gnl_socket_service_read(char **message, int size);
+
 #endif //GNL_SOCKET_SERVICE_H
