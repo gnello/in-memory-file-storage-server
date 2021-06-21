@@ -7,14 +7,14 @@ CFLAGS += -std=c99 -Wall -pedantic -g
 LIBS += -Wl,-rpath,$(DATA_STRUCTURES_LIB) -L$(DATA_STRUCTURES_LIB) -lgnl_ts_queue_t -lgnl_ts_stack_t
 INCLUDE += -I$(DATA_STRUCTURES_INCLUDE)
 
-TARGETS = main
+TARGETS = server client
 TARGETS_PATH = ./
 
 .PHONY: all dev tests clean clean-dev server client helpers data-structures socket tests-valgrind
 
 VPATH = src
 
-all: $(TARGETS) server client
+all: $(TARGETS)
 
 %: %.c data-structures
 	$(CC) $(CFLAGS) $(INCLUDE) $(OPTFLAGS) -o $(TARGETS_PATH)/$@ $< $(LDFLAGS) $(LIBS)
@@ -60,6 +60,7 @@ clean:
 	cd ./helpers && $(MAKE) clean
 	cd ./data-structures && $(MAKE) clean
 	cd ./server && $(MAKE) clean
+	cd ./client && $(MAKE) clean
 	cd ./socket && $(MAKE) clean
 
 clean-dev: clean
