@@ -22,7 +22,7 @@ all: $(TARGETS)
 client: data-structures server
 	cd ./client && $(MAKE)
 
-server: helpers socket
+server: data-structures helpers socket
 	cd ./server && $(MAKE)
 
 socket:
@@ -56,7 +56,6 @@ tests-valgrind:
 	cd ./socket/tests && $(MAKE) tests-valgrind
 
 clean:
-	cd $(TARGETS_PATH) && rm -f $(TARGETS)
 	cd ./helpers && $(MAKE) clean
 	cd ./data-structures && $(MAKE) clean
 	cd ./server && $(MAKE) clean
