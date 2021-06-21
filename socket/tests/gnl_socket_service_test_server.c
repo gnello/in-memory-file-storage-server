@@ -27,7 +27,7 @@ int main() {
     }
 
     // bind the address
-    while(bind(fd_skt, (struct sockaddr *) &sa, sizeof(sa)) == -1) {
+    while(bind(fd_skt, (struct sockaddr *)&sa, sizeof(sa)) == -1) {
         if (errno == EADDRINUSE) {
             remove(SOCKET_NAME);
             continue;

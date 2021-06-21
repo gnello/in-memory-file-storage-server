@@ -40,7 +40,7 @@ int main(int argc, char * argv[]) {
             return -1;
         }
     } else {
-        // no filename read, alert the user...
+        // no filename read, warn the user...
         printf("Warning: no configuration file provided, using default configuration...\n");
 
         // load the default configuration
@@ -51,6 +51,8 @@ int main(int argc, char * argv[]) {
             return -1;
         }
     }
+
+    // run the server
 
     // instance the filesystem
     //gnl_fss_storage_init(config->capacity, config->limit, config->replacement_policy);
