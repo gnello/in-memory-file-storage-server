@@ -1,4 +1,5 @@
 
+#include <linux/time.h>
 #include <time.h>
 #include <errno.h>
 #include <gnl_socket_request.h>

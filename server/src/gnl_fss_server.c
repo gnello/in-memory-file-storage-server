@@ -4,11 +4,18 @@
 #include <sys/un.h>
 #include <unistd.h>
 #include <errno.h>
+#include <sys/select.h>
 #include <gnl_macro_beg.h>
 
 #define N 100
 
 int gnl_fss_server_start(char *socket_name) {
+    if (socket_name == NULL) {
+        errno = EINVAL;
+
+        return -1;
+    }
+
     int res;
 
     // socket connection file descriptor
@@ -18,7 +25,7 @@ int gnl_fss_server_start(char *socket_name) {
     int fd_num = 0;
 
     // active file descriptors set
-    fd_set set,
+    fd_set set;
 
     // active file descriptors waited for reading
     fd_set rdset;
@@ -53,13 +60,13 @@ int gnl_fss_server_start(char *socket_name) {
     GNL_MINUS1_CHECK(res, errno, -1)
 
     // update fd_num with the max file descriptor active index
-    if (fd_sk > fd_num) {
-        fd_num = fd_sk;
+    if (fd_skt > fd_num) {
+        fd_num = fd_skt;
     }
 
     // reset mask
     FD_ZERO(&set);
-    FD_SET(fd_sk,&set);
+    FD_SET(fd_skt,&set);
 
     while (1) {
 
@@ -80,9 +87,9 @@ int gnl_fss_server_start(char *socket_name) {
                 if (fd == fd_skt) {
 
                     // accept the connection
-                    fd_c = accept(fd_sk, NULL, 0);
+                    fd_c = accept(fd_skt, NULL, 0);
                     GNL_MINUS1_CHECK(res, errno, -1)
-
+printf("Accepted connection by client id %d on socket id %d\n", fd_c, fd_skt);
                     // update the active file descriptors set
                     FD_SET(fd_c, &set);
 
@@ -109,6 +116,7 @@ int gnl_fss_server_start(char *socket_name) {
 
                         // close the current file descriptor
                         close(fd);
+                        printf("Close connection of client id %d on socket id %d\n", fd_c, fd_skt);
                     } else {
                         // do something with the buffer...
                     }

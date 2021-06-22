@@ -39,4 +39,5 @@ VPATH = src
 	$(CC) $(CFLAGS) $(INCLUDE) $(OPTFLAGS) -c -fPIC $< -o $(TARGETS_PATH)/$@ $(LIBS)
 
 clean:
+	rm -f $(TARGETS)
 	cd $(TARGETS_PATH) && rm -f *.o *.so

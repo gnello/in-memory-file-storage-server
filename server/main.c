@@ -2,7 +2,7 @@
 #include <gnl_txtenv.h>
 #include "./src/gnl_fss_opt_handler.c"
 #include "./src/gnl_fss_config.c"
-#include "./src/gnl_fss_api.c"
+#include "./src/gnl_fss_server.c"
 
 int main(int argc, char * argv[]) {
     char opt_err = '\0';
@@ -53,15 +53,11 @@ int main(int argc, char * argv[]) {
     }
 
     // run the server
+    if (gnl_fss_server_start(config->socket) != 0) {
+        perror("Error on starting the server");
 
-    // instance the filesystem
-    //gnl_fss_storage_init(config->capacity, config->limit, config->replacement_policy);
-
-    gnl_fss_api_open_file("~/CLionProjects/SOL/lab/file-storage-server/index.php", O_CREATE | O_LOCK);
-    gnl_fss_api_open_file("./pino/il/bischero", O_CREATE & O_LOCK);
-    gnl_fss_api_open_file("./pino/il/panettiere", O_CREATE);
-    gnl_fss_api_open_file("./pino/il/gattopardo", O_LOCK);
-    gnl_fss_api_open_file("/fake/path", O_CREATE | O_LOCK);
+        return -1;
+    }
 
     gnl_fss_config_destroy(config);
 

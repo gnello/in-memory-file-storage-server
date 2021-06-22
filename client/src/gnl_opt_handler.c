@@ -5,6 +5,7 @@
 #include <errno.h>
 #include <libgen.h>
 #include <gnl_queue_t.h>
+#include <gnl_macro_beg.h>
 #include "../include/gnl_opt_handler.h"
 #include "./gnl_opt_arg.c"
 
@@ -179,9 +180,11 @@ int gnl_opt_handler_parse_opt(struct gnl_opt_handler *handler, int argc, char* a
 
 int gnl_opt_handler_handle(struct gnl_opt_handler *handler) {
     int opt_t_value = 0;
+    int res;
 
     // first open the connection to the server
-    arg_f(handler->socket_filename);
+    res = arg_f_start(handler->socket_filename);
+    GNL_MINUS1_CHECK(res, errno, -1);
 
     struct gnl_opt_handler_el el;
     struct gnl_opt_handler_el previous_el;
@@ -222,8 +225,14 @@ int gnl_opt_handler_handle(struct gnl_opt_handler *handler) {
         wait_microseconds(opt_t_value);
     }
 
+    // at the end close the connection to the server
+    res = arg_f_end(handler->socket_filename);
+    GNL_MINUS1_CHECK(res, errno, -1);
+
     return 0;
 }
 
 #undef GNL_SHORT_OPTS
 #undef GNL_THROW_OPT_EXCEPTION
+
+#include <gnl_macro_end.h>

@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <linux/time.h>
 #include <time.h>
 #include <gnl_fss_api.h>
 #include <gnl_print_table.h>
@@ -57,7 +58,7 @@ static int arg_h(const char* program_name) { //7
  *
  * @return              Returns 0 on success, -1 otherwise.
  */
-static int arg_f(const char* socket_name) { //3
+static int arg_f_start(const char* socket_name) { //3
     time_t now = time(0);
 
     struct timespec tim;
@@ -65,6 +66,17 @@ static int arg_f(const char* socket_name) { //3
     tim.tv_nsec = 0;
 
     return gnl_fss_api_open_connection(socket_name, SOCKET_TRY_EVERY_MILLISECONDS, tim);
+}
+
+/**
+ * Close connection to the given socket_name.
+ *
+ * @param socket_name   The socket where to close the connection.
+ *
+ * @return              Returns 0 on success, -1 otherwise.
+ */
+static int arg_f_end(const char* socket_name) { //3
+    return gnl_fss_api_close_connection(socket_name);
 }
 
 //
