@@ -13,16 +13,14 @@
 
 #define GNL_THROW_OPT_EXCEPTION(opt, error, message) {  \
     errno = EINVAL;                                     \
-    if (opt != NULL) {                                  \
-        *opt = optopt;                                  \
-        *error = message;                               \
+    if ((opt) != NULL) {                                  \
+        *(opt) = optopt;                                  \
+        *(error) = message;                               \
     }                                                   \
     return -1;                                          \
 }
 
 extern int errno;
-extern char *optarg;
-extern int optopt;
 
 struct gnl_opt_handler {
     gnl_queue_t *command_queue;
@@ -31,7 +29,7 @@ struct gnl_opt_handler {
 };
 
 struct gnl_opt_handler_el {
-    char opt;
+    int opt;
     void *arg;
 };
 
@@ -186,21 +184,19 @@ int gnl_opt_handler_handle(struct gnl_opt_handler *handler) {
     res = arg_f_start(handler->socket_filename);
     GNL_MINUS1_CHECK(res, errno, -1);
 
-    struct gnl_opt_handler_el el;
+    struct gnl_opt_handler_el *el;
     struct gnl_opt_handler_el previous_el;
-    void *raw_el;
     char *ptr = NULL;
 
-    while ((raw_el = gnl_queue_dequeue(handler->command_queue)) != NULL) {
-        el = *(struct gnl_opt_handler_el *)raw_el;
+    while ((el = (struct gnl_opt_handler_el *)gnl_queue_dequeue(handler->command_queue)) != NULL) {
 
-        switch (el.opt) {
+        switch (el->opt) {
             // update the requests delay
             case 't':
-                opt_t_value = strtol(el.arg, &ptr, 10);
+                opt_t_value = strtol(el->arg, &ptr, 10);
 
                 // if no digits found
-                if ((char *)el.arg == ptr) {
+                if ((char *)el->arg == ptr) {
                     errno = EINVAL;
 
                     return -1;
@@ -211,17 +207,17 @@ int gnl_opt_handler_handle(struct gnl_opt_handler *handler) {
                     return -1;
                 }
 
+                free(el);
                 // process next command immediately
                 continue;
                 /* NOT REACHED */
                 break;
         }
 
-        printf("command: %c %s\n", el.opt, (char *)el.arg);
+        printf("command: %c %s\n", el->opt, (char *)el->arg);
 
-        previous_el = el;
-        free(raw_el);
-
+        //previous_el = el;
+        free(el);
         wait_microseconds(opt_t_value);
     }
 

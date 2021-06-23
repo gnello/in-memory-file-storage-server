@@ -24,7 +24,7 @@ int gnl_fss_server_start(gnl_fss_config *config) {
     // instantiate the logger
     logger = gnl_logger_init(config->log_filepath, "gnl_fss_server", config->log_level);
     GNL_NULL_CHECK(logger, errno, -1)
-printf("ciao");
+
     int res;
 
     // socket connection file descriptor
@@ -60,7 +60,9 @@ printf("ciao");
     fd_skt = socket(AF_UNIX, SOCK_STREAM, 0);
     GNL_MINUS1_CHECK(fd_skt, errno, -1)
 
-    gnl_logger_debug(logger, "socket created with id %d", fd_skt);
+    // check first access of the file log
+    res = gnl_logger_debug(logger, "socket created with id %d", fd_skt);
+    GNL_MINUS1_CHECK(res, errno, -1)
 
     // bind the address
     res = bind(fd_skt, (struct sockaddr *)&sa, sizeof(sa));
@@ -72,7 +74,7 @@ printf("ciao");
     res = listen(fd_skt, SOMAXCONN);
     GNL_MINUS1_CHECK(res, errno, -1)
 
-    gnl_logger_debug(logger, "server ready, listening for connections");
+    gnl_logger_info(logger, "server ready, listening for connections");
 
     // update fd_num with the max file descriptor active index
     if (fd_skt > fd_num) {
@@ -104,7 +106,9 @@ printf("ciao");
                     // accept the connection
                     fd_c = accept(fd_skt, NULL, 0);
                     GNL_MINUS1_CHECK(res, errno, -1)
-printf("Accepted connection by client id %d on socket id %d\n", fd_c, fd_skt);
+
+                    gnl_logger_debug(logger, "client %d requested to connect, accepted", fd_c);
+
                     // update the active file descriptors set
                     FD_SET(fd_c, &set);
 
@@ -117,7 +121,7 @@ printf("Accepted connection by client id %d on socket id %d\n", fd_c, fd_skt);
 
                     // read data
                     nread = read(fd, buf, N);
-                    GNL_MINUS1_CHECK(res, errno, -1)
+                    GNL_MINUS1_CHECK(nread, errno, -1)
 
                     // if EOF...
                     if (nread == 0) {
@@ -130,8 +134,10 @@ printf("Accepted connection by client id %d on socket id %d\n", fd_c, fd_skt);
                         }
 
                         // close the current file descriptor
-                        close(fd);
-                        printf("Close connection of client id %d on socket id %d\n", fd_c, fd_skt);
+                        res = close(fd);
+                        GNL_MINUS1_CHECK(res, errno, -1)
+
+                        gnl_logger_debug(logger, "client %d gone away, closed connection", fd_c);
                     } else {
                         // do something with the buffer...
                     }
@@ -141,6 +147,7 @@ printf("Accepted connection by client id %d on socket id %d\n", fd_c, fd_skt);
     }
 
     // clean up
+    gnl_logger_destroy(logger);
     close(fd_skt);
     remove(socket_name);
 
