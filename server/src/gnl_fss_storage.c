@@ -3,14 +3,7 @@
 #include <errno.h>
 #include <gnl_list_t.h>
 #include "../include/gnl_fss_storage.h"
-
-#define GNL_NULL_CHECK(ptr, error_code, return_value) { \
-    if (ptr == NULL) {                                  \
-        errno = error_code;                             \
-                                                        \
-        return return_value;                            \
-    }                                                   \
-}
+#include <gnl_macro_beg.h>
 
 /**
  * In memory storage implementation.
@@ -79,4 +72,4 @@ int gnl_fss_storage_open(const char *pathname) {
     return 0;
 }
 
-#undef GNL_NULL_CHECK
+#include <gnl_macro_end.h>

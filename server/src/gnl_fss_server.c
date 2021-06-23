@@ -5,17 +5,26 @@
 #include <unistd.h>
 #include <errno.h>
 #include <sys/select.h>
+#include <gnl_logger.h>
 #include <gnl_macro_beg.h>
 
 #define N 100
 
-int gnl_fss_server_start(char *socket_name) {
+struct gnl_logger *logger;
+
+int gnl_fss_server_start(gnl_fss_config *config) {
+    char *socket_name = config->socket;
+
     if (socket_name == NULL) {
         errno = EINVAL;
 
         return -1;
     }
 
+    // instantiate the logger
+    logger = gnl_logger_init(config->log_filepath, "gnl_fss_server", config->log_level);
+    GNL_NULL_CHECK(logger, errno, -1)
+printf("ciao");
     int res;
 
     // socket connection file descriptor
@@ -51,13 +60,19 @@ int gnl_fss_server_start(char *socket_name) {
     fd_skt = socket(AF_UNIX, SOCK_STREAM, 0);
     GNL_MINUS1_CHECK(fd_skt, errno, -1)
 
+    gnl_logger_debug(logger, "socket created with id %d", fd_skt);
+
     // bind the address
     res = bind(fd_skt, (struct sockaddr *)&sa, sizeof(sa));
     GNL_MINUS1_CHECK(res, errno, -1)
 
+    gnl_logger_debug(logger, "socket %d binded to address %s", fd_skt, socket_name);
+
     // listen
     res = listen(fd_skt, SOMAXCONN);
     GNL_MINUS1_CHECK(res, errno, -1)
+
+    gnl_logger_debug(logger, "server ready, listening for connections");
 
     // update fd_num with the max file descriptor active index
     if (fd_skt > fd_num) {

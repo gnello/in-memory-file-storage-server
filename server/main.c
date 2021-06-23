@@ -53,7 +53,7 @@ int main(int argc, char * argv[]) {
     }
 
     // run the server
-    if (gnl_fss_server_start(config->socket) != 0) {
+    if (gnl_fss_server_start(config) != 0) {
         perror("Error on starting the server");
 
         return -1;
