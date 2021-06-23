@@ -12,7 +12,7 @@ HELPERS_PATH_INCLUDE = $(ROOT)/$(HELPERS_INCLUDE)
 LIBS = -Wl,-rpath,$(HELPERS_PATH_LIB) -L$(HELPERS_PATH_LIB) -lgnl_colorshell -lgnl_assert
 INCLUDE = -I$(HELPERS_PATH_INCLUDE)
 
-TARGETS = gnl_txtenv_test
+TARGETS = gnl_txtenv_test gnl_logger_test
 
 .PHONY: all clean tests tests-valgrind
 .SUFFIXES: .c .h
