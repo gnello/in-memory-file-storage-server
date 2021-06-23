@@ -16,4 +16,7 @@ REPLACEMENT_POLICY=0
 SOCKET=/tmp/LSOfilestorage.sk
 
 # Absolute path of the log file.
-LOG_FILE=/tmp/ffs.log
+LOG_FILE=/var/log/gnl_fss.log
+
+# The log level. Accepted values: trace, debug, info, warn, error.
+LOG_LEVEL=debug

@@ -4,7 +4,7 @@
 #include "../include/gnl_fss_config.h"
 
 #define GNL_NULL_CHECK(ptr, error_code, return_value) { \
-    if (ptr == NULL) {                                  \
+    if ((ptr) == NULL) {                                  \
         errno = error_code;                             \
                                                         \
         return return_value;                            \
@@ -12,7 +12,7 @@
 }
 
 #define GNL_MINUS1_CHECK(ptr, value, error_code, return_value) {    \
-    if (value == -1) {                                              \
+    if ((value) == -1) {                                              \
         errno = error_code;                                         \
         free(ptr);                                                  \
                                                                     \
@@ -26,7 +26,8 @@ struct gnl_fss_config {
     int limit;
     int replacement_policy;
     char *socket;
-    char *logfile;
+    char *log_filepath;
+    char *log_level;
 };
 
 /**
@@ -46,7 +47,7 @@ static int get_int_value_from_env(const char *name) {
     }
 
     char *ptr = NULL;
-    int value = strtol(env_value, &ptr, 10);
+    int value = (int)strtol(env_value, &ptr, 10);
 
     // if no digits found
     if (env_value == ptr) {
@@ -77,7 +78,8 @@ gnl_fss_config *gnl_fss_config_init() {
     config->limit = 100;
     config->replacement_policy = REPOL_FIFO;
     config->socket = "/tmp/gnl_fss.sk";
-    config->logfile = "/var/log/gnl_fss.log";
+    config->log_filepath = "/var/log/gnl_fss.log";
+    config->log_level = "error";
 
     return config;
 }
@@ -99,7 +101,8 @@ gnl_fss_config *gnl_fss_config_init_from_env() {
     GNL_MINUS1_CHECK(config, config->limit, EINVAL, NULL)
 
     config->socket = getenv("SOCKET");
-    config->logfile = getenv("LOG_FILE");
+    config->log_filepath = getenv("LOG_FILE");
+    config->log_level = getenv("LOG_LEVEL");
 
     return config;
 }

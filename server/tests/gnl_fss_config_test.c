@@ -34,7 +34,11 @@ int can_load_default() {
         return -1;
     }
 
-    if (strcmp(config->logfile, "/var/log/gnl_fss.log") != 0) {
+    if (strcmp(config->log_filepath, "/var/log/gnl_fss.log") != 0) {
+        return -1;
+    }
+
+    if (strcmp(config->log_level, "error") != 0) {
         return -1;
     }
 
@@ -73,7 +77,11 @@ int can_load_env() {
         return -1;
     }
 
-    if (strcmp(config->logfile, "/var/log/fss_test.log") != 0) {
+    if (strcmp(config->log_filepath, "/var/log/fss_test.log") != 0) {
+        return -1;
+    }
+
+    if (strcmp(config->log_level, "debug") != 0) {
         return -1;
     }
 
@@ -83,6 +91,7 @@ int can_load_env() {
     unsetenv("REPLACEMENT_POLICY");
     unsetenv("SOCKET");
     unsetenv("LOG_FILE");
+    unsetenv("LOG_LEVEL");
 
     gnl_fss_config_destroy(config);
 
