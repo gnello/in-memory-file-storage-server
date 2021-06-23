@@ -26,8 +26,7 @@ int gnl_socket_service_connect(const char *socket_name) {
     }
 
     // copy the socket name
-    GNL_ALLOCATE_MESSAGE(socket_service_connection.socket_name, strlen(socket_name) + 1)
-    GNL_NULL_CHECK(socket_service_connection.socket_name, ENOMEM, -1)
+    GNL_CALLOC(socket_service_connection.socket_name, strlen(socket_name) + 1, -1)
 
     strncpy(socket_service_connection.socket_name, socket_name, strlen(socket_name));
 

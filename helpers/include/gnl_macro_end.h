@@ -1,7 +1,7 @@
 
 #ifdef GNL_MACRO_BEG_H
 
-#undef GNL_ALLOCATE_MESSAGE
+#undef GNL_CALLOC
 #undef GNL_NULL_CHECK
 #undef GNL_MINUS1_CHECK
 #undef GNL_MACRO_BEG_H

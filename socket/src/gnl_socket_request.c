@@ -100,7 +100,7 @@ static int size(const char *message) {
 static int encode(const char *message, char **dest, enum gnl_socket_request_type type) {
     int request_size = size(message);
 
-    GNL_ALLOCATE_MESSAGE(*dest, request_size + 1)
+    GNL_CALLOC(*dest, request_size + 1, -1)
 
     int maxlen = request_size + 1; // count also the '\0' char
 

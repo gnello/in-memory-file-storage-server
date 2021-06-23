@@ -4,13 +4,13 @@
 #ifndef GNL_MACRO_BEG_H
 #define GNL_MACRO_BEG_H
 
-#define GNL_ALLOCATE_MESSAGE(ptr, len) {        \
-    (ptr) = (char *)calloc((len), sizeof(char));   \
-    if ((ptr) == NULL) {                          \
-        errno = ENOMEM;                         \
-                                                \
-        return -1;                              \
-    }                                           \
+#define GNL_CALLOC(ptr, len, return_code) {         \
+    (ptr) = (char *)calloc((len), sizeof(char));    \
+    if ((ptr) == NULL) {                            \
+        errno = ENOMEM;                             \
+                                                    \
+        return return_code;                         \
+    }                                               \
 }
 
 #define GNL_NULL_CHECK(x, error_code, return_code) {    \

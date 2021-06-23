@@ -10,8 +10,7 @@
 #define SOCKET_CONNECTION_WAIT_SEC 2
 
 #define ALLOCATE_BUFFER(buffer) {       \
-    GNL_ALLOCATE_MESSAGE(buffer, 256);  \
-    GNL_NULL_CHECK(buffer, ENOMEM, -1)  \
+    GNL_CALLOC(buffer, 256, -1);  \
 }
 
 #define CONNECT() {                                         \

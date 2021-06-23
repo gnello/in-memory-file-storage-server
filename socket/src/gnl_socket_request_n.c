@@ -71,7 +71,7 @@ void gnl_socket_request_n_destroy(struct gnl_socket_request_n *request_n) {
 int gnl_socket_request_n_write(const struct gnl_socket_request_n request_n, char **dest) {
     int read_N_size = gnl_socket_request_n_size(request_n);
 
-    GNL_ALLOCATE_MESSAGE(*dest, read_N_size + 1)
+    GNL_CALLOC(*dest, read_N_size + 1, -1)
 
     int maxlen = read_N_size + 1; // count also the '\0' char
 
