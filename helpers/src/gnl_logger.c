@@ -3,31 +3,14 @@
 #include <string.h>
 #include <time.h>
 #include <errno.h>
+#include <stdarg.h>
 #include <gnl_macro_beg.h>
 #include "../include/gnl_logger.h"
 
 /**
- * Levels of logging.
+ * List of variable arguments.
  */
-enum gnl_log_level {
-    GNL_LOGGER_TRACE = 5,
-    GNL_LOGGER_DEBUG = 4,
-    GNL_LOGGER_INFO = 3,
-    GNL_LOGGER_WARN = 2,
-    GNL_LOGGER_ERROR = 1
-};
-
-struct gnl_logger {
-
-    // the path where to write the log.
-    char *path;
-
-    // The scope of the instance
-    char *scope;
-
-    // the log level set.
-    enum gnl_log_level level;
-};
+va_list a_list;
 
 /**
  * Return the corresponding level of the given string.
@@ -311,7 +294,8 @@ static int report(struct gnl_logger *logger, char *message, enum gnl_log_level l
     log_file = fopen(logger->path, "a");
     GNL_NULL_CHECK(log_file, errno, -1);
 
-    fputs(dest, log_file);
+    // print with variable args
+    vfprintf(log_file, dest, a_list);
     fclose(log_file);
 
     free(dest);
@@ -319,51 +303,76 @@ static int report(struct gnl_logger *logger, char *message, enum gnl_log_level l
     return 0;
 }
 
-int gnl_logger_trace(struct gnl_logger *logger, char *message) {
+int gnl_logger_trace(struct gnl_logger *logger, char *message, ...) {
     int res = 0;
 
     if (should_report(logger, GNL_LOGGER_TRACE)) {
+        // get variable args
+        va_start(a_list, message);
+
         res = report(logger, message, GNL_LOGGER_TRACE);
+
+        va_end(a_list);
     }
 
     return res;
 }
 
-int gnl_logger_debug(struct gnl_logger *logger, char *message) {
+int gnl_logger_debug(struct gnl_logger *logger, char *message, ...) {
     int res = 0;
 
     if (should_report(logger, GNL_LOGGER_DEBUG)) {
+        // get variable args
+        va_start(a_list, message);
+
         res = report(logger, message, GNL_LOGGER_DEBUG);
+
+        va_end(a_list);
     }
 
     return res;
 }
 
-int gnl_logger_info(struct gnl_logger *logger, char *message) {
+int gnl_logger_info(struct gnl_logger *logger, char *message, ...) {
     int res = 0;
 
     if (should_report(logger, GNL_LOGGER_INFO)) {
+        // get variable args
+        va_start(a_list, message);
+
         res = report(logger, message, GNL_LOGGER_INFO);
+
+        va_end(a_list);
     }
 
     return res;
 }
 
-int gnl_logger_warn(struct gnl_logger *logger, char *message) {
+int gnl_logger_warn(struct gnl_logger *logger, char *message, ...) {
     int res = 0;
 
     if (should_report(logger, GNL_LOGGER_WARN)) {
+        // get variable args
+        va_start(a_list, message);
+
         res = report(logger, message, GNL_LOGGER_WARN);
+
+        va_end(a_list);
     }
 
     return res;
 }
 
-int gnl_logger_error(struct gnl_logger *logger, char *message) {
+int gnl_logger_error(struct gnl_logger *logger, char *message, ...) {
     int res = 0;
 
     if (should_report(logger, GNL_LOGGER_ERROR)) {
+        // get variable args
+        va_start(a_list, message);
+
         res = report(logger, message, GNL_LOGGER_ERROR);
+
+        va_end(a_list);
     }
 
     return res;
