@@ -1,8 +1,8 @@
-#include <stdlib.h>
-#include <errno.h>
-
 #ifndef GNL_MACRO_BEG_H
 #define GNL_MACRO_BEG_H
+
+#include <stdlib.h>
+#include <errno.h>
 
 #define GNL_CALLOC(ptr, len, return_code) {         \
     (ptr) = (char *)calloc((len), sizeof(char));    \
@@ -14,7 +14,7 @@
 }
 
 #define GNL_NULL_CHECK(x, error_code, return_code) {    \
-    if ((x) == NULL) {                                    \
+    if ((x) == NULL) {                                  \
         errno = error_code;                             \
                                                         \
         return return_code;                             \
@@ -22,11 +22,27 @@
 }
 
 #define GNL_MINUS1_CHECK(x, error_code, return_code) {  \
-    if ((x) == -1) {                                      \
+    if ((x) == -1) {                                    \
         errno = error_code;                             \
                                                         \
         return return_code;                             \
     }                                                   \
+}
+
+#define GNL_TO_INT(value, string, return_code) {    \
+    char *ptr = NULL;                               \
+    (value) = (int)strtol(string, &ptr, 10);        \
+                                                    \
+    /* if no digits found */                        \
+    if ((string) == ptr) {                          \
+        errno = EINVAL;                             \
+        return -1;                                  \
+    }                                               \
+                                                    \
+    /* if there was an error */                     \
+    if (errno != 0) {                               \
+        return -1;                                  \
+    }                                               \
 }
 
 #endif //GNL_MACRO_BEG_H
