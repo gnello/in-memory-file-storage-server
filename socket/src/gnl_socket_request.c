@@ -137,7 +137,7 @@ int gnl_socket_request_to_string(struct gnl_socket_request *request, char **dest
             break;
 
         case GNL_SOCKET_REQUEST_REMOVE:
-            GNL_CALLOC(*dest, 6, -1);
+            GNL_CALLOC(*dest, 7, -1);
             strcpy(*dest, "REMOVE");
             break;
     }

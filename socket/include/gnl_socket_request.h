@@ -61,7 +61,7 @@ struct gnl_socket_request *gnl_socket_request_init(enum gnl_socket_request_type 
  *
  * @param request   The socket_request to destroy.
  */
-void gnl_socket_request_destroy(struct gnl_socket_request *request);
+extern void gnl_socket_request_destroy(struct gnl_socket_request *request);
 
 /**
  * Format to string the given request. The output string dest will be
@@ -72,7 +72,7 @@ void gnl_socket_request_destroy(struct gnl_socket_request *request);
  *
  * @return          Returns 0 on success, -1 otherwise.
  */
-int gnl_socket_request_to_string(struct gnl_socket_request *request, char **dest);
+extern int gnl_socket_request_to_string(struct gnl_socket_request *request, char **dest);
 
 /**
  * Decode the given socket request.
@@ -82,7 +82,7 @@ int gnl_socket_request_to_string(struct gnl_socket_request *request, char **dest
  * @return          Returns a gnl_socket_request struct on success,
  *                  NULL otherwise.
  */
-struct gnl_socket_request *gnl_socket_request_read(const char *request);
+extern struct gnl_socket_request *gnl_socket_request_read(const char *request);
 
 /**
  * Encode the given socket request.
@@ -93,6 +93,6 @@ struct gnl_socket_request *gnl_socket_request_read(const char *request);
  *
  * @return          Returns 0 on success, -1 otherwise.
  */
-int gnl_socket_request_write(struct gnl_socket_request *request, char **dest);
+extern int gnl_socket_request_write(struct gnl_socket_request *request, char **dest);
 
 #endif //GNL_SOCKET_REQUEST_H
