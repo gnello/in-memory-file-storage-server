@@ -5,9 +5,9 @@
 #include <errno.h>
 #include <libgen.h>
 #include <gnl_queue_t.h>
-#include <gnl_macro_beg.h>
 #include "../include/gnl_opt_handler.h"
 #include "./gnl_opt_arg.c"
+#include <gnl_macro_beg.h>
 
 #define GNL_SHORT_OPTS ":hf:w:W:D:r:R::d:t:l:u:c:p"
 
@@ -186,26 +186,13 @@ int gnl_opt_handler_handle(struct gnl_opt_handler *handler) {
 
     struct gnl_opt_handler_el *el;
     struct gnl_opt_handler_el previous_el;
-    char *ptr = NULL;
 
     while ((el = (struct gnl_opt_handler_el *)gnl_queue_dequeue(handler->command_queue)) != NULL) {
 
         switch (el->opt) {
             // update the requests delay
             case 't':
-                opt_t_value = strtol(el->arg, &ptr, 10);
-
-                // if no digits found
-                if ((char *)el->arg == ptr) {
-                    errno = EINVAL;
-
-                    return -1;
-                }
-
-                // if there was an error
-                if (errno != 0) {
-                    return -1;
-                }
+                GNL_TO_INT(opt_t_value, el->arg, -1)
 
                 free(el);
                 // process next command immediately
@@ -213,13 +200,11 @@ int gnl_opt_handler_handle(struct gnl_opt_handler *handler) {
                 /* NOT REACHED */
                 break;
 
-            case 'w': printf("char: %c\n", el->opt);
+            case 'w':
                 res = arg_w(el->arg);
                 GNL_MINUS1_CHECK(res, errno, -1);
                 break;
         }
-
-        printf("command: %c %s\n", el->opt, (char *)el->arg);
 
         //previous_el = el;
         free(el);

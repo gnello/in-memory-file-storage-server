@@ -1,13 +1,23 @@
 #include <stdio.h>
-#include <linux/time.h>
+#include <string.h>
 #include <time.h>
 #include <gnl_fss_api.h>
+#include <gnl_queue_t.h>
 #include <gnl_print_table.h>
+#include "./gnl_opt_rts.c"
+#include <gnl_macro_beg.h>
 
 #define SOCKET_TRY_EVERY_MILLISECONDS 1000
 #define SOCKET_WAIT_SEC 5
 
-static int arg_h(const char* program_name) { //7
+extern char *strtok_r(char *, const char *, char **);
+
+/**
+ * Print help message.
+ *
+ * @param program_name  The name of the program.
+ */
+static void arg_h(const char* program_name) { //7
     printf("Usage: %s [options]\n", program_name);
     printf("Write and read files to and from the In Memory Storage Server.\n");
     printf("Example: %s -f /tmp/fss.sk -r file1 -d /dev/null -w ./mydir\n", program_name);
@@ -47,8 +57,6 @@ static int arg_h(const char* program_name) { //7
 
     gnl_print_table("-c FILE1[,FILE2...]", "Remove FILE/s from the Server.\n");
     gnl_print_table("-p", "Print the log of the requests made to the server.\n");
-
-    return 0;
 }
 
 /**
@@ -80,6 +88,44 @@ static int arg_f_end(const char* socket_name) { //3
 }
 
 /**
+ * Parse argument of -w opt from format dirname[,n=0].
+ *
+ * @param arg       The argument to parse.
+ * @param dirname   The destination where to write the parsed dirname.
+ * @param n         The destination where to write the parsed n.
+ *
+ * @return      Returns 0 on success, -1 otherwise.
+ */
+static int arg_w_parse_arg(const char* arg, char **dirname, int *n) {
+    char *tok;
+    char *copy_arg;
+    char *tmp;
+    char *string_n;
+
+    GNL_CALLOC(copy_arg, strlen(arg) + 1, -1);
+    strcpy(copy_arg, arg);
+
+    // parse dirname
+    tmp = strtok_r(copy_arg, ",", &tok);
+
+    GNL_CALLOC(*dirname, strlen(tmp) + 1, -1);
+    strcpy(*dirname, tmp);
+
+    // parse n
+    string_n = strtok_r(NULL, ",", &tok);
+
+    if (string_n != NULL) {
+        GNL_TO_INT(*n, string_n, -1)
+    } else {
+        *n = 0;
+    }
+
+    free(copy_arg);
+
+    return 0;
+}
+
+/**
  * Send recursively n files present in the given dirname
  * to the server.
  *
@@ -93,9 +139,30 @@ static int arg_f_end(const char* socket_name) { //3
  */
 static int arg_w(const char* arg) { //11
     int res;
+    char *dirname;
+    int n;
+    struct gnl_queue_t *queue;
+    char *filename;
 
-    res = gnl_fss_api_open_file("ciao.txt", O_CREATE | O_LOCK);
-    GNL_MINUS1_CHECK(res, errno, -1);
+    // parse arg
+    arg_w_parse_arg(arg, &dirname, &n);
+
+    // sending n files
+    queue = gnl_opt_rts_scan_dir(dirname, n);
+
+    while ((filename = (char *)gnl_queue_dequeue(queue)) != NULL) {
+        res = gnl_fss_api_open_file(filename, O_CREATE & O_LOCK);
+        GNL_MINUS1_CHECK(res, errno, -1);
+
+        // send file
+        char *store_dirname; //TODO: capire come far arrivare qui la cartella dove salvare i files espulsi dal server
+        res = gnl_fss_api_write_file(filename, store_dirname);
+        GNL_MINUS1_CHECK(res, errno, -1);
+
+        free(filename);
+    }
+
+    free(dirname);
 
     return 0;
 }
@@ -142,3 +209,5 @@ static int arg_w(const char* arg) { //11
 
 #undef SOCKET_TRY_EVERY_MILLISECONDS
 #undef SOCKET_WAIT_SEC
+
+#include <gnl_macro_end.h>
