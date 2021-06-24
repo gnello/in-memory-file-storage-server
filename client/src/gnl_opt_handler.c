@@ -212,6 +212,11 @@ int gnl_opt_handler_handle(struct gnl_opt_handler *handler) {
                 continue;
                 /* NOT REACHED */
                 break;
+
+            case 'w': printf("char: %c\n", el->opt);
+                res = arg_w(el->arg);
+                GNL_MINUS1_CHECK(res, errno, -1);
+                break;
         }
 
         printf("command: %c %s\n", el->opt, (char *)el->arg);

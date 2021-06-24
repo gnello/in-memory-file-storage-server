@@ -79,11 +79,27 @@ static int arg_f_end(const char* socket_name) { //3
     return gnl_fss_api_close_connection(socket_name);
 }
 
-//
-//static int arg_w(const char* param) { //11
-//    return 0;
-//}
-//
+/**
+ * Send recursively n files present in the given dirname
+ * to the server.
+ *
+ * @param arg   The arg is in the format: dirname[,n=0]. The dirname
+ *              is the root where to grab the files. If provided, n is
+ *              the number of files to send to the server, if n=0 all
+ *              the files present into dirname and in its sub-folders
+ *              will be sent to the server.
+ *
+ * @return      Returns 0 on success, -1 otherwise.
+ */
+static int arg_w(const char* arg) { //11
+    int res;
+
+    res = gnl_fss_api_open_file("ciao.txt", O_CREATE | O_LOCK);
+    GNL_MINUS1_CHECK(res, errno, -1);
+
+    return 0;
+}
+
 //static int arg_W(const char* param) { //10
 //    return 0;
 //}

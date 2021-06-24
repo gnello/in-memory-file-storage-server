@@ -47,8 +47,13 @@ int gnl_fss_api_close_connection(const char *sockname) {
 }
 
 int gnl_fss_api_open_file(const char *pathname, int flags) {
-    //TODO: check params
+    if (pathname == NULL) {
+        errno = EINVAL;
 
+        return -1;
+    }
+
+    // create request
     struct gnl_socket_request *request = gnl_socket_request_init(GNL_SOCKET_REQUEST_OPEN, 2, pathname, flags);
     GNL_NULL_CHECK(request, ENOMEM, -1)
 
@@ -58,9 +63,9 @@ int gnl_fss_api_open_file(const char *pathname, int flags) {
     GNL_MINUS1_CHECK(res, EINVAL, -1)
 
     res = gnl_socket_service_emit(message);
-    if (res == -1) {
-        return -1;
-    }
+    GNL_MINUS1_CHECK(res, errno, -1)
+
+
 
     gnl_socket_request_destroy(request);
     free(message);

@@ -6,6 +6,7 @@
 #include <errno.h>
 #include <sys/select.h>
 #include <gnl_logger.h>
+#include <gnl_socket_request.h>
 #include <gnl_macro_beg.h>
 
 #define N 100
@@ -119,6 +120,9 @@ int gnl_fss_server_start(gnl_fss_config *config) {
 
                 } else { // if there is an I/O request...
 
+                    // clear the buffer
+                    memset(buf, 0, N);
+
                     // read data
                     nread = read(fd, buf, N);
                     GNL_MINUS1_CHECK(nread, errno, -1)
@@ -140,6 +144,24 @@ int gnl_fss_server_start(gnl_fss_config *config) {
                         gnl_logger_debug(logger, "client %d gone away, closed connection", fd_c);
                     } else {
                         // do something with the buffer...
+                        gnl_logger_debug(logger, "client %d sent a message, decoding request...", fd_c);
+
+                        // decode request
+                        struct gnl_socket_request *request;
+                        request = gnl_socket_request_read(buf);
+
+                        if (request == NULL) {
+                            gnl_logger_error(logger, "Invalid request of client %d: %s", fd_c, strerror(errno));
+
+                            // resume loop
+                            continue;
+                        }
+
+                        char *request_type;
+                        res = gnl_socket_request_to_string(request, &request_type);
+                        GNL_MINUS1_CHECK(res, errno, -1)
+
+                        gnl_logger_debug(logger, "client %d sent a request: %s", fd_c, request_type);
                     }
                 }
             }

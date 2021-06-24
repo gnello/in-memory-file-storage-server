@@ -107,5 +107,7 @@ int main() {
     gnl_assert(can_not_close, "can not close a connection to a socket.");
     gnl_assert(can_close, "can close a connection to a socket.");
 
+    // gnl_fss_api_open_file
+
     printf("\n");
 }
