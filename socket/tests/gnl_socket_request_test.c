@@ -189,6 +189,26 @@
     return 0;                                                                                               \
 }
 
+#define GNL_TEST_TO_STRING(type, expected) {                                    \
+    char *dest;                                                                 \
+    struct gnl_socket_request *request = gnl_socket_request_init((type), 0);    \
+                                                                                \
+    int res = gnl_socket_request_to_string(request, &dest);                     \
+    if (res != 0) {                                                             \
+        return -1;                                                              \
+    }                                                                           \
+                                                                                \
+    if (strcmp(dest, (expected)) != 0) {                                        \
+        res = -1;                                                               \
+    }                                                                           \
+                                                                                \
+    res = 0;                                                                    \
+                                                                                \
+    free(dest);                                                                 \
+                                                                                \
+    return res;                                                                 \
+}
+
 int can_init_empty_open() {
     struct gnl_socket_request *request = gnl_socket_request_init(GNL_SOCKET_REQUEST_OPEN, 0);
 
@@ -470,7 +490,7 @@ int can_write_remove() {
 
 int can_not_write_empty_request() {
     char *dest;
-    gnl_socket_request *request = NULL;
+    struct gnl_socket_request *request = NULL;
 
     int res = gnl_socket_request_write(request, &dest);
 
@@ -500,6 +520,38 @@ int can_not_write_not_empty_dest() {
     }
 
     return 0;
+}
+
+int can_to_string_open() {
+    GNL_TEST_TO_STRING(GNL_SOCKET_REQUEST_OPEN, "OPEN");
+}
+
+int can_to_string_read() {
+    GNL_TEST_TO_STRING(GNL_SOCKET_REQUEST_READ, "READ");
+}
+
+int can_to_string_read_N() {
+    GNL_TEST_TO_STRING(GNL_SOCKET_REQUEST_READ_N, "READ_N");
+}
+
+int can_to_string_write() {
+    GNL_TEST_TO_STRING(GNL_SOCKET_REQUEST_WRITE, "WRITE");
+}
+
+int can_to_string_lock() {
+    GNL_TEST_TO_STRING(GNL_SOCKET_REQUEST_LOCK, "LOCK");
+}
+
+int can_to_string_unlock() {
+    GNL_TEST_TO_STRING(GNL_SOCKET_REQUEST_UNLOCK, "UNLOCK");
+}
+
+int can_to_string_close() {
+    GNL_TEST_TO_STRING(GNL_SOCKET_REQUEST_CLOSE, "CLOSE");
+}
+
+int can_to_string_remove() {
+    GNL_TEST_TO_STRING(GNL_SOCKET_REQUEST_REMOVE, "REMOVE");
 }
 
 int main() {
@@ -547,6 +599,15 @@ int main() {
 
     gnl_assert(can_not_write_empty_request, "can not write an empty request");
     gnl_assert(can_not_write_not_empty_dest, "can not write into a not empty destination");
+
+    gnl_assert(can_to_string_open, "can format to string a GNL_SOCKET_REQUEST_OPEN request type");
+    gnl_assert(can_to_string_read, "can format to string a GNL_SOCKET_REQUEST_READ request type");
+    gnl_assert(can_to_string_read_N, "can format to string a GNL_SOCKET_REQUEST_READ_N request type");
+    gnl_assert(can_to_string_write, "can format to string a GNL_SOCKET_REQUEST_WRITE request type");
+    gnl_assert(can_to_string_lock, "can format to string a GNL_SOCKET_REQUEST_LOCK request type");
+    gnl_assert(can_to_string_unlock, "can format to string a GNL_SOCKET_REQUEST_UNLOCK request type");
+    gnl_assert(can_to_string_close, "can format to string a GNL_SOCKET_REQUEST_CLOSE request type");
+    gnl_assert(can_to_string_remove, "can format to string a GNL_SOCKET_REQUEST_REMOVE request type");
 
     // the gnl_socket_request_destroy method is implicitly tested in every
     // assert, if you don't believe it, run this tests with

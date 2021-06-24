@@ -61,21 +61,6 @@
     gnl_socket_request_sb_read(payload_message, ref);      \
 }
 
-struct gnl_socket_request {
-    enum gnl_socket_request_type type;
-    union {
-        struct gnl_socket_request_sn *open;
-        struct gnl_socket_request_s *read;
-        struct gnl_socket_request_n *read_N;
-        struct gnl_socket_request_sb *write;
-        struct gnl_socket_request_sb *append;
-        struct gnl_socket_request_s *lock;
-        struct gnl_socket_request_s *unlock;
-        struct gnl_socket_request_s *close;
-        struct gnl_socket_request_s *remove;
-    } payload;
-};
-
 /**
  * Calculate the size of the request.
  *
@@ -109,6 +94,57 @@ static int encode(const char *message, char **dest, enum gnl_socket_request_type
     return 0;
 }
 
+int gnl_socket_request_to_string(struct gnl_socket_request *request, char **dest) {
+    switch (request->type) {
+        case GNL_SOCKET_REQUEST_OPEN:
+            GNL_CALLOC(*dest, 5, -1);
+            strcpy(*dest, "OPEN");
+            break;
+
+        case GNL_SOCKET_REQUEST_READ_N:
+            GNL_CALLOC(*dest, 7, -1);
+            strcpy(*dest, "READ_N");
+            break;
+
+        case GNL_SOCKET_REQUEST_READ:
+            GNL_CALLOC(*dest, 5, -1);
+            strcpy(*dest, "READ");
+            break;
+
+        case GNL_SOCKET_REQUEST_WRITE:
+            GNL_CALLOC(*dest, 6, -1);
+            strcpy(*dest, "WRITE");
+            break;
+
+        case GNL_SOCKET_REQUEST_APPEND:
+            GNL_CALLOC(*dest, 7, -1);
+            strcpy(*dest, "APPEND");
+            break;
+
+        case GNL_SOCKET_REQUEST_LOCK:
+            GNL_CALLOC(*dest, 5, -1);
+            strcpy(*dest, "LOCK");
+            break;
+
+        case GNL_SOCKET_REQUEST_UNLOCK:
+            GNL_CALLOC(*dest, 7, -1);
+            strcpy(*dest, "UNLOCK");
+            break;
+
+        case GNL_SOCKET_REQUEST_CLOSE:
+            GNL_CALLOC(*dest, 6, -1);
+            strcpy(*dest, "CLOSE");
+            break;
+
+        case GNL_SOCKET_REQUEST_REMOVE:
+            GNL_CALLOC(*dest, 6, -1);
+            strcpy(*dest, "REMOVE");
+            break;
+    }
+
+    return 0;
+}
+
 /**
  * Decode the given socket message.
  *
@@ -134,8 +170,8 @@ static int decode(const char *message, char **dest, enum gnl_socket_request_type
     return 0;
 }
 
-gnl_socket_request *gnl_socket_request_init(enum gnl_socket_request_type type, int num, ...) {
-    gnl_socket_request *socket_request = (gnl_socket_request *)malloc(sizeof(gnl_socket_request));
+struct gnl_socket_request *gnl_socket_request_init(enum gnl_socket_request_type type, int num, ...) {
+    struct gnl_socket_request *socket_request = (struct gnl_socket_request *)malloc(sizeof(struct gnl_socket_request));
     GNL_NULL_CHECK(socket_request, ENOMEM, NULL)
 
     // initialize valist for num number of arguments
@@ -225,7 +261,7 @@ gnl_socket_request *gnl_socket_request_init(enum gnl_socket_request_type type, i
     return socket_request;
 }
 
-void gnl_socket_request_destroy(gnl_socket_request *request) {
+void gnl_socket_request_destroy(struct gnl_socket_request *request) {
     switch (request->type) {
         case GNL_SOCKET_REQUEST_OPEN:
             gnl_socket_request_sn_destroy(request->payload.open);
@@ -267,8 +303,8 @@ void gnl_socket_request_destroy(gnl_socket_request *request) {
     free(request);
 }
 
-gnl_socket_request *gnl_socket_request_read(const char *message) {
-    gnl_socket_request *socket_request;
+struct gnl_socket_request *gnl_socket_request_read(const char *message) {
+    struct gnl_socket_request *socket_request;
 
     char *payload_message;
     enum gnl_socket_request_type type;
@@ -330,7 +366,7 @@ gnl_socket_request *gnl_socket_request_read(const char *message) {
     return socket_request;
 }
 
-int gnl_socket_request_write(gnl_socket_request *request, char **dest) {
+int gnl_socket_request_write(struct gnl_socket_request *request, char **dest) {
     GNL_NULL_CHECK(request, EINVAL, -1)
 
     // the destination must be empty

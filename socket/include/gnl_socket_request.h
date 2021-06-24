@@ -20,7 +20,20 @@ enum gnl_socket_request_type {
 /**
  * The socket request.
  */
-typedef struct gnl_socket_request gnl_socket_request;
+struct gnl_socket_request {
+    enum gnl_socket_request_type type;
+    union {
+        struct gnl_socket_request_sn *open;
+        struct gnl_socket_request_s *read;
+        struct gnl_socket_request_n *read_N;
+        struct gnl_socket_request_sb *write;
+        struct gnl_socket_request_sb *append;
+        struct gnl_socket_request_s *lock;
+        struct gnl_socket_request_s *unlock;
+        struct gnl_socket_request_s *close;
+        struct gnl_socket_request_s *remove;
+    } payload;
+};
 
 /**
  * Create a socket request struct with the given type and arguments.
@@ -41,14 +54,25 @@ typedef struct gnl_socket_request gnl_socket_request;
  * @return      Returns a gnl_socket_request struct on success,
  *              NULL otherwise.
  */
-gnl_socket_request *gnl_socket_request_init(enum gnl_socket_request_type type, int num, ...);
+struct gnl_socket_request *gnl_socket_request_init(enum gnl_socket_request_type type, int num, ...);
 
 /**
  * Destroy the socket request.
  *
  * @param request   The socket_request to destroy.
  */
-void gnl_socket_request_destroy(gnl_socket_request *request);
+void gnl_socket_request_destroy(struct gnl_socket_request *request);
+
+/**
+ * Format to string the given request. The output string dest will be
+ * written with the string type of the given request.
+ *
+ * @param request   The request to format to string.
+ * @param dest      The destination where to write the string request.
+ *
+ * @return          Returns 0 on success, -1 otherwise.
+ */
+int gnl_socket_request_to_string(struct gnl_socket_request *request, char **dest);
 
 /**
  * Decode the given socket request.
@@ -58,7 +82,7 @@ void gnl_socket_request_destroy(gnl_socket_request *request);
  * @return          Returns a gnl_socket_request struct on success,
  *                  NULL otherwise.
  */
-gnl_socket_request *gnl_socket_request_read(const char *request);
+struct gnl_socket_request *gnl_socket_request_read(const char *request);
 
 /**
  * Encode the given socket request.
@@ -69,6 +93,6 @@ gnl_socket_request *gnl_socket_request_read(const char *request);
  *
  * @return          Returns 0 on success, -1 otherwise.
  */
-int gnl_socket_request_write(gnl_socket_request *request, char **dest);
+int gnl_socket_request_write(struct gnl_socket_request *request, char **dest);
 
 #endif //GNL_SOCKET_REQUEST_H
