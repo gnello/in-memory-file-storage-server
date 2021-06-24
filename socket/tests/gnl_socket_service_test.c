@@ -36,12 +36,23 @@
     }                                       \
 }
 
+static void gnl_socket_service_reset() {
+    // deactivate flag
+    socket_service_connection.flag = 0;
+
+    // reset struct
+    socket_service_connection.fd = 0;
+    free(socket_service_connection.socket_name);
+}
+
 int can_not_connect_to_socket() {
     gnl_socket_service_connect("nonexistent_socket");
 
     if (errno != ENOENT) {
         return -1;
     }
+
+    gnl_socket_service_reset();
 
     return 0;
 }
@@ -57,6 +68,8 @@ int can_connect_to_socket() {
 
     res = gnl_socket_service_close(SOCKET_NAME);
     GNL_MINUS1_CHECK(res, errno, -1)
+
+    free(buffer);
 
     return 0;
 }
@@ -77,6 +90,8 @@ int can_not_connect_twice() {
 
     res = gnl_socket_service_close(SOCKET_NAME);
     GNL_MINUS1_CHECK(res, errno, -1)
+
+    free(buffer);
 
     return 0;
 }
@@ -102,6 +117,8 @@ int can_not_close_any_connection() {
 
     res = gnl_socket_service_close(SOCKET_NAME);
     GNL_MINUS1_CHECK(res, errno, -1)
+
+    free(buffer);
 
     return 0;
 }
@@ -144,6 +161,8 @@ int can_emit() {
     res = gnl_socket_service_close(SOCKET_NAME);
     GNL_MINUS1_CHECK(res, errno, -1)
 
+    free(buffer);
+
     return 0;
 }
 
@@ -158,6 +177,8 @@ int can_not_emit() {
     if (res >= 0) {
         return -1;
     }
+
+    free(buffer);
 
     return 0;
 }
@@ -174,14 +195,21 @@ int can_read() {
     res = gnl_socket_service_close(SOCKET_NAME);
     GNL_MINUS1_CHECK(res, errno, -1)
 
+    free(buffer);
+
     return 0;
 }
 
 int can_not_read() {
+    int res;
     char *buffer;
     ALLOCATE_BUFFER(buffer);
 
-    return !gnl_socket_service_read(&buffer, 256);
+    res = gnl_socket_service_read(&buffer, 256);
+
+    free(buffer);
+
+    return !res;
 }
 
 int main() {

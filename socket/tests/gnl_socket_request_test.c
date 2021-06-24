@@ -205,6 +205,7 @@
     res = 0;                                                                    \
                                                                                 \
     free(dest);                                                                 \
+    gnl_socket_request_destroy(request);                                        \
                                                                                 \
     return res;                                                                 \
 }
@@ -519,6 +520,8 @@ int can_not_write_not_empty_dest() {
         return -1;
     }
 
+    gnl_socket_request_destroy(request);
+
     return 0;
 }
 
@@ -620,3 +623,8 @@ int main() {
 #undef GNL_TEST_REQUEST_S_ARGS
 #undef GNL_TEST_REQUEST_S_READ
 #undef GNL_TEST_REQUEST_S_WRITE
+#undef GNL_TEST_EMPTY_REQUEST_SB
+#undef GNL_TEST_REQUEST_SB_ARGS
+#undef GNL_TEST_REQUEST_SB_READ
+#undef GNL_TEST_REQUEST_SB_WRITE
+#undef GNL_TEST_TO_STRING
