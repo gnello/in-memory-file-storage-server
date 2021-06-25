@@ -23,15 +23,15 @@ enum gnl_socket_request_type {
 struct gnl_socket_request {
     enum gnl_socket_request_type type;
     union {
-        struct gnl_socket_request_sn *open;
-        struct gnl_socket_request_s *read;
-        struct gnl_socket_request_n *read_N;
-        struct gnl_socket_request_sb *write;
-        struct gnl_socket_request_sb *append;
-        struct gnl_socket_request_s *lock;
-        struct gnl_socket_request_s *unlock;
-        struct gnl_socket_request_s *close;
-        struct gnl_socket_request_s *remove;
+        struct gnl_socket_message_sn *open;
+        struct gnl_socket_message_s *read;
+        struct gnl_socket_message_n *read_N;
+        struct gnl_socket_message_sb *write;
+        struct gnl_socket_message_sb *append;
+        struct gnl_socket_message_s *lock;
+        struct gnl_socket_message_s *unlock;
+        struct gnl_socket_message_s *close;
+        struct gnl_socket_message_s *remove;
     } payload;
 };
 
