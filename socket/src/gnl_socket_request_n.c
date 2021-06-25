@@ -115,7 +115,6 @@ int gnl_socket_request_n_read(const char *message, struct gnl_socket_request_n *
     return 0;
 }
 
-#undef N_LENGTH
 #undef MAX_DIGITS_INT
 #undef MAX_DIGITS_CHAR
 

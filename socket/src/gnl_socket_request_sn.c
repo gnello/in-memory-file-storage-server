@@ -133,7 +133,6 @@ int gnl_socket_request_sn_read(const char *message, struct gnl_socket_request_sn
     return 0;
 }
 
-#undef N_LENGTH
 #undef MAX_DIGITS_INT
 #undef MAX_DIGITS_CHAR
 
