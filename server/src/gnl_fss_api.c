@@ -2,6 +2,7 @@
 #include <linux/time.h>
 #include <time.h>
 #include <errno.h>
+#include <string.h>
 #include <gnl_socket_request.h>
 #include <gnl_socket_response.h>
 #include <gnl_socket_service.h>
@@ -10,6 +11,8 @@
 
 int nanosleep(const struct timespec *req, struct timespec *rem);
 
+static struct gnl_socket_service_connection socket_service_connection;
+
 int gnl_fss_api_open_connection(const char *sockname, int msec, const struct timespec abstime) {
     if (sockname == NULL || msec <= 0) {
         errno = EINVAL;
@@ -17,8 +20,16 @@ int gnl_fss_api_open_connection(const char *sockname, int msec, const struct tim
         return -1;
     }
 
+    // maintain only 1 connection active to the server
+    if (gnl_socket_service_is_active(&socket_service_connection)) {
+        errno = EINVAL;
+
+        return -1;
+    }
+
     // try to connect to the given socket name
-    while (gnl_socket_service_connect(sockname) == -1) {
+    struct gnl_socket_service_connection *tmp;
+    while ((tmp = gnl_socket_service_connect(sockname)) == NULL) {
         if (errno != ENOENT) {
             return -1;
         }
@@ -40,11 +51,28 @@ int gnl_fss_api_open_connection(const char *sockname, int msec, const struct tim
         nanosleep(&tim, NULL);
     }
 
+    socket_service_connection = *tmp;
+    free(tmp);
+
     return 0;
 }
 
 int gnl_fss_api_close_connection(const char *sockname) {
-    return gnl_socket_service_close(sockname);
+    if (!gnl_socket_service_is_active(&socket_service_connection)
+    || socket_service_connection.socket_name == NULL
+    || strcmp(socket_service_connection.socket_name, sockname) != 0) {
+        errno = EINVAL;
+
+        return -1;
+    }
+
+    int res = gnl_socket_service_close(&socket_service_connection);
+    if (res == 0) {
+        free(socket_service_connection.socket_name);
+        socket_service_connection.socket_name = NULL;
+    }
+
+    return res;
 }
 
 int gnl_fss_api_open_file(const char *pathname, int flags) {
@@ -64,7 +92,7 @@ int gnl_fss_api_open_file(const char *pathname, int flags) {
     GNL_MINUS1_CHECK(res, EINVAL, -1)
 
     // send the request
-    res = gnl_socket_service_emit(message);
+    res = gnl_socket_service_emit(&socket_service_connection, message);
     GNL_MINUS1_CHECK(res, errno, -1)
 
     // clean memory
@@ -74,7 +102,7 @@ int gnl_fss_api_open_file(const char *pathname, int flags) {
     // wait the response TODO: mettere size corretta
     GNL_CALLOC(message, 10, -1)
 
-    res = gnl_socket_service_read(&message, 10);
+    res = gnl_socket_service_read(&socket_service_connection, &message, 10);
     GNL_MINUS1_CHECK(res, errno, -1)
 
     // get the response
@@ -82,17 +110,17 @@ int gnl_fss_api_open_file(const char *pathname, int flags) {
 
     // check for errors
     if (response->type == GNL_SOCKET_RESPONSE_ERROR) {
-        switch (response->payload.error->number) {
-            
-        }
+//        switch (response->payload.error->number) {
+//
+//        }
 
         return -1;
     }
 
     // Check for evicted files
-    if (response->payload.open->number > 0) {
-        // handle evicted files
-    }
+//    if (response->payload.open->number > 0) {
+//        // handle evicted files
+//    }
 
     return 0;
 }

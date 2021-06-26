@@ -26,8 +26,13 @@ INCLUDE += -I$(DATA_STRUCTURES_PATH_INCLUDE)
 LIBS += -Wl,-rpath,$(HELPERS_PATH_LIB) -L$(HELPERS_PATH_LIB) -lgnl_colorshell -lgnl_assert -lgnl_txtenv
 INCLUDE += -I$(HELPERS_PATH_INCLUDE)
 
+# mocks library
+LIBS += -Wl,-rpath,./mocks -L./mocks
+LIBS += -lgnl_socket_service
+
 # socket library
-LIBS += -Wl,-rpath,./mocks -L./mocks -Wl,-rpath,$(SOCKET_PATH_LIB) -L$(SOCKET_PATH_LIB) -lgnl_socket_request -lgnl_socket_service
+LIBS += -Wl,-rpath,$(SOCKET_PATH_LIB) -L$(SOCKET_PATH_LIB)
+LIBS += -lgnl_socket_request -lgnl_socket_response
 INCLUDE += -I$(SOCKET_PATH_INCLUDE)
 
 TARGETS =	gnl_fss_config_test \

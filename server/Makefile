@@ -15,7 +15,7 @@ LIBS += -Wl,-rpath,$(ROOT)$(HELPERS_LIB) -L$(ROOT)$(HELPERS_LIB) -lgnl_txtenv -l
 INCLUDE += -I$(ROOT)$(HELPERS_INCLUDE)
 
 # socket library
-LIBS += -Wl,-rpath,$(ROOT)$(SOCKET_LIB) -L$(ROOT)$(SOCKET_LIB) -lgnl_socket_request -lgnl_socket_service
+LIBS += -Wl,-rpath,$(ROOT)$(SOCKET_LIB) -L$(ROOT)$(SOCKET_LIB) -lgnl_socket_request -lgnl_socket_response -lgnl_socket_service
 INCLUDE += -I$(ROOT)$(SOCKET_INCLUDE)
 
 INCLUDE += -I./include

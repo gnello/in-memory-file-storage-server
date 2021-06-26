@@ -3,6 +3,7 @@
 #include <gnl_assert.h>
 #include "../src/gnl_fss_api.c"
 #include "./mocks/gnl_socket_service.c"
+#include <gnl_macro_beg.h>
 
 #define SOCKET_NAME "./test.sk"
 
@@ -17,13 +18,20 @@ int can_not_connect() {
 }
 
 int can_connect() {
+    int res;
+
     mock_gnl_socket_service_set_connect_result(0);
+    mock_gnl_socket_service_set_close_connection_result(0);
 
     struct timespec tim;
     tim.tv_sec = 0;
     tim.tv_nsec = 1000000;
 
-    return gnl_fss_api_open_connection(SOCKET_NAME, 100, tim);
+    res = gnl_fss_api_open_connection(SOCKET_NAME, 100, tim);
+
+    gnl_fss_api_close_connection(SOCKET_NAME);
+
+    return res;
 }
 
 int can_not_accept_null_socket() {
@@ -88,6 +96,15 @@ int can_not_close() {
 }
 
 int can_close() {
+    mock_gnl_socket_service_set_connect_result(0);
+
+    struct timespec tim;
+    tim.tv_sec = 0;
+    tim.tv_nsec = 1000000;
+
+    int res = gnl_fss_api_open_connection(SOCKET_NAME, 100, tim);
+    GNL_MINUS1_CHECK(res, errno, -1)
+
     mock_gnl_socket_service_set_close_connection_result(0);
 
     return gnl_fss_api_close_connection(SOCKET_NAME);
@@ -111,3 +128,5 @@ int main() {
 
     printf("\n");
 }
+
+#include <gnl_macro_end.h>

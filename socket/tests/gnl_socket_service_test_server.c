@@ -44,15 +44,18 @@ int main() {
     }
 
 
-    printf("socket service test started...");
+    printf("socket service test started...\n");
+    fflush(stdout);
 
     // accept connection
     int fd_c;
+    char buf[N];
 
     while ((fd_c = accept(fd_skt, NULL, 0))) {
+        memset(buf, 0, N);
+
         write(fd_c, MESSAGE_CONNECTED, strlen(MESSAGE_CONNECTED) + 1);
 
-        char buf[N];
         while (read(fd_c, buf, N) != 0) {
             write(fd_c, buf, strlen(buf) + 1);
         }
