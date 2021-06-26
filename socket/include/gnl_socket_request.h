@@ -32,6 +32,7 @@ struct gnl_socket_request {
         struct gnl_socket_message_s *unlock;
         struct gnl_socket_message_s *close;
         struct gnl_socket_message_s *remove;
+        //TODO: aggiungere request per fetchare i file espulsi dal server
     } payload;
 };
 

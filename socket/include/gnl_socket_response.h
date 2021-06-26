@@ -16,6 +16,7 @@ enum gnl_socket_response_type {
     GNL_SOCKET_RESPONSE_CLOSE,
     GNL_SOCKET_RESPONSE_REMOVE,
     GNL_SOCKET_RESPONSE_ERROR
+    //TODO: aggiungere response per i file fetched
 };
 
 /**
@@ -24,16 +25,16 @@ enum gnl_socket_response_type {
 struct gnl_socket_response {
     enum gnl_socket_response_type type;
     union {
-        struct gnl_socket_message_sn *open;
-        struct gnl_socket_message_s *read;
-        struct gnl_socket_message_n *read_N;
-        struct gnl_socket_message_sb *write;
-        struct gnl_socket_message_sb *append;
-        struct gnl_socket_message_s *lock;
-        struct gnl_socket_message_s *unlock;
-        struct gnl_socket_message_s *close;
-        struct gnl_socket_message_s *remove;
-        struct gnl_socket_message_s *error;
+        struct gnl_socket_message_n *open;
+//        struct gnl_socket_message_s *read;
+//        struct gnl_socket_message_n *read_N;
+//        struct gnl_socket_message_sb *write;
+//        struct gnl_socket_message_sb *append;
+//        struct gnl_socket_message_s *lock;
+//        struct gnl_socket_message_s *unlock;
+//        struct gnl_socket_message_s *close;
+//        struct gnl_socket_message_s *remove;
+        struct gnl_socket_message_n *error;
     } payload;
 };
 
@@ -43,15 +44,8 @@ struct gnl_socket_response {
  * @param type  The type of the response.
  * @param num   The number of the subsequent params.
  * @param ...   The list of params supported by the given response type:
- *              - GNL_SOCKET_RESPONSE_OPEN: char *pathname, int flags
- *              - GNL_SOCKET_RESPONSE_READ: char *pathname
- *              - GNL_SOCKET_RESPONSE_READ_N: int number_of_files_to_read
- *              - GNL_SOCKET_RESPONSE_WRITE: char *pathname, char *bytes
- *              - GNL_SOCKET_RESPONSE_APPEND: char *pathname, char *bytes
- *              - GNL_SOCKET_RESPONSE_LOCK: char *pathname
- *              - GNL_SOCKET_RESPONSE_UNLOCK: char *pathname
- *              - GNL_SOCKET_RESPONSE_CLOSE: char *pathname
- *              - GNL_SOCKET_RESPONSE_REMOVE: char *pathname
+ *              - GNL_SOCKET_RESPONSE_OPEN: int number_of_files_evicted
+ *              - GNL_SOCKET_RESPONSE_ERROR: int error_code
  *
  * @return      Returns a gnl_socket_response struct on success,
  *              NULL otherwise.

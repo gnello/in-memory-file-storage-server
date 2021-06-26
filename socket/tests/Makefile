@@ -17,6 +17,7 @@ TARGETS =	gnl_socket_message_s_test \
 			gnl_socket_message_sn_test \
 			gnl_socket_message_sb_test \
 			gnl_socket_request_test \
+			gnl_socket_response_test \
 			gnl_socket_service_test
 
 .PHONY: all clean tests tests-valgrind

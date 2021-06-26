@@ -94,57 +94,6 @@ static int encode(const char *message, char **dest, enum gnl_socket_request_type
     return 0;
 }
 
-int gnl_socket_request_to_string(struct gnl_socket_request *request, char **dest) {
-    switch (request->type) {
-        case GNL_SOCKET_REQUEST_OPEN:
-            GNL_CALLOC(*dest, 5, -1);
-            strcpy(*dest, "OPEN");
-            break;
-
-        case GNL_SOCKET_REQUEST_READ_N:
-            GNL_CALLOC(*dest, 7, -1);
-            strcpy(*dest, "READ_N");
-            break;
-
-        case GNL_SOCKET_REQUEST_READ:
-            GNL_CALLOC(*dest, 5, -1);
-            strcpy(*dest, "READ");
-            break;
-
-        case GNL_SOCKET_REQUEST_WRITE:
-            GNL_CALLOC(*dest, 6, -1);
-            strcpy(*dest, "WRITE");
-            break;
-
-        case GNL_SOCKET_REQUEST_APPEND:
-            GNL_CALLOC(*dest, 7, -1);
-            strcpy(*dest, "APPEND");
-            break;
-
-        case GNL_SOCKET_REQUEST_LOCK:
-            GNL_CALLOC(*dest, 5, -1);
-            strcpy(*dest, "LOCK");
-            break;
-
-        case GNL_SOCKET_REQUEST_UNLOCK:
-            GNL_CALLOC(*dest, 7, -1);
-            strcpy(*dest, "UNLOCK");
-            break;
-
-        case GNL_SOCKET_REQUEST_CLOSE:
-            GNL_CALLOC(*dest, 6, -1);
-            strcpy(*dest, "CLOSE");
-            break;
-
-        case GNL_SOCKET_REQUEST_REMOVE:
-            GNL_CALLOC(*dest, 7, -1);
-            strcpy(*dest, "REMOVE");
-            break;
-    }
-
-    return 0;
-}
-
 /**
  * Decode the given socket message.
  *
@@ -161,11 +110,61 @@ static int decode(const char *message, char **dest, enum gnl_socket_request_type
     sscanf(message, "%"MAX_DIGITS_CHAR"d%"MAX_DIGITS_CHAR"lu", (int *)type, &message_len);
 
     // allocate memory
-    *dest = calloc(message_len + 1, sizeof(char));
-    GNL_NULL_CHECK(*dest, ENOMEM, -1)
+    GNL_CALLOC(*dest, message_len + 1, -1)
 
     // get the message
     strncpy(*dest, message + MAX_DIGITS_INT + MAX_DIGITS_INT, message_len);
+
+    return 0;
+}
+
+int gnl_socket_request_to_string(struct gnl_socket_request *request, char **dest) {
+    switch (request->type) {
+        case GNL_SOCKET_REQUEST_OPEN:
+        GNL_CALLOC(*dest, 5, -1);
+            strcpy(*dest, "OPEN");
+            break;
+
+        case GNL_SOCKET_REQUEST_READ_N:
+        GNL_CALLOC(*dest, 7, -1);
+            strcpy(*dest, "READ_N");
+            break;
+
+        case GNL_SOCKET_REQUEST_READ:
+        GNL_CALLOC(*dest, 5, -1);
+            strcpy(*dest, "READ");
+            break;
+
+        case GNL_SOCKET_REQUEST_WRITE:
+        GNL_CALLOC(*dest, 6, -1);
+            strcpy(*dest, "WRITE");
+            break;
+
+        case GNL_SOCKET_REQUEST_APPEND:
+        GNL_CALLOC(*dest, 7, -1);
+            strcpy(*dest, "APPEND");
+            break;
+
+        case GNL_SOCKET_REQUEST_LOCK:
+        GNL_CALLOC(*dest, 5, -1);
+            strcpy(*dest, "LOCK");
+            break;
+
+        case GNL_SOCKET_REQUEST_UNLOCK:
+        GNL_CALLOC(*dest, 7, -1);
+            strcpy(*dest, "UNLOCK");
+            break;
+
+        case GNL_SOCKET_REQUEST_CLOSE:
+        GNL_CALLOC(*dest, 6, -1);
+            strcpy(*dest, "CLOSE");
+            break;
+
+        case GNL_SOCKET_REQUEST_REMOVE:
+        GNL_CALLOC(*dest, 7, -1);
+            strcpy(*dest, "REMOVE");
+            break;
+    }
 
     return 0;
 }
