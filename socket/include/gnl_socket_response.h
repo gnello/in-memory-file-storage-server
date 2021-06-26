@@ -45,9 +45,9 @@ struct gnl_socket_response {
  * @param ...   The list of params supported by the given response type:
  *              - GNL_SOCKET_RESPONSE_OPEN: char *pathname, int flags
  *              - GNL_SOCKET_RESPONSE_READ: char *pathname
- *              - GNL_SOCKET_RESPONSE_READ_N: TODO
- *              - GNL_SOCKET_RESPONSE_WRITE: TODO
- *              - GNL_SOCKET_RESPONSE_APPEND: TODO
+ *              - GNL_SOCKET_RESPONSE_READ_N: int number_of_files_to_read
+ *              - GNL_SOCKET_RESPONSE_WRITE: char *pathname, char *bytes
+ *              - GNL_SOCKET_RESPONSE_APPEND: char *pathname, char *bytes
  *              - GNL_SOCKET_RESPONSE_LOCK: char *pathname
  *              - GNL_SOCKET_RESPONSE_UNLOCK: char *pathname
  *              - GNL_SOCKET_RESPONSE_CLOSE: char *pathname
