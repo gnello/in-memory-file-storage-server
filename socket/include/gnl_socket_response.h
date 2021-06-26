@@ -79,7 +79,7 @@ extern int gnl_socket_response_to_string(struct gnl_socket_response *response, c
 /**
  * Decode the given socket response.
  *
- * @param response   The socket response received from a socket message.
+ * @param response  The socket response received from a socket message.
  *
  * @return          Returns a gnl_socket_response struct on success,
  *                  NULL otherwise.
@@ -89,7 +89,7 @@ extern struct gnl_socket_response *gnl_socket_response_read(const char *response
 /**
  * Encode the given socket response.
  *
- * @param response   The socket_response to encode.
+ * @param response  The socket_response to encode.
  * @param dest      The destination where to write the encoded response,
  *                  his value must be initialized with NULL.
  *
