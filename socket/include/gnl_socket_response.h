@@ -69,7 +69,7 @@ extern void gnl_socket_response_destroy(struct gnl_socket_response *response);
  * Format to string the given response. The output string dest will be
  * written with the string type of the given response.
  *
- * @param response   The response to format to string.
+ * @param response  The response to format to string.
  * @param dest      The destination where to write the string response.
  *
  * @return          Returns 0 on success, -1 otherwise.
