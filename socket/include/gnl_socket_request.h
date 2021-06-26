@@ -18,7 +18,7 @@ enum gnl_socket_request_type {
 };
 
 /**
- * The socket request.
+ * The socket request. //TODO: nascondere tutto dentro.c e fornire interfaccia per accedere alla struct (gnl_socket_request_type, ecc)
  */
 struct gnl_socket_request {
     enum gnl_socket_request_type type;

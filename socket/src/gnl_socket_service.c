@@ -5,6 +5,7 @@
 #include <unistd.h>
 #include <errno.h>
 #include "../include/gnl_socket_service.h"
+#include "./gnl_socket_rts.c"
 #include <gnl_macro_beg.h>
 
 /**
