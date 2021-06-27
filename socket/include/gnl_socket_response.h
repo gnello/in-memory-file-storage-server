@@ -2,6 +2,8 @@
 #ifndef GNL_SOCKET_RESPONSE_H
 #define GNL_SOCKET_RESPONSE_H
 
+#include "./gnl_socket_service.h"
+
 /**
  * The possibles type of a socket response.
  */
@@ -100,5 +102,18 @@ extern int gnl_socket_response_write(struct gnl_socket_response *response, char 
  *                  -1 otherwise.
  */
 extern int gnl_socket_response_evicted(struct gnl_socket_response *response);
+
+/**
+ * Get the response from the given connection.
+ *
+ * @param connection    The socket service connection instance.
+ * @param on_message    The function for read from the server, is typically a
+ *                      function defined by a socket service.
+ *
+ * @return              Returns 0 on success, -1 otherwise.
+ */
+extern struct gnl_socket_response *gnl_socket_response_get(const struct gnl_socket_service_connection *connection,
+                                   int (*on_message)(const struct gnl_socket_service_connection *connection,
+                                           char **message, int size));
 
 #endif //GNL_SOCKET_RESPONSE_H

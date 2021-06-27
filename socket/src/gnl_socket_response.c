@@ -225,6 +225,21 @@ int gnl_socket_response_evicted(struct gnl_socket_response *response) {
     return res;
 }
 
+struct gnl_socket_response *gnl_socket_response_get(const struct gnl_socket_service_connection *connection,
+                                                    int (*on_message)(const struct gnl_socket_service_connection *connection,
+                                                                      char **message, int size)) {
+    char *message = NULL;
+    GNL_CALLOC(message, 10, NULL)
+
+    int res = on_message(connection, &message, 10);
+    GNL_MINUS1_CHECK(res, errno, NULL)
+
+    struct gnl_socket_response *response = gnl_socket_response_read(message);
+    GNL_NULL_CHECK(response, errno, NULL);
+
+    return response;
+}
+
 #undef MAX_DIGITS_CHAR
 #undef MAX_DIGITS_INT
 #include <gnl_macro_end.h>
