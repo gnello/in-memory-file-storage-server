@@ -433,6 +433,7 @@ int gnl_socket_request_write(const struct gnl_socket_request *request, char **de
     return 0;
 }
 
+//TODO: scrivere test
 int gnl_socket_request_send(const struct gnl_socket_request *request,
                             const struct gnl_socket_service_connection *connection,
                             int (*emit)(const struct gnl_socket_service_connection *connection, const char *message)) {

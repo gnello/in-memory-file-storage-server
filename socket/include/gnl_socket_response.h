@@ -28,14 +28,14 @@ struct gnl_socket_response {
     enum gnl_socket_response_type type;
     union {
         struct gnl_socket_message_n *open;
-//        struct gnl_socket_message_s *read;
-//        struct gnl_socket_message_n *read_N;
-//        struct gnl_socket_message_sb *write;
-//        struct gnl_socket_message_sb *append;
-//        struct gnl_socket_message_s *lock;
-//        struct gnl_socket_message_s *unlock;
-//        struct gnl_socket_message_s *close;
-//        struct gnl_socket_message_s *remove;
+        struct gnl_socket_message_b *read; //TODO: b o sb?
+//        struct gnl_socket_message_n *read_N; //TODO: n è il numero di file pronti per essere letti, ci vogliono n chiamate per prenderli tutti
+//        struct gnl_socket_message_n *write; //TODO: n è il numero di file evicted
+//        struct gnl_socket_message_n *append; //TODO: n è il numero di file evicted
+//        struct gnl_socket_message_s *lock; //TODO: risposta vuota, non implementare
+//        struct gnl_socket_message_s *unlock; //TODO: risposta vuota, non implementare
+//        struct gnl_socket_message_s *close; //TODO: risposta vuota, non implementare
+//        struct gnl_socket_message_s *remove; //TODO: risposta vuota, non implementare
         struct gnl_socket_message_n *error;
     } payload;
 };
@@ -102,6 +102,16 @@ extern int gnl_socket_response_write(struct gnl_socket_response *response, char 
  *                  -1 otherwise.
  */
 extern int gnl_socket_response_evicted(struct gnl_socket_response *response);
+
+/**
+ * Get the error code of the given response.
+ *
+ * @param response  The socket response,
+ *
+ * @return          Returns the response error code on success,
+ *                  -1 otherwise.
+ */
+extern int gnl_socket_response_error(struct gnl_socket_response *response);
 
 /**
  * Get the response from the given connection.

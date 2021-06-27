@@ -225,6 +225,20 @@ int gnl_socket_response_evicted(struct gnl_socket_response *response) {
     return res;
 }
 
+//TODO: aggiungere test dopo aver scritto la enum
+int gnl_socket_response_error(struct gnl_socket_response *response) {
+    GNL_NULL_CHECK(response, EINVAL, -1)
+
+    if (response->type == GNL_SOCKET_RESPONSE_ERROR) {
+        return response->payload.error->number;
+    }
+
+    errno = EINVAL;
+
+    return -1;
+}
+
+//TODO: scrivere test
 struct gnl_socket_response *gnl_socket_response_get(const struct gnl_socket_service_connection *connection,
                                                     int (*on_message)(const struct gnl_socket_service_connection *connection,
                                                                       char **message, int size)) {

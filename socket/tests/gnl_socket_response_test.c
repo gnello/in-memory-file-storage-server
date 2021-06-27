@@ -3,81 +3,97 @@
 #include <gnl_assert.h>
 #include "../src/gnl_socket_response.c"
 
+#define GNL_TEST_RESPONSE_N_INIT(response_type) { \
+    struct gnl_socket_response *response = gnl_socket_response_init(response_type, 0); \
+\
+    if (response == NULL) { \
+        return -1; \
+    } \
+\
+    if (response->type != response_type) { \
+        return -1; \
+    } \
+\
+    gnl_socket_response_destroy(response); \
+\
+    return 0; \
+}
+
+#define GNL_TEST_RESPONSE_N_ARGS(response_type, message_n) { \
+    struct gnl_socket_response *response = gnl_socket_response_init(response_type, 1, 2); \
+\
+    if (response == NULL) { \
+        return -1; \
+    } \
+\
+    if (response->type != response_type) { \
+        return -1; \
+    } \
+\
+    if (message_n->number != 2) { \
+        return -1; \
+    } \
+\
+    gnl_socket_response_destroy(response); \
+\
+    return 0; \
+}
+
+#define GNL_TEST_RESPONSE_N_READ(response_type, message_n, message) { \
+    struct gnl_socket_response *response; \
+\
+    response = gnl_socket_response_read(message); \
+    if (response == NULL) { \
+        return -1; \
+    } \
+\
+    if (response->type != response_type) { \
+        return -1; \
+    } \
+\
+    if (message_n->number != 3) { \
+        return -1; \
+    } \
+\
+    gnl_socket_response_destroy(response); \
+\
+    return 0; \
+}
+
+#define GNL_TEST_RESPONSE_N_WRITE(response_type, message) { \
+    struct gnl_socket_response *response = gnl_socket_response_init(response_type, 1, 3); \
+\
+    if (response == NULL) { \
+        return -1; \
+    } \
+\
+    char *actual = NULL; \
+    gnl_socket_response_write(response, &actual); \
+\
+    if (strcmp(message, actual) != 0) { \
+        return -1; \
+    } \
+\
+    gnl_socket_response_destroy(response); \
+    free(actual); \
+\
+    return 0; \
+}
+
 int can_init_empty_open() {
-    struct gnl_socket_response *response = gnl_socket_response_init(GNL_SOCKET_RESPONSE_OPEN, 0);
-
-    if (response == NULL) {
-        return -1;
-    }
-
-    if (response->type != GNL_SOCKET_RESPONSE_OPEN) {
-        return -1;
-    }
-
-    gnl_socket_response_destroy(response);
-
-    return 0;
+    GNL_TEST_RESPONSE_N_INIT(GNL_SOCKET_RESPONSE_OPEN);
 }
 
 int can_init_args_open() {
-    struct gnl_socket_response *response = gnl_socket_response_init(GNL_SOCKET_RESPONSE_OPEN, 1, 2);
-
-    if (response == NULL) {
-        return -1;
-    }
-
-    if (response->type != GNL_SOCKET_RESPONSE_OPEN) {
-        return -1;
-    }
-
-    if (response->payload.open->number != 2) {
-        return -1;
-    }
-
-    gnl_socket_response_destroy(response);
-
-    return 0;
+    GNL_TEST_RESPONSE_N_ARGS(GNL_SOCKET_RESPONSE_OPEN, response->payload.open);
 }
 
 int can_read_open() {
-    struct gnl_socket_response *response;
-
-    response = gnl_socket_response_read("000000000000000000100000000003");
-    if (response == NULL) {
-        return -1;
-    }
-
-    if (response->type != GNL_SOCKET_RESPONSE_OPEN) {
-        return -1;
-    }
-
-    if (response->payload.open->number != 3) {
-        return -1;
-    }
-
-    gnl_socket_response_destroy(response);
-
-    return 0;
+    GNL_TEST_RESPONSE_N_READ(GNL_SOCKET_RESPONSE_OPEN, response->payload.open, "000000000000000000100000000003")
 }
 
 int can_write_open() {
-    struct gnl_socket_response *response = gnl_socket_response_init(GNL_SOCKET_RESPONSE_OPEN, 1, 3);
-
-    if (response == NULL) {
-        return -1;
-    }
-
-    char *message = NULL;
-    gnl_socket_response_write(response, &message);
-
-    if (strcmp("000000000000000000100000000003", message) != 0) {
-        return -1;
-    }
-
-    gnl_socket_response_destroy(response);
-    free(message);
-
-    return 0;
+    GNL_TEST_RESPONSE_N_WRITE(GNL_SOCKET_RESPONSE_OPEN, "000000000000000000100000000003")
 }
 //
 //int can_init_empty_read_N() {
@@ -398,3 +414,8 @@ int main() {
 
     printf("\n");
 }
+
+#undef GNL_TEST_RESPONSE_N_INIT
+#undef GNL_TEST_RESPONSE_N_ARGS
+#undef GNL_TEST_RESPONSE_N_READ
+#undef GNL_TEST_RESPONSE_N_WRITE
