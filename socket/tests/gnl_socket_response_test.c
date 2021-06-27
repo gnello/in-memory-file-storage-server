@@ -39,8 +39,11 @@
     return 0; \
 }
 
-#define GNL_TEST_RESPONSE_N_READ(response_type, message_n, message) { \
-    struct gnl_socket_response *response; \
+#define GNL_TEST_RESPONSE_N_READ(response_type, message_n) { \
+    struct gnl_socket_response *response;                    \
+                                                             \
+    char message[31]; \
+    sprintf(message, "%0*d00000000100000000003", 10, response_type); \
 \
     response = gnl_socket_response_read(message); \
     if (response == NULL) { \
@@ -60,16 +63,22 @@
     return 0; \
 }
 
-#define GNL_TEST_RESPONSE_N_WRITE(response_type, message) { \
+#define GNL_TEST_RESPONSE_N_WRITE(response_type) { \
     struct gnl_socket_response *response = gnl_socket_response_init(response_type, 1, 3); \
+                                                   \
+    char message[31]; \
+    sprintf(message, "%0*d00000000100000000003", 10, response_type); \
 \
     if (response == NULL) { \
         return -1; \
     } \
 \
     char *actual = NULL; \
-    gnl_socket_response_write(response, &actual); \
-\
+    int res = gnl_socket_response_write(response, &actual);                               \
+    if (res == -1) {                               \
+        return -1;                                      \
+    }                                              \
+                                                   \
     if (strcmp(message, actual) != 0) { \
         return -1; \
     } \
@@ -89,89 +98,29 @@ int can_init_args_open() {
 }
 
 int can_read_open() {
-    GNL_TEST_RESPONSE_N_READ(GNL_SOCKET_RESPONSE_OPEN, response->payload.open, "000000000000000000100000000003")
+    GNL_TEST_RESPONSE_N_READ(GNL_SOCKET_RESPONSE_OPEN, response->payload.open)
 }
 
 int can_write_open() {
-    GNL_TEST_RESPONSE_N_WRITE(GNL_SOCKET_RESPONSE_OPEN, "000000000000000000100000000003")
+    GNL_TEST_RESPONSE_N_WRITE(GNL_SOCKET_RESPONSE_OPEN)
 }
-//
-//int can_init_empty_read_N() {
-//    struct gnl_socket_response *response = gnl_socket_response_init(GNL_SOCKET_RESPONSE_READ_N, 0);
-//
-//    if (response == NULL) {
-//        return -1;
-//    }
-//
-//    if (response->type != GNL_SOCKET_RESPONSE_READ_N) {
-//        return -1;
-//    }
-//
-//    gnl_socket_response_destroy(response);
-//
-//    return 0;
-//}
-//
-//int can_init_args_read_N() {
-//    struct gnl_socket_response *response = gnl_socket_response_init(GNL_SOCKET_RESPONSE_READ_N, 1, 15);
-//
-//    if (response == NULL) {
-//        return -1;
-//    }
-//
-//    if (response->type != GNL_SOCKET_RESPONSE_READ_N) {
-//        return -1;
-//    }
-//
-//    if (response->payload.read_N->number != 15) {
-//        return -1;
-//    }
-//
-//    gnl_socket_response_destroy(response);
-//
-//    return 0;
-//}
-//
-//int can_read_read_N() {
-//    struct gnl_socket_response *response;
-//
-//    response = gnl_socket_response_read("000000000200000000100000000015");
-//    if (response == NULL) {
-//        return -1;
-//    }
-//
-//    if (response->type != GNL_SOCKET_RESPONSE_READ_N) {
-//        return -1;
-//    }
-//
-//    if (response->payload.read_N->number != 15) {
-//        return -1;
-//    }
-//
-//    gnl_socket_response_destroy(response);
-//
-//    return 0;
-//}
-//
-//int can_write_read_N() {
-//    struct gnl_socket_response *response = gnl_socket_response_init(GNL_SOCKET_RESPONSE_READ_N, 1, 15);
-//
-//    if (response == NULL) {
-//        return -1;
-//    }
-//
-//    char *message = NULL;
-//    gnl_socket_response_write(response, &message);
-//
-//    if (strcmp("000000000200000000100000000015", message) != 0) {
-//        return -1;
-//    }
-//
-//    gnl_socket_response_destroy(response);
-//    free(message);
-//
-//    return 0;
-//}
+
+int can_init_empty_read_N() {
+    GNL_TEST_RESPONSE_N_INIT(GNL_SOCKET_RESPONSE_READ_N);
+}
+
+int can_init_args_read_N() {
+    GNL_TEST_RESPONSE_N_ARGS(GNL_SOCKET_RESPONSE_READ_N, response->payload.read_N);
+}
+
+int can_read_read_N() {
+    GNL_TEST_RESPONSE_N_READ(GNL_SOCKET_RESPONSE_READ_N, response->payload.read_N)
+}
+
+int can_write_read_N() {
+    GNL_TEST_RESPONSE_N_WRITE(GNL_SOCKET_RESPONSE_READ_N)
+}
+
 //
 //int can_init_empty_read() {
 //    GNL_TEST_EMPTY_RESPONSE_S(GNL_SOCKET_RESPONSE_READ, response->payload.read)
@@ -188,38 +137,38 @@ int can_write_open() {
 //int can_write_read() {
 //    GNL_TEST_RESPONSE_S_WRITE(GNL_SOCKET_RESPONSE_READ)
 //}
-//
-//int can_init_empty_write() {
-//    GNL_TEST_EMPTY_RESPONSE_SB(GNL_SOCKET_RESPONSE_WRITE, response->payload.write)
-//}
-//
-//int can_init_args_write() {
-//    GNL_TEST_RESPONSE_SB_ARGS(GNL_SOCKET_RESPONSE_WRITE, response->payload.write)
-//}
-//
-//int can_read_write() {
-//    GNL_TEST_RESPONSE_SB_READ(GNL_SOCKET_RESPONSE_WRITE, response->payload.write)
-//}
-//
-//int can_write_write() {
-//    GNL_TEST_RESPONSE_SB_WRITE(GNL_SOCKET_RESPONSE_WRITE)
-//}
-//
-//int can_init_empty_append() {
-//    GNL_TEST_EMPTY_RESPONSE_SB(GNL_SOCKET_RESPONSE_APPEND, response->payload.append)
-//}
-//
-//int can_init_args_append() {
-//    GNL_TEST_RESPONSE_SB_ARGS(GNL_SOCKET_RESPONSE_APPEND, response->payload.append)
-//}
-//
-//int can_read_append() {
-//    GNL_TEST_RESPONSE_SB_READ(GNL_SOCKET_RESPONSE_APPEND, response->payload.append)
-//}
-//
-//int can_write_append() {
-//    GNL_TEST_RESPONSE_SB_WRITE(GNL_SOCKET_RESPONSE_APPEND)
-//}
+
+int can_init_empty_write() {
+    GNL_TEST_RESPONSE_N_INIT(GNL_SOCKET_RESPONSE_WRITE)
+}
+
+int can_init_args_write() {
+    GNL_TEST_RESPONSE_N_ARGS(GNL_SOCKET_RESPONSE_WRITE, response->payload.write)
+}
+
+int can_read_write() {
+    GNL_TEST_RESPONSE_N_READ(GNL_SOCKET_RESPONSE_WRITE, response->payload.write)
+}
+
+int can_write_write() {
+    GNL_TEST_RESPONSE_N_WRITE(GNL_SOCKET_RESPONSE_WRITE)
+}
+
+int can_init_empty_append() {
+    GNL_TEST_RESPONSE_N_INIT(GNL_SOCKET_RESPONSE_APPEND)
+}
+
+int can_init_args_append() {
+    GNL_TEST_RESPONSE_N_ARGS(GNL_SOCKET_RESPONSE_APPEND, response->payload.append)
+}
+
+int can_read_append() {
+    GNL_TEST_RESPONSE_N_READ(GNL_SOCKET_RESPONSE_APPEND, response->payload.append)
+}
+
+int can_write_append() {
+    GNL_TEST_RESPONSE_N_WRITE(GNL_SOCKET_RESPONSE_APPEND)
+}
 //
 //int can_init_empty_lock() {
 //    GNL_TEST_EMPTY_RESPONSE_S(GNL_SOCKET_RESPONSE_LOCK, response->payload.lock)
@@ -360,21 +309,26 @@ int main() {
     gnl_assert(can_init_args_open, "can init a GNL_SOCKET_RESPONSE_OPEN response type with args.");
     gnl_assert(can_read_open, "can read a GNL_SOCKET_RESPONSE_OPEN response type message.");
     gnl_assert(can_write_open, "can write a GNL_SOCKET_RESPONSE_OPEN response type.");
-
+//
 //    gnl_assert(can_init_empty_read, "can init an empty GNL_SOCKET_RESPONSE_READ response type.");
 //    gnl_assert(can_init_args_read, "can init a GNL_SOCKET_RESPONSE_READ response type with args.");
 //    gnl_assert(can_read_read, "can read a GNL_SOCKET_RESPONSE_READ response type message.");
 //    gnl_assert(can_write_read, "can write a GNL_SOCKET_RESPONSE_READ response type.");
-//
-//    gnl_assert(can_init_empty_read_N, "can init an empty GNL_SOCKET_RESPONSE_READ_N response type.");
-//    gnl_assert(can_init_args_read_N, "can init a GNL_SOCKET_RESPONSE_READ_N response type with args.");
-//    gnl_assert(can_read_read_N, "can read a GNL_SOCKET_RESPONSE_READ_N response type message.");
-//    gnl_assert(can_write_read_N, "can write a GNL_SOCKET_RESPONSE_READ_N response type.");
-//
-//    gnl_assert(can_init_empty_write, "can init an empty GNL_SOCKET_RESPONSE_WRITE response type.");
-//    gnl_assert(can_init_args_write, "can init a GNL_SOCKET_RESPONSE_WRITE response type with args.");
-//    gnl_assert(can_read_write, "can read a GNL_SOCKET_RESPONSE_WRITE response type message.");
-//    gnl_assert(can_write_write, "can write a GNL_SOCKET_RESPONSE_WRITE response type.");
+
+    gnl_assert(can_init_empty_read_N, "can init an empty GNL_SOCKET_RESPONSE_READ_N response type.");
+    gnl_assert(can_init_args_read_N, "can init a GNL_SOCKET_RESPONSE_READ_N response type with args.");
+    gnl_assert(can_read_read_N, "can read a GNL_SOCKET_RESPONSE_READ_N response type message.");
+    gnl_assert(can_write_read_N, "can write a GNL_SOCKET_RESPONSE_READ_N response type.");
+
+    gnl_assert(can_init_empty_write, "can init an empty GNL_SOCKET_RESPONSE_WRITE response type.");
+    gnl_assert(can_init_args_write, "can init a GNL_SOCKET_RESPONSE_WRITE response type with args.");
+    gnl_assert(can_read_write, "can read a GNL_SOCKET_RESPONSE_WRITE response type message.");
+    gnl_assert(can_write_write, "can write a GNL_SOCKET_RESPONSE_WRITE response type.");
+
+    gnl_assert(can_init_empty_append, "can init an empty GNL_SOCKET_RESPONSE_APPEND response type.");
+    gnl_assert(can_init_args_append, "can init a GNL_SOCKET_RESPONSE_APPEND response type with args.");
+    gnl_assert(can_read_append, "can read a GNL_SOCKET_RESPONSE_APPEND response type message.");
+    gnl_assert(can_write_append, "can write a GNL_SOCKET_RESPONSE_APPEND response type.");
 //
 //    gnl_assert(can_init_empty_lock, "can init an empty GNL_SOCKET_RESPONSE_LOCK response type.");
 //    gnl_assert(can_init_args_lock, "can init a GNL_SOCKET_RESPONSE_LOCK response type with args.");

@@ -1,22 +1,6 @@
-//TODO: response_sb (status, body) STATUS(OK,KO), PAYLOAD/REASON(string) se ok si ferma altrimenti legge il body
-//TODO: response_s (status) STATUS(OK,KO)
-
-//TODO: open response_sb
-//TODO: read response_sb
-//TODO: read_N
-//TODO: write
-//TODO: append
-//TODO: lock response_sb
-//TODO: unlock response_sb
-//TODO: close response_sb
-//TODO: remove response_sb
-
-
-
 //TODO: gnl_socket_message_sl (string list) --> len_string + string + num of following elements + len_bytes + bytes + ...
-//TODO: capire come usare la read 2147479552bit max (268MB) quindi che si fa se la vittima è un file di 300MB?
 //TODO: e se invece nella risposta invio il numero di vittime così il client le puà chiedere? (message_sn)
-//TODO: gestire bene la max size, se un file supera ad es. 200MB dividere le richieste
+//TODO: gestire bene la max size, se un file supera ad es. 2000MB dividere le richieste
 //TODO: nel caso non le voglia allora si attacca
 
 #include <stdarg.h>
@@ -27,6 +11,21 @@
 #define MAX_DIGITS_CHAR "10"
 #define MAX_DIGITS_INT 10
 
+#define GNL_RESPONSE_N_INIT(num, ref, a_list) {                                                         \
+    switch (num) {                                                                                      \
+        case 0:                                                                                         \
+            ref = gnl_socket_message_n_init();                               \
+            break;                                                                                      \
+        case 1:                                                                                         \
+            ref = gnl_socket_message_n_init_with_args(va_arg(a_list, int));   \
+        break;                                                                                          \
+            default:                                                                                    \
+            errno = EINVAL;                                                                             \
+            return NULL;                                                                                \
+    }                                                                                                   \
+                                                                                                        \
+    GNL_NULL_CHECK(ref, ENOMEM, NULL)                                       \
+}
 
 /**
  * Calculate the size of the response.
@@ -103,19 +102,19 @@ struct gnl_socket_response *gnl_socket_response_init(enum gnl_socket_response_ty
     // assign payload object
     switch (type) {
         case GNL_SOCKET_RESPONSE_OPEN:
-            switch (num) {
-                case 0:
-                    socket_response->payload.open = gnl_socket_message_n_init();
-                    break;
-                case 1:
-                    socket_response->payload.open = gnl_socket_message_n_init_with_args(va_arg(a_list, int));
-                    break;
-                default:
-                    errno = EINVAL;
-                    return NULL;
-            }
+            GNL_RESPONSE_N_INIT(num, socket_response->payload.open, a_list)
+            break;
 
-            GNL_NULL_CHECK(socket_response->payload.open, ENOMEM, NULL)
+        case GNL_SOCKET_RESPONSE_READ_N:
+            GNL_RESPONSE_N_INIT(num, socket_response->payload.read_N, a_list)
+            break;
+
+        case GNL_SOCKET_RESPONSE_WRITE:
+            GNL_RESPONSE_N_INIT(num, socket_response->payload.write, a_list)
+            break;
+
+        case GNL_SOCKET_RESPONSE_APPEND:
+            GNL_RESPONSE_N_INIT(num, socket_response->payload.append, a_list)
             break;
 
         default:
@@ -136,6 +135,15 @@ void gnl_socket_response_destroy(struct gnl_socket_response *response) {
         case GNL_SOCKET_RESPONSE_OPEN:
             gnl_socket_message_n_destroy(response->payload.open);
             break;
+        case GNL_SOCKET_RESPONSE_READ_N:
+            gnl_socket_message_n_destroy(response->payload.read_N);
+            break;
+        case GNL_SOCKET_RESPONSE_WRITE:
+            gnl_socket_message_n_destroy(response->payload.write);
+            break;
+        case GNL_SOCKET_RESPONSE_APPEND:
+            gnl_socket_message_n_destroy(response->payload.append);
+            break;
     }
 
     free(response);
@@ -155,6 +163,27 @@ struct gnl_socket_response *gnl_socket_response_read(const char *message) {
             GNL_NULL_CHECK(socket_response, ENOMEM, NULL)
 
             gnl_socket_message_n_read(payload_message, socket_response->payload.open);
+            break;
+
+        case GNL_SOCKET_RESPONSE_READ_N:
+            socket_response = gnl_socket_response_init(GNL_SOCKET_RESPONSE_READ_N, 0);
+            GNL_NULL_CHECK(socket_response, ENOMEM, NULL)
+
+            gnl_socket_message_n_read(payload_message, socket_response->payload.read_N);
+            break;
+
+        case GNL_SOCKET_RESPONSE_WRITE:
+            socket_response = gnl_socket_response_init(GNL_SOCKET_RESPONSE_WRITE, 0);
+            GNL_NULL_CHECK(socket_response, ENOMEM, NULL)
+
+            gnl_socket_message_n_read(payload_message, socket_response->payload.write);
+            break;
+
+        case GNL_SOCKET_RESPONSE_APPEND:
+            socket_response = gnl_socket_response_init(GNL_SOCKET_RESPONSE_APPEND, 0);
+            GNL_NULL_CHECK(socket_response, ENOMEM, NULL)
+
+            gnl_socket_message_n_read(payload_message, socket_response->payload.append);
             break;
 
         default:
@@ -185,6 +214,18 @@ int gnl_socket_response_write(struct gnl_socket_response *response, char **dest)
     switch (response->type) {
         case GNL_SOCKET_RESPONSE_OPEN:
             res = gnl_socket_message_n_write(*(response->payload.open), &built_message);
+            break;
+
+        case GNL_SOCKET_RESPONSE_READ_N:
+            res = gnl_socket_message_n_write(*(response->payload.read_N), &built_message);
+            break;
+
+        case GNL_SOCKET_RESPONSE_WRITE:
+            res = gnl_socket_message_n_write(*(response->payload.write), &built_message);
+            break;
+
+        case GNL_SOCKET_RESPONSE_APPEND:
+            res = gnl_socket_message_n_write(*(response->payload.append), &built_message);
             break;
 
         default:

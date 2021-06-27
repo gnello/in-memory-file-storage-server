@@ -28,10 +28,10 @@ struct gnl_socket_response {
     enum gnl_socket_response_type type;
     union {
         struct gnl_socket_message_n *open;
-        struct gnl_socket_message_b *read; //TODO: b o sb?
-//        struct gnl_socket_message_n *read_N; //TODO: n è il numero di file pronti per essere letti, ci vogliono n chiamate per prenderli tutti
-//        struct gnl_socket_message_n *write; //TODO: n è il numero di file evicted
-//        struct gnl_socket_message_n *append; //TODO: n è il numero di file evicted
+//        struct gnl_socket_message_b *read; //TODO: b o sb?
+        struct gnl_socket_message_n *read_N; //TODO: n è il numero di file pronti per essere letti, ci vogliono n chiamate per prenderli tutti
+        struct gnl_socket_message_n *write; //TODO: n è il numero di file evicted
+        struct gnl_socket_message_n *append; //TODO: n è il numero di file evicted
 //        struct gnl_socket_message_s *lock; //TODO: risposta vuota, non implementare
 //        struct gnl_socket_message_s *unlock; //TODO: risposta vuota, non implementare
 //        struct gnl_socket_message_s *close; //TODO: risposta vuota, non implementare
