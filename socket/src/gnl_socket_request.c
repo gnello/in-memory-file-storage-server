@@ -433,6 +433,17 @@ int gnl_socket_request_write(const struct gnl_socket_request *request, char **de
     return 0;
 }
 
+int gnl_socket_request_send(const struct gnl_socket_request *request,
+                            const struct gnl_socket_service_connection *connection,
+                            int (*emit)(const struct gnl_socket_service_connection *connection, const char *message)) {
+    char *message = NULL;
+
+    int res = gnl_socket_request_write(request, &message);
+    GNL_MINUS1_CHECK(res, EINVAL, -1)
+
+    return emit(connection, message);
+}
+
 #undef MAX_DIGITS_CHAR
 #undef MAX_DIGITS_INT
 #undef GNL_REQUEST_S_INIT

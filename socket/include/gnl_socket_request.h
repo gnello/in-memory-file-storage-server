@@ -2,6 +2,8 @@
 #ifndef GNL_SOCKET_REQUEST_H
 #define GNL_SOCKET_REQUEST_H
 
+#include "./gnl_socket_service.h"
+
 /**
  * The possibles type of a socket request.
  */
@@ -18,7 +20,7 @@ enum gnl_socket_request_type {
 };
 
 /**
- * The socket request. //TODO: nascondere tutto dentro.c e fornire interfaccia per accedere alla struct (gnl_socket_request_type, ecc)
+ * The socket request.
  */
 struct gnl_socket_request {
     enum gnl_socket_request_type type;
@@ -88,12 +90,26 @@ extern struct gnl_socket_request *gnl_socket_request_read(const char *request);
 /**
  * Encode the given socket request.
  *
- * @param request   The socket_request to encode.
+ * @param request   The socket request to encode.
  * @param dest      The destination where to write the encoded request,
  *                  his value must be initialized with NULL.
  *
  * @return          Returns 0 on success, -1 otherwise.
  */
 extern int gnl_socket_request_write(const struct gnl_socket_request *request, char **dest);
+
+/**
+ * Send the given request to the given connection.
+ *
+ * @param request       The socket request to send to the server.
+ * @param connection    The socket service connection instance.
+ * @param emit          The function for emitting to the server, is typically a
+ *                      function defined by a socket service.
+ *
+ * @return              Returns 0 on success, -1 otherwise.
+ */
+extern int gnl_socket_request_send(const struct gnl_socket_request *request,
+        const struct gnl_socket_service_connection *connection,
+        int (*emit)(const struct gnl_socket_service_connection *connection, const char *message));
 
 #endif //GNL_SOCKET_REQUEST_H
