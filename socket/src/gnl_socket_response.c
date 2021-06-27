@@ -205,6 +205,26 @@ int gnl_socket_response_write(struct gnl_socket_response *response, char **dest)
     return 0;
 }
 
+int gnl_socket_response_evicted(struct gnl_socket_response *response) {
+    GNL_NULL_CHECK(response, EINVAL, -1)
+
+    int res;
+
+    switch (response->type) {
+        case GNL_SOCKET_RESPONSE_OPEN:
+            res = response->payload.open->number;
+            break;
+
+        default:
+            errno = EINVAL;
+            return -1;
+            /* UNREACHED */
+            break;
+    }
+
+    return res;
+}
+
 #undef MAX_DIGITS_CHAR
 #undef MAX_DIGITS_INT
 #include <gnl_macro_end.h>

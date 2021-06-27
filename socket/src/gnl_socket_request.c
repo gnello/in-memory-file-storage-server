@@ -365,7 +365,7 @@ struct gnl_socket_request *gnl_socket_request_read(const char *message) {
     return socket_request;
 }
 
-int gnl_socket_request_write(struct gnl_socket_request *request, char **dest) {
+int gnl_socket_request_write(const struct gnl_socket_request *request, char **dest) {
     GNL_NULL_CHECK(request, EINVAL, -1)
 
     // the destination must be empty

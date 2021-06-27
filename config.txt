@@ -9,6 +9,9 @@ CAPACITY=50
 # Maximum number of files stored by the File Storage Server.
 LIMIT=50
 
+# Maximum allowed size in bytes for a single file stored by the server.
+FILE_SIZE_LIMIT=2147483648
+
 # Storage replacement policy. Supported policies: 0-FIFO, 1-LRU, 2-LFU.
 REPLACEMENT_POLICY=0
 

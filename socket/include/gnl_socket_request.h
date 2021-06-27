@@ -94,6 +94,6 @@ extern struct gnl_socket_request *gnl_socket_request_read(const char *request);
  *
  * @return          Returns 0 on success, -1 otherwise.
  */
-extern int gnl_socket_request_write(struct gnl_socket_request *request, char **dest);
+extern int gnl_socket_request_write(const struct gnl_socket_request *request, char **dest);
 
 #endif //GNL_SOCKET_REQUEST_H

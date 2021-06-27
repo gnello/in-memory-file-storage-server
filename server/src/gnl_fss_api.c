@@ -85,27 +85,17 @@ int gnl_fss_api_open_file(const char *pathname, int flags) {
     struct gnl_socket_request *request = gnl_socket_request_init(GNL_SOCKET_REQUEST_OPEN, 2, pathname, flags);
     GNL_NULL_CHECK(request, ENOMEM, -1)
 
-    char *message = NULL;
-
-    int res = gnl_socket_request_write(request, &message);
-    GNL_MINUS1_CHECK(res, EINVAL, -1)
-
     // send the request
-    res = gnl_socket_service_emit(socket_service_connection, message);
+    res = gnl_socket_service_emit(socket_service_connection, request);
     GNL_MINUS1_CHECK(res, errno, -1)
 
     // clean memory
     gnl_socket_request_destroy(request);
     free(message);
 
-    // wait the response TODO: mettere size corretta
-    GNL_CALLOC(message, 10, -1)
-
-    res = gnl_socket_service_read(socket_service_connection, &message, 10);
-    GNL_MINUS1_CHECK(res, errno, -1)
-
     // get the response
-    struct gnl_socket_response *response = gnl_socket_response_read(message);
+    struct gnl_socket_response *response = gnl_socket_service_on_message(socket_service_connection);
+    GNL_NULL_CHECK(response, errno, -1)
 
     // check for errors
     if (response->type == GNL_SOCKET_RESPONSE_ERROR) {

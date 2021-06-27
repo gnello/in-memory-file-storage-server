@@ -91,4 +91,14 @@ extern struct gnl_socket_response *gnl_socket_response_read(const char *response
  */
 extern int gnl_socket_response_write(struct gnl_socket_response *response, char **dest);
 
+/**
+ * Read the number of evicted files from the given response.
+ *
+ * @param response  The socket response.
+ *
+ * @return          The number of evicted files on success,
+ *                  -1 otherwise.
+ */
+extern int gnl_socket_response_evicted(struct gnl_socket_response *response);
+
 #endif //GNL_SOCKET_RESPONSE_H
