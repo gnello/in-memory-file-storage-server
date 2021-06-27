@@ -75,8 +75,11 @@
     }                                                                                                       \
                                                                                                             \
     char *message = NULL;                                                                                          \
-    gnl_socket_request_write(request, &message);                                                        \
-                                                                                                            \
+    int res = gnl_socket_request_write(request, &message);                                                        \
+    if (res == -1) {                               \
+        return -1;                                      \
+    } \
+\
     char expected[41];                                                                                      \
     sprintf(expected, "%0*d00000000200000000010/fake/path", 10, request_type);                              \
                                                                                                             \
@@ -579,6 +582,11 @@ int main() {
     gnl_assert(can_init_args_write, "can init a GNL_SOCKET_REQUEST_WRITE request type with args.");
     gnl_assert(can_read_write, "can read a GNL_SOCKET_REQUEST_WRITE request type message.");
     gnl_assert(can_write_write, "can write a GNL_SOCKET_REQUEST_WRITE request type.");
+
+    gnl_assert(can_init_empty_append, "can init an empty GNL_SOCKET_REQUEST_APPEND request type.");
+    gnl_assert(can_init_args_append, "can init a GNL_SOCKET_REQUEST_APPEND request type with args.");
+    gnl_assert(can_read_append, "can read a GNL_SOCKET_REQUEST_APPEND request type message.");
+    gnl_assert(can_write_append, "can write a GNL_SOCKET_REQUEST_APPEND request type.");
 
     gnl_assert(can_init_empty_lock, "can init an empty GNL_SOCKET_REQUEST_LOCK request type.");
     gnl_assert(can_init_args_lock, "can init a GNL_SOCKET_REQUEST_LOCK request type with args.");
