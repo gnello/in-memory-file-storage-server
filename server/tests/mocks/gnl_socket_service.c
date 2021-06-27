@@ -33,7 +33,8 @@ struct gnl_socket_service_connection *gnl_socket_service_connect(const char *soc
 
 int gnl_socket_service_close(struct gnl_socket_service_connection *connection) {
     if (gnl_socket_service_close_result >= 0) {
-        connection->active = 0;
+        free(connection->socket_name);
+        free(connection);
     }
 
     return gnl_socket_service_close_result;

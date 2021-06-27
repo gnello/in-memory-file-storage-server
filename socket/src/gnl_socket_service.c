@@ -9,6 +9,10 @@
 #include <gnl_macro_beg.h>
 
 int gnl_socket_service_is_active(const struct gnl_socket_service_connection *connection) {
+    if (connection == NULL) {
+        return 0;
+    }
+
     return connection->active;
 }
 
@@ -64,6 +68,10 @@ int gnl_socket_service_close(struct gnl_socket_service_connection *connection) {
 
     int res = close(connection->fd);
     GNL_MINUS1_CHECK(res, errno, -1);
+
+    // destroy connection
+    free(connection->socket_name);
+    free(connection);
 
     return 0;
 }

@@ -32,7 +32,8 @@ extern int gnl_socket_service_is_active(const struct gnl_socket_service_connecti
 extern struct gnl_socket_service_connection *gnl_socket_service_connect(const char *socket_name);
 
 /**
- * Close a connection to the given connection.
+ * Close a connection to the given connection. Attention! This operation
+ * will destroy the connection.
  *
  * @param connection    The socket_service_connection instance.
  * @param socket_name   The name of the socket where to disconnect.

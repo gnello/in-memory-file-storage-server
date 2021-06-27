@@ -11,7 +11,8 @@
 
 int nanosleep(const struct timespec *req, struct timespec *rem);
 
-static struct gnl_socket_service_connection socket_service_connection;
+static struct gnl_socket_service_connection *socket_service_connection;
+int socket_service_connection_active = 0;
 
 int gnl_fss_api_open_connection(const char *sockname, int msec, const struct timespec abstime) {
     if (sockname == NULL || msec <= 0) {
@@ -21,15 +22,14 @@ int gnl_fss_api_open_connection(const char *sockname, int msec, const struct tim
     }
 
     // maintain only 1 connection active to the server
-    if (gnl_socket_service_is_active(&socket_service_connection)) {
+    if (socket_service_connection_active) {
         errno = EINVAL;
 
         return -1;
     }
 
     // try to connect to the given socket name
-    struct gnl_socket_service_connection *tmp;
-    while ((tmp = gnl_socket_service_connect(sockname)) == NULL) {
+    while ((socket_service_connection = gnl_socket_service_connect(sockname)) == NULL) {
         if (errno != ENOENT) {
             return -1;
         }
@@ -51,25 +51,24 @@ int gnl_fss_api_open_connection(const char *sockname, int msec, const struct tim
         nanosleep(&tim, NULL);
     }
 
-    socket_service_connection = *tmp;
-    free(tmp);
+    socket_service_connection_active = 1;
 
     return 0;
 }
 
 int gnl_fss_api_close_connection(const char *sockname) {
-    if (!gnl_socket_service_is_active(&socket_service_connection)
-    || socket_service_connection.socket_name == NULL
-    || strcmp(socket_service_connection.socket_name, sockname) != 0) {
+    if (!socket_service_connection_active
+    || !gnl_socket_service_is_active(socket_service_connection)
+    || socket_service_connection->socket_name == NULL
+    || strcmp(socket_service_connection->socket_name, sockname) != 0) {
         errno = EINVAL;
 
         return -1;
     }
 
-    int res = gnl_socket_service_close(&socket_service_connection);
-    if (res == 0) {
-        free(socket_service_connection.socket_name);
-        socket_service_connection.socket_name = NULL;
+    int res = gnl_socket_service_close(socket_service_connection);
+    if (res != -1) {
+        socket_service_connection_active = 0;
     }
 
     return res;
@@ -92,7 +91,7 @@ int gnl_fss_api_open_file(const char *pathname, int flags) {
     GNL_MINUS1_CHECK(res, EINVAL, -1)
 
     // send the request
-    res = gnl_socket_service_emit(&socket_service_connection, message);
+    res = gnl_socket_service_emit(socket_service_connection, message);
     GNL_MINUS1_CHECK(res, errno, -1)
 
     // clean memory
@@ -102,7 +101,7 @@ int gnl_fss_api_open_file(const char *pathname, int flags) {
     // wait the response TODO: mettere size corretta
     GNL_CALLOC(message, 10, -1)
 
-    res = gnl_socket_service_read(&socket_service_connection, &message, 10);
+    res = gnl_socket_service_read(socket_service_connection, &message, 10);
     GNL_MINUS1_CHECK(res, errno, -1)
 
     // get the response
