@@ -164,6 +164,12 @@ int gnl_socket_request_to_string(struct gnl_socket_request *request, char **dest
         GNL_CALLOC(*dest, 7, -1);
             strcpy(*dest, "REMOVE");
             break;
+
+        default:
+            errno = EINVAL;
+            return -1;
+            /* UNREACHED */
+            break;
     }
 
     return 0;
