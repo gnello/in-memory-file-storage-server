@@ -22,7 +22,6 @@ struct gnl_socket_response {
     union {
         struct gnl_socket_message_n *ok_evicted;
         struct gnl_socket_message_sb *ok_file;
-        char *ok;
         struct gnl_socket_message_n *error;
     } payload;
 };
@@ -35,7 +34,6 @@ struct gnl_socket_response {
  * @param ...   The list of params supported by the given response type:
  *              - GNL_SOCKET_RESPONSE_OK_EVICTED: int number_of_files_evicted
  *              - GNL_SOCKET_RESPONSE_OK_FILE: char *filename, char *bytes
- *              - GNL_SOCKET_RESPONSE_OK: no params required
  *              - GNL_SOCKET_RESPONSE_ERROR: int error_code
  *
  * @return      Returns a gnl_socket_response struct on success,

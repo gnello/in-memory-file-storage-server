@@ -119,6 +119,12 @@ static int decode(const char *message, char **dest, enum gnl_socket_request_type
 }
 
 int gnl_socket_request_to_string(struct gnl_socket_request *request, char **dest) {
+    if (request == NULL) {
+        errno = EINVAL;
+
+        return -1;
+    }
+
     switch (request->type) {
         case GNL_SOCKET_REQUEST_OPEN:
         GNL_CALLOC(*dest, 5, -1);

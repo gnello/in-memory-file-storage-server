@@ -49,13 +49,19 @@ static int size(const char *message) {
  * @return          Returns 0 on success, -1 otherwise.
  */
 static int encode(const char *message, char **dest, enum gnl_socket_response_type type) {
-    int response_size = size(message);
+    int response_size = MAX_DIGITS_INT + MAX_DIGITS_INT;
+    unsigned long message_size = 0;
+
+    if (message != NULL) {
+        response_size = size(message);
+        message_size = strlen(message);
+    }
 
     GNL_CALLOC(*dest, response_size + 1, -1)
 
     int maxlen = response_size + 1; // count also the '\0' char
 
-    snprintf(*dest, maxlen, "%0*d%0*lu%s", MAX_DIGITS_INT, type, MAX_DIGITS_INT, strlen(message), message);
+    snprintf(*dest, maxlen, "%0*d%0*lu%s", MAX_DIGITS_INT, type, MAX_DIGITS_INT, message_size, message);
 
     return 0;
 }
@@ -85,6 +91,12 @@ static int decode(const char *message, char **dest, enum gnl_socket_response_typ
 }
 
 int gnl_socket_response_to_string(struct gnl_socket_response *response, char **dest) {
+    if (response == NULL) {
+        errno = EINVAL;
+
+        return -1;
+    }
+
     switch (response->type) {
         case GNL_SOCKET_RESPONSE_OK_EVICTED:
             GNL_CALLOC(*dest, 11, -1);
@@ -137,12 +149,23 @@ struct gnl_socket_response *gnl_socket_response_init(enum gnl_socket_response_ty
             GNL_RESPONSE_N_INIT(num, socket_response->payload.ok_evicted, a_list)
             break;
 
+        case GNL_SOCKET_RESPONSE_OK:
+            if (num != 0) {
+                errno = EINVAL;
+                free(socket_response);
+
+                return NULL;
+            }
+            break;
+
         case GNL_SOCKET_RESPONSE_ERROR:
             GNL_RESPONSE_N_INIT(num, socket_response->payload.error, a_list)
             break;
 
         default:
             errno = EINVAL;
+            free(socket_response);
+
             return NULL;
             /* UNREACHED */
             break;
@@ -158,6 +181,8 @@ void gnl_socket_response_destroy(struct gnl_socket_response *response) {
     switch (response->type) {
         case GNL_SOCKET_RESPONSE_OK_EVICTED:
             gnl_socket_message_n_destroy(response->payload.ok_evicted);
+            break;
+        case GNL_SOCKET_RESPONSE_OK:
             break;
         case GNL_SOCKET_RESPONSE_ERROR:
             gnl_socket_message_n_destroy(response->payload.error);
@@ -181,6 +206,11 @@ struct gnl_socket_response *gnl_socket_response_read(const char *message) {
             GNL_NULL_CHECK(socket_response, ENOMEM, NULL)
 
             gnl_socket_message_n_read(payload_message, socket_response->payload.ok_evicted);
+            break;
+
+        case GNL_SOCKET_RESPONSE_OK:
+            socket_response = gnl_socket_response_init(GNL_SOCKET_RESPONSE_OK, 0);
+            GNL_NULL_CHECK(socket_response, ENOMEM, NULL)
             break;
 
         case GNL_SOCKET_RESPONSE_ERROR:
@@ -212,12 +242,15 @@ int gnl_socket_response_write(struct gnl_socket_response *response, char **dest)
         return -1;
     }
 
-    char *built_message;
+    char *built_message = NULL;
     int res;
 
     switch (response->type) {
         case GNL_SOCKET_RESPONSE_OK_EVICTED:
             res = gnl_socket_message_n_write(*(response->payload.ok_evicted), &built_message);
+            break;
+        case GNL_SOCKET_RESPONSE_OK:
+            res = 0;
             break;
 
         case GNL_SOCKET_RESPONSE_ERROR:
