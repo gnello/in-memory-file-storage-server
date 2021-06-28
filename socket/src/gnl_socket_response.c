@@ -319,4 +319,5 @@ struct gnl_socket_response *gnl_socket_response_get(const struct gnl_socket_serv
 
 #undef MAX_DIGITS_CHAR
 #undef MAX_DIGITS_INT
+#undef GNL_RESPONSE_N_INIT
 #include <gnl_macro_end.h>
