@@ -2,9 +2,10 @@
 #include <string.h>
 #include <gnl_colorshell.h>
 #include <gnl_assert.h>
+#include <gnl_file_to_pointer.h>
 #include "../src/gnl_socket_response.c"
 
-#define GNL_TEST_RESPONSE_N_INIT(response_type) { \
+#define GNL_TEST_RESPONSE_INIT(response_type) { \
     struct gnl_socket_response *response = gnl_socket_response_init(response_type, 0); \
 \
     if (response == NULL) { \
@@ -112,7 +113,7 @@
 }
 
 int can_init_empty_ok_evicted() {
-    GNL_TEST_RESPONSE_N_INIT(GNL_SOCKET_RESPONSE_OK_EVICTED);
+    GNL_TEST_RESPONSE_INIT(GNL_SOCKET_RESPONSE_OK_EVICTED);
 }
 
 int can_init_args_ok_evicted() {
@@ -127,8 +128,112 @@ int can_write_ok_evicted() {
     GNL_TEST_RESPONSE_N_WRITE(GNL_SOCKET_RESPONSE_OK_EVICTED)
 }
 
+int can_init_empty_ok_file() {
+    GNL_TEST_RESPONSE_INIT(GNL_SOCKET_RESPONSE_OK_FILE);
+}
+
+int can_init_args_ok_file() {
+    int res;
+    long size;
+    char *content = NULL;
+
+    res = gnl_file_to_pointer("./testfile.txt", &content, &size);
+    if (res == -1) {
+        return -1;
+    }
+
+    struct gnl_socket_response *response = gnl_socket_response_init(GNL_SOCKET_RESPONSE_OK_FILE, 2, "./testfile.txt", content);
+
+    if (response == NULL) {
+        return -1;
+    }
+
+    if (response->type != GNL_SOCKET_RESPONSE_OK_FILE) {
+        return -1;
+    }
+
+    gnl_socket_response_destroy(response);
+    free(content);
+
+    return 0;
+}
+
+int can_read_ok_file() {
+    int res;
+    long size;
+    char *content = NULL;
+
+    res = gnl_file_to_pointer("./testfile.txt", &content, &size);
+    if (res == -1) {
+        return -1;
+    }
+
+    struct gnl_socket_response *response;
+
+    char message[91253];
+    sprintf(message, "%0*d00000912330000000014./testfile.txt0000091199%s", 10, GNL_SOCKET_RESPONSE_OK_FILE, content);
+
+    response = gnl_socket_response_read(message);
+    if (response == NULL) {
+        return -1;
+    }
+
+    if (response->type != GNL_SOCKET_RESPONSE_OK_FILE) {
+        return -1;
+    }
+
+    if (strcmp(response->payload.ok_file->string, "./testfile.txt") != 0) {
+        return -1;
+    }
+
+    if (strcmp(response->payload.ok_file->bytes, content) != 0) {
+        return -1;
+    }
+
+    gnl_socket_response_destroy(response);
+    free(content);
+
+    return 0;
+}
+
+int can_write_ok_file() {
+    int res;
+    long size;
+    char *content = NULL;
+
+    res = gnl_file_to_pointer("./testfile.txt", &content, &size);
+    if (res == -1) {
+        return -1;
+    }
+
+    struct gnl_socket_response *response = gnl_socket_response_init(GNL_SOCKET_RESPONSE_OK_FILE, 2, "./testfile.txt", content);
+
+    if (response == NULL) {
+        return -1;
+    }
+
+    char message[91253];
+    sprintf(message, "%0*d00000912330000000014./testfile.txt0000091199%s", 10, GNL_SOCKET_RESPONSE_OK_FILE, content);
+
+    char *actual = NULL;
+    res = gnl_socket_response_write(response, &actual);
+    if (res == -1) {
+        return -1;
+    }
+
+    if (strcmp(message, actual) != 0) {
+        return -1;
+    }
+
+    gnl_socket_response_destroy(response);
+    free(actual);
+    free(content);
+
+    return 0;
+}
+
 int can_init_empty_ok() {
-    GNL_TEST_RESPONSE_N_INIT(GNL_SOCKET_RESPONSE_OK);
+    GNL_TEST_RESPONSE_INIT(GNL_SOCKET_RESPONSE_OK);
 }
 
 int can_not_init_args_ok() {
@@ -192,7 +297,7 @@ int can_write_ok() {
 }
 
 int can_init_empty_error() {
-    GNL_TEST_RESPONSE_N_INIT(GNL_SOCKET_RESPONSE_ERROR);
+    GNL_TEST_RESPONSE_INIT(GNL_SOCKET_RESPONSE_ERROR);
 }
 
 int can_init_args_error() {
@@ -267,6 +372,11 @@ int main() {
     gnl_assert(can_read_ok_evicted, "can read a GNL_SOCKET_RESPONSE_OK_EVICTED response type message.");
     gnl_assert(can_write_ok_evicted, "can write a GNL_SOCKET_RESPONSE_OK_EVICTED response type.");
 
+    gnl_assert(can_init_empty_ok_file, "can init an empty GNL_SOCKET_RESPONSE_OK_FILE response type.");
+    gnl_assert(can_init_args_ok_file, "can init a GNL_SOCKET_RESPONSE_OK_FILE response type with args.");
+    gnl_assert(can_read_ok_file, "can read a GNL_SOCKET_RESPONSE_OK_FILE response type message.");
+    gnl_assert(can_write_ok_file, "can write a GNL_SOCKET_RESPONSE_OK_FILE response type.");
+
     gnl_assert(can_init_empty_ok, "can init an empty GNL_SOCKET_RESPONSE_OK response type.");
     gnl_assert(can_not_init_args_ok, "can not init a GNL_SOCKET_RESPONSE_OK response type with args.");
     gnl_assert(can_read_ok, "can read a GNL_SOCKET_RESPONSE_OK response type message.");
@@ -281,7 +391,7 @@ int main() {
     gnl_assert(can_not_write_not_empty_dest, "can not write into a not empty destination");
 
     gnl_assert(can_to_string_ok_evicted, "can format to string a GNL_SOCKET_RESPONSE_OK_EVICTED response type");
-    //gnl_assert(can_to_string_ok_file, "can format to string a GNL_SOCKET_RESPONSE_OK_FILE response type");
+    gnl_assert(can_to_string_ok_file, "can format to string a GNL_SOCKET_RESPONSE_OK_FILE response type");
     gnl_assert(can_to_string_ok, "can format to string a GNL_SOCKET_RESPONSE_OK response type");
     gnl_assert(can_to_string_error, "can format to string a GNL_SOCKET_RESPONSE_ERROR response type");
 
@@ -292,7 +402,7 @@ int main() {
     printf("\n");
 }
 
-#undef GNL_TEST_RESPONSE_N_INIT
+#undef GNL_TEST_RESPONSE_INIT
 #undef GNL_TEST_RESPONSE_N_ARGS
 #undef GNL_TEST_RESPONSE_N_READ
 #undef GNL_TEST_RESPONSE_N_WRITE

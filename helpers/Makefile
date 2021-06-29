@@ -8,7 +8,7 @@ CFLAGS = -std=c99 -Wall -pedantic
 
 INCLUDE = -I./include
 
-TARGETS = gnl_colorshell.so gnl_assert.so gnl_txtenv.so gnl_print_table.so gnl_logger.so
+TARGETS = gnl_colorshell.so gnl_assert.so gnl_txtenv.so gnl_print_table.so gnl_logger.so gnl_file_to_pointer.so
 TARGETS_PATH = ./lib
 
 .PHONY: all clean
