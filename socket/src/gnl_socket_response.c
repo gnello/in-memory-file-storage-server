@@ -302,8 +302,8 @@ int gnl_socket_response_error(struct gnl_socket_response *response) {
 }
 
 //TODO: scrivere test
-struct gnl_socket_response *gnl_socket_response_get(const struct gnl_socket_service_connection *connection,
-                                                    int (*on_message)(const struct gnl_socket_service_connection *connection,
+struct gnl_socket_response *gnl_socket_response_get(const struct gnl_socket_connection *connection,
+                                                    int (*on_message)(const struct gnl_socket_connection *connection,
                                                                       char **message, int size)) {
     char *message = NULL;
     GNL_CALLOC(message, 10, NULL)

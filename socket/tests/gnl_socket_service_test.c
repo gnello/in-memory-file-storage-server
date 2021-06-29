@@ -13,7 +13,7 @@
     GNL_CALLOC(buffer, 256, -1);  \
 }
 
-static struct gnl_socket_service_connection *connection;
+static struct gnl_socket_connection *connection;
 
 #define CONNECT() {                                         \
     int count = 0;                                          \
@@ -39,7 +39,7 @@ static struct gnl_socket_service_connection *connection;
 }
 
 int can_not_connect_to_socket() {
-    struct gnl_socket_service_connection *res = gnl_socket_service_connect("nonexistent_socket");
+    struct gnl_socket_connection *res = gnl_socket_service_connect("nonexistent_socket");
 
     if (res != NULL) {
         return -1;
@@ -71,7 +71,7 @@ int can_connect_to_socket() {
 
 int can_connect_twice() {
     int res;
-    struct gnl_socket_service_connection *con2;
+    struct gnl_socket_connection *con2;
 
     CONNECT()
     char *buffer;
@@ -101,7 +101,7 @@ int can_connect_twice() {
 int can_not_close_not_open_connection() {
     int res;
 
-    connection = (struct gnl_socket_service_connection *)calloc(1, sizeof(struct gnl_socket_service_connection));
+    connection = (struct gnl_socket_connection *)calloc(1, sizeof(struct gnl_socket_connection));
     GNL_NULL_CHECK(connection, errno, -1);
 
     res = gnl_socket_service_close(connection);
@@ -149,7 +149,7 @@ int can_emit() {
 int can_not_emit() {
     int res;
 
-    connection = (struct gnl_socket_service_connection *)calloc(1, sizeof(struct gnl_socket_service_connection));
+    connection = (struct gnl_socket_connection *)calloc(1, sizeof(struct gnl_socket_connection));
     GNL_NULL_CHECK(connection, errno, -1);
 
     char *buffer;
@@ -189,7 +189,7 @@ int can_read() {
 int can_not_read() {
     int res;
 
-    connection = (struct gnl_socket_service_connection *)calloc(1, sizeof(struct gnl_socket_service_connection));
+    connection = (struct gnl_socket_connection *)calloc(1, sizeof(struct gnl_socket_connection));
     GNL_NULL_CHECK(connection, errno, -1);
 
     char *buffer;

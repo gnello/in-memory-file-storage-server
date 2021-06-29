@@ -109,7 +109,7 @@ extern int gnl_socket_request_write(const struct gnl_socket_request *request, ch
  * @return              Returns 0 on success, -1 otherwise.
  */
 extern int gnl_socket_request_send(const struct gnl_socket_request *request,
-        const struct gnl_socket_service_connection *connection,
-        int (*emit)(const struct gnl_socket_service_connection *connection, const char *message));
+        const struct gnl_socket_connection *connection,
+        int (*emit)(const struct gnl_socket_connection *connection, const char *message));
 
 #endif //GNL_SOCKET_REQUEST_H

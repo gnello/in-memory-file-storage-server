@@ -11,7 +11,7 @@
 
 int nanosleep(const struct timespec *req, struct timespec *rem);
 
-static struct gnl_socket_service_connection *socket_service_connection;
+static struct gnl_socket_connection *socket_service_connection;
 int socket_service_connection_active = 0;
 
 int gnl_fss_api_open_connection(const char *sockname, int msec, const struct timespec abstime) {

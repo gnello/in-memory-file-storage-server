@@ -447,8 +447,8 @@ int gnl_socket_request_write(const struct gnl_socket_request *request, char **de
 
 //TODO: scrivere test
 int gnl_socket_request_send(const struct gnl_socket_request *request,
-                            const struct gnl_socket_service_connection *connection,
-                            int (*emit)(const struct gnl_socket_service_connection *connection, const char *message)) {
+                            const struct gnl_socket_connection *connection,
+                            int (*emit)(const struct gnl_socket_connection *connection, const char *message)) {
     char *message = NULL;
 
     int res = gnl_socket_request_write(request, &message);

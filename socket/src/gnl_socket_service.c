@@ -8,7 +8,7 @@
 #include "./gnl_socket_rts.c"
 #include <gnl_macro_beg.h>
 
-int gnl_socket_service_is_active(const struct gnl_socket_service_connection *connection) {
+int gnl_socket_service_is_active(const struct gnl_socket_connection *connection) {
     if (connection == NULL) {
         return 0;
     }
@@ -16,8 +16,8 @@ int gnl_socket_service_is_active(const struct gnl_socket_service_connection *con
     return connection->active;
 }
 
-struct gnl_socket_service_connection *gnl_socket_service_connect(const char *socket_name) {
-    struct gnl_socket_service_connection *connection = (struct gnl_socket_service_connection *)malloc(sizeof(struct gnl_socket_service_connection));
+struct gnl_socket_connection *gnl_socket_service_connect(const char *socket_name) {
+    struct gnl_socket_connection *connection = (struct gnl_socket_connection *)malloc(sizeof(struct gnl_socket_connection));
     GNL_NULL_CHECK(connection, ENOMEM, NULL)
 
     // copy the socket name
@@ -59,7 +59,7 @@ struct gnl_socket_service_connection *gnl_socket_service_connect(const char *soc
     return connection;
 }
 
-int gnl_socket_service_close(struct gnl_socket_service_connection *connection) {
+int gnl_socket_service_close(struct gnl_socket_connection *connection) {
     if (!gnl_socket_service_is_active(connection)) {
         errno = EINVAL;
 
@@ -76,7 +76,7 @@ int gnl_socket_service_close(struct gnl_socket_service_connection *connection) {
     return 0;
 }
 
-int gnl_socket_service_emit(const struct gnl_socket_service_connection *connection, const char *message) {
+int gnl_socket_service_emit(const struct gnl_socket_connection *connection, const char *message) {
     if (!gnl_socket_service_is_active(connection)) {
         errno = EINVAL;
 
@@ -86,7 +86,7 @@ int gnl_socket_service_emit(const struct gnl_socket_service_connection *connecti
     return write(connection->fd, (char *)message, strlen(message) + 1);
 }
 
-int gnl_socket_service_read(const struct gnl_socket_service_connection *connection, char **message, int size) {
+int gnl_socket_service_read(const struct gnl_socket_connection *connection, char **message, int size) {
     if (!gnl_socket_service_is_active(connection)) {
         errno = EINVAL;
 

@@ -2,7 +2,7 @@
 #ifndef GNL_SOCKET_RESPONSE_H
 #define GNL_SOCKET_RESPONSE_H
 
-#include "./gnl_socket_service.h"
+#include "./gnl_socket_connection.h"
 
 /**
  * The possibles type of a socket response.
@@ -109,8 +109,8 @@ extern int gnl_socket_response_error(struct gnl_socket_response *response);
  *
  * @return              Returns 0 on success, -1 otherwise.
  */
-extern struct gnl_socket_response *gnl_socket_response_get(const struct gnl_socket_service_connection *connection,
-                                                           int (*on_message)(const struct gnl_socket_service_connection *connection,
+extern struct gnl_socket_response *gnl_socket_response_get(const struct gnl_socket_connection *connection,
+                                                           int (*on_message)(const struct gnl_socket_connection *connection,
                                                                              char **message, int size));
 
 #endif //GNL_SOCKET_RESPONSE_H

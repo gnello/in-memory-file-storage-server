@@ -2,14 +2,7 @@
 #ifndef GNL_SOCKET_SERVICE_H
 #define GNL_SOCKET_SERVICE_H
 
-/**
- * Socket connection instance.
- */
-struct gnl_socket_service_connection {
-    int fd; // the identifier of the socket connection
-    char* socket_name; // the socket name
-    int active; // if 1 the connection is active, otherwise (active == 0) is not.
-};
+#include "./gnl_socket_connection.h"
 
 /**
  * Check whether a connection is active or not.
@@ -19,7 +12,7 @@ struct gnl_socket_service_connection {
  * @return              Returns 1 if connection is active,
  *                      0 otherwise.
  */
-extern int gnl_socket_service_is_active(const struct gnl_socket_service_connection *connection);
+extern int gnl_socket_service_is_active(const struct gnl_socket_connection *connection);
 
 /**
  * Connect to the given socket name.
@@ -29,7 +22,7 @@ extern int gnl_socket_service_is_active(const struct gnl_socket_service_connecti
  * @return              Returns the socket_service_connection instance
  *                      on success, NULL otherwise.
  */
-extern struct gnl_socket_service_connection *gnl_socket_service_connect(const char *socket_name);
+extern struct gnl_socket_connection *gnl_socket_service_connect(const char *socket_name);
 
 /**
  * Close a connection to the given connection. Attention! This operation
@@ -40,7 +33,7 @@ extern struct gnl_socket_service_connection *gnl_socket_service_connect(const ch
  *
  * @return              Returns 0 on success, -1 otherwise.
  */
-extern int gnl_socket_service_close(struct gnl_socket_service_connection *connection);
+extern int gnl_socket_service_close(struct gnl_socket_connection *connection);
 
 /**
  * Send a message through the given connection.
@@ -51,7 +44,7 @@ extern int gnl_socket_service_close(struct gnl_socket_service_connection *connec
  * @return              Returns the number of bytes sent on success,
  *                      -1 otherwise.
  */
-extern int gnl_socket_service_emit(const struct gnl_socket_service_connection *connection, const char *message);
+extern int gnl_socket_service_emit(const struct gnl_socket_connection *connection, const char *message);
 
 /**
  * Read a message from the given connection.
@@ -63,6 +56,6 @@ extern int gnl_socket_service_emit(const struct gnl_socket_service_connection *c
  * @return              Returns the number of bytes read on success,
  *                      -1 otherwise.
  */
-extern int gnl_socket_service_read(const struct gnl_socket_service_connection *connection, char **message, int size);
+extern int gnl_socket_service_read(const struct gnl_socket_connection *connection, char **message, int size);
 
 #endif //GNL_SOCKET_SERVICE_H
