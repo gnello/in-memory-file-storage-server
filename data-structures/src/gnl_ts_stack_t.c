@@ -21,11 +21,7 @@ gnl_ts_stack_t *gnl_ts_stack_init() {
     GNL_NULL_CHECK(stack, ENOMEM, NULL)
 
     int pthread_res = pthread_mutex_init(&(stack->mtx), NULL);
-    if (pthread_res == -1) {
-        perror("pthread_mutex_init");
-
-        return NULL;
-    }
+    GNL_MINUS1_CHECK(pthread_res, errno, NULL)
 
     stack->s = gnl_stack_init();
 
@@ -39,18 +35,10 @@ int gnl_ts_stack_destroy(gnl_ts_stack_t *s, void (*destroy)(void *data)) {
     pthread_mutex_t mtx;
 
     pthread_res = pthread_mutex_init(&mtx, NULL);
-    if (pthread_res == -1) {
-        perror("pthread_mutex_init");
-
-        return -1;
-    }
+    GNL_MINUS1_CHECK(pthread_res, errno, -1)
 
     pthread_res = pthread_mutex_lock(&mtx);
-    if (pthread_res == -1) {
-        perror("pthread_mutex_lock");
-
-        return -1;
-    }
+    GNL_MINUS1_CHECK(pthread_res, errno, -1)
 
     if (s == NULL) {
         return 0;
@@ -59,27 +47,15 @@ int gnl_ts_stack_destroy(gnl_ts_stack_t *s, void (*destroy)(void *data)) {
     gnl_stack_destroy((s->s), destroy);
 
     pthread_res = pthread_mutex_destroy(&(s->mtx));
-    if (pthread_res == -1) {
-        perror("pthread_mutex_destroy");
-
-        return -1;
-    }
+    GNL_MINUS1_CHECK(pthread_res, errno, -1)
 
     free(s);
 
     pthread_res = pthread_mutex_unlock(&mtx);
-    if (pthread_res == -1) {
-        perror("pthread_mutex_unlock");
-
-        return -1;
-    }
+    GNL_MINUS1_CHECK(pthread_res, errno, -1)
 
     pthread_res = pthread_mutex_destroy(&mtx);
-    if (pthread_res == -1) {
-        perror("pthread_mutex_unlock");
-
-        return -1;
-    }
+    GNL_MINUS1_CHECK(pthread_res, errno, -1)
 
     return 0;
 }
@@ -90,25 +66,13 @@ int gnl_ts_stack_push(gnl_ts_stack_t *s, void *el) {
     int pthread_res;
 
     pthread_res = pthread_mutex_lock(&(s->mtx));
-    if (pthread_res == -1) {
-        perror("pthread_mutex_lock");
-
-        return -1;
-    }
+    GNL_MINUS1_CHECK(pthread_res, errno, -1)
 
     int res = gnl_stack_push(s->s, el);
-    if (res == -1) {
-        perror("gnl_stack_push");
-
-        return -1;
-    }
+    GNL_MINUS1_CHECK(res, errno, -1)
 
     pthread_res = pthread_mutex_unlock(&(s->mtx));
-    if (pthread_res == -1) {
-        perror("pthread_mutex_unlock");
-
-        return -1;
-    }
+    GNL_MINUS1_CHECK(pthread_res, errno, -1)
 
     return 0;
 }
@@ -123,20 +87,12 @@ void *gnl_ts_stack_pop(gnl_ts_stack_t *s) {
     }
 
     pthread_res = pthread_mutex_lock(&(s->mtx));
-    if (pthread_res == -1) {
-        perror("pthread_mutex_lock");
-
-        return NULL;
-    }
+    GNL_MINUS1_CHECK(pthread_res, errno, NULL)
 
     void *temp = gnl_stack_pop(s->s);
 
     pthread_res = pthread_mutex_unlock(&(s->mtx));
-    if (pthread_res == -1) {
-        perror("pthread_mutex_unlock");
-
-        return NULL;
-    }
+    GNL_MINUS1_CHECK(pthread_res, errno, NULL)
 
     return temp;
 }
@@ -147,20 +103,12 @@ unsigned long gnl_ts_stack_size(gnl_ts_stack_t *s) {
     int pthread_res;
 
     pthread_res = pthread_mutex_lock(&(s->mtx));
-    if (pthread_res == -1) {
-        perror("pthread_mutex_lock");
-
-        return -1;
-    }
+    GNL_MINUS1_CHECK(pthread_res, errno, -1)
 
     unsigned long temp = s->s->size;
 
     pthread_res = pthread_mutex_unlock(&(s->mtx));
-    if (pthread_res == -1) {
-        perror("pthread_mutex_unlock");
-
-        return -1;
-    }
+    GNL_MINUS1_CHECK(pthread_res, errno, -1)
 
     return temp;
 }
