@@ -50,7 +50,7 @@ int gnl_fss_server_start(gnl_fss_config *config) {
     char buf[N];
 
     // number of chars read
-    int nread;
+    long nread;
 
     // create socket address
     struct sockaddr_un sa;
@@ -138,10 +138,10 @@ int gnl_fss_server_start(gnl_fss_config *config) {
                         }
 
                         // close the current file descriptor
+                        gnl_logger_debug(logger, "client %d gone away, closing connection", fd_c);
+
                         res = close(fd);
                         GNL_MINUS1_CHECK(res, errno, -1)
-
-                        gnl_logger_debug(logger, "client %d gone away, closed connection", fd_c);
                     } else {
                         // do something with the buffer...
                         gnl_logger_debug(logger, "client %d sent a message, decoding request...", fd_c);
