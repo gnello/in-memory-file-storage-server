@@ -40,6 +40,7 @@ dev: all helpers
 	cd ./helpers/tests && $(MAKE)
 	cd ./server/tests && $(MAKE)
 	cd ./socket/tests && $(MAKE)
+	cd ./client/tests && $(MAKE)
 
 # run all the tests present in this project
 tests:
@@ -47,6 +48,7 @@ tests:
 	cd ./helpers/tests && $(MAKE) tests
 	cd ./server/tests && $(MAKE) tests
 	cd ./socket/tests && $(MAKE) tests
+	cd ./client/tests && $(MAKE) tests
 
 # run all tests present in this project with valgrind
 tests-valgrind:
@@ -54,16 +56,18 @@ tests-valgrind:
 	cd ./helpers/tests && $(MAKE) tests-valgrind
 	cd ./server/tests && $(MAKE) tests-valgrind
 	cd ./socket/tests && $(MAKE) tests-valgrind
+	cd ./client/tests && $(MAKE) tests-valgrind
 
 clean:
 	cd ./helpers && $(MAKE) clean
 	cd ./data-structures && $(MAKE) clean
 	cd ./server && $(MAKE) clean
-	cd ./client && $(MAKE) clean
 	cd ./socket && $(MAKE) clean
+	cd ./client && $(MAKE) clean
 
 clean-dev: clean
 	cd ./data-structures/tests && $(MAKE) clean
 	cd ./helpers/tests && $(MAKE) clean
 	cd ./server/tests && $(MAKE) clean
 	cd ./socket/tests && $(MAKE) clean
+	cd ./client/tests && $(MAKE) clean
