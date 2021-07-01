@@ -76,14 +76,6 @@ jobs:
     - run: make -s tests
       working-directory: server/tests
 
-    # test socket
-    - uses: actions/download-artifact@v2
-    - run: chmod -R +x ./*
-      working-directory: socket/tests
-    - run: cp .env.example .env
-    - run: make -s tests
-      working-directory: socket/tests
-
     # test client
     - uses: actions/download-artifact@v2
     - run: chmod -R +x ./*
@@ -91,3 +83,11 @@ jobs:
     - run: cp .env.example .env
     - run: make -s tests
       working-directory: client/tests
+
+      # test socket
+    - uses: actions/download-artifact@v2
+    - run: chmod -R +x ./*
+      working-directory: socket/tests
+    - run: cp .env.example .env
+    - run: make -s tests
+      working-directory: socket/tests
