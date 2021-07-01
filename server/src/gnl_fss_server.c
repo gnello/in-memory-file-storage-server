@@ -52,6 +52,9 @@ int gnl_fss_server_start(gnl_fss_config *config) {
     // number of chars read
     long nread;
 
+    res = gnl_logger_debug(logger, "server is starting...");
+    GNL_MINUS1_CHECK(res, errno, -1)
+
     // create socket address
     struct sockaddr_un sa;
     strncpy(sa.sun_path, socket_name, strlen(socket_name) + 1);

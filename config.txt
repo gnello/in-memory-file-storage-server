@@ -16,10 +16,12 @@ FILE_SIZE_LIMIT=2147483648
 REPLACEMENT_POLICY=0
 
 # Absolute path of the socket file.
-SOCKET=/var/run/LSOfilestorage.sk
+#SOCKET=/var/run/LSOfilestorage.sk
+SOCKET=/tmp/LSOfilestorage.sk
 
 # Absolute path of the log file.
-LOG_FILE=/var/log/gnl_fss.log
+#LOG_FILE=/var/log/gnl_fss.log
+LOG_FILE=/tmp/gnl_fss.log
 
 # The log level. Accepted values: trace, debug, info, warn, error.
 LOG_LEVEL=debug
