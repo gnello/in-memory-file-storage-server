@@ -37,6 +37,12 @@ jobs:
       with:
         name: socket
         path: socket
+
+    # upload client
+    - uses: actions/upload-artifact@v2
+      with:
+        name: client
+        path: client
         
   test:
 
@@ -46,7 +52,7 @@ jobs:
     steps:
     - uses: actions/checkout@v2
 
-      # test data-structures
+    # test data-structures
     - uses: actions/download-artifact@v2
     - run: chmod -R +x ./* 
       working-directory: data-structures/tests
@@ -77,3 +83,11 @@ jobs:
     - run: cp .env.example .env
     - run: make -s tests
       working-directory: socket/tests
+
+    # test client
+    - uses: actions/download-artifact@v2
+    - run: chmod -R +x ./*
+      working-directory: client/tests
+    - run: cp .env.example .env
+    - run: make -s tests
+      working-directory: client/tests
