@@ -37,8 +37,8 @@ static void arg_h(const char* program_name) { //7
 
     gnl_print_table("-W FILE1[,FILE2...]", "Send any given FILE/s to the Server.\n");
 
-    gnl_print_table("-D DIRNAME", "Store the files trashed by the Server following\n");
-    gnl_print_table("", "a -w or -W option into DIRNAME.\n");
+    gnl_print_table("-D DIRNAME", "Store the files trashed by the Server into DIRNAME.\n");
+    gnl_print_table("", "It must be followed by a -w or -W option.\n");
 
     gnl_print_table("-r FILE1[,FILE2...]", "Read FILE/s from the Server.\n");
 
@@ -46,8 +46,8 @@ static void arg_h(const char* program_name) { //7
     gnl_print_table("", "If N is specified, read N random files from\n");
     gnl_print_table("", "the Server.\n");
 
-    gnl_print_table("-d DIRNAME", "Store the files read from the Server following\n");
-    gnl_print_table("", "a -r or -R option into DIRNAME.\n");
+    gnl_print_table("-d DIRNAME", "Store the files read from the Server  into DIRNAME.\n");
+    gnl_print_table("", "It must be followed by a -r or -R option.\n");
 
     gnl_print_table("-t TIME", "Wait TIME milliseconds between sequential requests\n");
     gnl_print_table("", "to the Server.\n");
@@ -103,13 +103,13 @@ static int arg_w_parse_arg(const char* arg, char **dirname, int *n) {
     char *string_n;
 
     GNL_CALLOC(copy_arg, strlen(arg) + 1, -1);
-    strcpy(copy_arg, arg);
+    strncpy(copy_arg, arg, strlen(arg));
 
     // parse dirname
     tmp = strtok_r(copy_arg, ",", &tok);
 
     GNL_CALLOC(*dirname, strlen(tmp) + 1, -1);
-    strcpy(*dirname, tmp);
+    strncpy(*dirname, tmp, strlen(tmp));
 
     // parse n
     string_n = strtok_r(NULL, ",", &tok);
@@ -126,18 +126,21 @@ static int arg_w_parse_arg(const char* arg, char **dirname, int *n) {
 }
 
 /**
- * Send recursively n files present in the given dirname
- * to the server.
+ * Recursively send n files present in the given dirname to the server.
+ * If the server trashes some files, and a store_dirname is given, store
+ * it into the given store_dirname.
  *
- * @param arg   The arg is in the format: dirname[,n=0]. The dirname
- *              is the root where to grab the files. If provided, n is
- *              the number of files to send to the server, if n=0 all
- *              the files present into dirname and in its sub-folders
- *              will be sent to the server.
+ * @param arg           The arg has the format: dirname[,n=0]. The dirname
+ *                      is the root where to grab the files. If provided, n is
+ *                      the number of files to send to the server, if n=0 all
+ *                      the files present into dirname and in its sub-folders
+ *                      will be sent to the server.
+ * @param store_dirname The path where to store the trashed files from
+ *                      The server.
  *
- * @return      Returns 0 on success, -1 otherwise.
+ * @return              Returns 0 on success, -1 otherwise.
  */
-static int arg_w(const char* arg) { //11
+static int arg_w(const char *arg, const char *store_dirname) { //11
     int res;
     char *dirname;
     int n;
@@ -155,7 +158,6 @@ static int arg_w(const char* arg) { //11
         GNL_MINUS1_CHECK(res, errno, -1);
 
         // send file
-        char *store_dirname; //TODO: capire come far arrivare qui la cartella dove salvare i files espulsi dal server
         res = gnl_fss_api_write_file(filename, store_dirname);
         GNL_MINUS1_CHECK(res, errno, -1);
 

@@ -185,7 +185,7 @@ int gnl_opt_handler_handle(struct gnl_opt_handler *handler) {
     GNL_MINUS1_CHECK(res, errno, -1);
 
     struct gnl_opt_handler_el *el;
-    struct gnl_opt_handler_el previous_el;
+    struct gnl_opt_handler_el *previous_el = NULL;
 
     while ((el = (struct gnl_opt_handler_el *)gnl_queue_dequeue(handler->command_queue)) != NULL) {
 
@@ -201,15 +201,23 @@ int gnl_opt_handler_handle(struct gnl_opt_handler *handler) {
                 break;
 
             case 'w':
-                res = arg_w(el->arg);
+                if (previous_el->opt == 'D') {
+                    res = arg_w(el->arg, previous_el->arg);
+                } else {
+                    res = arg_w(el->arg, NULL);
+                }
+
                 GNL_MINUS1_CHECK(res, errno, -1);
                 break;
         }
 
-        //previous_el = el;
+        previous_el = el;
+
         free(el);
         wait_microseconds(opt_t_value);
     }
+
+    free(previous_el);
 
     // at the end close the connection to the server
     res = arg_f_end(handler->socket_filename);
