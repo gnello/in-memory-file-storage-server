@@ -16,21 +16,38 @@ int can_scan_dir() {
         "./testdir/testfile2.txt"
     };
 
+    char *actual[6];
+
     struct gnl_queue_t *queue = gnl_opt_rts_scan_dir("./testdir", 0);
 
     if (queue == NULL) {
         return -1;
     }
 
-    for (size_t i=0; i<6; i++) {
-        char *filename = gnl_queue_dequeue(queue);
+    if (gnl_queue_size(queue) != 6) {
+        return -1;
+    }
 
-        if (strcmp(filename, expected[i]) != 0) {
-            free(filename);
-            return -1;
+    for (size_t i=0; i<6; i++) {
+        actual[i] = gnl_queue_dequeue(queue);
+    }
+
+    for (size_t i=0; i<6; i++) {
+        int found = 0;
+
+        for (size_t k=0; k<6; k++) {
+            if (strcmp(actual[k], expected[i]) == 0) {
+                found = 1;
+            }
         }
 
-        free(filename);
+        if (found != 1) {
+            return -1;
+        }
+    }
+
+    for (size_t i=0; i<6; i++) {
+        free(actual[i]);
     }
 
     gnl_queue_destroy(queue, NULL);
