@@ -113,7 +113,7 @@ int can_not_connect_twice() {
 
     gnl_fss_api_close_connection(SOCKET_NAME);
 
-    return -1;
+    return 0;
 }
 
 int can_not_close() {
