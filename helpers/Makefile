@@ -11,6 +11,10 @@ INCLUDE = -I./include
 TARGETS = gnl_colorshell.so gnl_assert.so gnl_txtenv.so gnl_print_table.so gnl_logger.so gnl_file_to_pointer.so
 TARGETS_PATH = ./lib
 
+ifeq ($(GNL_ASSERT_BLOCK), 1)
+	CFLAGS += -DGNL_ASSERT_BLOCK
+endif
+
 .PHONY: all clean
 
 all: $(TARGETS)
