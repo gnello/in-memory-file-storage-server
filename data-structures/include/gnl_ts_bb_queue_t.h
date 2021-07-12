@@ -1,6 +1,6 @@
 
-#ifndef GNL_TS_QUEUE_H
-#define GNL_TS_QUEUE_H
+#ifndef GNL_TS_BB_QUEUE_H
+#define GNL_TS_BB_QUEUE_H
 
 /**
  * Holds the thread-safe blocking bounded queue information.
@@ -61,4 +61,4 @@ extern void *gnl_ts_bb_queue_dequeue(struct gnl_ts_bb_queue_t *q);
  */
 extern unsigned long gnl_ts_bb_queue_size(struct gnl_ts_bb_queue_t *q);
 
-#endif //GNL_TS_QUEUE_H
+#endif //GNL_TS_BB_QUEUE_H
