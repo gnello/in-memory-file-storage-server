@@ -6,7 +6,7 @@
 #include "./data_provider.c"
 
 int can_create_a_min_heap() {
-    gnl_min_heap_t *mh;
+    struct gnl_min_heap_t *mh;
 
     mh = gnl_min_heap_init();
 
@@ -20,7 +20,7 @@ int can_create_a_min_heap() {
 }
 
 int can_insert_int() {
-    gnl_min_heap_t *mh;
+    struct gnl_min_heap_t *mh;
 
     mh = gnl_min_heap_init();
 
@@ -47,7 +47,7 @@ int can_insert_int() {
 }
 
 int can_extract_min() {
-    gnl_min_heap_t *mh;
+    struct gnl_min_heap_t *mh;
 
     mh = gnl_min_heap_init();
 
@@ -78,7 +78,7 @@ int can_extract_min() {
 }
 
 int can_decrease_key() {
-    gnl_min_heap_t *mh;
+    struct gnl_min_heap_t *mh;
 
     mh = gnl_min_heap_init();
 
@@ -113,7 +113,7 @@ int can_decrease_key() {
 }
 
 int can_respect_heap_property() {
-    gnl_min_heap_t *mh;
+    struct gnl_min_heap_t *mh;
 
     mh = gnl_min_heap_init();
 
@@ -160,7 +160,7 @@ int can_respect_heap_property() {
 }
 
 int can_destroy_min_heap_complex_struct() {
-    gnl_min_heap_t *mh;
+    struct gnl_min_heap_t *mh;
 
     mh = gnl_min_heap_init();
 
@@ -194,7 +194,7 @@ int can_pass_null_min_heap() {
 }
 
 int main() {
-    gnl_printf_yellow("> gnl_min_heap_t tests:\n\n");
+    gnl_printf_yellow("> struct gnl_min_heap_t tests:\n\n");
 
     gnl_assert(can_create_a_min_heap, "can create a min heap.");
     gnl_assert(can_insert_int, "can insert an int element into a min heap.");

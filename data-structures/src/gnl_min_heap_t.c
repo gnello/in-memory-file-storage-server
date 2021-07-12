@@ -16,7 +16,10 @@ struct gnl_min_heap_node {
     int key;
 };
 
-// the min heap
+/**
+ * size The size of the min heap.
+ * list The pointer to the list elements of the min heap.
+ */
 struct gnl_min_heap_t {
     unsigned long size;
     struct gnl_min_heap_node *list;
@@ -61,7 +64,7 @@ static int right(int i) {
  *
  * @return int  Returns 0 on success, -1 otherwise.
  */
-static int swap(gnl_min_heap_t *mh, int i, int j) {
+static int swap(struct gnl_min_heap_t *mh, int i, int j) {
     struct gnl_min_heap_node tmp = *(mh->list + i);
     *(mh->list + i) = *(mh->list + j);
     *(mh->list + j) = tmp;
@@ -77,7 +80,7 @@ static int swap(gnl_min_heap_t *mh, int i, int j) {
  *
  * @return int  Returns 0 on success, -1 otherwise.
  */
-static int min_heapify(gnl_min_heap_t *mh, int i) {
+static int min_heapify(struct gnl_min_heap_t *mh, int i) {
     int l = left(i);
     int r = right(i);
     int smallest = i;
@@ -98,8 +101,8 @@ static int min_heapify(gnl_min_heap_t *mh, int i) {
     return 0;
 }
 
-gnl_min_heap_t *gnl_min_heap_init() {
-    gnl_min_heap_t *mh = (struct gnl_min_heap_t *)malloc(sizeof(struct gnl_min_heap_t));
+struct gnl_min_heap_t *gnl_min_heap_init() {
+    struct gnl_min_heap_t *mh = (struct gnl_min_heap_t *)malloc(sizeof(struct gnl_min_heap_t));
 
     GNL_NULL_CHECK(mh, ENOMEM, NULL)
 
@@ -110,7 +113,7 @@ gnl_min_heap_t *gnl_min_heap_init() {
     return mh;
 }
 
-void gnl_min_heap_destroy(gnl_min_heap_t *mh, void (*destroy)(void *data)) {
+void gnl_min_heap_destroy(struct gnl_min_heap_t *mh, void (*destroy)(void *data)) {
     if (mh != NULL) {
         if (mh->list != NULL) {
             if (destroy != NULL) {
@@ -125,7 +128,7 @@ void gnl_min_heap_destroy(gnl_min_heap_t *mh, void (*destroy)(void *data)) {
     }
 }
 
-int gnl_min_heap_insert(gnl_min_heap_t *mh, void *el, int key) {
+int gnl_min_heap_insert(struct gnl_min_heap_t *mh, void *el, int key) {
     GNL_NULL_CHECK(mh, EINVAL, -1)
 
     // allocate space for the new node of the min heap
@@ -152,7 +155,7 @@ int gnl_min_heap_insert(gnl_min_heap_t *mh, void *el, int key) {
     return 0;
 }
 
-void *gnl_min_heap_extract_min(gnl_min_heap_t *mh) {
+void *gnl_min_heap_extract_min(struct gnl_min_heap_t *mh) {
     GNL_NULL_CHECK(mh, EINVAL, NULL)
 
     if (mh->size < 1) {
@@ -171,7 +174,7 @@ void *gnl_min_heap_extract_min(gnl_min_heap_t *mh) {
     return min;
 }
 
-int gnl_min_heap_decrease_key(gnl_min_heap_t *mh, int i, int key) {
+int gnl_min_heap_decrease_key(struct gnl_min_heap_t *mh, int i, int key) {
     GNL_NULL_CHECK(mh, EINVAL, -1)
 
     if (key > (*(mh->list + i)).key) {

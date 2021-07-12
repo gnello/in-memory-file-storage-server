@@ -4,16 +4,8 @@
 
 /**
  * Holds the min heap information.
- *
- * struct gnl_min_heap_t {
- *     unsigned long size;
- *     struct gnl_min_heap_node *list;
- * };
- *
- * size The size of the min heap.
- * list The pointer to the list elements of the min heap.
  */
-typedef struct gnl_min_heap_t gnl_min_heap_t;
+struct gnl_min_heap_t;
 
 /**
  * Create a new min heap.
@@ -21,7 +13,7 @@ typedef struct gnl_min_heap_t gnl_min_heap_t;
  * @return gnl_min_heap_t   Returns the new min heap created on success,
  *                          NULL otherwise.
  */
-extern gnl_min_heap_t *gnl_min_heap_init();
+extern struct gnl_min_heap_t *gnl_min_heap_init();
 
 /**
  * Destroy a min heap.
@@ -30,7 +22,7 @@ extern gnl_min_heap_t *gnl_min_heap_init();
  * @param destroy   The destroy function to free complex data,
  *                  if NULL is passed a standard free will be performed.
  */
-extern void gnl_min_heap_destroy(gnl_min_heap_t *mh, void (*destroy)(void *data));
+extern void gnl_min_heap_destroy(struct gnl_min_heap_t *mh, void (*destroy)(void *data));
 
 /**
  * Insert an element "el" into the min heap "mh".
@@ -40,7 +32,7 @@ extern void gnl_min_heap_destroy(gnl_min_heap_t *mh, void (*destroy)(void *data)
  *
  * @return int  Returns 0 on success, -1 otherwise.
  */
-extern int gnl_min_heap_insert(gnl_min_heap_t *mh, void *el, int key);
+extern int gnl_min_heap_insert(struct gnl_min_heap_t *mh, void *el, int key);
 
 /**
  * Delete and return an element from the in heap "mh".
@@ -50,7 +42,7 @@ extern int gnl_min_heap_insert(gnl_min_heap_t *mh, void *el, int key);
  * @return void*    Returns the element on success, if the
  *                  min heap "mh" is empty returns NULL.
  */
-extern void *gnl_min_heap_extract_min(gnl_min_heap_t *mh);
+extern void *gnl_min_heap_extract_min(struct gnl_min_heap_t *mh);
 
 /**
  * Decrease the key of the i-element of the min heap by the given "key" value.
@@ -61,6 +53,6 @@ extern void *gnl_min_heap_extract_min(gnl_min_heap_t *mh);
  *
  * @return int  Returns 0 on success, -1 otherwise.
  */
-extern int gnl_min_heap_decrease_key(gnl_min_heap_t *mh, int i, int key);
+extern int gnl_min_heap_decrease_key(struct gnl_min_heap_t *mh, int i, int key);
 
 #endif //GNL_MIN_HEAP_H
