@@ -6,7 +6,7 @@
 #include "./data_provider.c"
 
 int can_create_a_queue() {
-    gnl_queue_t *queue;
+    struct gnl_queue_t *queue;
 
     queue = gnl_queue_init();
 
@@ -20,7 +20,7 @@ int can_create_a_queue() {
 }
 
 int can_enqueue_an_int() {
-    gnl_queue_t *queue;
+    struct gnl_queue_t *queue;
 
     queue = gnl_queue_init();
 
@@ -44,7 +44,7 @@ int can_enqueue_an_int() {
 }
 
 int can_dequeue_an_int() {
-    gnl_queue_t *queue;
+    struct gnl_queue_t *queue;
 
     queue = gnl_queue_init();
 
@@ -76,7 +76,7 @@ int can_dequeue_an_int() {
 }
 
 int can_enqueue_a_string() {
-    gnl_queue_t *queue;
+    struct gnl_queue_t *queue;
 
     queue = gnl_queue_init();
 
@@ -100,7 +100,7 @@ int can_enqueue_a_string() {
 }
 
 int can_dequeue_a_string() {
-    gnl_queue_t *queue;
+    struct gnl_queue_t *queue;
 
     queue = gnl_queue_init();
 
@@ -132,7 +132,7 @@ int can_dequeue_a_string() {
 }
 
 int can_enqueue_a_struct() {
-    gnl_queue_t *queue;
+    struct gnl_queue_t *queue;
 
     queue = gnl_queue_init();
 
@@ -156,7 +156,7 @@ int can_enqueue_a_struct() {
 }
 
 int can_dequeue_a_struct() {
-    gnl_queue_t *queue;
+    struct gnl_queue_t *queue;
 
     queue = gnl_queue_init();
 
@@ -188,7 +188,7 @@ int can_dequeue_a_struct() {
 }
 
 int can_destroy_queue_complex_struct() {
-    gnl_queue_t *queue;
+    struct gnl_queue_t *queue;
 
     queue = gnl_queue_init();
 
@@ -212,7 +212,7 @@ int can_destroy_queue_complex_struct() {
 }
 
 int can_get_the_queue_size() {
-    gnl_queue_t *queue;
+    struct gnl_queue_t *queue;
 
     queue = gnl_queue_init();
 
@@ -235,7 +235,7 @@ int can_get_the_queue_size() {
 }
 
 int can_use_a_fifo_queue() {
-    gnl_queue_t *queue;
+    struct gnl_queue_t *queue;
 
     queue = gnl_queue_init();
 
@@ -267,7 +267,7 @@ int can_use_a_fifo_queue() {
 }
 
 int can_get_null_on_an_empty_queue_dequeue() {
-    gnl_queue_t *queue;
+    struct gnl_queue_t *queue;
 
     queue = gnl_queue_init();
 
@@ -292,7 +292,7 @@ int can_pass_null_queue() {
 }
 
 int main() {
-    gnl_printf_yellow("> gnl_queue_t test:\n\n");
+    gnl_printf_yellow("> struct gnl_queue_t test:\n\n");
 
     gnl_assert(can_create_a_queue, "can create a queue.");
 

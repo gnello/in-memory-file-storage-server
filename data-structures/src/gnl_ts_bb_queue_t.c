@@ -40,7 +40,7 @@ struct gnl_ts_bb_queue_t {
     pthread_mutex_t mtx;
     pthread_cond_t el_added;
     pthread_cond_t el_removed;
-    gnl_queue_t *q;
+    struct gnl_queue_t *q;
     int bound;
 };
 

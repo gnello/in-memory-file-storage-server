@@ -15,15 +15,19 @@ struct gnl_queue_node {
     struct gnl_queue_node *next;
 };
 
-// the queue
+/**
+ * front    The head pointer of the queue.
+ * rear     The tail pointer of the queue.
+ * size     The size of the queue.
+ */
 struct gnl_queue_t {
     struct gnl_queue_node *front;
     struct gnl_queue_node *rear;
     unsigned long size;
 };
 
-gnl_queue_t *gnl_queue_init() {
-    gnl_queue_t *queue = (gnl_queue_t *)malloc(sizeof(gnl_queue_t));
+struct gnl_queue_t *gnl_queue_init() {
+    struct gnl_queue_t *queue = (struct gnl_queue_t *)malloc(sizeof(struct gnl_queue_t));
 
     GNL_NULL_CHECK(queue, ENOMEM, NULL)
 
@@ -35,7 +39,7 @@ gnl_queue_t *gnl_queue_init() {
     return queue;
 }
 
-void gnl_queue_destroy(gnl_queue_t *q, void (*destroy)(void *data)) {
+void gnl_queue_destroy(struct gnl_queue_t *q, void (*destroy)(void *data)) {
     if (q != NULL) {
         // destroy every node
         while(q->front != NULL) {
@@ -53,7 +57,7 @@ void gnl_queue_destroy(gnl_queue_t *q, void (*destroy)(void *data)) {
     }
 }
 
-int gnl_queue_enqueue(gnl_queue_t *q, void *el) {
+int gnl_queue_enqueue(struct gnl_queue_t *q, void *el) {
     GNL_NULL_CHECK(q, EINVAL, -1)
 
     // create the new queue node
@@ -79,7 +83,7 @@ int gnl_queue_enqueue(gnl_queue_t *q, void *el) {
     return 0;
 }
 
-void *gnl_queue_dequeue(gnl_queue_t *q) {
+void *gnl_queue_dequeue(struct gnl_queue_t *q) {
     GNL_NULL_CHECK(q, EINVAL, NULL)
 
     // if queue is empty return NULL.
@@ -106,7 +110,7 @@ void *gnl_queue_dequeue(gnl_queue_t *q) {
     return data;
 }
 
-unsigned long gnl_queue_size(const gnl_queue_t *q) {
+unsigned long gnl_queue_size(const struct gnl_queue_t *q) {
     GNL_NULL_CHECK(q, EINVAL, -1)
 
     return q->size;
