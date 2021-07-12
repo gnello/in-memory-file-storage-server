@@ -6,7 +6,7 @@
 #include "./data_provider.c"
 
 int can_create_a_stack() {
-    gnl_stack_t *stack;
+    struct gnl_stack_t *stack;
 
     stack = gnl_stack_init();
 
@@ -20,7 +20,7 @@ int can_create_a_stack() {
 }
 
 int can_push_an_int() {
-    gnl_stack_t *stack;
+    struct gnl_stack_t *stack;
 
     stack = gnl_stack_init();
 
@@ -44,7 +44,7 @@ int can_push_an_int() {
 }
 
 int can_pop_an_int() {
-    gnl_stack_t *stack;
+    struct gnl_stack_t *stack;
 
     stack = gnl_stack_init();
 
@@ -76,7 +76,7 @@ int can_pop_an_int() {
 }
 
 int can_push_a_string() {
-    gnl_stack_t *stack;
+    struct gnl_stack_t *stack;
 
     stack = gnl_stack_init();
 
@@ -100,7 +100,7 @@ int can_push_a_string() {
 }
 
 int can_pop_a_string() {
-    gnl_stack_t *stack;
+    struct gnl_stack_t *stack;
 
     stack = gnl_stack_init();
 
@@ -132,7 +132,7 @@ int can_pop_a_string() {
 }
 
 int can_destroy_stack_complex_struct() {
-    gnl_stack_t *stack;
+    struct gnl_stack_t *stack;
 
     stack = gnl_stack_init();
 
@@ -156,7 +156,7 @@ int can_destroy_stack_complex_struct() {
 }
 
 int can_get_the_stack_size() {
-    gnl_stack_t *stack;
+    struct gnl_stack_t *stack;
 
     stack = gnl_stack_init();
 
@@ -179,7 +179,7 @@ int can_get_the_stack_size() {
 }
 
 int can_use_a_lifo_stack() {
-    gnl_stack_t *stack;
+    struct gnl_stack_t *stack;
 
     stack = gnl_stack_init();
 
@@ -211,7 +211,7 @@ int can_use_a_lifo_stack() {
 }
 
 int can_get_null_on_an_empty_stack_pop() {
-    gnl_stack_t *stack;
+    struct gnl_stack_t *stack;
 
     stack = gnl_stack_init();
 
@@ -236,7 +236,7 @@ int can_pass_null_stack() {
 }
 
 int main() {
-    gnl_printf_yellow("> gnl_stack_t tests:\n\n");
+    gnl_printf_yellow("> struct gnl_stack_t tests:\n\n");
 
     gnl_assert(can_create_a_stack, "can create a stack.");
 

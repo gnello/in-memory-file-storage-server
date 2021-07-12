@@ -40,7 +40,7 @@ struct gnl_ts_bb_stack_t {
     pthread_mutex_t mtx;
     pthread_cond_t el_added;
     pthread_cond_t el_removed;
-    gnl_stack_t *s;
+    struct gnl_stack_t *s;
     int bound;
 };
 

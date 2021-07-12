@@ -15,14 +15,17 @@ struct gnl_stack_node {
     struct gnl_stack_node *next;
 };
 
-// the stack
+/**
+ * top  The pointer to the first element of the stack.
+ * size The size of the stack.
+ */
 struct gnl_stack_t {
     struct gnl_stack_node *top;
     unsigned long size;
 };
 
-gnl_stack_t *gnl_stack_init() {
-    gnl_stack_t *stack = (struct gnl_stack_t *)malloc(sizeof(struct gnl_stack_t));
+struct gnl_stack_t *gnl_stack_init() {
+    struct gnl_stack_t *stack = (struct gnl_stack_t *)malloc(sizeof(struct gnl_stack_t));
 
     GNL_NULL_CHECK(stack, ENOMEM, NULL)
 
@@ -33,7 +36,7 @@ gnl_stack_t *gnl_stack_init() {
     return stack;
 }
 
-void gnl_stack_destroy(gnl_stack_t *s, void (*destroy)(void *data)) {
+void gnl_stack_destroy(struct gnl_stack_t *s, void (*destroy)(void *data)) {
     if (s != NULL) {
         // destroy every node
         while(s->top != NULL) {
@@ -51,7 +54,7 @@ void gnl_stack_destroy(gnl_stack_t *s, void (*destroy)(void *data)) {
     }
 }
 
-int gnl_stack_push(gnl_stack_t *s, void *el) {
+int gnl_stack_push(struct gnl_stack_t *s, void *el) {
     GNL_NULL_CHECK(s, EINVAL, -1)
 
     // create the new stack node
@@ -73,7 +76,7 @@ int gnl_stack_push(gnl_stack_t *s, void *el) {
     return 0;
 }
 
-void *gnl_stack_pop(gnl_stack_t *s) {
+void *gnl_stack_pop(struct gnl_stack_t *s) {
     GNL_NULL_CHECK(s, EINVAL, NULL)
 
     // if stack is empty return NULL.
@@ -94,7 +97,7 @@ void *gnl_stack_pop(gnl_stack_t *s) {
     return data;
 }
 
-unsigned long gnl_stack_size(const gnl_stack_t *s) {
+unsigned long gnl_stack_size(const struct gnl_stack_t *s) {
     GNL_NULL_CHECK(s, EINVAL, -1)
 
     return s->size;

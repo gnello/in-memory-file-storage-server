@@ -4,16 +4,8 @@
 
 /**
  * Holds the stack information.
- *
- * struct gnl_stack_t {
- *     struct gnl_stack_node *top;
- *     unsigned long size;
- * };
- *
- * top  The pointer to the first element of the stack.
- * size The size of the stack.
  */
-typedef struct gnl_stack_t gnl_stack_t;
+struct gnl_stack_t;
 
 /**
  * Create a new stack.
@@ -21,7 +13,7 @@ typedef struct gnl_stack_t gnl_stack_t;
  * @return gnl_stack_t  Returns the new stack created on success,
  *                      NULL otherwise.
  */
-extern gnl_stack_t *gnl_stack_init();
+extern struct gnl_stack_t *gnl_stack_init();
 
 /**
  * Destroy a stack.
@@ -30,7 +22,7 @@ extern gnl_stack_t *gnl_stack_init();
  * @param destroy   The destroy function to free complex data,
  *                  if NULL is passed a standard free will be performed.
  */
-extern void gnl_stack_destroy(gnl_stack_t *s, void (*destroy)(void *data));
+extern void gnl_stack_destroy(struct gnl_stack_t *s, void (*destroy)(void *data));
 
 /**
  * Put an element "el" into the stack "s".
@@ -40,7 +32,7 @@ extern void gnl_stack_destroy(gnl_stack_t *s, void (*destroy)(void *data));
  *
  * @return int  Returns 0 on success, -1 otherwise.
  */
-extern int gnl_stack_push(gnl_stack_t *s, void *el);
+extern int gnl_stack_push(struct gnl_stack_t *s, void *el);
 
 /**
  * Delete and return an element from the stack "s".
@@ -50,7 +42,7 @@ extern int gnl_stack_push(gnl_stack_t *s, void *el);
  * @return void*    Returns the element on success, if the
  *                  stack "s" is empty returns NULL.
  */
-extern void *gnl_stack_pop(gnl_stack_t *s);
+extern void *gnl_stack_pop(struct gnl_stack_t *s);
 
 /**
  * Return the size of the stack "s".
@@ -58,6 +50,6 @@ extern void *gnl_stack_pop(gnl_stack_t *s);
  * @param s     The stack from where to get the size.
  * @return int  Returns the stack size.
  */
-extern unsigned long gnl_stack_size(const gnl_stack_t *s);
+extern unsigned long gnl_stack_size(const struct gnl_stack_t *s);
 
 #endif //GNL_STACK_H
