@@ -20,6 +20,9 @@ extern struct gnl_ts_bb_stack_t *gnl_ts_bb_stack_init(int bound);
 
 /**
  * Destroy a thread-safe blocking bounded stack.
+ * CAUTION!!! This is not an atomic operation! Call this method
+ * only in a main thread where you are sure there are not other
+ * threads using the stack s.
  *
  * @param s     The stack to be destroyed.
  * @param destroy   The destroy function to free complex data,
