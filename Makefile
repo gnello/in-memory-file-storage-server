@@ -4,7 +4,7 @@ export
 CC = gcc
 CFLAGS += -std=c99 -Wall -pedantic -g
 
-LIBS += -Wl,-rpath,$(DATA_STRUCTURES_LIB) -L$(DATA_STRUCTURES_LIB) -lgnl_ts_bb_queue_t -lgnl_ts_stack_t
+LIBS += -Wl,-rpath,$(DATA_STRUCTURES_LIB) -L$(DATA_STRUCTURES_LIB) -lgnl_ts_bb_queue_t -lgnl_ts_bb_stack_t
 INCLUDE += -I$(DATA_STRUCTURES_INCLUDE)
 
 TARGETS = server client

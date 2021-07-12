@@ -9,7 +9,7 @@ CFLAGS = -std=c99 -Wall -pedantic
 HELPERS_PATH_INCLUDE = $(ROOT)/$(HELPERS_INCLUDE)
 INCLUDE = -I$(HELPERS_PATH_INCLUDE)
 
-TARGETS = gnl_list_t.so gnl_queue_t.so gnl_ts_bb_queue_t.so gnl_stack_t.so gnl_ts_stack_t.so
+TARGETS = gnl_list_t.so gnl_queue_t.so gnl_ts_bb_queue_t.so gnl_stack_t.so gnl_ts_bb_stack_t.so
 TARGETS_PATH = ./lib
 
 .PHONY: all dev clean
