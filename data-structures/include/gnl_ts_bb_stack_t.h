@@ -1,6 +1,6 @@
 
-#ifndef GNL_TS_STACK_H
-#define GNL_TS_STACK_H
+#ifndef GNL_TS_BB_STACK_H
+#define GNL_TS_BB_STACK_H
 
 /**
  * Holds the thread-safe stack information.
@@ -60,4 +60,4 @@ extern void *gnl_ts_bb_stack_pop(struct gnl_ts_bb_stack_t *s);
  */
 extern unsigned long gnl_ts_bb_stack_size(struct gnl_ts_bb_stack_t *s);
 
-#endif //GNL_TS_STACK_H
+#endif //GNL_TS_BB_STACK_H
