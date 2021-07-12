@@ -5,7 +5,7 @@
 #include <gnl_macro_beg.h>
 
 /**
- * Support function of the gnl_opt_rts_scan_dir function.
+ * Recursive support function of the gnl_opt_rts_scan_dir function.
  *
  * @param dirname   The dirname where to scan the files.
  * @param queue     The queue where to put the scanned files.

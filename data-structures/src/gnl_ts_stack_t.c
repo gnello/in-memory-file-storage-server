@@ -69,7 +69,7 @@ int gnl_ts_stack_push(gnl_ts_stack_t *s, void *el) {
     GNL_MINUS1_CHECK(pthread_res, errno, -1)
 
     int res = gnl_stack_push(s->s, el);
-    GNL_MINUS1_CHECK(res, errno, -1)
+    GNL_MINUS1_CHECK(res, errno, -1) //TODO: rilsciare il lock!
 
     pthread_res = pthread_mutex_unlock(&(s->mtx));
     GNL_MINUS1_CHECK(pthread_res, errno, -1)
@@ -82,8 +82,8 @@ void *gnl_ts_stack_pop(gnl_ts_stack_t *s) {
 
     int pthread_res;
 
-    if (gnl_ts_stack_size(s) == 0) {
-        return NULL;
+    if (gnl_ts_stack_size(s) == 0) { //TODO: spostare dentro il lock
+        return NULL; //TODO: rimuovere il lock
     }
 
     pthread_res = pthread_mutex_lock(&(s->mtx));

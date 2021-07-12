@@ -12,7 +12,7 @@
  *
  * mtx  The mutex var of the thread-safe stack.
  * s    The stack data-structure.
- */
+ */ //TODO: non usare typedef, lasciare struct
 typedef struct gnl_ts_stack_t gnl_ts_stack_t;
 
 /**
