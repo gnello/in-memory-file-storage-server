@@ -23,7 +23,7 @@
 extern int errno;
 
 struct gnl_opt_handler {
-    gnl_queue_t *command_queue;
+    struct gnl_queue_t *command_queue;
     char *socket_filename;
     int debug;
 };

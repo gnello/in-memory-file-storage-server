@@ -14,7 +14,7 @@
  *
  * @return          Returns 0 on success, -1 otherwise.
  */
-static int scan_dir(const char *dirname, gnl_queue_t *queue, int *count, const int limit) {
+static int scan_dir(const char *dirname, struct gnl_queue_t *queue, int *count, const int limit) {
     DIR *dir;
     struct dirent *entry;
     int res;
