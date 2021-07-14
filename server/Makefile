@@ -7,7 +7,7 @@ CC = gcc
 CFLAGS = -std=c99 -Wall -g -pedantic
 
 # data-structures library
-LIBS = -Wl,-rpath,$(ROOT)$(DATA_STRUCTURES_LIB) -L$(ROOT)$(DATA_STRUCTURES_LIB) -lgnl_list_t -lgnl_queue_t
+LIBS = -Wl,-rpath,$(ROOT)$(DATA_STRUCTURES_LIB) -L$(ROOT)$(DATA_STRUCTURES_LIB) -lgnl_list_t -lgnl_queue_t -lgnl_ts_bb_queue_t
 INCLUDE = -I$(ROOT)$(DATA_STRUCTURES_INCLUDE)
 
 # helpers library
