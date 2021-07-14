@@ -7,13 +7,14 @@
 #include <sys/select.h>
 #include <gnl_logger.h>
 #include <gnl_socket_request.h>
+#include <gnl_ts_bb_queue_t.h>
 #include <gnl_macro_beg.h>
 
 #define N 100
 
 struct gnl_logger *logger;
 
-int gnl_fss_server_start(gnl_fss_config *config) {
+int gnl_fss_server_start(struct gnl_fss_config *config) {
     char *socket_name = config->socket;
 
     if (socket_name == NULL) {
@@ -24,6 +25,10 @@ int gnl_fss_server_start(gnl_fss_config *config) {
 
     // instantiate the logger
     logger = gnl_logger_init(config->log_filepath, "gnl_fss_server", config->log_level);
+    GNL_NULL_CHECK(logger, errno, -1)
+
+    // instantiate the blocking bounded queue to communicate with the workers
+    struct gnl_ts_bb_queue_t *worker_queue = gnl_ts_bb_queue_init(config->thread_workers);
     GNL_NULL_CHECK(logger, errno, -1)
 
     int res;
@@ -87,6 +92,8 @@ int gnl_fss_server_start(gnl_fss_config *config) {
 
     // reset mask
     FD_ZERO(&set);
+
+    // put the server file descriptor into the active file descriptors set
     FD_SET(fd_skt,&set);
 
     while (1) {
@@ -113,7 +120,7 @@ int gnl_fss_server_start(gnl_fss_config *config) {
 
                     gnl_logger_debug(logger, "client %d requested to connect, accepted", fd_c);
 
-                    // update the active file descriptors set
+                    // put the client file descriptor into the active file descriptors set
                     FD_SET(fd_c, &set);
 
                     // update fd_num with the max file descriptor active index

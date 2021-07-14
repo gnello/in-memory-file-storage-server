@@ -8,7 +8,7 @@ int main(int argc, char * argv[]) {
     char opt_err = '\0';
     char *error = "";
     char *filename = NULL;
-    gnl_fss_config *config;
+    struct gnl_fss_config *config;
 
     // parse the options
     if (gnl_fss_opt_handler_parse(argc, argv, &filename, &opt_err, &error) != 0) {

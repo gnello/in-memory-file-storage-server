@@ -9,7 +9,7 @@
 #include "../src/gnl_fss_config.c"
 
 int can_load_default() {
-    gnl_fss_config *config = gnl_fss_config_init();
+    struct gnl_fss_config *config = gnl_fss_config_init();
     if (config == NULL) {
         return -1;
     }
@@ -52,7 +52,7 @@ int can_load_env() {
         return -1;
     }
 
-    gnl_fss_config *config = gnl_fss_config_init_from_env();
+    struct gnl_fss_config *config = gnl_fss_config_init_from_env();
     if (config == NULL) {
         return -1;
     }
@@ -99,7 +99,7 @@ int can_load_env() {
 }
 
 int can_not_load_with_error() {
-    gnl_fss_config *config = gnl_fss_config_init_from_env();
+    struct gnl_fss_config *config = gnl_fss_config_init_from_env();
     if (config != NULL) {
         return -1;
     }
