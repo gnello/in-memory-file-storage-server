@@ -13,17 +13,19 @@ cd in-memory-file-storage-server/ # move into the project directory
 ```
 
 ## Server
-To run the server execute the following command in a terminal:
+To run the server execute the following command from the root of the project:
+
 ```bash
 make server # build the server files 
 cd server/ # move into the server directory
 ./main -f ../config.txt # run the server
 ```
 
-To see all the options available run the following command:
+To see all the options available do:
 ```bash
 ./main -h # show the usage message
 ```
+
 ## Compiling:
 
 - `make`: Compiles the main in `bin/main`
