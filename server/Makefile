@@ -18,6 +18,9 @@ INCLUDE += -I$(ROOT)$(HELPERS_INCLUDE)
 LIBS += -Wl,-rpath,$(ROOT)$(SOCKET_LIB) -L$(ROOT)$(SOCKET_LIB) -lgnl_socket_request -lgnl_socket_response -lgnl_socket_service
 INCLUDE += -I$(ROOT)$(SOCKET_INCLUDE)
 
+# add thread support
+LIBS += -lpthread
+
 INCLUDE += -I./include
 
 TARGETS = main gnl_fss_api.so
