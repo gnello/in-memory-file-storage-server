@@ -1,10 +1,11 @@
 # File Storage Server
 [![C/C++ CI][1]][2]
 
-Simple In Memory File Storage Server.
+Simple In Memory File Storage Server case study.  
+Concepts involved: data-structures, concurrency (multi-thread), pipes, sockets, master-worker design pattern, signals handling, storage and deep memory managing. 
 
 ## Installation
-This project is completely portable, this means that you do not need any extra library to use it.
+This project is completely portable (totally conform to POSIX), this means that you do not need any extra library to use it.
 To install the project it is sufficient to follow the following simple commands:
 
 ```bash
