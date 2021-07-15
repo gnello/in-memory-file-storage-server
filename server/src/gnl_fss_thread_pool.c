@@ -1,6 +1,6 @@
 
 #include <pthread.h>
-#include "../include/gnl_fss_worker.h"
+#include "./gnl_fss_worker.c"
 #include <gnl_macro_beg.h>
 
 pthread_t *gnl_fss_thread_pool_init(int size, struct gnl_fss_worker_config *worker_config)
@@ -10,10 +10,14 @@ pthread_t *gnl_fss_thread_pool_init(int size, struct gnl_fss_worker_config *work
     GNL_NULL_CHECK(thread_pool, ENOMEM, NULL)
 
     int args = 1;
+    int res;
 
     // instantiate the thread pool
     for (size_t i=0; i<size; i++) {
-        pthread_create(&thread_pool[i], NULL, &gnl_fss_worker_handle, (void *)worker_config);
+        res = pthread_create(&thread_pool[i], NULL, &gnl_fss_worker_handle, (void *)worker_config);
+        if (res != 0) {
+            return NULL;
+        }
     }
 
     return thread_pool;
