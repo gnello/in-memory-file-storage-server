@@ -1,6 +1,6 @@
 
-#ifndef GNL_IMFS_SERVER_API_H
-#define GNL_IMFS_SERVER_API_H
+#ifndef GNL_FSS_SERVER_API_H
+#define GNL_FSS_SERVER_API_H
 
 #include <linux/time.h>
 
@@ -135,4 +135,4 @@ extern int gnl_fss_api_close_file(const char *pathname);
  */
 extern int gnl_fss_api_remove_file(const char *pathname);
 
-#endif //GNL_IMFS_SERVER_API_H
+#endif //GNL_FSS_SERVER_API_H
