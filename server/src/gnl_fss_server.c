@@ -8,54 +8,38 @@
 #include <gnl_logger.h>
 #include <gnl_socket_request.h>
 #include <gnl_ts_bb_queue_t.h>
+#include "gnl_fss_thread_pool.c"
 #include <gnl_macro_beg.h>
 
 #define N 100
 
-struct gnl_logger *logger;
+static int create_thread_pool(int size, struct gnl_ts_bb_queue_t *worker_queue) {
+    struct gnl_fss_worker_config *worker_config;
 
-int gnl_fss_server_start(struct gnl_fss_config *config) {
-    char *socket_name = config->socket;
+    // create the working config
+    worker_config = gnl_fss_worker_init(worker_queue, 1);
 
-    if (socket_name == NULL) {
-        errno = EINVAL;
+    pthread_t *thread_pool = gnl_fss_thread_pool_init(size, worker_config);
+    GNL_NULL_CHECK(thread_pool, ENOMEM, -1)
 
-        return -1;
-    }
+    // destroy the working config
+    gnl_fss_worker_destroy(worker_config);
 
-    // instantiate the logger
-    logger = gnl_logger_init(config->log_filepath, "gnl_fss_server", config->log_level);
-    GNL_NULL_CHECK(logger, errno, -1)
+    return 0;
+}
 
-    // instantiate the blocking bounded queue to communicate with the workers
-    struct gnl_ts_bb_queue_t *worker_queue = gnl_ts_bb_queue_init(config->thread_workers);
-    GNL_NULL_CHECK(logger, errno, -1)
-
+/**
+ * Create the server using the given socket name.
+ *
+ * @param socket_name   The socket path to use to create the server.
+ * @param logger        The logger instance to use for logging.
+ *
+ * @return              Return the server file descriptor on success,
+ *                      -1 otherwise.
+ */
+static int create_server(const char *socket_name, const struct gnl_logger *logger) {
     int res;
-
-    // socket connection file descriptor
     int fd_skt;
-
-    // max active file descriptor index
-    int fd_num = 0;
-
-    // active file descriptors set
-    fd_set set;
-
-    // active file descriptors waited for reading
-    fd_set rdset;
-
-    // file descriptor index to check SC select results
-    int fd;
-
-    // file descriptor of a client
-    int fd_c;
-
-    // read buffer
-    char buf[N];
-
-    // number of chars read
-    long nread;
 
     res = gnl_logger_debug(logger, "server is starting...");
     GNL_MINUS1_CHECK(res, errno, -1)
@@ -85,16 +69,51 @@ int gnl_fss_server_start(struct gnl_fss_config *config) {
 
     gnl_logger_info(logger, "server ready, listening for connections");
 
-    // update fd_num with the max file descriptor active index
-    if (fd_skt > fd_num) {
-        fd_num = fd_skt;
-    }
+    return fd_skt;
+}
+
+/**
+ * Run the server handling new connections or requests.
+ *
+ * @param fd_skt    The server file descriptor.
+ * @param logger    The logger instance to use for logging.
+ *
+ * @return          Returns -1 on error, otherwise it never returns.
+ */
+static int run_server(int fd_skt, const struct gnl_logger *logger) {
+    int res;
+
+    // active file descriptors waited for reading
+    fd_set rdset;
+
+    // file descriptor index to check SC select results
+    int fd;
+
+    // file descriptor of a client
+    int fd_c;
+
+    // read buffer
+    char buf[N];
+
+    // number of chars read
+    long nread;
+
+    // max active file descriptor index
+    int fd_num = 0;
+
+    // active file descriptors set
+    fd_set set;
 
     // reset mask
     FD_ZERO(&set);
 
     // put the server file descriptor into the active file descriptors set
     FD_SET(fd_skt,&set);
+
+    // update fd_num with the max file descriptor active index
+    if (fd_skt > fd_num) {
+        fd_num = fd_skt;
+    }
 
     while (1) {
 
@@ -177,14 +196,49 @@ int gnl_fss_server_start(struct gnl_fss_config *config) {
             }
         }
     }
+}
 
-    // clean up
-    gnl_logger_destroy(logger);
-    close(fd_skt);
-    remove(socket_name);
+//TODO: add doc (in a header?)
+int gnl_fss_server_start(struct gnl_fss_config *config) {
+    char *socket_name = config->socket;
+
+    if (socket_name == NULL) {
+        errno = EINVAL;
+
+        return -1;
+    }
+
+    // instantiate the logger
+    struct gnl_logger *logger;
+    logger = gnl_logger_init(config->log_filepath, "gnl_fss_server", config->log_level);
+    GNL_NULL_CHECK(logger, errno, -1)
+
+    // instantiate the blocking bounded queue to communicate with the workers
+    struct gnl_ts_bb_queue_t *worker_queue = gnl_ts_bb_queue_init(config->thread_workers);
+    GNL_NULL_CHECK(logger, errno, -1)
+
+    // start the thread pool
+    int res = create_thread_pool(config->thread_workers, worker_queue);
+
+    // socket connection file descriptor
+    int fd_skt;
+
+    fd_skt = create_server(socket_name, logger);
+    GNL_MINUS1_CHECK(fd_skt, errno, -1)
+
+    // run the server
+    res = run_server(fd_skt, logger);
+    GNL_MINUS1_CHECK(res, errno, -1)
 
     return 0;
 }
+
+
+
+// TODO: clean up in a signal handler
+//    gnl_logger_destroy(logger);
+//    close(fd_skt);
+//    remove(socket_name);
 
 #undef N
 
