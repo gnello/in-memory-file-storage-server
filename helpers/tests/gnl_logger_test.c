@@ -9,7 +9,7 @@
 #define BUFFER_SIZE 1000
 #define LOGGER_TEST_FILE "./logger.txt"
 
-int test_logger_level(int should_be_present, char *log_level, char *logged_level, int (*fun)(struct gnl_logger *logger, char *message, ...)) {
+int test_logger_level(int should_be_present, char *log_level, char *logged_level, int (*fun)(const struct gnl_logger *logger, const char *message, ...)) {
     struct gnl_logger *logger;
 
     logger = gnl_logger_init(LOGGER_TEST_FILE, "gnl_logger_test", log_level);

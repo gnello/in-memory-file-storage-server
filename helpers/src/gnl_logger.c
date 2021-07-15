@@ -20,7 +20,7 @@ va_list a_list;
  * @return      The corresponding level of the given string
  *              on success, -1 otherwise.
  */
-static int level_from_string(char *level) {
+static int level_from_string(const char *level) {
     if (strcmp("trace", level) == 0) {
         return GNL_LOGGER_TRACE;
     }
@@ -54,7 +54,7 @@ static int level_from_string(char *level) {
  *
  * @return      Returns 0 on success, -1 otherwise.
  */
-static int level_to_string(enum gnl_log_level level, char **dest) {
+static int level_to_string(const enum gnl_log_level level, char **dest) {
     switch (level) {
         case GNL_LOGGER_TRACE:
             GNL_CALLOC(*dest, 6 * sizeof(char), -1)
@@ -85,7 +85,7 @@ static int level_to_string(enum gnl_log_level level, char **dest) {
     return 0;
 }
 
-struct gnl_logger *gnl_logger_init(char *path, char *scope, char *level) {
+struct gnl_logger *gnl_logger_init(const char *path, const char *scope, const char *level) {
     if (path == NULL) {
         errno = EINVAL;
 
@@ -135,7 +135,7 @@ void gnl_logger_destroy(struct gnl_logger *logger) {
  * @return          Returns a positive number if the message
  *                  should be reported, 0 otherwise.
  */
-static int should_report(struct gnl_logger *logger, enum gnl_log_level level) {
+static int should_report(const struct gnl_logger *logger, const enum gnl_log_level level) {
     return logger->level >= level;
 }
 
@@ -148,7 +148,7 @@ static int should_report(struct gnl_logger *logger, enum gnl_log_level level) {
  *
  * @return          Returns 0 on success, -1 otherwise.
  */
-static int add_scope_to_message(struct gnl_logger *logger, char *message, char **dest) {
+static int add_scope_to_message(const struct gnl_logger *logger, const char *message, char **dest) {
     int maxsize = strlen(logger->scope) + 2 + strlen(message) + 1;
 
     GNL_CALLOC(*dest, maxsize, -1)
@@ -167,7 +167,7 @@ static int add_scope_to_message(struct gnl_logger *logger, char *message, char *
  *
  * @return          Returns 0 on success, -1 otherwise.
  */
-static int add_level_to_message(char *message, enum gnl_log_level level, char **dest) {
+static int add_level_to_message(const char *message, const enum gnl_log_level level, char **dest) {
     int res;
     char *string_level;
     int maxsize;
@@ -194,7 +194,7 @@ static int add_level_to_message(char *message, enum gnl_log_level level, char **
  *
  * @return          Returns 0 on success, -1 otherwise.
  */
-static int add_timestamp_to_message(char *message, char **dest) {
+static int add_timestamp_to_message(const char *message, char **dest) {
     int maxsize;
     char *timestamp;
 
@@ -229,7 +229,7 @@ static int add_timestamp_to_message(char *message, char **dest) {
  *
  * @return          Returns 0 on success, -1 otherwise.
  */
-static int add_new_line_to_message(char *message, char **dest) {
+static int add_new_line_to_message(const char *message, char **dest) {
     int maxsize = strlen(message) + 2;
     GNL_CALLOC(*dest, maxsize, -1)
 
@@ -237,7 +237,6 @@ static int add_new_line_to_message(char *message, char **dest) {
 
     return 0;
 }
-
 
 /**
  * Build the message.
@@ -249,7 +248,7 @@ static int add_new_line_to_message(char *message, char **dest) {
  *
  * @return         Returns 0 on success, -1 otherwise.
  */
-static int build_message(struct gnl_logger *logger, char *message, enum gnl_log_level level, char **dest) {
+static int build_message(const struct gnl_logger *logger, const char *message, const enum gnl_log_level level, char **dest) {
     int res;
     char *scope_message;
     char *level_message;
@@ -283,7 +282,7 @@ static int build_message(struct gnl_logger *logger, char *message, enum gnl_log_
  *
  * @return          Returns 0 on success, -1 otherwise.
  */
-static int report(struct gnl_logger *logger, char *message, enum gnl_log_level level) {
+static int report(const struct gnl_logger *logger, const char *message, const enum gnl_log_level level) {
     int res;
     char *dest;
     FILE *log_file;
@@ -303,7 +302,7 @@ static int report(struct gnl_logger *logger, char *message, enum gnl_log_level l
     return 0;
 }
 
-int gnl_logger_trace(struct gnl_logger *logger, char *message, ...) {
+int gnl_logger_trace(const struct gnl_logger *logger, const char *message, ...) {
     int res = 0;
 
     if (should_report(logger, GNL_LOGGER_TRACE)) {
@@ -318,7 +317,7 @@ int gnl_logger_trace(struct gnl_logger *logger, char *message, ...) {
     return res;
 }
 
-int gnl_logger_debug(struct gnl_logger *logger, char *message, ...) {
+int gnl_logger_debug(const struct gnl_logger *logger, const char *message, ...) {
     int res = 0;
 
     if (should_report(logger, GNL_LOGGER_DEBUG)) {
@@ -333,7 +332,7 @@ int gnl_logger_debug(struct gnl_logger *logger, char *message, ...) {
     return res;
 }
 
-int gnl_logger_info(struct gnl_logger *logger, char *message, ...) {
+int gnl_logger_info(const struct gnl_logger *logger, const char *message, ...) {
     int res = 0;
 
     if (should_report(logger, GNL_LOGGER_INFO)) {
@@ -348,7 +347,7 @@ int gnl_logger_info(struct gnl_logger *logger, char *message, ...) {
     return res;
 }
 
-int gnl_logger_warn(struct gnl_logger *logger, char *message, ...) {
+int gnl_logger_warn(const struct gnl_logger *logger, const char *message, ...) {
     int res = 0;
 
     if (should_report(logger, GNL_LOGGER_WARN)) {
@@ -363,7 +362,7 @@ int gnl_logger_warn(struct gnl_logger *logger, char *message, ...) {
     return res;
 }
 
-int gnl_logger_error(struct gnl_logger *logger, char *message, ...) {
+int gnl_logger_error(const struct gnl_logger *logger, const char *message, ...) {
     int res = 0;
 
     if (should_report(logger, GNL_LOGGER_ERROR)) {

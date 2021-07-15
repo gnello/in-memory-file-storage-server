@@ -39,7 +39,7 @@ struct gnl_logger {
  * @return      The new logger instance on success,
  *              NULL otherwise.
  */
-extern struct gnl_logger *gnl_logger_init(char *path, char *scope, char *level);
+extern struct gnl_logger *gnl_logger_init(const char *path, const char *scope, const char *level);
 
 /**
  * Destroy the given logger.
@@ -58,7 +58,7 @@ extern void gnl_logger_destroy(struct gnl_logger *logger);
  *
  * @return          Returns 0 on success, -1 otherwise.
  */
-extern int gnl_logger_trace(struct gnl_logger *logger, char *message, ...);
+extern int gnl_logger_trace(const struct gnl_logger *logger, const char *message, ...);
 
 /**
  * Log debug level messages.
@@ -70,7 +70,7 @@ extern int gnl_logger_trace(struct gnl_logger *logger, char *message, ...);
  *
  * @return          Returns 0 on success, -1 otherwise.
  */
-extern int gnl_logger_debug(struct gnl_logger *logger, char *message, ...);
+extern int gnl_logger_debug(const struct gnl_logger *logger, const char *message, ...);
 
 /**
  * Log info level messages.
@@ -82,7 +82,7 @@ extern int gnl_logger_debug(struct gnl_logger *logger, char *message, ...);
  *
  * @return          Returns 0 on success, -1 otherwise.
  */
-extern int gnl_logger_info(struct gnl_logger *logger, char *message, ...);
+extern int gnl_logger_info(const struct gnl_logger *logger, const char *message, ...);
 
 /**
  * Log warn level messages.
@@ -94,7 +94,7 @@ extern int gnl_logger_info(struct gnl_logger *logger, char *message, ...);
  *
  * @return          Returns 0 on success, -1 otherwise.
  */
-extern int gnl_logger_warn(struct gnl_logger *logger, char *message, ...);
+extern int gnl_logger_warn(const struct gnl_logger *logger, const char *message, ...);
 
 /**
  * Log error level messages.
@@ -106,6 +106,6 @@ extern int gnl_logger_warn(struct gnl_logger *logger, char *message, ...);
  *
  * @return          Returns 0 on success, -1 otherwise.
  */
-extern int gnl_logger_error(struct gnl_logger *logger, char *message, ...);
+extern int gnl_logger_error(const struct gnl_logger *logger, const char *message, ...);
 
 #endif //GNL_LOGGER_H
