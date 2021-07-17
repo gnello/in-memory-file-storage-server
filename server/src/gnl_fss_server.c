@@ -13,8 +13,21 @@
 
 #define N 100
 
-static int create_thread_pool(int size, struct gnl_ts_bb_queue_t *worker_queue) {
+/**
+ * Create the thread pool to handle clients requests.
+ *
+ * @param size          The size of the thread pool.
+ * @param worker_queue  The queue where to receive a ready file descriptor
+ *                      from the server.
+ * @param logger        The logger instance to use for logging.
+ *
+ * @return              Returns 0 on success, -1 otherwise.
+ */
+static int create_thread_pool(int size, struct gnl_ts_bb_queue_t *worker_queue, const struct gnl_logger *logger) {
     struct gnl_fss_worker_config *worker_config;
+
+    int res = gnl_logger_debug(logger, "creating the thread pool with %d workers...", size);
+    GNL_MINUS1_CHECK(res, errno, -1)
 
     // create the working config
     worker_config = gnl_fss_worker_init(worker_queue, 1);
@@ -24,6 +37,9 @@ static int create_thread_pool(int size, struct gnl_ts_bb_queue_t *worker_queue) 
 
     // destroy the working config
     gnl_fss_worker_destroy(worker_config);
+
+    res = gnl_logger_info(logger, "created the thread pool with %d workers", size);
+    GNL_MINUS1_CHECK(res, errno, -1)
 
     return 0;
 }
@@ -41,7 +57,7 @@ static int create_server(const char *socket_name, const struct gnl_logger *logge
     int res;
     int fd_skt;
 
-    res = gnl_logger_debug(logger, "server is starting...");
+    res = gnl_logger_info(logger, "server is starting...");
     GNL_MINUS1_CHECK(res, errno, -1)
 
     // create socket address
@@ -180,7 +196,7 @@ static int run_server(int fd_skt, const struct gnl_logger *logger) {
                         request = gnl_socket_request_read(buf);
 
                         if (request == NULL) {
-                            gnl_logger_error(logger, "Invalid request of client %d: %s", fd_c, strerror(errno));
+                            gnl_logger_error(logger, "invalid request of client %d: %s", fd_c, strerror(errno));
 
                             // resume loop
                             continue;
@@ -200,6 +216,7 @@ static int run_server(int fd_skt, const struct gnl_logger *logger) {
 
 //TODO: add doc (in a header?)
 int gnl_fss_server_start(struct gnl_fss_config *config) {
+    // validate the socket name
     char *socket_name = config->socket;
 
     if (socket_name == NULL) {
@@ -218,17 +235,31 @@ int gnl_fss_server_start(struct gnl_fss_config *config) {
     GNL_NULL_CHECK(logger, errno, -1)
 
     // start the thread pool
-    int res = create_thread_pool(config->thread_workers, worker_queue);
+    int res = create_thread_pool(config->thread_workers, worker_queue, logger);
+    if (res == -1) {
+        gnl_logger_error(logger, "error creating the thread pool: %s", strerror(errno));
+
+        return -1;
+    }
 
     // socket connection file descriptor
     int fd_skt;
 
+    // create the server
     fd_skt = create_server(socket_name, logger);
-    GNL_MINUS1_CHECK(fd_skt, errno, -1)
+    if (fd_skt == -1) {
+        gnl_logger_error(logger, "error creating the server: %s", strerror(errno));
+
+        return -1;
+    }
 
     // run the server
     res = run_server(fd_skt, logger);
-    GNL_MINUS1_CHECK(res, errno, -1)
+    if (res == -1) {
+        gnl_logger_error(logger, "error running the server: %s", strerror(errno));
+
+        return -1;
+    }
 
     return 0;
 }
