@@ -30,7 +30,10 @@ void gnl_fss_worker_destroy(struct gnl_fss_worker_config *worker_config) {
 void *gnl_fss_worker_handle(void* args)
 {
     // decode args
-    struct gnl_ts_bb_queue_t *worker_queue = ((struct gnl_fss_worker_config*)args)->worker_queue;
+    struct gnl_fss_worker_config *worker_config = args;
+
+    // get the worker queue
+    struct gnl_ts_bb_queue_t *worker_queue = worker_config->worker_queue;
     int pipe_channel = ((struct gnl_fss_worker_config*)args)->pipe_channel;
 
     // file descriptor of a client read from the queue
