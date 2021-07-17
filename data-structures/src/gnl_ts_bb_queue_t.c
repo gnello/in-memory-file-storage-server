@@ -84,13 +84,13 @@ int gnl_ts_bb_queue_destroy(struct gnl_ts_bb_queue_t *q, void (*destroy)(void *d
 
     gnl_queue_destroy((q->q), destroy);
 
-    res = pthread_mutex_destroy(&(q->mtx));
-    GNL_MINUS1_CHECK(res, errno, -1)
-
     res = pthread_cond_destroy(&(q->el_added));
     GNL_MINUS1_CHECK(res, errno, -1)
 
     res = pthread_cond_destroy(&(q->el_removed));
+    GNL_MINUS1_CHECK(res, errno, -1)
+
+    res = pthread_mutex_destroy(&(q->mtx));
     GNL_MINUS1_CHECK(res, errno, -1)
 
     free(q);
