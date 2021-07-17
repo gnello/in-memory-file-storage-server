@@ -54,7 +54,7 @@ int main(int argc, char * argv[]) {
 
     // run the server
     if (gnl_fss_server_start(config) != 0) {
-        perror("Error on starting the server");
+        perror("Error from the server");
 
         return -1;
     }

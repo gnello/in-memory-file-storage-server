@@ -5,12 +5,61 @@
 #include <unistd.h>
 #include <errno.h>
 #include <sys/select.h>
+#include <signal.h>
+#include <bits/sigaction.h>
 #include <gnl_logger.h>
 #include <gnl_socket_request.h>
 #include "gnl_fss_thread_pool.c"
+
 #include <gnl_macro_beg.h>
 
 #define N 100
+
+volatile sig_atomic_t soft_termination = 0;
+volatile sig_atomic_t hard_termination = 0;
+
+void termination_signal_handler(int signal) {
+    if (signal == SIGHUP) {
+        soft_termination = 1;
+    } else {
+        hard_termination = 1;
+    }
+}
+
+static int handle_signals() {
+    sigset_t set;
+    struct sigaction sa;
+
+    // if a client goes away do not allow the server to terminate
+    sigaction(SIGPIPE, &(struct sigaction){SIG_IGN}, NULL);
+
+    memset(&sa, 0, sizeof(sa));
+    sa.sa_handler = termination_signal_handler;
+
+    // automatically restart interrupted system calls
+    //sa.sa_flags = SA_RESTART;
+
+    // reset the handler mask
+    sigemptyset(&set);
+
+    // block the following signals
+    sigaddset(&set, SIGINT);
+    sigaddset(&set, SIGQUIT);
+    sigaddset(&set, SIGHUP);
+    sa.sa_mask = set;
+
+    // install the signal handler for the following signals
+    int res = sigaction(SIGINT, &sa, NULL);
+    GNL_MINUS1_CHECK(res, errno, -1);
+
+    res = sigaction(SIGQUIT, &sa, NULL);
+    GNL_MINUS1_CHECK(res, errno, -1);
+
+    res = sigaction(SIGHUP, &sa, NULL);
+    GNL_MINUS1_CHECK(res, errno, -1);
+
+    return 0;
+}
 
 /**
  * Create the thread pool to handle clients requests.
@@ -129,7 +178,24 @@ static int run_server(int fd_skt, const struct gnl_logger *logger) {
 
         // wait for connections
         res = select(fd_num + 1, &rdset, NULL, NULL, NULL);
-        GNL_MINUS1_CHECK(res, errno, -1)
+        if (res == -1) {
+            if (errno == EINTR && hard_termination == 1) {
+                gnl_logger_info(logger, "hard termination: the server will shut down immediately, "
+                                        "every active connection will be closed.");
+
+                return 0;
+            }
+
+            if (errno == EINTR && soft_termination == 1) { //TODO: add client count to stop or continue
+                gnl_logger_info(logger, "soft termination: the server will shut down after every clients "
+                                        "request will be handled, no others connections will be accepted.");
+
+                // wait for current active clients termination
+                continue;
+            }
+
+            return -1;
+        }
 
         // foreach active file descriptor...
         for (fd=0; fd<=fd_num; fd++) {
@@ -216,7 +282,10 @@ int gnl_fss_server_start(struct gnl_fss_config *config) {
         return -1;
     }
 
-    // instantiate the logger
+    // install the signal handler
+    handle_signals();
+
+    // instantiate the logger TODO: move in a thread
     struct gnl_logger *logger;
     logger = gnl_logger_init(config->log_filepath, "gnl_fss_server", config->log_level);
     GNL_NULL_CHECK(logger, errno, -1)
@@ -254,15 +323,17 @@ int gnl_fss_server_start(struct gnl_fss_config *config) {
         return -1;
     }
 
+    // free memory
+    gnl_fss_thread_pool_destroy(thread_pool);
+    close(fd_skt);
+    unlink(socket_name);
+
+    gnl_logger_info(logger, "The server has shut down.");
+
+    gnl_logger_destroy(logger);
+
     return 0;
 }
-
-
-
-// TODO: clean up in a signal handler
-//    gnl_logger_destroy(logger);
-//    close(fd_skt);
-//    remove(socket_name);
 
 #undef N
 
