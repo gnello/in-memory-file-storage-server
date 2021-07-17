@@ -51,6 +51,11 @@ void *gnl_fss_worker_handle(void* args)
 
         // cast raw client file descriptor
         fd_c = *(int *)raw_fd_c;
+
+        // if terminate message, put down the worker
+        if (fd_c == GNL_FSS_WORKER_TERMINATE) {
+            break;
+        }
     }
 
     return NULL;

@@ -61,17 +61,18 @@ void gnl_fss_thread_pool_destroy(struct gnl_fss_thread_pool *thread_pool) {
     // destroy the worker config
     gnl_fss_worker_destroy(thread_pool->worker_config);
 
-    // cancel every thread pool worker
+    // send one termination message per thread into the pool worker
+    int termination_mex = GNL_FSS_WORKER_TERMINATE;
     for (size_t i=0; i<thread_pool->size; i++) {
-        pthread_cancel(thread_pool->worker_ids[i]); //TODO: mandare mex di terminazione
+        gnl_ts_bb_queue_enqueue(thread_pool->worker_queue, (void *)&termination_mex);
     }
 
-//    // wait for all threads to die
-//    for (size_t i=0; i<thread_pool->size; i++) {
-//        pthread_join(thread_pool->worker_ids[i], NULL));
-//    }
+    // wait for all threads to die
+    for (size_t i=0; i<thread_pool->size; i++) {
+        pthread_join(thread_pool->worker_ids[i], NULL);
+    }
 
-//TODO: do the same with the logger thread
+    //TODO: do the same with the logger thread
 
     // destroy the worker ids
     free(thread_pool->worker_ids);

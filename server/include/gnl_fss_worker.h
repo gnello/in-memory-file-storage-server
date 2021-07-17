@@ -4,6 +4,8 @@
 
 #include <gnl_ts_bb_queue_t.h>
 
+#define GNL_FSS_WORKER_TERMINATE (-1970)
+
 /**
  * Holds the worker configuration.
  */
