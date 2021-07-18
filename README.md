@@ -3,7 +3,9 @@
 
 Simple In Memory File Storage Server case study.  
 
-Concepts involved: data-structures, concurrency (multi-thread), pipes, sockets, master-worker design pattern, signals handling, storaging and deep memory management. 
+Concepts involved: data-structures, concurrency (multi-thread), pipes, sockets, master-worker design patterns, signals handling, storaging and deep memory management. 
+
+This project it is far to be perfect, every feedback is encouraged.
 
 ## Installation
 This project is completely portable (totally conform to POSIX), this means that you do not need any extra library to use it.
