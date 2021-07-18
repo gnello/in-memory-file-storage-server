@@ -36,12 +36,12 @@
     /* if no digits found */                        \
     if ((string) == ptr) {                          \
         errno = EINVAL;                             \
-        return -1;                                  \
+        return return_code;                         \
     }                                               \
                                                     \
     /* if there was an error */                     \
     if (errno != 0) {                               \
-        return -1;                                  \
+        return return_code;                         \
     }                                               \
 }
 
