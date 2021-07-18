@@ -4,7 +4,7 @@ include $(ROOT)/.env
 export
 
 CC = gcc
-CFLAGS = -std=c99 -Wall -pedantic
+CFLAGS = -std=c99 -Wall -pedantic -D_POSIX_C_SOURCE=200112L
 
 INCLUDE = -I./include
 

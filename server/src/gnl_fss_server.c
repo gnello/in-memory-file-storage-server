@@ -26,17 +26,25 @@ void termination_signal_handler(int signal) {
 }
 
 static int handle_signals() {
+    int res;
     sigset_t set;
-    struct sigaction sa;
 
-    // if a client goes away do not allow the server to terminate
-    sigaction(SIGPIPE, &(struct sigaction){SIG_IGN}, NULL);
+    struct sigaction sa;
+    struct sigaction ignore_sa;
+
+    // if a client goes away do not allow the server to terminate ignoring SIGPIPE
+    memset(&ignore_sa, 0, sizeof(ignore_sa));
+    ignore_sa.sa_handler = SIG_IGN;
+    ignore_sa.sa_flags = SA_RESTART;
+    res = sigaction(SIGPIPE, &ignore_sa, NULL);
+    GNL_MINUS1_CHECK(res, errno, -1);
+
 
     memset(&sa, 0, sizeof(sa));
     sa.sa_handler = termination_signal_handler;
 
     // automatically restart interrupted system calls
-    //sa.sa_flags = SA_RESTART;
+    sa.sa_flags = SA_RESTART;
 
     // reset the handler mask
     sigemptyset(&set);
@@ -48,7 +56,7 @@ static int handle_signals() {
     sa.sa_mask = set;
 
     // install the signal handler for the following signals
-    int res = sigaction(SIGINT, &sa, NULL);
+    res = sigaction(SIGINT, &sa, NULL);
     GNL_MINUS1_CHECK(res, errno, -1);
 
     res = sigaction(SIGQUIT, &sa, NULL);

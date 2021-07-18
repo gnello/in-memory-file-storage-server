@@ -1,5 +1,4 @@
 
-#include <linux/time.h>
 #include <time.h>
 #include <errno.h>
 #include <string.h>
@@ -8,8 +7,6 @@
 #include <gnl_socket_service.h>
 #include "../include/gnl_fss_api.h"
 #include <gnl_macro_beg.h>
-
-int nanosleep(const struct timespec *req, struct timespec *rem);
 
 static struct gnl_socket_connection *socket_service_connection;
 int socket_service_connection_active = 0;

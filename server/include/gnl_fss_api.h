@@ -2,7 +2,7 @@
 #ifndef GNL_FSS_SERVER_API_H
 #define GNL_FSS_SERVER_API_H
 
-#include <linux/time.h>
+#include <time.h>
 
 const int O_CREATE = 1;
 const int O_LOCK = 2;

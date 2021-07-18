@@ -4,7 +4,7 @@ include $(ROOT)/.env
 export
 
 CC = gcc
-CFLAGS = -std=c99 -Wall -g -pedantic
+CFLAGS = -std=c99 -Wall -g -pedantic -D_POSIX_C_SOURCE=200809L
 
 # data-structures library
 LIBS = -Wl,-rpath,$(ROOT)$(DATA_STRUCTURES_LIB) -L$(ROOT)$(DATA_STRUCTURES_LIB) -lgnl_list_t -lgnl_queue_t -lgnl_ts_bb_queue_t

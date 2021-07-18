@@ -4,7 +4,7 @@ include $(ROOT)/.env
 export
 
 CC = gcc
-CFLAGS += -std=c99 -Wall -pedantic -g
+CFLAGS += -std=c99 -Wall -pedantic -g -D_POSIX_C_SOURCE=200809L
 
 DATA_STRUCTURES_PATH_LIB = $(ROOT)/$(DATA_STRUCTURES_LIB)
 DATA_STRUCTURES_PATH_INCLUDE = $(ROOT)/$(DATA_STRUCTURES_INCLUDE)
