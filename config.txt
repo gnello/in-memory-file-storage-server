@@ -1,7 +1,7 @@
 # Welcome to the File Storage Server configuration file.
 
 # Number of workers to span for the server (master-worker pattern implementation).
-THREAD_WORKERS=1
+THREAD_WORKERS=10
 
 # Capacity of the File Storage Server in MB.
 CAPACITY=50
