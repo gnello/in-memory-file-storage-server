@@ -20,9 +20,9 @@ enum gnl_socket_response_type {
 struct gnl_socket_response {
     enum gnl_socket_response_type type;
     union {
-        struct gnl_socket_message_n *ok_evicted;
-        struct gnl_socket_message_sb *ok_file;
-        struct gnl_socket_message_n *error;
+        struct gnl_message_n *ok_evicted;
+        struct gnl_message_sb *ok_file;
+        struct gnl_message_n *error;
     } payload;
 };
 

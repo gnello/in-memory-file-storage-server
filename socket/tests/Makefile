@@ -12,11 +12,11 @@ HELPERS_PATH_INCLUDE = $(ROOT)/$(HELPERS_INCLUDE)
 LIBS = -Wl,-rpath,$(HELPERS_PATH_LIB) -L$(HELPERS_PATH_LIB) -lgnl_colorshell -lgnl_assert -lgnl_txtenv -lgnl_file_to_pointer
 INCLUDE = -I$(HELPERS_PATH_INCLUDE)
 
-TARGETS =	gnl_socket_message_s_test \
-			gnl_socket_message_n_test \
-			gnl_socket_message_sn_test \
-			gnl_socket_message_sb_test \
-			gnl_socket_request_test \
+# message library
+LIBS += -Wl,-rpath,$(ROOT)$(MESSAGE_LIB) -L$(ROOT)$(MESSAGE_LIB) -lgnl_message_n -lgnl_message_s -lgnl_message_sb -lgnl_message_sn
+INCLUDE += -I$(ROOT)$(MESSAGE_INCLUDE)
+
+TARGETS =	gnl_socket_request_test \
 			gnl_socket_response_test \
 			gnl_socket_service_test
 
@@ -32,10 +32,10 @@ clean:
 	-rm -f $(TARGETS)
 
 tests:
-	echo "\nRunning server suite test...\n\n"
+	echo "\nRunning socket suite test...\n\n"
 	./gnl_socket_service_test_server &
 	$(foreach test,$(TARGETS),./$(test);)
 
 tests-valgrind:
-	echo "\nRunning server suite test...\n\n"
+	echo "\nRunning socket suite test...\n\n"
 	$(foreach test,$(TARGETS),echo "\n> running $(test) with valgrind...\n"; valgrind ./$(test); echo "\n";)

@@ -18,6 +18,10 @@ INCLUDE += -I$(ROOT)$(HELPERS_INCLUDE)
 LIBS += -Wl,-rpath,$(ROOT)$(SOCKET_LIB) -L$(ROOT)$(SOCKET_LIB) -lgnl_socket_request -lgnl_socket_response -lgnl_socket_service
 INCLUDE += -I$(ROOT)$(SOCKET_INCLUDE)
 
+# message library
+LIBS += -Wl,-rpath,$(ROOT)$(MESSAGE_LIB) -L$(ROOT)$(MESSAGE_LIB) -lgnl_message_n -lgnl_message_s -lgnl_message_sb -lgnl_message_sn
+INCLUDE += -I$(ROOT)$(MESSAGE_INCLUDE)
+
 # add thread support
 LIBS += -lpthread
 

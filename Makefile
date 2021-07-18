@@ -10,7 +10,7 @@ INCLUDE += -I$(DATA_STRUCTURES_INCLUDE)
 TARGETS = server client
 TARGETS_PATH = ./
 
-.PHONY: all dev tests clean clean-dev server client helpers data-structures socket tests-valgrind
+.PHONY: all dev tests clean clean-dev server client helpers data-structures socket tests-valgrind message
 
 VPATH = src
 
@@ -25,7 +25,10 @@ client: data-structures server
 server: data-structures helpers socket
 	cd ./server && $(MAKE)
 
-socket:
+message:
+	cd ./message && $(MAKE)
+
+socket: message
 	cd ./socket && $(MAKE)
 
 helpers:
@@ -39,6 +42,7 @@ dev: all helpers
 	cd ./data-structures/tests && $(MAKE)
 	cd ./helpers/tests && $(MAKE)
 	cd ./server/tests && $(MAKE)
+	cd ./message/tests && $(MAKE)
 	cd ./socket/tests && $(MAKE)
 	cd ./client/tests && $(MAKE)
 
@@ -47,6 +51,7 @@ tests:
 	cd ./data-structures/tests && $(MAKE) tests
 	cd ./helpers/tests && $(MAKE) tests
 	cd ./server/tests && $(MAKE) tests
+	cd ./message/tests && $(MAKE) tests
 	cd ./socket/tests && $(MAKE) tests
 	cd ./client/tests && $(MAKE) tests
 
@@ -55,6 +60,7 @@ tests-valgrind:
 	cd ./data-structures/tests && $(MAKE) tests-valgrind
 	cd ./helpers/tests && $(MAKE) tests-valgrind
 	cd ./server/tests && $(MAKE) tests-valgrind
+	cd ./message/tests && $(MAKE) tests-valgrind
 	cd ./socket/tests && $(MAKE) tests-valgrind
 	cd ./client/tests && $(MAKE) tests-valgrind
 
@@ -62,6 +68,7 @@ clean:
 	cd ./helpers && $(MAKE) clean
 	cd ./data-structures && $(MAKE) clean
 	cd ./server && $(MAKE) clean
+	cd ./message && $(MAKE) clean
 	cd ./socket && $(MAKE) clean
 	cd ./client && $(MAKE) clean
 
@@ -69,5 +76,6 @@ clean-dev: clean
 	cd ./data-structures/tests && $(MAKE) clean
 	cd ./helpers/tests && $(MAKE) clean
 	cd ./server/tests && $(MAKE) clean
+	cd ./message/tests && $(MAKE) clean
 	cd ./socket/tests && $(MAKE) clean
 	cd ./client/tests && $(MAKE) clean

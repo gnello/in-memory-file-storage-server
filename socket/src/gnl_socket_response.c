@@ -1,11 +1,13 @@
-//TODO: gnl_socket_message_sl (string list) --> len_string + string + num of following elements + len_bytes + bytes + ...
+//TODO: gnl_message_sl (string list) --> len_string + string + num of following elements + len_bytes + bytes + ...
 //TODO: e se invece nella risposta invio il numero di vittime così il client le puà chiedere? (message_sn)
 //TODO: gestire bene la max size, se un file supera ad es. 2000MB dividere le richieste
 //TODO: nel caso non le voglia allora si attacca
 
+#include <stdio.h>
+#include <string.h>
 #include <stdarg.h>
-#include "./gnl_socket_message_n.c"
-#include "./gnl_socket_message_sb.c"
+#include <gnl_message_n.h>
+#include <gnl_message_sb.h>
 #include "../include/gnl_socket_response.h"
 #include <gnl_macro_beg.h>
 
@@ -15,10 +17,10 @@
 #define GNL_RESPONSE_N_INIT(num, ref, a_list) {                                                         \
     switch (num) {                                                                                      \
         case 0:                                                                                         \
-            ref = gnl_socket_message_n_init();                               \
+            ref = gnl_message_n_init();                               \
             break;                                                                                      \
         case 1:                                                                                         \
-            ref = gnl_socket_message_n_init_with_args(va_arg(a_list, int));   \
+            ref = gnl_message_n_init_with_args(va_arg(a_list, int));   \
         break;                                                                                          \
             default:                                                                                    \
             errno = EINVAL;                                                                             \
@@ -153,12 +155,12 @@ struct gnl_socket_response *gnl_socket_response_init(enum gnl_socket_response_ty
         case GNL_SOCKET_RESPONSE_OK_FILE:
             switch (num) {
                 case 0:
-                    socket_response->payload.ok_file = gnl_socket_message_sb_init();
+                    socket_response->payload.ok_file = gnl_message_sb_init();
                     break;
                 case 2:
                     buffer_s = va_arg(a_list, char *);
                     buffer_b = va_arg(a_list, char *);
-                    socket_response->payload.ok_file = gnl_socket_message_sb_init_with_args(buffer_s, buffer_b);
+                    socket_response->payload.ok_file = gnl_message_sb_init_with_args(buffer_s, buffer_b);
                     break;
                 default:
                     errno = EINVAL;
@@ -199,15 +201,15 @@ struct gnl_socket_response *gnl_socket_response_init(enum gnl_socket_response_ty
 void gnl_socket_response_destroy(struct gnl_socket_response *response) {
     switch (response->type) {
         case GNL_SOCKET_RESPONSE_OK_EVICTED:
-            gnl_socket_message_n_destroy(response->payload.ok_evicted);
+            gnl_message_n_destroy(response->payload.ok_evicted);
             break;
         case GNL_SOCKET_RESPONSE_OK_FILE:
-            gnl_socket_message_sb_destroy(response->payload.ok_file);
+            gnl_message_sb_destroy(response->payload.ok_file);
             break;
         case GNL_SOCKET_RESPONSE_OK:
             break;
         case GNL_SOCKET_RESPONSE_ERROR:
-            gnl_socket_message_n_destroy(response->payload.error);
+            gnl_message_n_destroy(response->payload.error);
             break;
     }
 
@@ -228,7 +230,7 @@ struct gnl_socket_response *gnl_socket_response_read(const char *message) {
             socket_response = gnl_socket_response_init(GNL_SOCKET_RESPONSE_OK_EVICTED, 0);
             GNL_NULL_CHECK(socket_response, ENOMEM, NULL)
 
-            res = gnl_socket_message_n_read(payload_message, socket_response->payload.ok_evicted);
+            res = gnl_message_n_read(payload_message, socket_response->payload.ok_evicted);
             GNL_MINUS1_CHECK(res, errno, NULL)
             break;
 
@@ -236,7 +238,7 @@ struct gnl_socket_response *gnl_socket_response_read(const char *message) {
             socket_response = gnl_socket_response_init(GNL_SOCKET_RESPONSE_OK_FILE, 0);
             GNL_NULL_CHECK(socket_response, ENOMEM, NULL)
 
-            res = gnl_socket_message_sb_read(payload_message, socket_response->payload.ok_file);
+            res = gnl_message_sb_read(payload_message, socket_response->payload.ok_file);
             GNL_MINUS1_CHECK(res, errno, NULL)
             break;
 
@@ -249,7 +251,7 @@ struct gnl_socket_response *gnl_socket_response_read(const char *message) {
             socket_response = gnl_socket_response_init(GNL_SOCKET_RESPONSE_ERROR, 0);
             GNL_NULL_CHECK(socket_response, ENOMEM, NULL)
 
-            res = gnl_socket_message_n_read(payload_message, socket_response->payload.error);
+            res = gnl_message_n_read(payload_message, socket_response->payload.error);
             GNL_MINUS1_CHECK(res, errno, NULL)
             break;
 
@@ -280,11 +282,11 @@ int gnl_socket_response_write(struct gnl_socket_response *response, char **dest)
 
     switch (response->type) {
         case GNL_SOCKET_RESPONSE_OK_EVICTED:
-            res = gnl_socket_message_n_write(*(response->payload.ok_evicted), &built_message);
+            res = gnl_message_n_write(*(response->payload.ok_evicted), &built_message);
             break;
 
         case GNL_SOCKET_RESPONSE_OK_FILE:
-            res = gnl_socket_message_sb_write(*(response->payload.ok_file), &built_message);
+            res = gnl_message_sb_write(*(response->payload.ok_file), &built_message);
             break;
 
         case GNL_SOCKET_RESPONSE_OK:
@@ -292,7 +294,7 @@ int gnl_socket_response_write(struct gnl_socket_response *response, char **dest)
             break;
 
         case GNL_SOCKET_RESPONSE_ERROR:
-            res = gnl_socket_message_n_write(*(response->payload.error), &built_message);
+            res = gnl_message_n_write(*(response->payload.error), &built_message);
             break;
 
         default:

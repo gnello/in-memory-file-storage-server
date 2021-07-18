@@ -120,7 +120,7 @@ void *gnl_fss_worker_handle(void* args)
             res = close(fd_c);
             GNL_MINUS1_CHECK(res, errno, NULL)
 
-            // warn the master that a client has gone away TODO: use the gnl_socket_message?
+            // warn the master that a client has gone away TODO: use the gnl_message?
             res = write(worker->pipe_channel, "0", 1);
             GNL_MINUS1_CHECK(res, errno, NULL)
         } else {

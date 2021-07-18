@@ -35,6 +35,10 @@ LIBS += -Wl,-rpath,$(SOCKET_PATH_LIB) -L$(SOCKET_PATH_LIB)
 LIBS += -lgnl_socket_request -lgnl_socket_response
 INCLUDE += -I$(SOCKET_PATH_INCLUDE)
 
+# message library
+LIBS += -Wl,-rpath,$(ROOT)$(MESSAGE_LIB) -L$(ROOT)$(MESSAGE_LIB) -lgnl_message_n -lgnl_message_s -lgnl_message_sb -lgnl_message_sn
+INCLUDE += -I$(ROOT)$(MESSAGE_INCLUDE)
+
 TARGETS =	gnl_fss_config_test \
 			gnl_fss_api_test
 

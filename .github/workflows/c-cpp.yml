@@ -32,6 +32,12 @@ jobs:
         name: server
         path: server
 
+    # upload message
+    - uses: actions/upload-artifact@v2
+      with:
+        name: message
+        path: message
+
     # upload socket
     - uses: actions/upload-artifact@v2
       with:
@@ -75,6 +81,14 @@ jobs:
     - run: cp .env.test .env
     - run: make -s tests
       working-directory: server/tests
+
+    # test message
+    - uses: actions/download-artifact@v2
+    - run: chmod -R +x ./*
+      working-directory: message/tests
+    - run: cp .env.test .env
+    - run: make -s tests
+      working-directory: message/tests
 
     # test client
     - uses: actions/download-artifact@v2
