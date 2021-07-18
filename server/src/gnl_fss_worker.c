@@ -69,7 +69,7 @@ void *gnl_fss_worker_handle(void* args)
     int pipe_channel = worker->pipe_channel;
     struct gnl_logger *logger = worker->logger;
 
-    gnl_logger_debug(worker->logger, "starting to process requests");
+    gnl_logger_debug(worker->logger, "ready, waiting for requests");
 
     // file descriptor of a client read from the queue
     int fd_c;
@@ -89,7 +89,7 @@ void *gnl_fss_worker_handle(void* args)
     // work
     while (1) {
 
-        // waiting for a ready file descriptor for the main thread
+        // waiting for a ready file descriptor from the main thread
         raw_fd_c = gnl_ts_bb_queue_dequeue(worker_queue);
         GNL_NULL_CHECK(raw_fd_c, EINVAL, NULL);
 
