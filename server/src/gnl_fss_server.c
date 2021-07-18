@@ -8,12 +8,11 @@
 #include <signal.h>
 #include <bits/sigaction.h>
 #include <gnl_logger.h>
-#include <gnl_socket_request.h>
 #include "gnl_fss_thread_pool.c"
 
 #include <gnl_macro_beg.h>
 
-#define N 100
+#define GNL_FSS_SERVER_BUFFER_LEN 100
 
 volatile sig_atomic_t soft_termination = 0;
 volatile sig_atomic_t hard_termination = 0;
@@ -75,7 +74,7 @@ static struct gnl_fss_thread_pool *create_thread_pool(int size, const struct gnl
     GNL_MINUS1_CHECK(res, errno, NULL)
 
     // create the working config
-    struct gnl_fss_thread_pool *thread_pool = gnl_fss_thread_pool_init(size);
+    struct gnl_fss_thread_pool *thread_pool = gnl_fss_thread_pool_init(size, logger);
     GNL_NULL_CHECK(thread_pool, ENOMEM, NULL)
 
     res = gnl_logger_info(logger, "created the thread pool with %d workers", size);
@@ -117,7 +116,7 @@ static int create_server(const char *socket_name, const struct gnl_logger *logge
     res = bind(fd_skt, (struct sockaddr *)&sa, sizeof(sa));
     GNL_MINUS1_CHECK(res, errno, -1)
 
-    gnl_logger_debug(logger, "socket %d binded to address %s", fd_skt, socket_name);
+    gnl_logger_debug(logger, "socket %d binded to the address %s", fd_skt, socket_name);
 
     // listen
     res = listen(fd_skt, SOMAXCONN);
@@ -131,12 +130,14 @@ static int create_server(const char *socket_name, const struct gnl_logger *logge
 /**
  * Run the server handling new connections or requests.
  *
- * @param fd_skt    The server file descriptor.
- * @param logger    The logger instance to use for logging.
+ * @param fd_skt            The server file descriptor.
+ * @param master_channel    The channel where to read a result from a
+ *                          worker thread.
+ * @param logger            The logger instance to use for logging.
  *
- * @return          Returns -1 on error, otherwise it never returns.
+ * @return                  Returns -1 on error, otherwise it never returns.
  */
-static int run_server(int fd_skt, const struct gnl_logger *logger) {
+static int run_server(int fd_skt, int master_channel, const struct gnl_logger *logger) {
     int res;
 
     // active file descriptors waited for reading
@@ -149,7 +150,7 @@ static int run_server(int fd_skt, const struct gnl_logger *logger) {
     int fd_c;
 
     // read buffer
-    char buf[N];
+    char buf[GNL_FSS_SERVER_BUFFER_LEN];
 
     // number of chars read
     long nread;
@@ -160,11 +161,17 @@ static int run_server(int fd_skt, const struct gnl_logger *logger) {
     // active file descriptors set
     fd_set set;
 
+    // active connections
+    int active_connections = 0;
+
     // reset mask
     FD_ZERO(&set);
 
     // put the server file descriptor into the active file descriptors set
     FD_SET(fd_skt,&set);
+
+    // put the master_channel file descriptor into the active file descriptors set
+    FD_SET(master_channel, &set);
 
     // update fd_num with the max file descriptor active index
     if (fd_skt > fd_num) {
@@ -186,14 +193,19 @@ static int run_server(int fd_skt, const struct gnl_logger *logger) {
                 return 0;
             }
 
-            if (errno == EINTR && soft_termination == 1) { //TODO: add client count to stop or continue
+            if (errno == EINTR && soft_termination == 1) {
                 gnl_logger_info(logger, "soft termination: the server will shut down after every clients "
                                         "request will be handled, no others connections will be accepted.");
 
-                // wait for current active clients termination
-                continue;
+                if (active_connections == 0) {
+                    return 0;
+                } else {
+                    // wait for current active clients termination
+                    continue;
+                }
             }
 
+            // if this point is reached then there is an error, return
             return -1;
         }
 
@@ -210,7 +222,22 @@ static int run_server(int fd_skt, const struct gnl_logger *logger) {
                     fd_c = accept(fd_skt, NULL, 0);
                     GNL_MINUS1_CHECK(res, errno, -1)
 
+                    // if a soft termination is in progress, refuse the connection
+                    if (soft_termination == 1) {
+                        res = close(fd_c);
+                        GNL_MINUS1_CHECK(res, errno, -1)
+
+                        gnl_logger_debug(logger, "client %d requested to connect but a soft termination"
+                                                 "is in progress, refused", fd_c);
+
+                        // resume for loop
+                        continue;
+                    }
+
                     gnl_logger_debug(logger, "client %d requested to connect, accepted", fd_c);
+
+                    active_connections++;
+                    gnl_logger_debug(logger, "the server has now %d active connections", active_connections);
 
                     // put the client file descriptor into the active file descriptors set
                     FD_SET(fd_c, &set);
@@ -220,51 +247,85 @@ static int run_server(int fd_skt, const struct gnl_logger *logger) {
                         fd_num = fd_c;
                     }
 
-                } else { // if there is an I/O request...
+                } else if (fd == master_channel) { // a worker has handled a request
+                    // read the client file descriptor from the channel
+                    size_t tmp = read(fd, buf, GNL_FSS_SERVER_BUFFER_LEN);
+                    GNL_MINUS1_CHECK(tmp, errno, -1)
 
-                    // clear the buffer
-                    memset(buf, 0, N);
-
-                    // read data
-                    nread = read(fd, buf, N);
-                    GNL_MINUS1_CHECK(nread, errno, -1)
+                    // cast the file descriptor read to int
+                    GNL_TO_INT(fd_c, buf, -1)
 
                     // if EOF...
-                    if (nread == 0) {
-                        // remove fd from the active file descriptors set
-                        FD_CLR(fd, &set);
+                    if (fd_c == 0) {
+                        active_connections--;
+
+                        gnl_logger_debug(logger, "the server has now %d active connections", active_connections);
 
                         // decrease the max active file descriptor index by one
                         if (fd == fd_num) {
                             fd_num--;
                         }
 
-                        // close the current file descriptor
-                        gnl_logger_debug(logger, "client %d gone away, closing connection", fd_c);
-
-                        res = close(fd);
-                        GNL_MINUS1_CHECK(res, errno, -1)
-                    } else {
-                        // do something with the buffer...
-                        gnl_logger_debug(logger, "client %d sent a message, decoding request...", fd_c);
-
-                        // decode request
-                        struct gnl_socket_request *request;
-                        request = gnl_socket_request_read(buf);
-
-                        if (request == NULL) {
-                            gnl_logger_error(logger, "invalid request of client %d: %s", fd_c, strerror(errno));
-
-                            // resume loop
-                            continue;
-                        }
-
-                        char *request_type;
-                        res = gnl_socket_request_to_string(request, &request_type);
-                        GNL_MINUS1_CHECK(res, errno, -1)
-
-                        gnl_logger_debug(logger, "client %d sent a request: %s", fd_c, request_type);
+                        // resume for loop
+                        continue;
                     }
+
+                    // put the client file descriptor read into the active file descriptors set
+                    FD_SET(fd_c, &set);
+
+                    // update fd_num with the max file descriptor active index
+                    if (fd_c > fd_num) {
+                        fd_num = fd_c;
+                    }
+
+                } else { // if there is an I/O request...
+
+//                    // clear the buffer
+//                    memset(buf, 0, N);
+//
+//                    // read data
+//                    nread = read(fd, buf, N);
+//                    GNL_MINUS1_CHECK(nread, errno, -1)
+//
+//                    // if EOF...
+//                    if (nread == 0) {
+//                        // remove fd from the active file descriptors set
+//                        FD_CLR(fd, &set);
+//
+//                        // decrease the max active file descriptor index by one
+//                        if (fd == fd_num) {
+//                            fd_num--;
+//                        }
+//
+//                        // close the current file descriptor
+//                        gnl_logger_debug(logger, "client %d gone away, closing connection", fd_c);
+//
+//                        res = close(fd);
+//                        GNL_MINUS1_CHECK(res, errno, -1)
+//
+//                        active_connections--;
+//                        gnl_logger_debug(logger, "the server has now %d active connections", active_connections);
+//                    } else {
+//                        // do something with the buffer...
+//                        gnl_logger_debug(logger, "client %d sent a message, decoding request...", fd_c);
+//
+//                        // decode request
+//                        struct gnl_socket_request *request;
+//                        request = gnl_socket_request_read(buf);
+//
+//                        if (request == NULL) {
+//                            gnl_logger_error(logger, "invalid request of client %d: %s", fd_c, strerror(errno));
+//
+//                            // resume loop
+//                            continue;
+//                        }
+//
+//                        char *request_type;
+//                        res = gnl_socket_request_to_string(request, &request_type);
+//                        GNL_MINUS1_CHECK(res, errno, -1)
+//
+//                        gnl_logger_debug(logger, "client %d sent a request: %s", fd_c, request_type);
+//                  }
                 }
             }
         }
@@ -298,6 +359,8 @@ int gnl_fss_server_start(struct gnl_fss_config *config) {
         return -1;
     }
 
+    int master_channel = gnl_fss_thread_pool_master_channel(thread_pool);
+
     // socket connection file descriptor
     int fd_skt;
 
@@ -316,7 +379,7 @@ int gnl_fss_server_start(struct gnl_fss_config *config) {
     }
 
     // run the server
-    int res = run_server(fd_skt, logger);
+    int res = run_server(fd_skt, master_channel, logger);
     if (res == -1) {
         gnl_logger_error(logger, "error running the server: %s", strerror(errno));
 
@@ -328,13 +391,13 @@ int gnl_fss_server_start(struct gnl_fss_config *config) {
     close(fd_skt);
     unlink(socket_name);
 
-    gnl_logger_info(logger, "The server has shut down.");
+    gnl_logger_info(logger, "The server has been shut down.");
 
     gnl_logger_destroy(logger);
 
     return 0;
 }
 
-#undef N
+#undef GNL_FSS_SERVER_BUFFER_LEN
 
 #include <gnl_macro_end.h>

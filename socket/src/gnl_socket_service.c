@@ -37,7 +37,7 @@ struct gnl_socket_connection *gnl_socket_service_connect(const char *socket_name
 
     // create the socket and get his file descriptor
     connection->fd = socket(AF_UNIX,SOCK_STREAM,0);
-    if(connection->fd == -1) {
+    if (connection->fd == -1) {
         free(connection->socket_name);
         free(connection);
 
@@ -46,7 +46,7 @@ struct gnl_socket_connection *gnl_socket_service_connect(const char *socket_name
 
     // connect to the socket
     int res = connect(connection->fd, (struct sockaddr *)&sa, sizeof(sa));
-    if(res != 0) {
+    if (res != 0) {
         free(connection->socket_name);
         free(connection);
 

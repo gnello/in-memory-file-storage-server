@@ -3,6 +3,7 @@
 #define GNL_FSS_WORKER_H
 
 #include <gnl_ts_bb_queue_t.h>
+#include <gnl_logger.h>
 
 #define GNL_FSS_WORKER_TERMINATE (-1970)
 
@@ -18,11 +19,12 @@ struct gnl_fss_worker_config;
  *                      from a main thread.
  * @param pipe_channel  The pipe channel where to send the result to a
  *                      main thread.
+ * @param logger        The logger instance to use for logging.
  *
  * @return gnl_queue_t  Returns the new worker config created on success,
  *                      NULL otherwise.
  */
-extern struct gnl_fss_worker_config *gnl_fss_worker_init(struct gnl_ts_bb_queue_t *worker_queue, int pipe_channel);
+extern struct gnl_fss_worker_config *gnl_fss_worker_init(struct gnl_ts_bb_queue_t *worker_queue, int pipe_channel, const struct gnl_logger *logger);
 
 /**
  * Destroy a worker config. Attention: this method only deletes the
