@@ -1,5 +1,6 @@
 
 #include <stdlib.h>
+#include <errno.h>
 #include <pthread.h>
 #include <gnl_ts_bb_queue_t.h>
 #include "./gnl_fss_worker.c"
@@ -8,7 +9,7 @@
 
 /**
  * worker_ids           The array of the thread pool workers identifiers.
- * worker_config        The config for a single worker.
+ * worker               The array of workers instances.
  * worker_queue         The queue to use to receive a ready file descriptor
  *                      from a main thread.
  * pipe_master_channel  The pipe channel where to read a result from a
@@ -16,22 +17,33 @@
  * pipe_worker_channel  The pipe channel where to send the result to a
  *                      master thread.
  * size                 The size of the thread pool.
+ * logger               The logger instance to use for logging.
  */
 struct gnl_fss_thread_pool {
     pthread_t *worker_ids;
-    struct gnl_fss_worker_config *worker_config;
+    struct gnl_fss_worker **workers;
     struct gnl_ts_bb_queue_t *worker_queue;
     int pipe_master_channel;
     int pipe_worker_channel;
     int size;
+    struct gnl_logger *logger;
 };
 
-struct gnl_fss_thread_pool *gnl_fss_thread_pool_init(int size, const struct gnl_logger *logger) {
+struct gnl_fss_thread_pool *gnl_fss_thread_pool_init(int size, const struct gnl_fss_config *config) {
     int res;
 
     // instantiate the thread pool struct
     struct gnl_fss_thread_pool *thread_pool = (struct gnl_fss_thread_pool *)malloc(sizeof(struct gnl_fss_thread_pool));
     GNL_NULL_CHECK(thread_pool, ENOMEM, NULL)
+
+    // instantiate the logger
+    struct gnl_logger *logger;
+    logger = gnl_logger_init(config->log_filepath, "gnl_fss_thread_pool", config->log_level);
+    GNL_NULL_CHECK(logger, errno, NULL)
+
+    thread_pool->logger = logger;
+
+    gnl_logger_debug(thread_pool->logger, "logger created, proceeding initialization");
 
     // allocate memory for the worker ids
     thread_pool->worker_ids = malloc(size * sizeof(pthread_t));
@@ -40,6 +52,8 @@ struct gnl_fss_thread_pool *gnl_fss_thread_pool_init(int size, const struct gnl_
     // instantiate the blocking bounded queue to communicate with the workers
     thread_pool->worker_queue = gnl_ts_bb_queue_init(size);
     GNL_NULL_CHECK(thread_pool->worker_queue, errno, NULL)
+
+    gnl_logger_debug(thread_pool->logger, "workers blocking bounded queue created");
 
     // create the pipe channels
     int pipe_channels[2];
@@ -50,19 +64,32 @@ struct gnl_fss_thread_pool *gnl_fss_thread_pool_init(int size, const struct gnl_
     thread_pool->pipe_master_channel = pipe_channels[0];
     thread_pool->pipe_worker_channel = pipe_channels[1];
 
+    gnl_logger_debug(thread_pool->logger, "workers pipe channels created");
+
     // instantiate the thread pool workers
-    thread_pool->worker_config = gnl_fss_worker_init(thread_pool->worker_queue, thread_pool->pipe_worker_channel, logger);
-    GNL_NULL_CHECK(thread_pool->worker_config, errno, NULL)
+    thread_pool->workers = (struct gnl_fss_worker **) malloc(size * sizeof(struct gnl_fss_worker *));
+    GNL_NULL_CHECK(thread_pool->workers, ENOMEM, NULL)
+
+    gnl_logger_debug(thread_pool->logger, "starting %d threads", size);
 
     for (size_t i=0; i<size; i++) {
-        res = pthread_create(&(thread_pool->worker_ids[i]), NULL, &gnl_fss_worker_handle, (void *)thread_pool->worker_config);
+        thread_pool->workers[i] = gnl_fss_worker_init(i, thread_pool->worker_queue, thread_pool->pipe_worker_channel, config);
+        GNL_NULL_CHECK(thread_pool->workers[i], errno, NULL)
+
+        res = pthread_create(&(thread_pool->worker_ids[i]), NULL, &gnl_fss_worker_handle, (void *)thread_pool->workers[i]);
         if (res != 0) {
+            gnl_logger_warn(thread_pool->logger, "error starting a thread: %s", strerror(errno));
+
             return NULL;
         }
     }
 
+    gnl_logger_debug(thread_pool->logger, "%d threads started", size);
+
     // add the size of the thread pool
     thread_pool->size = size;
+
+    gnl_logger_debug(thread_pool->logger, "initialization completed");
 
     return thread_pool;
 }
@@ -72,19 +99,36 @@ void gnl_fss_thread_pool_destroy(struct gnl_fss_thread_pool *thread_pool) {
         return;
     }
 
-    // destroy the worker config
-    gnl_fss_worker_destroy(thread_pool->worker_config);
+    int res;
+
+    gnl_logger_debug(thread_pool->logger, "destroy requested, proceeding");
 
     // send one termination message per worker into the thread pool
+    gnl_logger_debug(thread_pool->logger, "sending a termination message to %d threads", thread_pool->size);
+
     int termination_mex = GNL_FSS_WORKER_TERMINATE;
+    int count = 0;
     for (size_t i=0; i<thread_pool->size; i++) {
-        gnl_fss_thread_pool_dispatch(thread_pool, (void *)&termination_mex);
+        res = gnl_fss_thread_pool_dispatch(thread_pool, (void *)&termination_mex);
+
+        if (res != -1) {
+            count++;
+        }
     }
+
+    gnl_logger_debug(thread_pool->logger, "sent %d termination messages of %d required", count, thread_pool->size);
 
     // wait for all worker to end
     for (size_t i=0; i<thread_pool->size; i++) {
         pthread_join(thread_pool->worker_ids[i], NULL);
+
+        // destroy worker instance
+        gnl_fss_worker_destroy(thread_pool->workers[i]);
     }
+
+    free(thread_pool->workers);
+
+    gnl_logger_debug(thread_pool->logger, "ended %d threads", thread_pool->size);
 
     // destroy the worker ids
     free(thread_pool->worker_ids);
@@ -96,12 +140,19 @@ void gnl_fss_thread_pool_destroy(struct gnl_fss_thread_pool *thread_pool) {
     // destroy the worker queue
     gnl_ts_bb_queue_destroy(thread_pool->worker_queue, NULL);
 
+    gnl_logger_debug(thread_pool->logger, "destroy almost finished, this is the last message you will see in this channel");
+
+    // destroy the logger
+    gnl_logger_destroy(thread_pool->logger);
+
     // destroy the thread pool
     free(thread_pool);
 }
 
 int gnl_fss_thread_pool_dispatch(struct gnl_fss_thread_pool *thread_pool, void *message) {
     GNL_NULL_CHECK(thread_pool, EINVAL, -1)
+
+    gnl_logger_debug(thread_pool->logger, "dispatching a message to the thread pool");
 
     return gnl_ts_bb_queue_enqueue(thread_pool->worker_queue, message);
 }

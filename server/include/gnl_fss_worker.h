@@ -10,21 +10,22 @@
 /**
  * Holds the worker configuration.
  */
-struct gnl_fss_worker_config;
+struct gnl_fss_worker;
 
 /**
  * Create a new worker config.
  *
+ * @param id            The id of the worker.
  * @param worker_queue  The queue where to receive a ready file descriptor
  *                      from a main thread.
  * @param pipe_channel  The pipe channel where to send the result to a
  *                      main thread.
- * @param logger        The logger instance to use for logging.
+ * @param config        The configuration instance of the server.
  *
  * @return gnl_queue_t  Returns the new worker config created on success,
  *                      NULL otherwise.
  */
-extern struct gnl_fss_worker_config *gnl_fss_worker_init(struct gnl_ts_bb_queue_t *worker_queue, int pipe_channel, const struct gnl_logger *logger);
+extern struct gnl_fss_worker *gnl_fss_worker_init(pthread_t id, struct gnl_ts_bb_queue_t *worker_queue, int pipe_channel, const struct gnl_fss_config *config);
 
 /**
  * Destroy a worker config. Attention: this method only deletes the
@@ -32,9 +33,9 @@ extern struct gnl_fss_worker_config *gnl_fss_worker_init(struct gnl_ts_bb_queue_
  * information given at the moment of the initialization. You have
  * to destroy it manually.
  *
- * @param worker_config The worker_config to be destroyed.
+ * @param worker The worker to be destroyed.
  */
-extern void gnl_fss_worker_destroy(struct gnl_fss_worker_config *worker_config);
+extern void gnl_fss_worker_destroy(struct gnl_fss_worker *worker);
 
 /**
  * Handle a client request dequeueing a ready file descriptor from the

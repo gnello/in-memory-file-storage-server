@@ -64,17 +64,18 @@ static int handle_signals() {
  * Create the thread pool to handle clients requests.
  *
  * @param size          The size of the thread pool.
+ * @param config        The configuration instance of the server.
  * @param logger        The logger instance to use for logging.
  *
  * @return              Returns a thread pool struct on success,
  *                      NULL otherwise.
  */
-static struct gnl_fss_thread_pool *create_thread_pool(int size, const struct gnl_logger *logger) {
+static struct gnl_fss_thread_pool *create_thread_pool(int size, const struct gnl_fss_config *config, const struct gnl_logger *logger) {
     int res = gnl_logger_debug(logger, "creating the thread pool with %d workers...", size);
     GNL_MINUS1_CHECK(res, errno, NULL)
 
     // create the working config
-    struct gnl_fss_thread_pool *thread_pool = gnl_fss_thread_pool_init(size, logger);
+    struct gnl_fss_thread_pool *thread_pool = gnl_fss_thread_pool_init(size, config);
     GNL_NULL_CHECK(thread_pool, ENOMEM, NULL)
 
     res = gnl_logger_info(logger, "created the thread pool with %d workers", size);
@@ -333,7 +334,7 @@ static int run_server(int fd_skt, int master_channel, const struct gnl_logger *l
 }
 
 //TODO: add doc (in a header?)
-int gnl_fss_server_start(struct gnl_fss_config *config) {
+int gnl_fss_server_start(const struct gnl_fss_config *config) {
     // validate the socket name
     char *socket_name = config->socket;
 
@@ -352,7 +353,7 @@ int gnl_fss_server_start(struct gnl_fss_config *config) {
     GNL_NULL_CHECK(logger, errno, -1)
 
     // start the thread pool
-    struct gnl_fss_thread_pool *thread_pool = create_thread_pool(config->thread_workers, logger);
+    struct gnl_fss_thread_pool *thread_pool = create_thread_pool(config->thread_workers, config, logger);
     if (thread_pool == NULL) {
         gnl_logger_error(logger, "error creating the thread pool: %s", strerror(errno));
 

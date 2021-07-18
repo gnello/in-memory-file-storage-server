@@ -6,42 +6,70 @@
 #define GNL_FSS_WORKER_BUFFER_LEN 100
 
 /**
+ * id               The id of the worker.
  * worker_queue     The queue to use to receive a ready file descriptor
  *                  from the main thread.
  * pipe_channel     The pipe channel where to send the result to the
  *                  main thread.
  * @param logger    The logger instance to use for logging.
  */
-struct gnl_fss_worker_config {
+struct gnl_fss_worker {
+    pthread_t id;
     struct gnl_ts_bb_queue_t *worker_queue;
     int pipe_channel;
-    struct gnl_logger *logger; //TODO: farsi passare solo il path, così si crea una nuova instanza con uno scope/channel diverso
+    struct gnl_logger *logger;
 };
 
-struct gnl_fss_worker_config *gnl_fss_worker_init(struct gnl_ts_bb_queue_t *worker_queue, int pipe_channel, const struct gnl_logger *logger) {
-    struct gnl_fss_worker_config *worker_config = (struct gnl_fss_worker_config *)malloc(sizeof(struct gnl_fss_worker_config));
-    GNL_NULL_CHECK(worker_config, ENOMEM, NULL)
+struct gnl_fss_worker *gnl_fss_worker_init(pthread_t id, struct gnl_ts_bb_queue_t *worker_queue, int pipe_channel, const struct gnl_fss_config *config) {
+    struct gnl_fss_worker *worker = (struct gnl_fss_worker *)malloc(sizeof(struct gnl_fss_worker));
+    GNL_NULL_CHECK(worker, ENOMEM, NULL)
 
-    worker_config->worker_queue = worker_queue;
-    worker_config->pipe_channel = pipe_channel;
-    worker_config->logger = logger;
+    // instantiate the logger
+    struct gnl_logger *logger;
 
-    return worker_config;
+    char channel_name[100];
+    snprintf(channel_name, 100, "gnl_fss_worker_%lu", id);
+
+    logger = gnl_logger_init(config->log_filepath, channel_name, config->log_level);
+    GNL_NULL_CHECK(logger, errno, NULL)
+
+    worker->logger = logger;
+
+    gnl_logger_debug(worker->logger, "logger created, proceeding initialization");
+
+    // assign the id
+    worker->id = id;
+
+    worker->worker_queue = worker_queue;
+    worker->pipe_channel = pipe_channel;
+
+    gnl_logger_debug(worker->logger, "initialization completed");
+
+    return worker;
 }
 
-void gnl_fss_worker_destroy(struct gnl_fss_worker_config *worker_config) {
-    free(worker_config);
+void gnl_fss_worker_destroy(struct gnl_fss_worker *worker) {
+    if (worker == NULL) {
+        return;
+    }
+
+    gnl_logger_debug(worker->logger, "destroy requested, proceeding, this is the last message you will see in this channel");
+
+    gnl_logger_destroy(worker->logger);
+    free(worker);
 }
 
 void *gnl_fss_worker_handle(void* args)
 {
     // decode args
-    struct gnl_fss_worker_config *worker_config = args;
+    struct gnl_fss_worker *worker = args;
 
     // get the worker queue
-    struct gnl_ts_bb_queue_t *worker_queue = worker_config->worker_queue;
-    int pipe_channel = worker_config->pipe_channel;
-    struct gnl_logger *logger = worker_config->logger;
+    struct gnl_ts_bb_queue_t *worker_queue = worker->worker_queue;
+    int pipe_channel = worker->pipe_channel;
+    struct gnl_logger *logger = worker->logger;
+
+    gnl_logger_debug(worker->logger, "starting to process requests");
 
     // file descriptor of a client read from the queue
     int fd_c;
@@ -70,7 +98,7 @@ void *gnl_fss_worker_handle(void* args)
 
         // if terminate message, put down the worker
         if (fd_c == GNL_FSS_WORKER_TERMINATE) {
-            gnl_logger_debug(logger, "terminate message received, the thread will be ended");
+            gnl_logger_debug(logger, "termination message received, the thread will be ended");
             break;
         }
 
@@ -93,11 +121,11 @@ void *gnl_fss_worker_handle(void* args)
             GNL_MINUS1_CHECK(res, errno, NULL)
 
             // warn the master that a client has gone away TODO: use the gnl_socket_message?
-            res = write(worker_config->pipe_channel, "0", 1);
+            res = write(worker->pipe_channel, "0", 1);
             GNL_MINUS1_CHECK(res, errno, NULL)
         } else {
             // do something with the buffer...
-            gnl_logger_debug(logger, "client %d sent a message, decoding request...", fd_c);
+            gnl_logger_debug(logger, "client %d sent a message, decoding request", fd_c);
 
             // decode request
             struct gnl_socket_request *request;
