@@ -85,7 +85,7 @@ int can_not_create_a_logger_without_path() {
     return 0;
 }
 
-int can_create_a_logger_without_scope() {
+int can_create_a_logger_without_channel() {
     struct gnl_logger *logger;
 
     logger = gnl_logger_init(LOGGER_TEST_FILE, NULL, "debug");
@@ -218,7 +218,7 @@ int main() {
 
     gnl_assert(can_create_a_logger, "can create a logger.");
     gnl_assert(can_not_create_a_logger_without_path, "can not create a logger without a valid path.");
-    gnl_assert(can_create_a_logger_without_scope, "can create a logger without a scope.");
+    gnl_assert(can_create_a_logger_without_channel, "can create a logger without a channel.");
     gnl_assert(can_create_a_logger_without_level, "can create a logger without a log level.");
 
     gnl_assert(can_trace_trace, "can report a trace message with log level \"trace\".");

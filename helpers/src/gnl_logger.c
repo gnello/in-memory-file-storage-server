@@ -8,11 +8,6 @@
 #include "../include/gnl_logger.h"
 
 /**
- * List of variable arguments.
- */
-va_list a_list;
-
-/**
  * Return the corresponding level of the given string.
  *
  * @param level The string level.
@@ -85,7 +80,7 @@ static int level_to_string(const enum gnl_log_level level, char **dest) {
     return 0;
 }
 
-struct gnl_logger *gnl_logger_init(const char *path, const char *scope, const char *level) {
+struct gnl_logger *gnl_logger_init(const char *path, const char *channel, const char *level) {
     if (path == NULL) {
         errno = EINVAL;
 
@@ -107,13 +102,13 @@ struct gnl_logger *gnl_logger_init(const char *path, const char *scope, const ch
     GNL_CALLOC(logger->path, strlen(path) + 1, NULL);
     strcpy(logger->path, path);
 
-    // scope
-    if (scope == NULL) {
-        GNL_CALLOC(logger->scope, 1, NULL);
-        strcpy(logger->scope, "\0");
+    // channel
+    if (channel == NULL) {
+        GNL_CALLOC(logger->channel, 1, NULL);
+        strcpy(logger->channel, "\0");
     } else {
-        GNL_CALLOC(logger->scope, strlen(scope) + 1, NULL);
-        strcpy(logger->scope, scope);
+        GNL_CALLOC(logger->channel, strlen(channel) + 1, NULL);
+        strcpy(logger->channel, channel);
     }
 
     return logger;
@@ -121,7 +116,7 @@ struct gnl_logger *gnl_logger_init(const char *path, const char *scope, const ch
 
 void gnl_logger_destroy(struct gnl_logger *logger) {
     free(logger->path);
-    free(logger->scope);
+    free(logger->channel);
     free(logger);
 }
 
@@ -140,20 +135,20 @@ static int should_report(const struct gnl_logger *logger, const enum gnl_log_lev
 }
 
 /**
- * Add the scope to the beginning of the given message.
+ * Add the channel to the beginning of the given message.
  *
  * @param logger    The logger instance.
- * @param message   The message where to put the scope.
+ * @param message   The message where to put the channel.
  * @param dest      The destination where to write the final message.
  *
  * @return          Returns 0 on success, -1 otherwise.
  */
-static int add_scope_to_message(const struct gnl_logger *logger, const char *message, char **dest) {
-    int maxsize = strlen(logger->scope) + 2 + strlen(message) + 1;
+static int add_channel_to_message(const struct gnl_logger *logger, const char *message, char **dest) {
+    int maxsize = strlen(logger->channel) + 1 + strlen(message) + 1;
 
     GNL_CALLOC(*dest, maxsize, -1)
 
-    snprintf(*dest, maxsize, "%s: %s", logger->scope, message);
+    snprintf(*dest, maxsize, "%s.%s", logger->channel, message);
 
     return 0;
 }
@@ -161,7 +156,7 @@ static int add_scope_to_message(const struct gnl_logger *logger, const char *mes
 /**
  * Add the log level to the beginning of the given message.
  *
- * @param message   The message where to put the scope.
+ * @param message   The message where to put the channel.
  * @param level     The level of the message.
  * @param dest      The destination where to write the final message.
  *
@@ -250,24 +245,24 @@ static int add_new_line_to_message(const char *message, char **dest) {
  */
 static int build_message(const struct gnl_logger *logger, const char *message, const enum gnl_log_level level, char **dest) {
     int res;
-    char *scope_message;
     char *level_message;
+    char *scope_message;
     char *timestamp_message;
 
-    res = add_scope_to_message(logger, message, &scope_message);
+    res = add_level_to_message(message, level, &level_message);
     GNL_MINUS1_CHECK(res, errno, -1)
 
-    res = add_level_to_message(scope_message, level, &level_message);
+    res = add_channel_to_message(logger, level_message, &scope_message);
     GNL_MINUS1_CHECK(res, errno, -1)
 
-    res = add_timestamp_to_message(level_message, &timestamp_message);
+    res = add_timestamp_to_message(scope_message, &timestamp_message);
     GNL_MINUS1_CHECK(res, errno, -1)
 
     res = add_new_line_to_message(timestamp_message, dest);
     GNL_MINUS1_CHECK(res, errno, -1)
 
-    free(scope_message);
     free(level_message);
+    free(scope_message);
     free(timestamp_message);
 
     return 0;
@@ -279,10 +274,11 @@ static int build_message(const struct gnl_logger *logger, const char *message, c
  * @param logger    The logger instance.
  * @param message   The message to report.
  * @param level     The log level of the message.
+ * @param a_list    The list of arguments.
  *
  * @return          Returns 0 on success, -1 otherwise.
  */
-static int report(const struct gnl_logger *logger, const char *message, const enum gnl_log_level level) {
+static int report(const struct gnl_logger *logger, const char *message, const enum gnl_log_level level, va_list a_list) {
     int res;
     char *dest;
     FILE *log_file;
@@ -307,9 +303,10 @@ int gnl_logger_trace(const struct gnl_logger *logger, const char *message, ...) 
 
     if (should_report(logger, GNL_LOGGER_TRACE)) {
         // get variable args
+        va_list a_list;
         va_start(a_list, message);
 
-        res = report(logger, message, GNL_LOGGER_TRACE);
+        res = report(logger, message, GNL_LOGGER_TRACE, a_list);
 
         va_end(a_list);
     }
@@ -322,9 +319,10 @@ int gnl_logger_debug(const struct gnl_logger *logger, const char *message, ...) 
 
     if (should_report(logger, GNL_LOGGER_DEBUG)) {
         // get variable args
+        va_list a_list;
         va_start(a_list, message);
 
-        res = report(logger, message, GNL_LOGGER_DEBUG);
+        res = report(logger, message, GNL_LOGGER_DEBUG, a_list);
 
         va_end(a_list);
     }
@@ -337,9 +335,10 @@ int gnl_logger_info(const struct gnl_logger *logger, const char *message, ...) {
 
     if (should_report(logger, GNL_LOGGER_INFO)) {
         // get variable args
+        va_list a_list;
         va_start(a_list, message);
 
-        res = report(logger, message, GNL_LOGGER_INFO);
+        res = report(logger, message, GNL_LOGGER_INFO, a_list);
 
         va_end(a_list);
     }
@@ -352,9 +351,10 @@ int gnl_logger_warn(const struct gnl_logger *logger, const char *message, ...) {
 
     if (should_report(logger, GNL_LOGGER_WARN)) {
         // get variable args
+        va_list a_list;
         va_start(a_list, message);
 
-        res = report(logger, message, GNL_LOGGER_WARN);
+        res = report(logger, message, GNL_LOGGER_WARN, a_list);
 
         va_end(a_list);
     }
@@ -367,9 +367,10 @@ int gnl_logger_error(const struct gnl_logger *logger, const char *message, ...) 
 
     if (should_report(logger, GNL_LOGGER_ERROR)) {
         // get variable args
+        va_list a_list;
         va_start(a_list, message);
 
-        res = report(logger, message, GNL_LOGGER_ERROR);
+        res = report(logger, message, GNL_LOGGER_ERROR, a_list);
 
         va_end(a_list);
     }

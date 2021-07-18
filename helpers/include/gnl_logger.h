@@ -21,8 +21,8 @@ struct gnl_logger {
     // the path where to write the log.
     char *path;
 
-    // The scope of the instance
-    char *scope;
+    // The channel of the instance
+    char *channel;
 
     // the log level set.
     enum gnl_log_level level;
@@ -31,15 +31,15 @@ struct gnl_logger {
 /**
  * Create a new logger.
  *
- * @param path  The path where to create the file log.
- * @param scope The scope of the logger instance.
- * @param level The level of the logger instance.
- *              Accepted values: trace, debug, info, warn, error.
+ * @param path      The path where to create the file log.
+ * @param channel   The channel of the logger instance.
+ * @param level     The level of the logger instance.
+ *                  Accepted values: trace, debug, info, warn, error.
  *
- * @return      The new logger instance on success,
- *              NULL otherwise.
+ * @return          The new logger instance on success,
+ *                  NULL otherwise.
  */
-extern struct gnl_logger *gnl_logger_init(const char *path, const char *scope, const char *level);
+extern struct gnl_logger *gnl_logger_init(const char *path, const char *channel, const char *level);
 
 /**
  * Destroy the given logger.
