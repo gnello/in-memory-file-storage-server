@@ -247,7 +247,7 @@ static int run_server(int fd_skt, struct gnl_fss_thread_pool *thread_pool, int m
                         continue;
                     }
 
-                    gnl_logger_debug(logger, "connection from client accepted with id %d", fd_c);
+                    gnl_logger_debug(logger, "connection from client accepted, assigned id %d", fd_c);
 
                     active_connections++;
                     gnl_logger_debug(logger, "the server has now %d active connections", active_connections);
