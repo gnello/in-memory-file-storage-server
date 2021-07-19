@@ -150,9 +150,6 @@ void *gnl_fss_worker_handle(void* args)
         }
     }
 
-    // destroy the exhausted message
-    free(raw_fd_c);
-
     return NULL;
 }
 
