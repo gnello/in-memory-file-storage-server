@@ -93,30 +93,37 @@ void *gnl_fss_worker_handle(void* args)
         raw_fd_c = gnl_ts_bb_queue_dequeue(worker_queue);
         GNL_NULL_CHECK(raw_fd_c, EINVAL, NULL);
 
-        gnl_logger_debug(logger, "a request has arrived, processing");
+        gnl_logger_debug(logger, "received a new message");
 
         // cast raw client file descriptor
         fd_c = *(int *)raw_fd_c;
 
         // if terminate message, put down the worker
         if (fd_c == GNL_FSS_WORKER_TERMINATE) {
-            gnl_logger_debug(logger, "termination message received, the thread will be ended");
+            gnl_logger_debug(logger, "termination message, the thread will be ended");
             break;
         }
+
+        gnl_logger_debug(logger, "message sent by client %d", fd_c);
 
         // clear the buffer
         memset(buf, 0, GNL_FSS_WORKER_BUFFER_LEN);
 
         // read data
         nread = read(fd_c, buf, GNL_FSS_WORKER_BUFFER_LEN);
-        GNL_MINUS1_CHECK(nread, errno, NULL)
+        if (nread == -1) {
+            gnl_logger_error(logger, "error reading the message: %s", strerror(errno));
+
+            // do not stop the server: the show must go on
+            continue;
+        }
 
         // if EOF...
         if (nread == 0) {
             //TODO: create message to tell to the master that a client is gone
 
             // close the current file descriptor
-            gnl_logger_debug(logger, "client %d has gone away", fd_c);
+            gnl_logger_debug(logger, "message: client %d has gone away", fd_c);
 
             // close the client file descriptor
             res = close(fd_c);
@@ -129,14 +136,17 @@ void *gnl_fss_worker_handle(void* args)
             GNL_MINUS1_CHECK(res, errno, NULL)
         } else {
             // do something with the buffer...
-            gnl_logger_debug(logger, "client %d sent a message, decoding request", fd_c);
+            gnl_logger_debug(logger, "the message is a request, decoding", fd_c);
 
             // decode request
             struct gnl_socket_request *request;
             request = gnl_socket_request_read(buf);
 
             if (request == NULL) {
-                gnl_logger_error(logger, "invalid request of client %d: %s", fd_c, strerror(errno));
+                gnl_logger_error(logger, "invalid request: %s", strerror(errno));
+
+                res = write(worker->pipe_channel, "change_me", 9);
+                GNL_MINUS1_CHECK(res, errno, NULL)
 
                 // resume loop
                 continue;
@@ -146,8 +156,15 @@ void *gnl_fss_worker_handle(void* args)
             res = gnl_socket_request_to_string(request, &request_type);
             GNL_MINUS1_CHECK(res, errno, NULL)
 
-            gnl_logger_debug(logger, "client %d sent a request: %s", fd_c, request_type);
+            gnl_logger_debug(logger, "decoded request: %s", fd_c, request_type);
+
+            res = write(worker->pipe_channel, "change_me", 9);
+            GNL_MINUS1_CHECK(res, errno, NULL)
+
+            free(request);
         }
+
+        //TODO: centralize here the pipe_channel write
     }
 
     return NULL;
