@@ -254,7 +254,7 @@ static int run_server(int fd_skt, struct gnl_fss_thread_pool *thread_pool, int m
 
                     // put the client file descriptor into the active file descriptors set
                     FD_SET(fd_c, &set);
-                    gnl_logger_debug(logger, "TMP fd: %d, fd_num: %d", fd, fd_num);
+
                     // update fd_num with the max file descriptor active index
                     if (fd_c > fd_num) {
                         fd_num = fd_c;
@@ -262,12 +262,19 @@ static int run_server(int fd_skt, struct gnl_fss_thread_pool *thread_pool, int m
 
                 } else if (fd == master_channel) { // a worker has handled a request
 
+                    gnl_logger_debug(logger, "received message from the thread pool");
+
                     // clear the buffer
                     memset(buf, 0, GNL_FSS_SERVER_BUFFER_LEN);
 
                     // read the client file descriptor from the channel
-                    size_t tmp = read(fd, buf, GNL_FSS_SERVER_BUFFER_LEN);
-                    GNL_MINUS1_CHECK(tmp, errno, -1)
+                    nread = read(fd, buf, GNL_FSS_SERVER_BUFFER_LEN);
+                    if (nread == -1) {
+                        gnl_logger_error(logger, "error reading the message: %s", strerror(errno));
+
+                        // do not stop the server: the show must go on
+                        continue;
+                    }
 
                     // cast the file descriptor read to int
                     GNL_TO_INT(fd_c, buf, -1)
@@ -276,6 +283,7 @@ static int run_server(int fd_skt, struct gnl_fss_thread_pool *thread_pool, int m
                     if (fd_c == 0) {
                         active_connections--;
 
+                        gnl_logger_debug(logger, "a client has gone away");
                         gnl_logger_debug(logger, "the server has now %d active connections", active_connections);
 
                         // resume for loop
@@ -285,7 +293,6 @@ static int run_server(int fd_skt, struct gnl_fss_thread_pool *thread_pool, int m
                     // put the client file descriptor back into the active file descriptors set
                     FD_SET(fd_c, &set);
 
-                    gnl_logger_debug(logger, "TMP fd: %d, fd_num: %d", fd, fd_num);
                     // update fd_num with the max file descriptor active index
                     if (fd_c > fd_num) {
                         fd_num = fd_c;
@@ -293,19 +300,21 @@ static int run_server(int fd_skt, struct gnl_fss_thread_pool *thread_pool, int m
 
                 } else { // if there is an I/O request...
 
-                    gnl_logger_debug(logger, "I/O request received");
+                    gnl_logger_debug(logger, "I/O request received from client %d", fd);
 
                     // remove the file descriptor from the active file descriptors set
                     FD_CLR(fd, &set);
 
-                    gnl_logger_debug(logger, "TMP fd: %d, fd_num: %d", fd, fd_num);
                     // update fd_num
                     if (fd == fd_num) {
                         fd_num--;
                     }
 
+                    // copy the file descriptor to prevent changes side effects
+                    int locked_fd = fd;
+
                     // pass the file descriptor to the thread pool
-                    res = gnl_fss_thread_pool_dispatch(thread_pool, (void *)&fd);
+                    res = gnl_fss_thread_pool_dispatch(thread_pool, (void *)&locked_fd);
                     GNL_MINUS1_CHECK(res, errno, -1)
 
                     gnl_logger_debug(logger, "I/O request sent to the thread pool");
@@ -335,6 +344,8 @@ int gnl_fss_server_start(const struct gnl_fss_config *config) {
     struct gnl_logger *logger;
     logger = gnl_logger_init(config->log_filepath, "gnl_fss_server", config->log_level);
     GNL_NULL_CHECK(logger, errno, -1)
+
+    gnl_logger_info(logger, "server is starting");
 
     // start the thread pool
     struct gnl_fss_thread_pool *thread_pool = create_thread_pool(config->thread_workers, config, logger);
@@ -377,7 +388,7 @@ int gnl_fss_server_start(const struct gnl_fss_config *config) {
     close(fd_skt);
     unlink(socket_name);
 
-    gnl_logger_info(logger, "The server has been shut down.");
+    gnl_logger_info(logger, "server has been shut down.");
 
     gnl_logger_destroy(logger);
 
