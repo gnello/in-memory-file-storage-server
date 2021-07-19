@@ -69,8 +69,6 @@ void *gnl_fss_worker_handle(void* args)
     int pipe_channel = worker->pipe_channel;
     struct gnl_logger *logger = worker->logger;
 
-    gnl_logger_debug(worker->logger, "ready, waiting for requests");
-
     // file descriptor of a client read from the queue
     int fd_c;
 
@@ -86,12 +84,16 @@ void *gnl_fss_worker_handle(void* args)
     // generic result var
     int res;
 
+    gnl_logger_debug(worker->logger, "ready, waiting for requests");
+
     // work
     while (1) {
 
         // waiting for a ready file descriptor from the main thread
         raw_fd_c = gnl_ts_bb_queue_dequeue(worker_queue);
         GNL_NULL_CHECK(raw_fd_c, EINVAL, NULL);
+
+        gnl_logger_debug(logger, "a request has arrived, processing");
 
         // cast raw client file descriptor
         fd_c = *(int *)raw_fd_c;
@@ -114,11 +116,13 @@ void *gnl_fss_worker_handle(void* args)
             //TODO: create message to tell to the master that a client is gone
 
             // close the current file descriptor
-            gnl_logger_debug(logger, "client %d gone away, closing connection", fd_c);
+            gnl_logger_debug(logger, "client %d has gone away", fd_c);
 
             // close the client file descriptor
             res = close(fd_c);
             GNL_MINUS1_CHECK(res, errno, NULL)
+
+            gnl_logger_debug(logger, "closed the connection with client %d", fd_c);
 
             // warn the master that a client has gone away TODO: use the gnl_message?
             res = write(worker->pipe_channel, "0", 1);
@@ -144,10 +148,10 @@ void *gnl_fss_worker_handle(void* args)
 
             gnl_logger_debug(logger, "client %d sent a request: %s", fd_c, request_type);
         }
-
-        // destroy the exhausted message
-        free(raw_fd_c);
     }
+
+    // destroy the exhausted message
+    free(raw_fd_c);
 
     return NULL;
 }
