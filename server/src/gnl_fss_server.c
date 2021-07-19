@@ -230,7 +230,7 @@ static int run_server(int fd_skt, struct gnl_fss_thread_pool *thread_pool, int m
                 // if there is an incoming connection...
                 if (fd == fd_skt) {
 
-                    gnl_logger_debug(logger, "client %d requested to connect", fd_c);
+                    gnl_logger_debug(logger, "a client requested to connect");
 
                     // accept the connection
                     fd_c = accept(fd_skt, NULL, 0);
@@ -241,13 +241,13 @@ static int run_server(int fd_skt, struct gnl_fss_thread_pool *thread_pool, int m
                         res = close(fd_c);
                         GNL_MINUS1_CHECK(res, errno, -1)
 
-                        gnl_logger_debug(logger, "soft termination in progress, connection from client %d refused", fd_c);
+                        gnl_logger_debug(logger, "soft termination in progress, connection from client refused", fd_c);
 
                         // resume for loop
                         continue;
                     }
 
-                    gnl_logger_debug(logger, "connection from client %d accepted", fd_c);
+                    gnl_logger_debug(logger, "connection from client accepted with id %d", fd_c);
 
                     active_connections++;
                     gnl_logger_debug(logger, "the server has now %d active connections", active_connections);
