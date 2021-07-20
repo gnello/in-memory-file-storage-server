@@ -1,5 +1,6 @@
 #include <errno.h>
 #include <gnl_socket_request.h>
+#include <gnl_message_n.h>
 #include "../include/gnl_fss_worker.h"
 #include <gnl_macro_beg.h>
 
@@ -64,9 +65,7 @@ void *gnl_fss_worker_handle(void* args)
     // decode args
     struct gnl_fss_worker *worker = args;
 
-    // get the worker queue
-    struct gnl_ts_bb_queue_t *worker_queue = worker->worker_queue;
-    int pipe_channel = worker->pipe_channel;
+    // get the logger
     struct gnl_logger *logger = worker->logger;
 
     // file descriptor of a client read from the queue
@@ -84,13 +83,16 @@ void *gnl_fss_worker_handle(void* args)
     // generic result var
     int res;
 
-    gnl_logger_debug(worker->logger, "ready, waiting for requests");
+    // the message struct to send to the master
+    struct gnl_message_n *message_to_master;
+
+    gnl_logger_debug(logger, "ready, waiting for requests");
 
     // work
     while (1) {
 
         // waiting for a ready file descriptor from the main thread
-        raw_fd_c = gnl_ts_bb_queue_dequeue(worker_queue);
+        raw_fd_c = gnl_ts_bb_queue_dequeue(worker->worker_queue);
         GNL_NULL_CHECK(raw_fd_c, EINVAL, NULL);
 
         gnl_logger_debug(logger, "received a new message");
@@ -120,10 +122,8 @@ void *gnl_fss_worker_handle(void* args)
 
         // if EOF...
         if (nread == 0) {
-            //TODO: create message to tell to the master that a client is gone
-
             // close the current file descriptor
-            gnl_logger_debug(logger, "message: client %d has gone away", fd_c);
+            gnl_logger_debug(logger, "the message says that client %d has gone away", fd_c);
 
             // close the client file descriptor
             res = close(fd_c);
@@ -131,9 +131,9 @@ void *gnl_fss_worker_handle(void* args)
 
             gnl_logger_debug(logger, "closed the connection with client %d", fd_c);
 
-            // warn the master that a client has gone away TODO: use the gnl_message?
-            res = write(worker->pipe_channel, "0", 1);
-            GNL_MINUS1_CHECK(res, errno, NULL)
+            // create the message for the master, 0 means that a client has gone away
+            message_to_master = gnl_message_n_init_with_args(0);
+            GNL_NULL_CHECK(message_to_master, errno, NULL)
         } else {
             // do something with the buffer...
             gnl_logger_debug(logger, "the message is a request, decoding", fd_c);
@@ -144,27 +144,38 @@ void *gnl_fss_worker_handle(void* args)
 
             if (request == NULL) {
                 gnl_logger_error(logger, "invalid request: %s", strerror(errno));
+            } else {
 
-                res = write(worker->pipe_channel, "change_me", 9);
+                char *request_type;
+                res = gnl_socket_request_to_string(request, &request_type);
                 GNL_MINUS1_CHECK(res, errno, NULL)
 
-                // resume loop
-                continue;
+                gnl_logger_debug(logger, "request decoded, has type %s", request_type);
+
+                // free memory
+                free(request_type);
             }
 
-            char *request_type;
-            res = gnl_socket_request_to_string(request, &request_type);
-            GNL_MINUS1_CHECK(res, errno, NULL)
+            // free memory
+            gnl_socket_request_destroy(request);
 
-            gnl_logger_debug(logger, "decoded request: %s", fd_c, request_type);
-
-            res = write(worker->pipe_channel, "change_me", 9);
-            GNL_MINUS1_CHECK(res, errno, NULL)
-
-            free(request);
+            // create the message for the master
+            message_to_master = gnl_message_n_init_with_args(fd_c);
+            GNL_NULL_CHECK(message_to_master, errno, NULL)
         }
 
-        //TODO: centralize here the pipe_channel write
+        // encode message
+        char *message;
+        res = gnl_message_n_write(*message_to_master, &message);
+        GNL_MINUS1_CHECK(res, errno, NULL)
+
+        // send the message to the master
+        res = write(worker->pipe_channel, message, strlen(message));
+        GNL_MINUS1_CHECK(res, errno, NULL)
+
+        // free memory
+        free(message_to_master);
+        free(message);
     }
 
     return NULL;

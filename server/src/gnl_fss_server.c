@@ -276,8 +276,19 @@ static int run_server(int fd_skt, struct gnl_fss_thread_pool *thread_pool, int m
                         continue;
                     }
 
-                    // cast the file descriptor read to int
-                    GNL_TO_INT(fd_c, buf, -1)
+                    // initialize the message struct sent by a worker
+                    struct gnl_message_n *message_from_worker = gnl_message_n_init();
+                    GNL_NULL_CHECK(message_from_worker, errno, -1)
+
+                    // decode the message sent by a worker
+                    res = gnl_message_n_read(buf, message_from_worker);
+                    GNL_MINUS1_CHECK(res, errno, -1)
+
+                    // finally get the file descriptor
+                    fd_c = message_from_worker->number;
+
+                    // free memory
+                    free(message_from_worker);
 
                     // if EOF...
                     if (fd_c == 0) {
@@ -289,6 +300,8 @@ static int run_server(int fd_skt, struct gnl_fss_thread_pool *thread_pool, int m
                         // resume for loop
                         continue;
                     }
+
+                    gnl_logger_debug(logger, "client %d request handled", fd_c);
 
                     // put the client file descriptor back into the active file descriptors set
                     FD_SET(fd_c, &set);
