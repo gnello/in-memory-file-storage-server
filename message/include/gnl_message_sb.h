@@ -23,7 +23,8 @@ extern struct gnl_message_sb *gnl_message_sb_init();
  * @param string    The string of the message_sb.
  * @param bytes     The bytes of the message_sb.
  *
- * @return          The message_sb struct created.
+ * @return          The message_sb struct created on success,
+ *                  NULL otherwise.
  */
 extern struct gnl_message_sb *gnl_message_sb_init_with_args(char *string, char *bytes);
 

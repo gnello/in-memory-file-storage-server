@@ -19,7 +19,8 @@ extern struct gnl_message_s *gnl_message_s_init();
  *
  * @param string    The string of the message_s.
  *
- * @return          The message_s struct created.
+ * @return          The message_s struct created on success,
+ *                  NULL otherwise.
  */
 extern struct gnl_message_s *gnl_message_s_init_with_args(char *string);
 

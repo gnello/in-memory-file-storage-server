@@ -23,7 +23,8 @@ extern struct gnl_message_sn *gnl_message_sn_init();
  * @param string    The string of the message_sn.
  * @param number    The number of the message_sn.
  *
- * @return          The message_sn struct created.
+ * @return          The message_sn struct created on success,
+ *                  NULL otherwise.
  */
 extern struct gnl_message_sn *gnl_message_sn_init_with_args(char *string, int number);
 

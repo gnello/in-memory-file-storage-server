@@ -21,7 +21,8 @@ extern struct gnl_message_n *gnl_message_n_init();
  *
  * @param number    The number to put into the message_n.
  *
- * @return          The message_n struct created.
+ * @return          The message_n struct created on success,
+ *                  NULL otherwise.
  */
 extern struct gnl_message_n *gnl_message_n_init_with_args(int number);
 
