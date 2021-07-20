@@ -152,11 +152,11 @@ void *gnl_fss_worker_handle(void* args)
 
                 gnl_logger_debug(logger, "request decoded, has type %s", request_type);
 
-                // free memory
+                // the request_type is not necessary anymore, free memory
                 free(request_type);
             }
 
-            // free memory
+            // the request is not necessary anymore, destroy it
             gnl_socket_request_destroy(request);
 
             // create the message for the master
@@ -164,7 +164,7 @@ void *gnl_fss_worker_handle(void* args)
             GNL_NULL_CHECK(message_to_master, errno, NULL)
         }
 
-        // encode message
+        // encode the message
         char *message;
         res = gnl_message_n_write(*message_to_master, &message);
         GNL_MINUS1_CHECK(res, errno, NULL)
