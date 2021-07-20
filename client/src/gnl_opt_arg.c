@@ -10,8 +10,6 @@
 #define SOCKET_TRY_EVERY_MILLISECONDS 1000
 #define SOCKET_WAIT_SEC 5
 
-extern char *strtok_r(char *, const char *, char **);
-
 /**
  * Print help message.
  *
