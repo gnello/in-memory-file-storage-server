@@ -135,7 +135,7 @@ void *gnl_fss_worker_handle(void* args)
             message_to_master = gnl_message_n_init_with_args(0);
             GNL_NULL_CHECK(message_to_master, errno, NULL)
         } else {
-            // do something with the buffer...
+
             gnl_logger_debug(logger, "the message is a request, decoding", fd_c);
 
             // decode request

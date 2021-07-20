@@ -287,8 +287,8 @@ static int run_server(int fd_skt, struct gnl_fss_thread_pool *thread_pool, int m
                     // finally get the file descriptor
                     fd_c = message_from_worker->number;
 
-                    // free memory
-                    free(message_from_worker);
+                    // the message_from_worker is not necessary anymore, destroy it
+                    gnl_message_n_destroy(message_from_worker);
 
                     // if EOF...
                     if (fd_c == 0) {
@@ -396,7 +396,8 @@ int gnl_fss_server_start(const struct gnl_fss_config *config) {
         return -1;
     }
 
-    // free memory
+    // if you reach this point means that the server execution
+    // is terminated (due to an error or a signal), so free memory
     gnl_fss_thread_pool_destroy(thread_pool);
     close(fd_skt);
     unlink(socket_name);
