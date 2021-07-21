@@ -11,6 +11,28 @@
 #define SOCKET_WAIT_SEC 5
 
 /**
+ * Send the given file to the server using APIs.
+ *
+ * @param filename      The file to send to the server.
+ * @param store_dirname The path where to store the trashed files from
+ *                      the server.
+ *
+ * @return              Returns 0 on success, -1 otherwise.
+ */
+static int gnl_opt_rts_send_file(const char *filename, const char *store_dirname) {
+    int res;
+
+    res = gnl_fss_api_open_file(filename, O_CREATE & O_LOCK);
+    GNL_MINUS1_CHECK(res, errno, -1);
+
+    // send file
+    res = gnl_fss_api_write_file(filename, store_dirname);
+    GNL_MINUS1_CHECK(res, errno, -1);
+
+    return 0;
+}
+
+/**
  * Print help message.
  *
  * @param program_name  The name of the program.
@@ -92,7 +114,7 @@ static int arg_f_end(const char* socket_name) { //3
  * @param dirname   The destination where to write the parsed dirname.
  * @param n         The destination where to write the parsed n.
  *
- * @return      Returns 0 on success, -1 otherwise.
+ * @return          Returns 0 on success, -1 otherwise.
  */
 static int arg_w_parse_arg(const char* arg, char **dirname, int *n) {
     char *tok;
@@ -134,7 +156,7 @@ static int arg_w_parse_arg(const char* arg, char **dirname, int *n) {
  *                      the files present into dirname and in its sub-folders
  *                      will be sent to the server.
  * @param store_dirname The path where to store the trashed files from
- *                      The server.
+ *                      the server.
  *
  * @return              Returns 0 on success, -1 otherwise.
  */
@@ -148,15 +170,11 @@ static int arg_w(const char *arg, const char *store_dirname) { //11
     // parse arg
     arg_w_parse_arg(arg, &dirname, &n);
 
-    // sending n files
+    // send n files
     queue = gnl_opt_rts_scan_dir(dirname, n);
 
     while ((filename = (char *)gnl_queue_dequeue(queue)) != NULL) {
-        res = gnl_fss_api_open_file(filename, O_CREATE & O_LOCK);
-        GNL_MINUS1_CHECK(res, errno, -1);
-
-        // send file
-        res = gnl_fss_api_write_file(filename, store_dirname);
+        res = gnl_opt_rts_send_file(filename, store_dirname);
         GNL_MINUS1_CHECK(res, errno, -1);
 
         free(filename);
@@ -164,12 +182,78 @@ static int arg_w(const char *arg, const char *store_dirname) { //11
 
     free(dirname);
 
+    // destroy the queue
+    gnl_queue_destroy(queue, NULL);
+
     return 0;
 }
 
-//static int arg_W(const char* param) { //10
-//    return 0;
-//}
+/**
+ * Parse argument of -W opt from format file1[,file2].
+ *
+ * @param arg       The argument to parse.
+ * @param queue     The destination queue where to store the parsed files.
+ *
+ * @return          Returns 0 on success, -1 otherwise.
+ */
+static int arg_W_parse_arg(const char* arg, struct gnl_queue_t *queue) {
+    char *tok;
+    char *copy_arg;
+    char *token;
+
+    GNL_CALLOC(copy_arg, strlen(arg) + 1, -1);
+    strncpy(copy_arg, arg, strlen(arg));
+
+    // parse files and put it into the queue
+    token = strtok_r(copy_arg, ",", &tok);
+    while (token) {
+        gnl_queue_enqueue(queue, token);
+        token = strtok_r(NULL, ",", &tok);
+    }
+
+    free(copy_arg);
+
+    return 0;
+}
+
+/**
+ * Send the given files in the given dirname to the server.
+ * If the server trashes some files, and a store_dirname is given, store
+ * it into the given store_dirname.
+ *
+ * @param arg           The arg has the format: file1[,file2]. It is a
+ *                      list of files that will be sent to the server.
+ * @param store_dirname The path where to store the trashed files from
+ *                      the server.
+ *
+ * @return              Returns 0 on success, -1 otherwise.
+ */
+static int arg_W(const char *arg, const char *store_dirname) { //11
+    int res;
+    struct gnl_queue_t *queue;
+    char *filename;
+
+    // initialize the queue
+    queue = gnl_queue_init();
+    GNL_NULL_CHECK(queue, errno, -1);
+
+    // parse arg
+    arg_W_parse_arg(arg, queue);
+
+    // send the given files
+    while ((filename = (char *)gnl_queue_dequeue(queue)) != NULL) {
+        res = gnl_opt_rts_send_file(filename, store_dirname);
+        GNL_MINUS1_CHECK(res, errno, -1);
+
+        free(filename);
+    }
+
+    // destroy the queue
+    gnl_queue_destroy(queue, NULL);
+
+    return 0;
+}
+
 //
 //static int arg_D(const char* param) { //0
 //    return 0;
