@@ -4,7 +4,7 @@ include $(ROOT)/.env
 export
 
 CC = gcc
-CFLAGS += -std=c99 -Wall -pedantic -g
+CFLAGS += -std=c99 -Wall -pedantic -g -D_POSIX_C_SOURCE=200112L
 
 HELPERS_PATH_LIB = $(ROOT)/$(HELPERS_LIB)
 HELPERS_PATH_INCLUDE = $(ROOT)/$(HELPERS_INCLUDE)

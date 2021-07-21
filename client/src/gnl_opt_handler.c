@@ -51,26 +51,6 @@ static int wait_microseconds(int time) {
     return nanosleep(&ts, NULL);
 }
 
-/**
- * Print the handler instance.
- *
- * @param handler   The handler to be printed;
- */
-static void print_queue(struct gnl_opt_handler *handler) {
-    struct gnl_opt_handler_el el;
-    void *el_void;
-
-    printf("socket_filename: %s\n", handler->socket_filename);
-    printf("debug: %d\n", handler->debug);
-
-    while ((el_void = gnl_queue_dequeue(handler->command_queue)) != NULL) {
-        el = *(struct gnl_opt_handler_el *)el_void;
-
-        printf("command: %c %s\n", el.opt, (char *)el.arg);
-        free(el_void);
-    }
-}
-
 struct gnl_opt_handler *gnl_opt_handler_init() {
     struct gnl_opt_handler *handler = (struct gnl_opt_handler *)malloc(sizeof(struct gnl_opt_handler));
 
@@ -205,6 +185,16 @@ int gnl_opt_handler_handle(struct gnl_opt_handler *handler) {
                     res = arg_w(el->arg, previous_el.arg);
                 } else {
                     res = arg_w(el->arg, NULL);
+                }
+
+                GNL_MINUS1_CHECK(res, errno, -1);
+                break;
+
+            case 'W':
+                if (previous_el.opt == 'D') {
+                    res = arg_W(el->arg, previous_el.arg);
+                } else {
+                    res = arg_W(el->arg, NULL);
                 }
 
                 GNL_MINUS1_CHECK(res, errno, -1);

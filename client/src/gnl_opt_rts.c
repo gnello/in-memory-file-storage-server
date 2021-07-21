@@ -2,6 +2,7 @@
 #include <dirent.h>
 #include <sys/stat.h>
 #include <gnl_queue_t.h>
+#include "../include/gnl_opt_rts.h"
 #include <gnl_macro_beg.h>
 
 /**
@@ -74,16 +75,6 @@ static int scan_dir(const char *dirname, struct gnl_queue_t *queue, int *count, 
     return 0;
 }
 
-/**
- * Recursively scan the given dirname and put n files in
- * the queue. If n=0 put all the found files into the queue.
- *
- * @param dirname   The root dirname to scan.
- * @param n         If n=0, put all files into the queue, otherwise
- *                  put into it only n files.
- *
- * @return          Returns 0 on success, -1 otherwise.
- */
 struct gnl_queue_t *gnl_opt_rts_scan_dir(const char *dirname, int n) {
     if (n < 0) {
         errno = EINVAL;
@@ -105,6 +96,26 @@ struct gnl_queue_t *gnl_opt_rts_scan_dir(const char *dirname, int n) {
     }
 
     return queue;
+}
+
+int gnl_opt_rts_parse_file_list(const char* file_list, struct gnl_queue_t *queue) {
+    char *tok;
+    char *copy_arg;
+    char *token;
+
+    GNL_CALLOC(copy_arg, strlen(file_list) + 1, -1);
+    strncpy(copy_arg, file_list, strlen(file_list));
+
+    // parse files and put it into the queue
+    token = strtok_r(copy_arg, ",", &tok);
+    while (token) {
+        gnl_queue_enqueue(queue, token);
+        token = strtok_r(NULL, ",", &tok);
+    }
+
+    free(copy_arg);
+
+    return 0;
 }
 
 #include <gnl_macro_end.h>

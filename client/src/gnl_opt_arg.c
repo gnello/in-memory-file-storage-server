@@ -5,6 +5,7 @@
 #include <gnl_queue_t.h>
 #include <gnl_print_table.h>
 #include "./gnl_opt_rts.c"
+#include "../include/gnl_opt_arg.h"
 #include <gnl_macro_beg.h>
 
 #define SOCKET_TRY_EVERY_MILLISECONDS 1000
@@ -19,7 +20,7 @@
  *
  * @return              Returns 0 on success, -1 otherwise.
  */
-static int gnl_opt_rts_send_file(const char *filename, const char *store_dirname) {
+static int gnl_opt_arg_send_file(const char *filename, const char *store_dirname) {
     int res;
 
     res = gnl_fss_api_open_file(filename, O_CREATE & O_LOCK);
@@ -32,12 +33,7 @@ static int gnl_opt_rts_send_file(const char *filename, const char *store_dirname
     return 0;
 }
 
-/**
- * Print help message.
- *
- * @param program_name  The name of the program.
- */
-static void arg_h(const char* program_name) { //7
+void arg_h(const char* program_name) { //7
     printf("Usage: %s [options]\n", program_name);
     printf("Write and read files to and from the In Memory Storage Server.\n");
     printf("Example: %s -f /tmp/fss.sk -r file1 -d /dev/null -w ./mydir\n", program_name);
@@ -79,14 +75,7 @@ static void arg_h(const char* program_name) { //7
     gnl_print_table("-p", "Print the log of the requests made to the server.\n");
 }
 
-/**
- * Connect to the given socket_name.
- *
- * @param socket_name   The socket where to connect to.
- *
- * @return              Returns 0 on success, -1 otherwise.
- */
-static int arg_f_start(const char* socket_name) { //3
+int arg_f_start(const char* socket_name) { //3
     time_t now = time(0);
 
     struct timespec tim;
@@ -96,14 +85,7 @@ static int arg_f_start(const char* socket_name) { //3
     return gnl_fss_api_open_connection(socket_name, SOCKET_TRY_EVERY_MILLISECONDS, tim);
 }
 
-/**
- * Close connection to the given socket_name.
- *
- * @param socket_name   The socket where to close the connection.
- *
- * @return              Returns 0 on success, -1 otherwise.
- */
-static int arg_f_end(const char* socket_name) { //3
+int arg_f_end(const char* socket_name) { //3
     return gnl_fss_api_close_connection(socket_name);
 }
 
@@ -145,22 +127,7 @@ static int arg_w_parse_arg(const char* arg, char **dirname, int *n) {
     return 0;
 }
 
-/**
- * Recursively send n files present in the given dirname to the server.
- * If the server trashes some files, and a store_dirname is given, store
- * it into the given store_dirname.
- *
- * @param arg           The arg has the format: dirname[,n=0]. The dirname
- *                      is the root where to grab the files. If provided, n is
- *                      the number of files to send to the server, if n=0 all
- *                      the files present into dirname and in its sub-folders
- *                      will be sent to the server.
- * @param store_dirname The path where to store the trashed files from
- *                      the server.
- *
- * @return              Returns 0 on success, -1 otherwise.
- */
-static int arg_w(const char *arg, const char *store_dirname) { //11
+int arg_w(const char *arg, const char *store_dirname) { //11
     int res;
     char *dirname;
     int n;
@@ -174,7 +141,7 @@ static int arg_w(const char *arg, const char *store_dirname) { //11
     queue = gnl_opt_rts_scan_dir(dirname, n);
 
     while ((filename = (char *)gnl_queue_dequeue(queue)) != NULL) {
-        res = gnl_opt_rts_send_file(filename, store_dirname);
+        res = gnl_opt_arg_send_file(filename, store_dirname);
         GNL_MINUS1_CHECK(res, errno, -1);
 
         free(filename);
@@ -188,47 +155,7 @@ static int arg_w(const char *arg, const char *store_dirname) { //11
     return 0;
 }
 
-/**
- * Parse argument of -W opt from format file1[,file2].
- *
- * @param arg       The argument to parse.
- * @param queue     The destination queue where to store the parsed files.
- *
- * @return          Returns 0 on success, -1 otherwise.
- */
-static int arg_W_parse_arg(const char* arg, struct gnl_queue_t *queue) {
-    char *tok;
-    char *copy_arg;
-    char *token;
-
-    GNL_CALLOC(copy_arg, strlen(arg) + 1, -1);
-    strncpy(copy_arg, arg, strlen(arg));
-
-    // parse files and put it into the queue
-    token = strtok_r(copy_arg, ",", &tok);
-    while (token) {
-        gnl_queue_enqueue(queue, token);
-        token = strtok_r(NULL, ",", &tok);
-    }
-
-    free(copy_arg);
-
-    return 0;
-}
-
-/**
- * Send the given files in the given dirname to the server.
- * If the server trashes some files, and a store_dirname is given, store
- * it into the given store_dirname.
- *
- * @param arg           The arg has the format: file1[,file2]. It is a
- *                      list of files that will be sent to the server.
- * @param store_dirname The path where to store the trashed files from
- *                      the server.
- *
- * @return              Returns 0 on success, -1 otherwise.
- */
-static int arg_W(const char *arg, const char *store_dirname) { //11
+int arg_W(const char *arg, const char *store_dirname) { //11
     int res;
     struct gnl_queue_t *queue;
     char *filename;
@@ -238,11 +165,12 @@ static int arg_W(const char *arg, const char *store_dirname) { //11
     GNL_NULL_CHECK(queue, errno, -1);
 
     // parse arg
-    arg_W_parse_arg(arg, queue);
+    res = gnl_opt_rts_parse_file_list(arg, queue);
+    GNL_MINUS1_CHECK(res, errno, -1);
 
     // send the given files
     while ((filename = (char *)gnl_queue_dequeue(queue)) != NULL) {
-        res = gnl_opt_rts_send_file(filename, store_dirname);
+        res = gnl_opt_arg_send_file(filename, store_dirname);
         GNL_MINUS1_CHECK(res, errno, -1);
 
         free(filename);
