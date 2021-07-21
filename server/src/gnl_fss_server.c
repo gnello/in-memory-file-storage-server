@@ -35,11 +35,14 @@ static int handle_signals() {
     // if a client goes away do not allow the server to terminate ignoring SIGPIPE
     memset(&ignore_sa, 0, sizeof(ignore_sa));
     ignore_sa.sa_handler = SIG_IGN;
+
+    // automatically restart interrupted system calls
     ignore_sa.sa_flags = SA_RESTART;
+
     res = sigaction(SIGPIPE, &ignore_sa, NULL);
     GNL_MINUS1_CHECK(res, errno, -1);
 
-
+    // install the termination signal handler
     memset(&sa, 0, sizeof(sa));
     sa.sa_handler = termination_signal_handler;
 
@@ -141,13 +144,11 @@ static int create_server(const char *socket_name, const struct gnl_logger *logge
  *
  * @param fd_skt            The server file descriptor.
  * @param thread_pool       The tread pool were to dispatch the message.
- * @param master_channel    The channel where to read a result from a
- *                          worker thread.
  * @param logger            The logger instance to use for logging.
  *
  * @return                  Returns -1 on error, otherwise it never returns.
  */
-static int run_server(int fd_skt, struct gnl_fss_thread_pool *thread_pool, int master_channel, const struct gnl_logger *logger) {
+static int run_server(int fd_skt, struct gnl_fss_thread_pool *thread_pool, const struct gnl_logger *logger) {
     int res;
 
     // active file descriptors waited for reading
@@ -173,6 +174,10 @@ static int run_server(int fd_skt, struct gnl_fss_thread_pool *thread_pool, int m
 
     // active connections
     int active_connections = 0;
+
+    // get the master channel of the thread pool to read a result from a worker thread.
+    int master_channel = gnl_fss_thread_pool_master_channel(thread_pool);
+    GNL_MINUS1_CHECK(master_channel, errno, -1)
 
     // reset mask
     FD_ZERO(&set);
@@ -385,11 +390,8 @@ int gnl_fss_server_start(const struct gnl_fss_config *config) {
         return -1;
     }
 
-    // get the master channel of the thread pool
-    int master_channel = gnl_fss_thread_pool_master_channel(thread_pool);
-
     // run the server
-    int res = run_server(fd_skt, thread_pool, master_channel, logger);
+    int res = run_server(fd_skt, thread_pool, logger);
     if (res == -1) {
         gnl_logger_error(logger, "error running the server: %s", strerror(errno));
 
