@@ -1,6 +1,6 @@
 #include <stdlib.h>
 #include <errno.h>
-#include "../include/gnl_fss_storage.h"
+#include <gnl_fss_storage.h>
 #include "../include/gnl_fss_config.h"
 #include <gnl_macro_beg.h>
 

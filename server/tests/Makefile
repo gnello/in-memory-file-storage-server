@@ -39,6 +39,10 @@ INCLUDE += -I$(SOCKET_PATH_INCLUDE)
 LIBS += -Wl,-rpath,$(ROOT)$(MESSAGE_LIB) -L$(ROOT)$(MESSAGE_LIB) -lgnl_message_n -lgnl_message_s -lgnl_message_sb -lgnl_message_sn
 INCLUDE += -I$(ROOT)$(MESSAGE_INCLUDE)
 
+# storage library
+LIBS += -Wl,-rpath,$(ROOT)$(STORAGE_LIB) -L$(ROOT)$(STORAGE_LIB) -lgnl_fss_storage
+INCLUDE += -I$(ROOT)$(STORAGE_INCLUDE)
+
 TARGETS =	gnl_fss_config_test \
 			gnl_fss_api_test
 

@@ -22,6 +22,10 @@ INCLUDE += -I$(ROOT)$(SOCKET_INCLUDE)
 LIBS += -Wl,-rpath,$(ROOT)$(MESSAGE_LIB) -L$(ROOT)$(MESSAGE_LIB) -lgnl_message_n -lgnl_message_s -lgnl_message_sb -lgnl_message_sn
 INCLUDE += -I$(ROOT)$(MESSAGE_INCLUDE)
 
+# storage library
+LIBS += -Wl,-rpath,$(ROOT)$(STORAGE_LIB) -L$(ROOT)$(STORAGE_LIB) -lgnl_fss_storage
+INCLUDE += -I$(ROOT)$(STORAGE_INCLUDE)
+
 # add thread support
 LIBS += -lpthread
 

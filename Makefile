@@ -1,3 +1,6 @@
+# get the root dir (credits: https://stackoverflow.com/a/23324703)
+ROOT_DIR:=$(shell dirname $(realpath $(firstword $(MAKEFILE_LIST))))
+
 include .env
 export
 
@@ -10,7 +13,9 @@ INCLUDE += -I$(DATA_STRUCTURES_INCLUDE)
 TARGETS = server client
 TARGETS_PATH = ./
 
-.PHONY: all dev tests clean clean-dev server client helpers data-structures socket tests-valgrind message
+.PHONY: all dev tests clean clean-dev server client helpers data-structures socket tests-valgrind message storage
+
+TARGETS_ALL = client data-structures helpers message server socket storage
 
 VPATH = src
 
@@ -22,7 +27,7 @@ all: $(TARGETS)
 client: data-structures server
 	cd ./client && $(MAKE)
 
-server: data-structures helpers socket
+server: data-structures helpers socket storage
 	cd ./server && $(MAKE)
 
 message:
@@ -30,6 +35,9 @@ message:
 
 socket: message
 	cd ./socket && $(MAKE)
+
+storage: data-structures
+	cd ./storage && $(MAKE)
 
 helpers:
 	cd ./helpers && $(MAKE)
@@ -39,43 +47,18 @@ data-structures:
 
 # build all the project, test files included
 dev: all helpers
-	cd ./data-structures/tests && $(MAKE)
-	cd ./helpers/tests && $(MAKE)
-	cd ./server/tests && $(MAKE)
-	cd ./message/tests && $(MAKE)
-	cd ./socket/tests && $(MAKE)
-	cd ./client/tests && $(MAKE)
+	$(foreach target,$(TARGETS_ALL),cd $(ROOT_DIR)/$(target)/tests && $(MAKE);)
 
 # run all the tests present in this project
 tests:
-	cd ./data-structures/tests && $(MAKE) tests
-	cd ./helpers/tests && $(MAKE) tests
-	cd ./server/tests && $(MAKE) tests
-	cd ./message/tests && $(MAKE) tests
-	cd ./socket/tests && $(MAKE) tests
-	cd ./client/tests && $(MAKE) tests
+	$(foreach target,$(TARGETS_ALL),cd $(ROOT_DIR)/$(target)/tests && $(MAKE) tests;)
 
 # run all tests present in this project with valgrind
 tests-valgrind:
-	cd ./data-structures/tests && $(MAKE) tests-valgrind
-	cd ./helpers/tests && $(MAKE) tests-valgrind
-	cd ./server/tests && $(MAKE) tests-valgrind
-	cd ./message/tests && $(MAKE) tests-valgrind
-	cd ./socket/tests && $(MAKE) tests-valgrind
-	cd ./client/tests && $(MAKE) tests-valgrind
+	$(foreach target,$(TARGETS_ALL),cd $(ROOT_DIR)/$(target)/tests && $(MAKE) tests-valgrind;)
 
 clean:
-	cd ./helpers && $(MAKE) clean
-	cd ./data-structures && $(MAKE) clean
-	cd ./server && $(MAKE) clean
-	cd ./message && $(MAKE) clean
-	cd ./socket && $(MAKE) clean
-	cd ./client && $(MAKE) clean
+	$(foreach target,$(TARGETS_ALL),cd $(ROOT_DIR)/$(target) && $(MAKE) clean;)
 
 clean-dev: clean
-	cd ./data-structures/tests && $(MAKE) clean
-	cd ./helpers/tests && $(MAKE) clean
-	cd ./server/tests && $(MAKE) clean
-	cd ./message/tests && $(MAKE) clean
-	cd ./socket/tests && $(MAKE) clean
-	cd ./client/tests && $(MAKE) clean
+	$(foreach target,$(TARGETS_ALL),cd $(ROOT_DIR)/$(target)/tests && $(MAKE) clean;)
