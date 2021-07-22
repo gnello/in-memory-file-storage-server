@@ -15,6 +15,6 @@
  * @return          Returns 0 if the server was stopped by a signal,
  *                  -1 if an error occurred.
  */
-int gnl_fss_server_start(const struct gnl_fss_config *config);
+extern int gnl_fss_server_start(const struct gnl_fss_config *config);
 
 #endif //GNL_FSS_SERVER_H
