@@ -10,7 +10,7 @@ CAPACITY=50
 LIMIT=50
 
 # The storage type. Supported types: in-memory
-STORAGE=in-memory
+TYPE=in-memory
 
 # Whether the files should be compressed before storing it into the storage or not.
 COMPRESS_FILES=true

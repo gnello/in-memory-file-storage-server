@@ -12,6 +12,8 @@ struct gnl_storage {
     int capacity;
     int limit;
     int replacement_policy;
+    int compress_files;
+    enum gnl_storage_type type;
     gnl_list_t *storage;
     gnl_list_t *inode;
 };
@@ -35,12 +37,14 @@ struct gnl_fss_file_descriptor { //punta alla tabella dei file
 
 //TODO: hashtable di inode
 
-struct gnl_storage *gnl_storage_init(int capacity, int limit, int replacement_policy) {
+struct gnl_storage *gnl_storage_init(enum gnl_storage_type type, int capacity, int limit, int replacement_policy, int compress_file) {
     struct gnl_storage *storage = (struct gnl_storage *)malloc(sizeof(struct gnl_storage));
     GNL_NULL_CHECK(storage, ENOMEM, NULL);
 
+    storage->type = type;
     storage->capacity = capacity;
     storage->limit = limit;
+    storage->compress_files = compress_file;
 
     switch (replacement_policy) {
         case 0: // FIFO
