@@ -1,7 +1,12 @@
+#include <unistd.h>
 #include <errno.h>
 #include <gnl_socket_request.h>
+#include <gnl_socket_response.h>
+#include <string.h>
 #include <gnl_message_n.h>
+#include <gnl_fss_errno.h>
 #include "../include/gnl_fss_worker.h"
+#include "./gnl_fss_request_handler.c"
 #include <gnl_macro_beg.h>
 
 #define GNL_FSS_WORKER_BUFFER_LEN 100
@@ -20,6 +25,86 @@ struct gnl_fss_worker {
     int pipe_channel;
     struct gnl_logger *logger;
 };
+
+static struct gnl_socket_response *get_internal_error_response() {
+    struct gnl_socket_response *response;
+
+    response = gnl_socket_response_init(GNL_SOCKET_RESPONSE_ERROR, 1, GNL_FSS_ERRNO_INTERNAL);
+    GNL_NULL_CHECK(response, errno, NULL)
+
+    return response;
+}
+
+static int throw_internal_error(int fd_c) {
+    int res;
+    struct gnl_socket_response *response;
+
+    // get the internal error response
+    response = get_internal_error_response();
+    GNL_NULL_CHECK(response, errno, -1)
+
+    // encode the response
+    char *response_message;
+    res = gnl_socket_response_write(response, &response_message);
+    GNL_MINUS1_CHECK(res, errno, -1)
+
+    // send the response message to the client
+    res = write(fd_c, response_message, strlen(response_message));
+    GNL_MINUS1_CHECK(res, errno, -1)
+
+    return 0;
+}
+
+static struct gnl_socket_response *handle_request(struct gnl_socket_request *request) {
+    int res;
+
+    switch (request->type) {
+        case GNL_SOCKET_REQUEST_OPEN:
+            res = handle_open(request->payload.open->string, request->payload.open->number);
+            break;
+
+        case GNL_SOCKET_REQUEST_READ_N:
+            res = handle_read_n(request->payload.read_N->number);
+            break;
+
+        case GNL_SOCKET_REQUEST_READ:
+            res = handle_read(request->payload.read->string);
+            break;
+
+        case GNL_SOCKET_REQUEST_WRITE:
+            res = handle_write(request->payload.write->string, request->payload.write->bytes);
+            break;
+
+        case GNL_SOCKET_REQUEST_APPEND:
+            res = handle_append(request->payload.append->string, request->payload.append->bytes);
+            break;
+
+        case GNL_SOCKET_REQUEST_LOCK:
+            res = handle_lock(request->payload.lock->string);
+            break;
+
+        case GNL_SOCKET_REQUEST_UNLOCK:
+            res = handle_unlock(request->payload.unlock->string);
+            break;
+
+        case GNL_SOCKET_REQUEST_CLOSE:
+            res = handle_close(request->payload.close->string);
+            break;
+
+        case GNL_SOCKET_REQUEST_REMOVE:
+            res = handle_remove(request->payload.remove->string);
+            break;
+
+        default:
+            errno = EINVAL;
+            res = -1;
+            break;
+    }
+
+    GNL_MINUS1_CHECK(res, errno, NULL)
+
+    return 0;
+}
 
 struct gnl_fss_worker *gnl_fss_worker_init(pthread_t id, struct gnl_ts_bb_queue_t *worker_queue, int pipe_channel, const struct gnl_fss_config *config) {
     struct gnl_fss_worker *worker = (struct gnl_fss_worker *)malloc(sizeof(struct gnl_fss_worker));
@@ -152,8 +237,26 @@ void *gnl_fss_worker_handle(void* args)
 
                 gnl_logger_debug(logger, "request decoded, has type %s", request_type);
 
+                // handle the request
+                struct gnl_socket_response *response;
+                response = handle_request(request);
+                GNL_NULL_CHECK(response, errno, NULL)
+                //TODO: non ritornare mai ma scrivere sul log.
+                //TODO: creare risposta di errore standard/generica
+
+                // encode the response
+                char *response_message;
+                res = gnl_socket_response_write(response, &response_message);
+                GNL_MINUS1_CHECK(res, errno, NULL)
+
+                // send the response message to the client
+                res = write(fd_c, response_message, strlen(response_message));
+                GNL_MINUS1_CHECK(res, errno, NULL)
+
                 // the request_type is not necessary anymore, free memory
                 free(request_type);
+                free(response_message);
+                gnl_socket_response_destroy(response);
             }
 
             // the request is not necessary anymore, destroy it

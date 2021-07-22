@@ -3,6 +3,10 @@
 #define GNL_SOCKET_REQUEST_H
 
 #include "./gnl_socket_service.h"
+#include <gnl_message_sn.h>
+#include <gnl_message_s.h>
+#include <gnl_message_n.h>
+#include <gnl_message_sb.h>
 
 /**
  * The possibles type of a socket request.
