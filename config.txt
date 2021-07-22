@@ -1,25 +1,31 @@
 # Welcome to the File Storage Server configuration file.
 
-# Number of workers to span for the server (master-worker pattern implementation).
+# The number of workers to span for the server (master-worker pattern implementation).
 THREAD_WORKERS=10
 
-# Capacity of the File Storage Server in MB.
+# The capacity of the File Storage Server in MB.
 CAPACITY=50
 
-# Maximum number of files stored by the File Storage Server.
+# The maximum number of files stored by the File Storage Server.
 LIMIT=50
 
-# Maximum allowed size in bytes for a single file stored by the server.
+# The storage type. Supported types: in-memory
+STORAGE=in-memory
+
+# Whether the files should be compressed before storing it into the storage or not.
+COMPRESS_FILES=true
+
+# The maximum allowed size in bytes for a single file stored by the server.
 FILE_SIZE_LIMIT=2147483648
 
-# Storage replacement policy. Supported policies: 0-FIFO, 1-LRU, 2-LFU.
+# The storage replacement policy. Supported policies: 0-FIFO, 1-LRU, 2-LFU.
 REPLACEMENT_POLICY=0
 
-# Absolute path of the socket file.
+# The absolute path of the socket file.
 #SOCKET=/var/run/LSOfilestorage.sk
 SOCKET=/tmp/LSOfilestorage.sk
 
-# Absolute path of the log file.
+# The absolute path of the log file.
 #LOG_FILE=/var/log/gnl_fss.log
 LOG_FILE=/tmp/gnl_fss.log
 

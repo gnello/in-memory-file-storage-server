@@ -6,7 +6,7 @@
 #include <gnl_message_n.h>
 #include <gnl_fss_errno.h>
 #include "../include/gnl_fss_worker.h"
-#include "./gnl_fss_request_handler.c"
+#include "./gnl_fss_storage_service.c"
 #include <gnl_macro_beg.h>
 
 #define GNL_FSS_WORKER_BUFFER_LEN 100
@@ -24,6 +24,7 @@ struct gnl_fss_worker {
     struct gnl_ts_bb_queue_t *worker_queue;
     int pipe_channel;
     struct gnl_logger *logger;
+    struct gnl_storage *storage;
 };
 
 static struct gnl_socket_response *get_internal_error_response() {
@@ -55,44 +56,44 @@ static int throw_internal_error(int fd_c) {
     return 0;
 }
 
-static struct gnl_socket_response *handle_request(struct gnl_socket_request *request) {
+static struct gnl_socket_response *handle_request(struct gnl_storage *storage, struct gnl_socket_request *request) {
     int res;
 
     switch (request->type) {
         case GNL_SOCKET_REQUEST_OPEN:
-            res = handle_open(request->payload.open->string, request->payload.open->number);
+            res = gnl_fss_storage_service_open(storage, request->payload.open->string, request->payload.open->number);
             break;
 
         case GNL_SOCKET_REQUEST_READ_N:
-            res = handle_read_n(request->payload.read_N->number);
+            res = gnl_fss_storage_service_read_n(storage, request->payload.read_N->number);
             break;
 
         case GNL_SOCKET_REQUEST_READ:
-            res = handle_read(request->payload.read->string);
+            res = gnl_fss_storage_service_read(storage, request->payload.read->string);
             break;
 
         case GNL_SOCKET_REQUEST_WRITE:
-            res = handle_write(request->payload.write->string, request->payload.write->bytes);
+            res = gnl_fss_storage_service_write(storage, request->payload.write->string, request->payload.write->bytes);
             break;
 
         case GNL_SOCKET_REQUEST_APPEND:
-            res = handle_append(request->payload.append->string, request->payload.append->bytes);
+            res = gnl_fss_storage_service_append(storage, request->payload.append->string, request->payload.append->bytes);
             break;
 
         case GNL_SOCKET_REQUEST_LOCK:
-            res = handle_lock(request->payload.lock->string);
+            res = gnl_fss_storage_service_lock(storage, request->payload.lock->string);
             break;
 
         case GNL_SOCKET_REQUEST_UNLOCK:
-            res = handle_unlock(request->payload.unlock->string);
+            res = gnl_fss_storage_service_unlock(storage, request->payload.unlock->string);
             break;
 
         case GNL_SOCKET_REQUEST_CLOSE:
-            res = handle_close(request->payload.close->string);
+            res = gnl_fss_storage_service_close(storage, request->payload.close->string);
             break;
 
         case GNL_SOCKET_REQUEST_REMOVE:
-            res = handle_remove(request->payload.remove->string);
+            res = gnl_fss_storage_service_remove(storage, request->payload.remove->string);
             break;
 
         default:
@@ -128,6 +129,9 @@ struct gnl_fss_worker *gnl_fss_worker_init(pthread_t id, struct gnl_ts_bb_queue_
 
     worker->worker_queue = worker_queue;
     worker->pipe_channel = pipe_channel;
+
+    // instantiate the storage
+    worker->storage = NULL; //TODO: instanziare
 
     gnl_logger_debug(worker->logger, "initialization completed");
 
@@ -239,7 +243,7 @@ void *gnl_fss_worker_handle(void* args)
 
                 // handle the request
                 struct gnl_socket_response *response;
-                response = handle_request(request);
+                response = handle_request(worker->storage, request);
                 GNL_NULL_CHECK(response, errno, NULL)
                 //TODO: non ritornare mai ma scrivere sul log.
                 //TODO: creare risposta di errore standard/generica

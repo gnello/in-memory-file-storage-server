@@ -2,13 +2,13 @@
 #include <time.h>
 #include <errno.h>
 #include <gnl_list_t.h>
-#include "../include/gnl_fss_storage.h"
+#include "../include/gnl_storage.h"
 #include <gnl_macro_beg.h>
 
 /**
  * In memory storage implementation.
  */
-struct gnl_fss_storage {
+struct gnl_storage {
     int capacity;
     int limit;
     int replacement_policy;
@@ -35,8 +35,8 @@ struct gnl_fss_file_descriptor { //punta alla tabella dei file
 
 //TODO: hashtable di inode
 
-gnl_fss_storage *gnl_fss_storage_init(int capacity, int limit, int replacement_policy) {
-    gnl_fss_storage *storage = (struct gnl_fss_storage *)malloc(sizeof(struct gnl_fss_storage));
+struct gnl_storage *gnl_storage_init(int capacity, int limit, int replacement_policy) {
+    gnl_storage *storage = (struct gnl_storage *)malloc(sizeof(struct gnl_storage));
     GNL_NULL_CHECK(storage, ENOMEM, NULL);
 
     storage->capacity = capacity;
@@ -62,13 +62,13 @@ gnl_fss_storage *gnl_fss_storage_init(int capacity, int limit, int replacement_p
     return storage;
 }
 
-void gnl_fss_storage_destroy(gnl_fss_storage *storage) {
+void gnl_storage_destroy(struct gnl_storage *storage) {
     if (storage != NULL) {
         free(storage);
     }
 }
 
-int gnl_fss_storage_open(const char *pathname) {
+int gnl_storage_open(const char *pathname) {
     return 0;
 }
 

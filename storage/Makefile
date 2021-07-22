@@ -13,7 +13,7 @@ INCLUDE = -I$(ROOT)$(HELPERS_INCLUDE)
 LIBS = -Wl,-rpath,$(ROOT)$(DATA_STRUCTURES_LIB) -L$(ROOT)$(DATA_STRUCTURES_LIB) -lgnl_list_t
 INCLUDE += -I$(ROOT)$(DATA_STRUCTURES_INCLUDE)
 
-TARGETS = gnl_fss_storage.so
+TARGETS = gnl_storage.so
 
 TARGETS_PATH = ./lib
 
