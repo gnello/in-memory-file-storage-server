@@ -33,8 +33,6 @@ struct gnl_opt_handler_el {
     void *arg;
 };
 
-int nanosleep(const struct timespec *req, struct timespec *rem);
-
 /**
  * Wait time milliseconds.
  *
