@@ -36,7 +36,7 @@ struct gnl_fss_file_descriptor { //punta alla tabella dei file
 //TODO: hashtable di inode
 
 struct gnl_storage *gnl_storage_init(int capacity, int limit, int replacement_policy) {
-    gnl_storage *storage = (struct gnl_storage *)malloc(sizeof(struct gnl_storage));
+    struct gnl_storage *storage = (struct gnl_storage *)malloc(sizeof(struct gnl_storage));
     GNL_NULL_CHECK(storage, ENOMEM, NULL);
 
     storage->capacity = capacity;
