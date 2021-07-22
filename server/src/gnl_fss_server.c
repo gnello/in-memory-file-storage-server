@@ -9,7 +9,7 @@
 #include <bits/sigaction.h>
 #include <gnl_logger.h>
 #include "gnl_fss_thread_pool.c"
-
+#include "../include/gnl_fss_server.h"
 #include <gnl_macro_beg.h>
 
 #define GNL_FSS_SERVER_BUFFER_LEN 100
@@ -344,7 +344,6 @@ static int run_server(int fd_skt, struct gnl_fss_thread_pool *thread_pool, const
     }
 }
 
-//TODO: add doc (in a header?)
 int gnl_fss_server_start(const struct gnl_fss_config *config) {
     // validate the socket name
     char *socket_name = config->socket;
