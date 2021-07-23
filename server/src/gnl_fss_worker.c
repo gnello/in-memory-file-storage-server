@@ -104,6 +104,8 @@ static struct gnl_socket_response *handle_request(struct gnl_storage *storage, s
 
     GNL_MINUS1_CHECK(res, errno, NULL)
 
+
+
     return 0;
 }
 
