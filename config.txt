@@ -9,12 +9,6 @@ CAPACITY=50
 # The maximum number of files stored by the File Storage Server.
 LIMIT=50
 
-# The storage type. Supported types: in-memory
-TYPE=in-memory
-
-# Whether the files should be compressed before storing it into the storage or not.
-COMPRESS_FILES=true
-
 # The maximum allowed size in bytes for a single file stored by the server.
 FILE_SIZE_LIMIT=2147483648
 
