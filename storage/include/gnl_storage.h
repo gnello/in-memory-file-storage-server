@@ -17,7 +17,7 @@ extern int gnl_storage_read(struct gnl_storage *storage, char *filename);
 
 extern int gnl_storage_write(struct gnl_storage *storage, char *filename, char *data);
 
-extern int gnl_storage_close(struct gnl_storage *storage, char *filename;
+extern int gnl_storage_close(struct gnl_storage *storage, char *filename);
 
 extern int gnl_storage_remove(struct gnl_storage *storage, char *filename);
 

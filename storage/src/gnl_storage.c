@@ -68,8 +68,4 @@ void gnl_storage_destroy(struct gnl_storage *storage) {
     }
 }
 
-int gnl_storage_open(const char *pathname) {
-    return 0;
-}
-
 #include <gnl_macro_end.h>
