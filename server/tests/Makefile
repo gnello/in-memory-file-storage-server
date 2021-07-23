@@ -40,7 +40,7 @@ LIBS += -Wl,-rpath,$(ROOT)$(MESSAGE_LIB) -L$(ROOT)$(MESSAGE_LIB) -lgnl_message_n
 INCLUDE += -I$(ROOT)$(MESSAGE_INCLUDE)
 
 # storage library
-LIBS += -Wl,-rpath,$(ROOT)$(STORAGE_LIB) -L$(ROOT)$(STORAGE_LIB) -lgnl_fss_storage
+LIBS += -Wl,-rpath,$(ROOT)$(STORAGE_LIB) -L$(ROOT)$(STORAGE_LIB) -lgnl_storage
 INCLUDE += -I$(ROOT)$(STORAGE_INCLUDE)
 
 TARGETS =	gnl_fss_config_test \
