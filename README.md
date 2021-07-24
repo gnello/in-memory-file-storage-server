@@ -33,7 +33,7 @@ cd server/ # move into the server directory
 ./main -f ../config.txt # run the server
 ```
 
-The server requests and accepts only one option: the configuration file. The usage is shown below: 
+The server requires and accepts only one option to start: the configuration file. The usage is shown below: 
 
 ```text
 Usage: main [options]
