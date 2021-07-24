@@ -85,19 +85,21 @@ The -f option must be always specified.
 
 ## Compiling:
 
-- `make`: Compiles all the project
-- `make dev`: Compiles the project with also the test suites
-- `make client`: Compiles the client
-- `make server`: Compiles the server
-- `make helpers`: Compiles the helpers library in `helpers/lib`
-- `make data-structures`: Compiles the data-structures library in `data-structures/lib`
-- `make message`: Compiles the message library in `message/lib`
-- `make socket`: Compiles the socket library in `socket/lib`
-- `make storage`: Compiles the storage library in `storage/lib`
-- `make tests`: Runs all the test suites
-- `make tests-valgrind`: Runs all the test suites with valgrind
-- `make clean`: Clean all the executable, library and object files
-- `make clean-dev`: Clean all the executable, library and object files, including tests
+Target | Command | Description
+--- | --- | ---
+all | `make`| Compiles all the project
+dev | `make dev`| Compiles the project with also the test suites
+client | `make client`| Compiles the client
+server | `make server`| Compiles the server
+helpers | `make helpers`| Compiles the helpers library in `helpers/lib`
+data-structures | `make data-structures`| Compiles the data-structures library in `data-structures/lib`
+message | `make message`| Compiles the message library in `message/lib`
+socket | `make socket`| Compiles the socket library in `socket/lib`
+storage | `make storage`| Compiles the storage library in `storage/lib`
+tests | `make tests`| Runs all the test suites
+tests-valgrind | `make tests-valgrind`| Runs all the test suites with valgrind
+clean | `make clean`| Clean all the executable, library and object files
+clean-dev | `make clean-dev`| Clean all the executable, library and object files, including tests
 
 [1]: https://github.com/gnello/so-project/actions/workflows/c-cpp.yml/badge.svg
 [2]: https://github.com/gnello/so-project/actions/workflows/c-cpp.yml
