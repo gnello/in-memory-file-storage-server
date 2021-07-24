@@ -131,7 +131,7 @@ static int create_server(const char *socket_name, const struct gnl_logger *logge
     res = bind(fd_skt, (struct sockaddr *)&sa, sizeof(sa));
     GNL_MINUS1_CHECK(res, errno, -1)
 
-    gnl_logger_debug(logger, "socket %d binded to the address %s", fd_skt, socket_name);
+    gnl_logger_debug(logger, "socket %d bound to the address %s", fd_skt, socket_name);
 
     // listen
     res = listen(fd_skt, SOMAXCONN);
