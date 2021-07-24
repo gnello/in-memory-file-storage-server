@@ -45,7 +45,10 @@ Example: main -f ./config.txt
 ```
 
 ## Client
-This project provides a simple client that make you able to use the server. The usage is shown below:
+This project provides a simple client that makes you able to use the server. The client connection to the server is 
+active for as long as it takes to process the options provided, when all the options have been processed the connection 
+is close.  
+The usage is shown below:
 
 ```text
 Usage: main [options]
