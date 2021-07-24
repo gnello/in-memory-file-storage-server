@@ -81,10 +81,15 @@ The -f option must be always specified.
 
 ## Compiling:
 
-- `make`: Compiles the main in `bin/main`
+- `make`: Compiles all the project
+- `make dev`: Compiles the project with also the test suites
+- `make client`: Compiles the client
+- `make server`: Compiles the server
 - `make helpers`: Compiles the helpers library in `helpers/lib`
 - `make data-structures`: Compiles the data-structures library in `data-structures/lib`
-- `make dev`: Compiles the program and the tests
+- `make message`: Compiles the message library in `message/lib`
+- `make socket`: Compiles the socket library in `socket/lib`
+- `make storage`: Compiles the storage library in `storage/lib`
 - `make tests`: Runs all the test suites
 - `make tests-valgrind`: Runs all the test suites with valgrind
 - `make clean`: Clean all the executable, library and object files
