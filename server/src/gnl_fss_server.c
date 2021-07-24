@@ -75,19 +75,22 @@ static int handle_signals() {
  * Create the thread pool to handle clients requests.
  *
  * @param size          The size of the thread pool.
+ * @param storage       The storage instance to use to store the files.
  * @param config        The configuration instance of the server.
  * @param logger        The logger instance to use for logging.
  *
  * @return              Returns a thread pool struct on success,
  *                      NULL otherwise.
  */
-static struct gnl_fss_thread_pool *create_thread_pool(int size, const struct gnl_fss_config *config, const struct gnl_logger *logger) {
+static struct gnl_fss_thread_pool *create_thread_pool(int size, struct gnl_storage *storage,
+        const struct gnl_fss_config *config, const struct gnl_logger *logger) {
+
     int res = gnl_logger_debug(logger, "creating the thread pool with %d workers...", size);
     GNL_MINUS1_CHECK(res, errno, NULL)
 
     // create the working config
-    struct gnl_fss_thread_pool *thread_pool = gnl_fss_thread_pool_init(size, config);
-    GNL_NULL_CHECK(thread_pool, ENOMEM, NULL)
+    struct gnl_fss_thread_pool *thread_pool = gnl_fss_thread_pool_init(size, storage, config);
+    GNL_NULL_CHECK(thread_pool, errno, NULL)
 
     res = gnl_logger_info(logger, "created the thread pool with %d workers", size);
     GNL_MINUS1_CHECK(res, errno, NULL)
@@ -364,8 +367,11 @@ int gnl_fss_server_start(const struct gnl_fss_config *config) {
 
     gnl_logger_info(logger, "server is starting");
 
+    // instantiate the storage
+    struct gnl_storage *storage = NULL;
+
     // start the thread pool
-    struct gnl_fss_thread_pool *thread_pool = create_thread_pool(config->thread_workers, config, logger);
+    struct gnl_fss_thread_pool *thread_pool = create_thread_pool(config->thread_workers, storage, config, logger);
     if (thread_pool == NULL) {
         gnl_logger_error(logger, "error creating the thread pool: %s", strerror(errno));
 

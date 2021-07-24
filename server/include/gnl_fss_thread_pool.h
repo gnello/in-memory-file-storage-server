@@ -14,12 +14,14 @@ struct gnl_fss_thread_pool;
  * Create a new thread pool.
  *
  * @param size          The number of workers to put in the thread pool.
+ * @param storage       The storage instance to use to store the files.
  * @param config        The configuration instance of the server.
  *
  * @return              Returns a gnl_fss_thread_pool struct on success,
  *                      NULL otherwise.
  */
-extern struct gnl_fss_thread_pool *gnl_fss_thread_pool_init(int size, const struct gnl_fss_config *config);
+extern struct gnl_fss_thread_pool *gnl_fss_thread_pool_init(int size, struct gnl_storage *storage,
+        const struct gnl_fss_config *config);
 
 /**
  * Destroy the thread pool.
