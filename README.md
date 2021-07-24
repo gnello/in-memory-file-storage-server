@@ -21,7 +21,7 @@ make
 ```
 
 ## Server
-When you start the server, you may pass a configuration file to it. You can edit the server configuration by editing 
+When you start the server, you need to pass it a configuration file to it. You can edit the server configuration by editing 
 the config.txt file in the root of the project, or you can create a new one. Then you just need to provide the correct 
 configuration file to the server when you start it.  
 
