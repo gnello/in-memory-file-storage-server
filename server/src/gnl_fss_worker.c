@@ -109,7 +109,14 @@ static struct gnl_socket_response *handle_request(struct gnl_storage *storage, s
     return 0;
 }
 
-struct gnl_fss_worker *gnl_fss_worker_init(pthread_t id, struct gnl_ts_bb_queue_t *worker_queue, int pipe_channel, const struct gnl_fss_config *config) {
+struct gnl_fss_worker *gnl_fss_worker_init(pthread_t id, struct gnl_ts_bb_queue_t *worker_queue, int pipe_channel,
+        struct gnl_storage *storage, const struct gnl_fss_config *config) {
+    if (worker_queue == NULL || storage == NULL || config == NULL) {
+        errno = EINVAL;
+
+        return NULL;
+    }
+
     struct gnl_fss_worker *worker = (struct gnl_fss_worker *)malloc(sizeof(struct gnl_fss_worker));
     GNL_NULL_CHECK(worker, ENOMEM, NULL)
 
@@ -132,8 +139,8 @@ struct gnl_fss_worker *gnl_fss_worker_init(pthread_t id, struct gnl_ts_bb_queue_
     worker->worker_queue = worker_queue;
     worker->pipe_channel = pipe_channel;
 
-    // instantiate the storage
-    worker->storage = NULL; //TODO: instanziare
+    // assign the storage
+    worker->storage = storage;
 
     gnl_logger_debug(worker->logger, "initialization completed");
 

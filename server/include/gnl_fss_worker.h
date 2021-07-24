@@ -20,12 +20,14 @@ struct gnl_fss_worker;
  *                      from a main thread.
  * @param pipe_channel  The pipe channel where to send the result to a
  *                      main thread.
+ * @param storage       The storage instance to use to store the files.
  * @param config        The configuration instance of the server.
  *
  * @return gnl_queue_t  Returns the new worker config created on success,
  *                      NULL otherwise.
  */
-extern struct gnl_fss_worker *gnl_fss_worker_init(pthread_t id, struct gnl_ts_bb_queue_t *worker_queue, int pipe_channel, const struct gnl_fss_config *config);
+extern struct gnl_fss_worker *gnl_fss_worker_init(pthread_t id, struct gnl_ts_bb_queue_t *worker_queue,
+        int pipe_channel, struct gnl_storage *storage, const struct gnl_fss_config *config);
 
 /**
  * Destroy a worker config. Attention: this method only deletes the
