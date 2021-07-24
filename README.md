@@ -87,7 +87,7 @@ The -f option must be always specified.
 
 Target | Command | Description
 --- | --- | ---
-all | `make`| Compiles all the project
+all | `make`| Compiles the project
 dev | `make dev`| Compiles the project with also the test suites
 client | `make client`| Compiles the client
 server | `make server`| Compiles the server
