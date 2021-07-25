@@ -62,7 +62,7 @@ void arg_h(const char* program_name) { //7
     gnl_print_table("", "If N is specified, read N random files from\n");
     gnl_print_table("", "the Server.\n");
 
-    gnl_print_table("-d DIRNAME", "Store the files read from the Server  into DIRNAME.\n");
+    gnl_print_table("-d DIRNAME", "Store the files read from the Server into DIRNAME.\n");
     gnl_print_table("", "It must be followed by a -r or -R option.\n");
 
     gnl_print_table("-t TIME", "Wait TIME milliseconds between sequential requests\n");

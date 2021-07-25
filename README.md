@@ -73,7 +73,7 @@ The -f option must be always specified.
   -R [N=0]                    Read all files stored on the Server.
                               If N is specified, read N random files from
                               the Server.
-  -d DIRNAME                  Store the files read from the Server  into DIRNAME.
+  -d DIRNAME                  Store the files read from the Server into DIRNAME.
                               It must be followed by a -r or -R option.
   -t TIME                     Wait TIME milliseconds between sequential requests
                               to the Server.
