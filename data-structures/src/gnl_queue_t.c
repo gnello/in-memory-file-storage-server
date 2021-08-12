@@ -26,6 +26,9 @@ struct gnl_queue_t {
     unsigned long size;
 };
 
+/**
+ * {@inheritDoc}
+ */
 struct gnl_queue_t *gnl_queue_init() {
     struct gnl_queue_t *queue = (struct gnl_queue_t *)malloc(sizeof(struct gnl_queue_t));
 
@@ -39,6 +42,9 @@ struct gnl_queue_t *gnl_queue_init() {
     return queue;
 }
 
+/**
+ * {@inheritDoc}
+ */
 void gnl_queue_destroy(struct gnl_queue_t *q, void (*destroy)(void *data)) {
     if (q != NULL) {
         // destroy every node
@@ -57,6 +63,9 @@ void gnl_queue_destroy(struct gnl_queue_t *q, void (*destroy)(void *data)) {
     }
 }
 
+/**
+ * {@inheritDoc}
+ */
 int gnl_queue_enqueue(struct gnl_queue_t *q, void *el) {
     GNL_NULL_CHECK(q, EINVAL, -1)
 
@@ -83,6 +92,9 @@ int gnl_queue_enqueue(struct gnl_queue_t *q, void *el) {
     return 0;
 }
 
+/**
+ * {@inheritDoc}
+ */
 void *gnl_queue_dequeue(struct gnl_queue_t *q) {
     GNL_NULL_CHECK(q, EINVAL, NULL)
 
@@ -110,6 +122,9 @@ void *gnl_queue_dequeue(struct gnl_queue_t *q) {
     return data;
 }
 
+/**
+ * {@inheritDoc}
+ */
 unsigned long gnl_queue_size(const struct gnl_queue_t *q) {
     GNL_NULL_CHECK(q, EINVAL, -1)
 

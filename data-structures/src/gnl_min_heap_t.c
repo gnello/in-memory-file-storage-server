@@ -101,6 +101,9 @@ static int min_heapify(struct gnl_min_heap_t *mh, int i) {
     return 0;
 }
 
+/**
+ * {@inheritDoc}
+ */
 struct gnl_min_heap_t *gnl_min_heap_init() {
     struct gnl_min_heap_t *mh = (struct gnl_min_heap_t *)malloc(sizeof(struct gnl_min_heap_t));
 
@@ -113,6 +116,9 @@ struct gnl_min_heap_t *gnl_min_heap_init() {
     return mh;
 }
 
+/**
+ * {@inheritDoc}
+ */
 void gnl_min_heap_destroy(struct gnl_min_heap_t *mh, void (*destroy)(void *data)) {
     if (mh != NULL) {
         if (mh->list != NULL) {
@@ -128,6 +134,9 @@ void gnl_min_heap_destroy(struct gnl_min_heap_t *mh, void (*destroy)(void *data)
     }
 }
 
+/**
+ * {@inheritDoc}
+ */
 int gnl_min_heap_insert(struct gnl_min_heap_t *mh, void *el, int key) {
     GNL_NULL_CHECK(mh, EINVAL, -1)
 
@@ -155,6 +164,9 @@ int gnl_min_heap_insert(struct gnl_min_heap_t *mh, void *el, int key) {
     return 0;
 }
 
+/**
+ * {@inheritDoc}
+ */
 void *gnl_min_heap_extract_min(struct gnl_min_heap_t *mh) {
     GNL_NULL_CHECK(mh, EINVAL, NULL)
 
@@ -174,6 +186,9 @@ void *gnl_min_heap_extract_min(struct gnl_min_heap_t *mh) {
     return min;
 }
 
+/**
+ * {@inheritDoc}
+ */
 int gnl_min_heap_decrease_key(struct gnl_min_heap_t *mh, int i, int key) {
     GNL_NULL_CHECK(mh, EINVAL, -1)
 

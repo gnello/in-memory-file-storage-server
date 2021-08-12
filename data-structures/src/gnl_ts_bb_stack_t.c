@@ -44,6 +44,9 @@ struct gnl_ts_bb_stack_t {
     int bound;
 };
 
+/**
+ * {@inheritDoc}
+ */
 struct gnl_ts_bb_stack_t *gnl_ts_bb_stack_init(int bound) {
     if (bound <= 0) {
         errno = EINVAL;
@@ -75,6 +78,9 @@ struct gnl_ts_bb_stack_t *gnl_ts_bb_stack_init(int bound) {
     return stack;
 }
 
+/**
+ * {@inheritDoc}
+ */
 int gnl_ts_bb_stack_destroy(struct gnl_ts_bb_stack_t *s, void (*destroy)(void *data)) {
     int res;
 
@@ -98,6 +104,9 @@ int gnl_ts_bb_stack_destroy(struct gnl_ts_bb_stack_t *s, void (*destroy)(void *d
     return 0;
 }
 
+/**
+ * {@inheritDoc}
+ */
 int gnl_ts_bb_stack_push(struct gnl_ts_bb_stack_t *s, void *el) {
     int res;
 
@@ -123,6 +132,9 @@ int gnl_ts_bb_stack_push(struct gnl_ts_bb_stack_t *s, void *el) {
     return 0;
 }
 
+/**
+ * {@inheritDoc}
+ */
 void *gnl_ts_bb_stack_pop(struct gnl_ts_bb_stack_t *s) {
     int res;
 
@@ -147,6 +159,9 @@ void *gnl_ts_bb_stack_pop(struct gnl_ts_bb_stack_t *s) {
     return temp;
 }
 
+/**
+ * {@inheritDoc}
+ */
 unsigned long gnl_ts_bb_stack_size(struct gnl_ts_bb_stack_t *s) {
     GNL_LOCK_ACQUIRE(&(s->mtx), -1)
     GNL_RELEASE_AND_RETURN_ON_ERROR(s, NULL, &(s->mtx), EINVAL, -1)

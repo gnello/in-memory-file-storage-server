@@ -44,6 +44,9 @@ struct gnl_ts_bb_queue_t {
     int bound;
 };
 
+/**
+ * {@inheritDoc}
+ */
 struct gnl_ts_bb_queue_t *gnl_ts_bb_queue_init(int bound) {
     if (bound <= 0) {
         errno = EINVAL;
@@ -75,6 +78,9 @@ struct gnl_ts_bb_queue_t *gnl_ts_bb_queue_init(int bound) {
     return queue;
 }
 
+/**
+ * {@inheritDoc}
+ */
 int gnl_ts_bb_queue_destroy(struct gnl_ts_bb_queue_t *q, void (*destroy)(void *data)) {
     int res;
 
@@ -98,6 +104,9 @@ int gnl_ts_bb_queue_destroy(struct gnl_ts_bb_queue_t *q, void (*destroy)(void *d
     return 0;
 }
 
+/**
+ * {@inheritDoc}
+ */
 int gnl_ts_bb_queue_enqueue(struct gnl_ts_bb_queue_t *q, void *el) {
     int res;
 
@@ -123,6 +132,9 @@ int gnl_ts_bb_queue_enqueue(struct gnl_ts_bb_queue_t *q, void *el) {
     return 0;
 }
 
+/**
+ * {@inheritDoc}
+ */
 void *gnl_ts_bb_queue_dequeue(struct gnl_ts_bb_queue_t *q) {
     int res;
 
@@ -147,6 +159,9 @@ void *gnl_ts_bb_queue_dequeue(struct gnl_ts_bb_queue_t *q) {
     return temp;
 }
 
+/**
+ * {@inheritDoc}
+ */
 unsigned long gnl_ts_bb_queue_size(struct gnl_ts_bb_queue_t *q) {
     GNL_LOCK_ACQUIRE(&(q->mtx), -1)
     GNL_RELEASE_AND_RETURN_ON_ERROR(q, NULL, &(q->mtx), EINVAL, -1)
