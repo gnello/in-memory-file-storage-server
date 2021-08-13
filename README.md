@@ -101,5 +101,9 @@ tests-valgrind | `make tests-valgrind`| Runs all the test suites with valgrind
 clean | `make clean`| Clean all the executable, library and object files
 clean-dev | `make clean-dev`| Clean all the executable, library and object files, including tests
 
+## License
+
+[MIT](LICENSE.md).
+
 [1]: https://github.com/gnello/so-project/actions/workflows/c-cpp.yml/badge.svg
 [2]: https://github.com/gnello/so-project/actions/workflows/c-cpp.yml
