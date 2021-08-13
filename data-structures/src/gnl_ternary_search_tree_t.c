@@ -127,9 +127,11 @@ void *gnl_ternary_search_tree_get(struct gnl_ternary_search_tree_t *t, char *key
 }
 
 /**
+ * Return whether the given node has a child or not.
  *
- * @param t
- * @return
+ * @param t The ternary_search_tree from where to get the element.
+ *
+ * @return  Returns 1 if the given node has a child, 0 otherwise.
  */
 static int has_child(struct gnl_ternary_search_tree_t *t) {
     GNL_NULL_CHECK(t, EINVAL, -1)
@@ -164,7 +166,7 @@ static int has_child(struct gnl_ternary_search_tree_t *t) {
  * @param destroy   The destroy function to free pointer data,
  *                  if NULL is passed, no free will be performed.
  *
- * @return          Return 1 if the current node is not a leaf nor has it a child,
+ * @return          Returns 1 if the current node is not a leaf nor has it a child,
  *                  0 otherwise.
  */
 static int remove_node(struct gnl_ternary_search_tree_t *t, char *key, void (*destroy)(void *data)) {
