@@ -28,42 +28,52 @@ struct gnl_ternary_search_tree_t {
 /**
  * {@inheritDoc}
  */
-void gnl_ternary_search_tree_destroy(struct gnl_ternary_search_tree_t *t, void (*destroy)(void *data)) {
-    if (t != NULL) {
-        // delete the left tree
-        gnl_ternary_search_tree_destroy(t->left, destroy);
-
-        // delete the middle tree
-        gnl_ternary_search_tree_destroy(t->mid, destroy);
-
-        // delete the right tree
-        gnl_ternary_search_tree_destroy(t->right, destroy);
-
-        // delete the root tree
-        if (t->data != NULL && destroy != NULL) {
-            destroy(t->data);
-        }
-
-        free(t);
+void gnl_ternary_search_tree_destroy(struct gnl_ternary_search_tree_t **t, void (*destroy)(void *data)) {
+    if (t == NULL || *t == NULL) {
+        return;
     }
+
+    if ((*t)->left != NULL) {
+        // delete the left tree
+        gnl_ternary_search_tree_destroy(&((*t)->left), destroy);
+    }
+
+    if ((*t)->mid != NULL) {
+        // delete the middle tree
+        gnl_ternary_search_tree_destroy(&((*t)->mid), destroy);
+    }
+
+    if ((*t)->right != NULL) {
+        // delete the right tree
+        gnl_ternary_search_tree_destroy(&((*t)->right), destroy);
+    }
+
+    // delete the root tree
+    if (destroy != NULL) {
+        destroy((*t)->data);
+    }
+
+    free(*t);
 }
 
 /**
  * {@inheritDoc}
  */
 int gnl_ternary_search_tree_put(struct gnl_ternary_search_tree_t **t, char *key, void *el) {
-    struct gnl_ternary_search_tree_t *new_node = (struct gnl_ternary_search_tree_t *)malloc(sizeof(struct gnl_ternary_search_tree_t));
-    GNL_NULL_CHECK(new_node, ENOMEM, -1)
+    GNL_NULL_CHECK(key, EINVAL, -1)
 
-    // initialize the new node
-    new_node->key = *key;
-    new_node->data = NULL;
-    new_node->left = NULL;
-    new_node->mid = NULL;
-    new_node->right = NULL;
-
-    // if the root tree is empty add the node
+    // if the root tree is empty add a new node
     if (*t == NULL) {
+        struct gnl_ternary_search_tree_t *new_node = (struct gnl_ternary_search_tree_t *)malloc(sizeof(struct gnl_ternary_search_tree_t));
+        GNL_NULL_CHECK(new_node, ENOMEM, -1)
+
+        // initialize the new node
+        new_node->key = *key;
+        new_node->data = NULL;
+        new_node->left = NULL;
+        new_node->mid = NULL;
+        new_node->right = NULL;
+
         *t = new_node;
     }
 

@@ -14,7 +14,7 @@ struct gnl_ternary_search_tree_t;
  * @param destroy   The destroy function to free complex data,
  *                  if NULL is passed a standard free will be performed.
  */
-extern void gnl_ternary_search_tree_destroy(struct gnl_ternary_search_tree_t *t, void (*destroy)(void *data));
+extern void gnl_ternary_search_tree_destroy(struct gnl_ternary_search_tree_t **t, void (*destroy)(void *data));
 
 /**
  * Put an element "el" into the ternary_search_tree "t".
