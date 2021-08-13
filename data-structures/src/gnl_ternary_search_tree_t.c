@@ -86,8 +86,7 @@ int gnl_ternary_search_tree_put(struct gnl_ternary_search_tree_t **t, char *key,
         return gnl_ternary_search_tree_put(&((*t)->right), key, el);
     }
     // if the given key is equal than the tree key...
-    else
-    {
+    else {
         // if the given key is ended store the data into the node
         if (*(key + 1) == '\0') {
             (*t)->data = el;
@@ -116,8 +115,7 @@ void *gnl_ternary_search_tree_get(struct gnl_ternary_search_tree_t *t, char *key
         return gnl_ternary_search_tree_get(t->right, key);
     }
     // if the given key is equal than the tree key...
-    else
-    {
+    else {
         // if the given key is ended return the data of the node
         if (*(key + 1) == '\0') {
             return t->data;
@@ -129,10 +127,99 @@ void *gnl_ternary_search_tree_get(struct gnl_ternary_search_tree_t *t, char *key
 }
 
 /**
+ *
+ * @param t
+ * @return
+ */
+static int has_child(struct gnl_ternary_search_tree_t *t) {
+    GNL_NULL_CHECK(t, EINVAL, -1)
+
+    if (t->left != NULL) {
+        return 1;
+    }
+
+    if (t->mid != NULL) {
+        return 1;
+    }
+
+    if (t->right != NULL) {
+        return 1;
+    }
+
+    return 0;
+}
+
+/**
+ * Strongly inspired from https://www.geeksforgeeks.org/ternary-search-tree-deletion/
+ *
+ * Recursively remove the nodes of a key when necessary:
+ * - case 1:    if the given key may not be present into the given tree then the tree is left untouched.
+ * - case 2:    if the given key is unique in the tree then remove all his nodes.
+ * - case 3:    if the given key is a prefix key of another longer key then remove only his data.
+ * - case 4:    if the given key has at least one other key as prefix key then delete nodes from
+ *              the end of the given key until the end node of the longest prefix key.
+ *
+ * @param t         The ternary_search_tree from where to remove the element.
+ * @param key       The key of the element to remove.
+ * @param destroy   The destroy function to free pointer data,
+ *                  if NULL is passed, no free will be performed.
+ *
+ * @return          Return 1 if the current node is not a leaf nor has it a child,
+ *                  0 otherwise.
+ */
+static int remove_node(struct gnl_ternary_search_tree_t *t, char *key, void (*destroy)(void *data)) {
+
+    // case 4: the given key has at least one other key as prefix key
+    if (*(key + 1) == '\0') {
+        // remove the data if present
+        if (t->data != NULL) {
+            if (destroy != NULL) {
+                destroy(t->data);
+            }
+
+            t->data = NULL;
+
+            // return 1 if the current node does not have any children node
+            return !has_child(t);
+        }
+        // the given key is not present in the tree
+        else {
+            return 0;
+        }
+    }
+    else {
+        // case 3: the given key is a prefix key of another longer key
+        if (*key < t->key) {
+            remove_node(t->left, key, destroy);
+        }
+        else if (*key > t->key) {
+            remove_node(t->right, key, destroy);
+        }
+        // case 1: the given key may not be present into the given tree
+        else if (*key == t->key) {
+            // case 2: the given key is unique in the tree
+            if (remove_node(t->mid, key + 1, destroy)) {
+                // delete the last node, it has no children nor is it part of any other string
+                free(t->mid);
+                t->mid = NULL;
+
+                return t->data == NULL && !has_child(t);
+            }
+        }
+    }
+
+    return 0;
+}
+
+/**
  * {@inheritDoc}
  */
-void *gnl_ternary_search_tree_remove(struct gnl_ternary_search_tree_t *t, char *key) {
-    return NULL;
+int gnl_ternary_search_tree_remove(struct gnl_ternary_search_tree_t *t, char *key, void (*destroy)(void *data)) {
+    GNL_NULL_CHECK(t, EINVAL, -1)
+
+    remove_node(t, key, destroy);
+
+    return 0;
 }
 
 #include <gnl_macro_end.h>
