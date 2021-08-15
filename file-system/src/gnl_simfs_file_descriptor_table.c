@@ -9,10 +9,6 @@
  */
 struct gnl_simfs_file_descriptor_table {
 
-    // the inodes array, it will grow dynamically
-    // until the given limit is reached
-    struct gnl_simfs_inode *table[];
-
     // the number of files that the file descriptor table
     // can handle simultaneously
     int limit;
@@ -24,7 +20,11 @@ struct gnl_simfs_file_descriptor_table {
     // it becomes useful to implement the "first fit" policy in
     // case an inode was removed from the table and a new one
     // must be inserted
-    struct gnl_min_heap_t free_index_map;
+    struct gnl_min_heap_t *free_index_map;
+
+    // the inodes array, it will grow dynamically
+    // until the given limit is reached
+    struct gnl_simfs_inode *table[];
 };
 
 /**
@@ -49,7 +49,7 @@ struct gnl_simfs_file_descriptor_table *gnl_simfs_file_descriptor_table_init(int
  */
 void gnl_simfs_file_descriptor_table_destroy(struct gnl_simfs_file_descriptor_table *table) {
     // destroy the free index map
-    gnl_min_heap_destroy(t->free_index_map, NULL);
+    gnl_min_heap_destroy(table->free_index_map, NULL);
 
     free(table);
 }
@@ -84,7 +84,7 @@ static int get_file_descriptor(struct gnl_simfs_file_descriptor_table *table) {
 /**
  * {@inheritDoc}
  */
-int gnl_simfs_file_descriptor_table_put(struct gnl_simfs_file_descriptor_table *table, const struct gnl_simfs_inode *inode) {
+int gnl_simfs_file_descriptor_table_put(struct gnl_simfs_file_descriptor_table *table, struct gnl_simfs_inode *inode) {
     GNL_NULL_CHECK(table, EINVAL, -1)
 
     // check if we can insert another element

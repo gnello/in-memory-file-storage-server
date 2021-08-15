@@ -2,7 +2,7 @@
 #include <errno.h>
 #include <pthread.h>
 #include <gnl_ternary_search_tree_t.h>
-#include "../include/gnl_simfs_file_descriptor_table.h"
+#include "./gnl_simfs_file_descriptor_table.c"
 #include "../include/gnl_simfs_file_system.h"
 #include <gnl_macro_beg.h>
 
@@ -76,7 +76,7 @@ static void destroy_inode(void *ptr) {
     }
 
     // implicitly cast the value
-    struct gnl_simfs_inode inode = ptr;
+    struct gnl_simfs_inode *inode = ptr;
 
     // destroy the obtained inode
     gnl_simfs_inode_destroy(inode);
@@ -91,11 +91,10 @@ void gnl_simfs_file_system_destroy(struct gnl_simfs_file_system *file_system) {
     }
 
     // destroy the file table
-    int res = gnl_ternary_search_tree_destroy(&file_system->file_table, destroy_inode);
+    gnl_ternary_search_tree_destroy(&file_system->file_table, destroy_inode);
 
-    // destroy the lock
-    res = pthread_mutex_destroy(&(file_system->mtx));
-    GNL_MINUS1_CHECK(res, errno, -1)
+    // destroy the lock, proceed on error
+    pthread_mutex_destroy(&(file_system->mtx));
 
     // destroy the file system
     free(file_system);
@@ -110,7 +109,7 @@ void gnl_simfs_file_system_destroy(struct gnl_simfs_file_system *file_system) {
  * @return              Returns the inode of the created file on success,
  *                      NULL otherwise.
  */
-static gnl_simfs_inode *create_file(struct gnl_simfs_file_system *file_system, char *filename) {
+static struct gnl_simfs_inode *create_file(struct gnl_simfs_file_system *file_system, char *filename) {
     // check if we can create a new file
     if (file_system->files_count == file_system->files_limit) {
         errno = EDQUOT;
@@ -124,7 +123,7 @@ static gnl_simfs_inode *create_file(struct gnl_simfs_file_system *file_system, c
     }
 
     // create a new inode
-    struct gnl_simfs_inode inode = gnl_simfs_inode_init();
+    struct gnl_simfs_inode *inode = gnl_simfs_inode_init();
     GNL_NULL_CHECK(inode, errno, NULL)
 
     // put the inode into the file table
@@ -142,7 +141,7 @@ static gnl_simfs_inode *create_file(struct gnl_simfs_file_system *file_system, c
  */
 int gnl_simfs_file_system_open(struct gnl_simfs_file_system *file_system, char *filename, int flags) {
     // TODO: acquisire lock e ricordarsi di rilasciarlo in caso di errore
-    GNL_NULL_CHECK(fs, EINVAL, -1)
+    GNL_NULL_CHECK(file_system, EINVAL, -1)
 
     // check if we can open a file
     if (gnl_simfs_file_descriptor_table_size(file_system->file_descriptor_table) == MAX_FILES) {
@@ -183,6 +182,7 @@ int gnl_simfs_file_system_open(struct gnl_simfs_file_system *file_system, char *
     // put the inode into the file descriptor table
     int fd = gnl_simfs_file_descriptor_table_put(file_system->file_descriptor_table, inode);
 
+    //TODO: che succede se un client prova ad aprire un file già lockato?
 
     //TODO: rilasciare lock
 

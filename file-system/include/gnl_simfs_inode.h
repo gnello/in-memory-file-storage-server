@@ -17,7 +17,7 @@ struct gnl_simfs_inode {
 
     // the size of the pointed file
     unsigned int size;
-    gnl_simfs_file_system.h
+
     // the direct pointer to the file
     char *direct_ptr;
 
@@ -34,7 +34,7 @@ struct gnl_simfs_inode {
  * @return  Returns the new gnl_simfs_inode created on success,
  *          NULL otherwise.
  */
-extern struct gnl_simfs_inode gnl_simfs_inode_init();
+extern struct gnl_simfs_inode *gnl_simfs_inode_init();
 
 /**
  * Destroy the given gnl_simfs_inode.

@@ -26,7 +26,9 @@ struct gnl_simfs_file_system;
  *                      If 0, the file system will not be limited.
  * @param files_limit   The maximum number of files that can be handled by the file system.
  *                      If 0, the file system can handle virtually an infinite number of files.
- * @return
+ *
+ * @return              Returns the new gnl_simfs_file_system created on success,
+ *                      NULL otherwise.
  */
 extern struct gnl_simfs_file_system *gnl_simfs_file_system_init(unsigned int memory_limit, unsigned int file_limit);
 
