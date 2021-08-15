@@ -35,7 +35,7 @@ extern void gnl_min_heap_destroy(struct gnl_min_heap_t *mh, void (*destroy)(void
 extern int gnl_min_heap_insert(struct gnl_min_heap_t *mh, void *el, int key);
 
 /**
- * Delete and return an element from the in heap "mh".
+ * Delete and return an element from the min heap "mh".
  *
  * @param mh        The min heap from where to extract the element.
  *
