@@ -35,7 +35,7 @@ extern void gnl_simfs_file_descriptor_table_destroy(struct gnl_simfs_file_descri
  * @return      On success, returns the file descriptor of the file within
  *              the inserted inode, on failure returns -1.
  */
-extern int gnl_simfs_file_descriptor_table_put(struct gnl_simfs_file_descriptor_table *table, struct gnl_simfs_inode *inode);
+extern int gnl_simfs_file_descriptor_table_put(struct gnl_simfs_file_descriptor_table *table, const struct gnl_simfs_inode *inode);
 
 /**
  * Remove a file descriptor from the given file descriptor table. It will not delete

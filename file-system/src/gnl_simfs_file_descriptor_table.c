@@ -24,7 +24,7 @@ struct gnl_simfs_file_descriptor_table {
 
     // the inodes array, it will grow dynamically
     // until the given limit is reached
-    struct gnl_simfs_inode *table[];
+    struct gnl_simfs_inode **table;
 };
 
 /**
@@ -37,9 +37,16 @@ struct gnl_simfs_file_descriptor_table *gnl_simfs_file_descriptor_table_init(int
     // assign the limit
     t->limit = limit;
 
+    // initialize the size
+    t->size = 0;
+
     // initialize the free index map
     t->free_index_map = gnl_min_heap_init();
     GNL_NULL_CHECK(t->free_index_map, errno, NULL)
+
+    // initialize the table
+    t->table = (struct gnl_simfs_inode **)malloc(sizeof(struct gnl_simfs_inode *));
+    GNL_NULL_CHECK(t->table, ENOMEM, NULL)
 
     return t;
 }
@@ -48,6 +55,19 @@ struct gnl_simfs_file_descriptor_table *gnl_simfs_file_descriptor_table_init(int
  * {@inheritDoc}
  */
 void gnl_simfs_file_descriptor_table_destroy(struct gnl_simfs_file_descriptor_table *table) {
+    if (table == NULL) {
+        return;
+    }
+
+    // destroy the table elements
+    for (size_t i=0; i<table->size; i++) {
+        table->table[i] = NULL;
+        free(table->table[i]);
+    }
+
+    // destroy the table
+    free(table->table);
+
     // destroy the free index map
     gnl_min_heap_destroy(table->free_index_map, NULL);
 
@@ -84,7 +104,7 @@ static int get_file_descriptor(struct gnl_simfs_file_descriptor_table *table) {
 /**
  * {@inheritDoc}
  */
-int gnl_simfs_file_descriptor_table_put(struct gnl_simfs_file_descriptor_table *table, struct gnl_simfs_inode *inode) {
+int gnl_simfs_file_descriptor_table_put(struct gnl_simfs_file_descriptor_table *table, const struct gnl_simfs_inode *inode) {
     GNL_NULL_CHECK(table, EINVAL, -1)
 
     // check if we can insert another element
@@ -98,11 +118,11 @@ int gnl_simfs_file_descriptor_table_put(struct gnl_simfs_file_descriptor_table *
     int fd = get_file_descriptor(table);
 
     // allocate space for the new inode
-    table->table[fd] = (struct gnl_simfs_inode *)malloc(sizeof(struct gnl_simfs_inode));
+    *(table->table + fd) = (struct gnl_simfs_inode *)malloc(sizeof(struct gnl_simfs_inode));
     GNL_NULL_CHECK(table->table[fd], ENOMEM, -1)
 
-    // insert the given inode
-    table->table[fd] = inode;
+    // insert a deep copy of the given inode
+    *(table->table + fd) = *inode;
 
     // increase the table size
     table->size++;
