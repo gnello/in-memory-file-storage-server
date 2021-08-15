@@ -44,9 +44,8 @@ struct gnl_simfs_file_descriptor_table *gnl_simfs_file_descriptor_table_init(int
     t->free_index_map = gnl_min_heap_init();
     GNL_NULL_CHECK(t->free_index_map, errno, NULL)
 
-    // initialize the table
-    t->table = (struct gnl_simfs_inode **)malloc(sizeof(struct gnl_simfs_inode *));
-    GNL_NULL_CHECK(t->table, ENOMEM, NULL)
+    // the table space will be allocated on demand
+    t->table = NULL;
 
     return t;
 }
@@ -61,7 +60,6 @@ void gnl_simfs_file_descriptor_table_destroy(struct gnl_simfs_file_descriptor_ta
 
     // destroy the table elements
     for (size_t i=0; i<table->size; i++) {
-        table->table[i] = NULL;
         free(table->table[i]);
     }
 
@@ -117,12 +115,19 @@ int gnl_simfs_file_descriptor_table_put(struct gnl_simfs_file_descriptor_table *
     // get the file descriptor
     int fd = get_file_descriptor(table);
 
+    // reallocate space for the table
+    struct gnl_simfs_inode **temp = realloc(table->table, (fd + 1) * sizeof(struct gnl_simfs_inode *));
+    GNL_NULL_CHECK(temp, errno, -1)
+
+    table->table = temp;
+
     // allocate space for the new inode
     *(table->table + fd) = (struct gnl_simfs_inode *)malloc(sizeof(struct gnl_simfs_inode));
-    GNL_NULL_CHECK(table->table[fd], ENOMEM, -1)
+    GNL_NULL_CHECK(*(table->table + fd), ENOMEM, -1)
+
 
     // insert a deep copy of the given inode
-    *(table->table + fd) = *inode;
+    **(table->table + fd) = *inode;
 
     // increase the table size
     table->size++;
