@@ -12,7 +12,7 @@
  * worker               The array of workers instances.
  * worker_queue         The queue to use to receive a ready file descriptor
  *                      from a main thread.
- * storage              The storage instance to use to store the files.
+ * file_system          The file system instance to use to store the files.
  * pipe_master_channel  The pipe channel where to read a result from a
  *                      worker thread.
  * pipe_worker_channel  The pipe channel where to send the result to a
@@ -24,16 +24,16 @@ struct gnl_fss_thread_pool {
     pthread_t *worker_ids;
     struct gnl_fss_worker **workers;
     struct gnl_ts_bb_queue_t *worker_queue;
-    struct gnl_storage *storage;
+    struct gnl_simfs_file_system *file_system;
     int pipe_master_channel;
     int pipe_worker_channel;
     int size;
     struct gnl_logger *logger;
 };
 
-struct gnl_fss_thread_pool *gnl_fss_thread_pool_init(int size, struct gnl_storage *storage,
+struct gnl_fss_thread_pool *gnl_fss_thread_pool_init(int size, struct gnl_simfs_file_system *file_system,
         const struct gnl_fss_config *config) {
-    if (storage == NULL || config == NULL) {
+    if (file_system == NULL || config == NULL) {
         errno = EINVAL;
 
         return NULL;
@@ -54,8 +54,8 @@ struct gnl_fss_thread_pool *gnl_fss_thread_pool_init(int size, struct gnl_storag
 
     gnl_logger_debug(thread_pool->logger, "logger created, proceeding initialization");
 
-    // assign the storage
-    thread_pool->storage = storage;
+    // assign the file_system
+    thread_pool->file_system = file_system;
 
     // allocate memory for the worker ids
     thread_pool->worker_ids = malloc(size * sizeof(pthread_t));
@@ -86,7 +86,7 @@ struct gnl_fss_thread_pool *gnl_fss_thread_pool_init(int size, struct gnl_storag
 
     for (size_t i=0; i<size; i++) {
         thread_pool->workers[i] = gnl_fss_worker_init(i, thread_pool->worker_queue, thread_pool->pipe_worker_channel,
-                                                      thread_pool->storage, config);
+                                                      thread_pool->file_system, config);
         GNL_NULL_CHECK(thread_pool->workers[i], errno, NULL)
 
         res = pthread_create(&(thread_pool->worker_ids[i]), NULL, &gnl_fss_worker_handle, (void *)thread_pool->workers[i]);

@@ -3,6 +3,7 @@
 #define GNL_FSS_THREAD_POOL_H
 
 #include <gnl_ts_bb_queue_t.h>
+#include <gnl_simfs_file_system.h>
 #include <gnl_logger.h>
 
 /**
@@ -14,13 +15,13 @@ struct gnl_fss_thread_pool;
  * Create a new thread pool.
  *
  * @param size          The number of workers to put in the thread pool.
- * @param storage       The storage instance to use to store the files.
+ * @param file_system   The file system instance to use to store the files.
  * @param config        The configuration instance of the server.
  *
  * @return              Returns a gnl_fss_thread_pool struct on success,
  *                      NULL otherwise.
  */
-extern struct gnl_fss_thread_pool *gnl_fss_thread_pool_init(int size, struct gnl_storage *storage,
+extern struct gnl_fss_thread_pool *gnl_fss_thread_pool_init(int size, struct gnl_simfs_file_system *file_system,
         const struct gnl_fss_config *config);
 
 /**

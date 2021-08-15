@@ -13,9 +13,9 @@ INCLUDE += -I$(DATA_STRUCTURES_INCLUDE)
 TARGETS = server client
 TARGETS_PATH = ./
 
-.PHONY: all dev tests clean clean-dev server client helpers data-structures socket tests-valgrind message storage
+.PHONY: all dev tests clean clean-dev server client helpers data-structures socket tests-valgrind message file-system
 
-TARGETS_ALL = client data-structures helpers message server socket storage
+TARGETS_ALL = client data-structures helpers message server socket file-system
 
 VPATH = src
 
@@ -27,7 +27,7 @@ all: $(TARGETS)
 client: data-structures server
 	cd ./client && $(MAKE)
 
-server: data-structures helpers socket storage
+server: data-structures helpers socket file-system
 	cd ./server && $(MAKE)
 
 message:
@@ -36,8 +36,8 @@ message:
 socket: message
 	cd ./socket && $(MAKE)
 
-storage: data-structures
-	cd ./storage && $(MAKE)
+file-system: data-structures
+	cd ./file-system && $(MAKE)
 
 helpers:
 	cd ./helpers && $(MAKE)

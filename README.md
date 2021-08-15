@@ -95,7 +95,7 @@ helpers | `make helpers`| Compiles the helpers library in `helpers/lib`
 data-structures | `make data-structures`| Compiles the data-structures library in `data-structures/lib`
 message | `make message`| Compiles the message library in `message/lib`
 socket | `make socket`| Compiles the socket library in `socket/lib`
-storage | `make storage`| Compiles the storage library in `storage/lib`
+file-system | `make file-system`| Compiles the file system library in `file-system/lib`
 tests | `make tests`| Runs all the test suites
 tests-valgrind | `make tests-valgrind`| Runs all the test suites with valgrind
 clean | `make clean`| Clean all the executable, library and object files

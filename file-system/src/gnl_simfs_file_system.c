@@ -3,6 +3,7 @@
 #include <pthread.h>
 #include <gnl_ternary_search_tree_t.h>
 #include "./gnl_simfs_file_descriptor_table.c"
+#include "./gnl_simfs_inode.c"
 #include "../include/gnl_simfs_file_system.h"
 #include <gnl_macro_beg.h>
 

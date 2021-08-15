@@ -3,6 +3,7 @@
 #define GNL_FSS_WORKER_H
 
 #include <gnl_ts_bb_queue_t.h>
+#include <gnl_simfs_file_system.h>
 #include <gnl_logger.h>
 
 #define GNL_FSS_WORKER_TERMINATE (-1970)
@@ -20,14 +21,14 @@ struct gnl_fss_worker;
  *                      from a main thread.
  * @param pipe_channel  The pipe channel where to send the result to a
  *                      main thread.
- * @param storage       The storage instance to use to store the files.
+ * @param file_system   The file system instance to use to store the files.
  * @param config        The configuration instance of the server.
  *
  * @return gnl_queue_t  Returns the new worker config created on success,
  *                      NULL otherwise.
  */
 extern struct gnl_fss_worker *gnl_fss_worker_init(pthread_t id, struct gnl_ts_bb_queue_t *worker_queue,
-        int pipe_channel, struct gnl_storage *storage, const struct gnl_fss_config *config);
+        int pipe_channel, struct gnl_simfs_file_system *file_system, const struct gnl_fss_config *config);
 
 /**
  * Destroy a worker config. Attention: this method only deletes the

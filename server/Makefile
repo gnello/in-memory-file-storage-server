@@ -6,9 +6,15 @@ export
 CC = gcc
 CFLAGS = -std=c99 -Wall -g -pedantic -D_POSIX_C_SOURCE=200809L
 
+
+# file-system library
+LIBS += -Wl,-rpath,$(ROOT)$(FILE_SYSTEM_LIB) -L$(ROOT)$(FILE_SYSTEM_LIB) -lgnl_simfs_file_system
+INCLUDE += -I$(ROOT)$(FILE_SYSTEM_INCLUDE)
+
 # data-structures library
-LIBS = -Wl,-rpath,$(ROOT)$(DATA_STRUCTURES_LIB) -L$(ROOT)$(DATA_STRUCTURES_LIB) -lgnl_list_t -lgnl_queue_t -lgnl_ts_bb_queue_t
-INCLUDE = -I$(ROOT)$(DATA_STRUCTURES_INCLUDE)
+LIBS += -Wl,-rpath,$(ROOT)$(DATA_STRUCTURES_LIB) -L$(ROOT)$(DATA_STRUCTURES_LIB) -lgnl_list_t -lgnl_queue_t
+LIBS += -lgnl_ts_bb_queue_t -lgnl_min_heap_t -lgnl_ternary_search_tree_t
+INCLUDE += -I$(ROOT)$(DATA_STRUCTURES_INCLUDE)
 
 # helpers library
 LIBS += -Wl,-rpath,$(ROOT)$(HELPERS_LIB) -L$(ROOT)$(HELPERS_LIB) -lgnl_txtenv -lgnl_print_table -lgnl_logger
@@ -21,10 +27,6 @@ INCLUDE += -I$(ROOT)$(SOCKET_INCLUDE)
 # message library
 LIBS += -Wl,-rpath,$(ROOT)$(MESSAGE_LIB) -L$(ROOT)$(MESSAGE_LIB) -lgnl_message_n -lgnl_message_s -lgnl_message_sb -lgnl_message_sn
 INCLUDE += -I$(ROOT)$(MESSAGE_INCLUDE)
-
-# storage library
-LIBS += -Wl,-rpath,$(ROOT)$(STORAGE_LIB) -L$(ROOT)$(STORAGE_LIB) -lgnl_storage
-INCLUDE += -I$(ROOT)$(STORAGE_INCLUDE)
 
 # add thread support
 LIBS += -lpthread

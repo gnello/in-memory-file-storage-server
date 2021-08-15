@@ -1,6 +1,5 @@
 #include <stdlib.h>
 #include <errno.h>
-#include <gnl_storage.h>
 #include "../include/gnl_fss_config.h"
 #include <gnl_macro_beg.h>
 
@@ -54,7 +53,7 @@ struct gnl_fss_config *gnl_fss_config_init() {
     config->thread_workers = 10;
     config->capacity = 100;
     config->limit = 100;
-    config->replacement_policy = REPOL_FIFO;
+    config->replacement_policy = 0; //REPOL_FIFO;
     config->socket = "/tmp/gnl_fss.sk";
     config->log_filepath = "/var/log/gnl_fss.log";
     config->log_level = "error";
