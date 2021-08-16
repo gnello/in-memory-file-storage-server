@@ -63,6 +63,7 @@ jobs:
 
     steps:
     - uses: actions/checkout@v2
+    - uses: actions/download-artifact@v2
 
     # test data-structures
     - run: chmod -R +x ./*
