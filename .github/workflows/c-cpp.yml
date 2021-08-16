@@ -49,6 +49,12 @@ jobs:
       with:
         name: client
         path: client
+
+    # upload file-system
+    - uses: actions/upload-artifact@v2
+      with:
+        name: file-system
+        path: file-system
         
   test:
 
@@ -105,3 +111,11 @@ jobs:
     - run: cp .env.test .env
     - run: make -s tests
       working-directory: socket/tests
+
+      # test file-system
+    - uses: actions/download-artifact@v2
+    - run: chmod -R +x ./*
+      working-directory: file-system/tests
+    - run: cp .env.test .env
+    - run: make -s tests
+      working-directory: file-system/tests
