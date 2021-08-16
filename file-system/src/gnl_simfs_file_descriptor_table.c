@@ -20,8 +20,6 @@ struct gnl_simfs_file_descriptor_table {
     // present into the table
     int max_fd;
 
-    int fd_copy[10000];
-
     // the map of the free file descriptor table index available,
     // it becomes useful to implement the "first fit" policy in
     // case an inode was removed from the table and a new one
@@ -29,7 +27,10 @@ struct gnl_simfs_file_descriptor_table {
     struct gnl_min_heap_t *free_index_map;
 
     // the inodes array, it will grow dynamically
-    // until the given limit is reached
+    // until the given limit is reached; a removed
+    // element does not cause a table shrink, but it
+    // creates a "hole" that may will be filled on the
+    // next put thankful to the "first fit" policy
     struct gnl_simfs_inode **table;
 };
 
@@ -70,7 +71,7 @@ void gnl_simfs_file_descriptor_table_destroy(struct gnl_simfs_file_descriptor_ta
     // if the table is not empty...
     if (table->size > 0) {
 
-        // we do not want to free the "wholes" left by a remove
+        // we do not want to free the "holes" left by a remove
         // (because they are already been removed), so create a bitmap
         // to map the elements to be freed: if 1 the element is still
         // present in the table, if 0 the element was present but not anymore
@@ -85,9 +86,10 @@ void gnl_simfs_file_descriptor_table_destroy(struct gnl_simfs_file_descriptor_ta
         void *raw_fd;
         while ((raw_fd = gnl_min_heap_extract_min(table->free_index_map)) != NULL) {
             bitmap[*(int *)raw_fd] = 0;
-        }
 
-        free(raw_fd);
+            // free the deep copy of the fd
+            free(raw_fd);
+        }
 
         // destroy the table elements
         for (size_t i=0; i<=table->max_fd; i++) {
@@ -100,8 +102,10 @@ void gnl_simfs_file_descriptor_table_destroy(struct gnl_simfs_file_descriptor_ta
     // destroy the table
     free(table->table);
 
-    // destroy the free index map
-    gnl_min_heap_destroy(table->free_index_map, NULL);
+    // destroy the free index map, the free callback is
+    // necessary for the cases where the table has size 0,
+    // but its free index map contains some fds
+    gnl_min_heap_destroy(table->free_index_map, free);
 
     free(table);
 }
@@ -124,6 +128,9 @@ static int get_file_descriptor(struct gnl_simfs_file_descriptor_table *table) {
     if (raw_fd != NULL) {
         // cast the file descriptor
         fd = *(int *)raw_fd;
+
+        // free the deep copy of the fd
+        free(raw_fd);
     }
     // if there is not a free index...
     else {
@@ -149,25 +156,29 @@ int gnl_simfs_file_descriptor_table_put(struct gnl_simfs_file_descriptor_table *
     // get the file descriptor
     int fd = get_file_descriptor(table);
 
-    // reallocate space for the table
-    struct gnl_simfs_inode **temp = realloc(table->table, (fd + 1) * sizeof(struct gnl_simfs_inode *));
-    GNL_NULL_CHECK(temp, errno, -1)
+    // reallocate space for the table if necessary, there are three cases:
+    // - case 1 (fd == 0):              this is the first use of the table, so a
+    //                                  memory allocation is mandatory
+    // - case 2 (fd > table->max_fd):   the table needs extra space for the new fd
+    //                                  because it has reached its border
+    // - case 3 (none of the above):    there is a "hole" left by a previous remove,
+    //                                  so the table already has the necessary space
+    if (fd == 0 || fd > table->max_fd) {
+        struct gnl_simfs_inode **temp = realloc(table->table, (fd + 1) * sizeof(struct gnl_simfs_inode *));
+        GNL_NULL_CHECK(temp, errno, -1)
 
-    table->table = temp;
+        table->table = temp;
+    }
 
     // allocate space for the new inode
     *(table->table + fd) = (struct gnl_simfs_inode *)malloc(sizeof(struct gnl_simfs_inode));
     GNL_NULL_CHECK(*(table->table + fd), ENOMEM, -1)
-
 
     // insert a deep copy of the given inode
     **(table->table + fd) = *inode;
 
     // increase the table size
     table->size++;
-
-    //TODO: doc
-    table->fd_copy[fd] = fd;
 
     // update the max fd
     if (fd > table->max_fd) {
@@ -199,7 +210,12 @@ int gnl_simfs_file_descriptor_table_remove(struct gnl_simfs_file_descriptor_tabl
     }
     // else add the removed file descriptor into the free index map
     else {
-        int res = gnl_min_heap_insert(table->free_index_map, &table->fd_copy[fd], fd);
+        // make a deep copy of the fd
+        int *fd_copy = malloc(sizeof(int));
+        *fd_copy = fd;
+
+        // add the deep copy into the free index map
+        int res = gnl_min_heap_insert(table->free_index_map, fd_copy, fd);
         GNL_MINUS1_CHECK(res, errno, -1)
     }
 
