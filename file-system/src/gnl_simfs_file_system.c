@@ -7,7 +7,7 @@
 #include "../include/gnl_simfs_file_system.h"
 #include <gnl_macro_beg.h>
 
-// the maximum number of simultaneously open file allowed
+// the maximum number of simultaneously open files allowed
 #define GNL_SIMFS_MAX_OPEN_FILES 10240
 
 /**
@@ -78,7 +78,7 @@ struct gnl_simfs_file_system {
     // the memory allocable in megabyte by the file system
     int memory_limit;
 
-    // contains all the opened files in a precisely time,
+    // contains all the open files in a precisely time,
     // the index is the file descriptor, the value is a
     // copy of the inode of the file.
     struct gnl_simfs_file_descriptor_table *file_descriptor_table;
