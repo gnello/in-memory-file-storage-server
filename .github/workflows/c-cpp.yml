@@ -65,15 +65,13 @@ jobs:
     - uses: actions/checkout@v2
 
     # test data-structures
-    - uses: actions/download-artifact@v2
-    - run: chmod -R +x ./* 
+    - run: chmod -R +x ./*
       working-directory: data-structures/tests
     - run: cp .env.test .env
     - run: make -s tests
       working-directory: data-structures/tests
 
     # test helpers
-    - uses: actions/download-artifact@v2
     - run: chmod -R +x ./*
       working-directory: helpers/tests
     - run: cp .env.test .env
@@ -81,7 +79,6 @@ jobs:
       working-directory: helpers/tests
 
     # test server
-    - uses: actions/download-artifact@v2
     - run: chmod -R +x ./*
       working-directory: server/tests
     - run: cp .env.test .env
@@ -89,7 +86,6 @@ jobs:
       working-directory: server/tests
 
     # test message
-    - uses: actions/download-artifact@v2
     - run: chmod -R +x ./*
       working-directory: message/tests
     - run: cp .env.test .env
@@ -97,7 +93,6 @@ jobs:
       working-directory: message/tests
 
     # test client
-    - uses: actions/download-artifact@v2
     - run: chmod -R +x ./*
       working-directory: client/tests
     - run: cp .env.test .env
@@ -105,7 +100,6 @@ jobs:
       working-directory: client/tests
 
       # test socket
-    - uses: actions/download-artifact@v2
     - run: chmod -R +x ./*
       working-directory: socket/tests
     - run: cp .env.test .env
@@ -113,7 +107,6 @@ jobs:
       working-directory: socket/tests
 
       # test file-system
-    - uses: actions/download-artifact@v2
     - run: chmod -R +x ./*
       working-directory: file-system/tests
     - run: cp .env.test .env
