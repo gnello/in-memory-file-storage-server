@@ -256,9 +256,10 @@ int gnl_simfs_file_system_open(struct gnl_simfs_file_system *file_system, char *
     // if this point is reached, the target file is unlocked
     // or is locked by the given pid
 
-    // if the file must be locked
+    // if the file must be locked, lock it
     if (GNL_SIMFS_O_LOCK & flags) {
-
+        res = gnl_simfs_inode_file_lock(inode, pid);
+        GNL_SIMFS_MINUS1_CHECK(res, errno, -1)
     }
 
     // increase the inode reference count

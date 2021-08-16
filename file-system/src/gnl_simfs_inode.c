@@ -88,4 +88,55 @@ int gnl_simfs_inode_decrease_refs(struct gnl_simfs_inode *inode) {
     return 0;
 }
 
+/**
+ * {@inheritDoc}
+ */
+int gnl_simfs_inode_file_lock(struct gnl_simfs_inode *inode, unsigned int pid) {
+    GNL_NULL_CHECK(inode, EINVAL, -1)
+
+    // if the file is already locked by the
+    // given pid return with success (idempotency)
+    if (inode->locked == pid) {
+        return 0;
+    }
+
+    // if the file is locked by a different
+    // pid return an error
+    if (inode->locked != 0) {
+        errno = EPERM;
+        return -1;
+    }
+
+    // lock the file
+    inode->locked = pid;
+
+    return 0;
+}
+
+/**
+ * {@inheritDoc}
+ */
+int gnl_simfs_inode_file_unlock(struct gnl_simfs_inode *inode, unsigned int pid) {
+    GNL_NULL_CHECK(inode, EINVAL, -1)
+
+    // if the file is already unlocked
+    // return with success (idempotency)
+    if (inode->locked == 0) {
+        return 0;
+    }
+
+    // if the file is locked by a different
+    // pid return an error
+    if (inode->locked != pid) {
+        errno = EPERM;
+        return -1;
+    }
+
+    // unlock the file
+    inode->locked = 0;
+
+    // wake up eventually waiting threads
+    return pthread_cond_signal(&(inode->file_unlocked));
+}
+
 #include <gnl_macro_end.h>

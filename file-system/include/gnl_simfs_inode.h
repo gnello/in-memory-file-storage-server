@@ -92,4 +92,30 @@ extern int gnl_simfs_inode_increase_refs(struct gnl_simfs_inode *inode);
  */
 extern int gnl_simfs_inode_decrease_refs(struct gnl_simfs_inode *inode);
 
+/**
+ * Lock the file pointed by the given inode. The file must be
+ * in unlocked.
+ *
+ * @param inode The inode instance containing the file
+ *              to lock.
+ * @param pid   The id of the process who wants to lock
+ *              the file.
+ *
+ * @return      Returns 0 on success, -1 otherwise.
+ */
+extern int gnl_simfs_inode_file_lock(struct gnl_simfs_inode *inode, unsigned int pid);
+
+/**
+ * Unlock the file pointed by the given inode. The file must be
+ * previously locked by the given pid.
+ *
+ * @param inode The inode instance containing the file
+ *              to unlock.
+ * @param pid   The id of the process who wants to unlock
+ *              the file.
+ *
+ * @return      Returns 0 on success, -1 otherwise.
+ */
+extern int gnl_simfs_inode_file_unlock(struct gnl_simfs_inode *inode, unsigned int pid);
+
 #endif //GNL_SIMFS_INODE_H
