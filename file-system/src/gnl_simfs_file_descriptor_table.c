@@ -11,14 +11,14 @@ struct gnl_simfs_file_descriptor_table {
 
     // the number of files that the file descriptor table
     // can handle simultaneously
-    int limit;
+    unsigned int limit;
 
     // the current size of the file descriptor table
-    int size;
+    unsigned int size;
 
     // the greater file descriptor currently
     // present into the table
-    int max_fd;
+    unsigned int max_fd;
 
     // the map of the free file descriptor table index available,
     // it becomes useful to implement the "first fit" policy in
@@ -37,7 +37,7 @@ struct gnl_simfs_file_descriptor_table {
 /**
  * {@inheritDoc}
  */
-struct gnl_simfs_file_descriptor_table *gnl_simfs_file_descriptor_table_init(int limit) {
+struct gnl_simfs_file_descriptor_table *gnl_simfs_file_descriptor_table_init(unsigned int limit) {
     struct gnl_simfs_file_descriptor_table *t = (struct gnl_simfs_file_descriptor_table *)malloc(sizeof(struct gnl_simfs_file_descriptor_table));
     GNL_NULL_CHECK(t, ENOMEM, NULL)
 
@@ -118,8 +118,8 @@ void gnl_simfs_file_descriptor_table_destroy(struct gnl_simfs_file_descriptor_ta
  *
  * @return      Returns a file descriptor.
  */
-static int get_file_descriptor(struct gnl_simfs_file_descriptor_table *table) {
-    int fd;
+static unsigned int get_file_descriptor(struct gnl_simfs_file_descriptor_table *table) {
+    unsigned int fd;
 
     // check if there is a free index into the free index map
     void *raw_fd = gnl_min_heap_extract_min(table->free_index_map);
@@ -154,7 +154,7 @@ int gnl_simfs_file_descriptor_table_put(struct gnl_simfs_file_descriptor_table *
     }
 
     // get the file descriptor
-    int fd = get_file_descriptor(table);
+    unsigned int fd = get_file_descriptor(table);
 
     // reallocate space for the table if necessary, there are three cases:
     // - case 1 (fd == 0):              this is the first use of the table, so a
@@ -192,7 +192,7 @@ int gnl_simfs_file_descriptor_table_put(struct gnl_simfs_file_descriptor_table *
 /**
  * {@inheritDoc}
  */
-int gnl_simfs_file_descriptor_table_remove(struct gnl_simfs_file_descriptor_table *table, int fd) {
+int gnl_simfs_file_descriptor_table_remove(struct gnl_simfs_file_descriptor_table *table, unsigned int fd) {
     GNL_NULL_CHECK(table, EINVAL, -1)
 
     if (table->size == 0) {
@@ -211,7 +211,7 @@ int gnl_simfs_file_descriptor_table_remove(struct gnl_simfs_file_descriptor_tabl
     // else add the removed file descriptor into the free index map
     else {
         // make a deep copy of the fd
-        int *fd_copy = malloc(sizeof(int));
+        unsigned int *fd_copy = malloc(sizeof(int));
         GNL_NULL_CHECK(fd_copy, ENOMEM, -1)
 
         *fd_copy = fd;

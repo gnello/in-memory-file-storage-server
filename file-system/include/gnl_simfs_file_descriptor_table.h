@@ -17,7 +17,7 @@ struct gnl_simfs_file_descriptor_table;
  * @return      Returns the new gnl_simfs_file_descriptor_table created on success,
  *              NULL otherwise.
  */
-extern struct gnl_simfs_file_descriptor_table *gnl_simfs_file_descriptor_table_init(int limit);
+extern struct gnl_simfs_file_descriptor_table *gnl_simfs_file_descriptor_table_init(unsigned int limit);
 
 /**
  * Destroy the given file descriptor table.
@@ -46,7 +46,7 @@ extern int gnl_simfs_file_descriptor_table_put(struct gnl_simfs_file_descriptor_
  *
  * @return      Return 0 on success, -1 otherwise.
  */
-extern int gnl_simfs_file_descriptor_table_remove(struct gnl_simfs_file_descriptor_table *table, int fd);
+extern int gnl_simfs_file_descriptor_table_remove(struct gnl_simfs_file_descriptor_table *table, unsigned int fd);
 
 /**
  * Get the current size of the given file descriptor table.
