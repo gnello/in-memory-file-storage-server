@@ -24,8 +24,11 @@ struct gnl_simfs_inode {
     // the lock of the inode
     pthread_mutex_t mtx;
 
-    // the owner id of the lock, it should be a number > 0
-    int mtx_owner;
+    // the owner id of the lock, it should be a number > 0,
+    // if 0 then the inode is unlocked
+    unsigned int mtx_owner;
+
+    //TODO: reference_count -> vedi remove
 };
 
 /**
