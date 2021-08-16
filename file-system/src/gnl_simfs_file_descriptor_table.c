@@ -212,6 +212,8 @@ int gnl_simfs_file_descriptor_table_remove(struct gnl_simfs_file_descriptor_tabl
     else {
         // make a deep copy of the fd
         int *fd_copy = malloc(sizeof(int));
+        GNL_NULL_CHECK(fd_copy, ENOMEM, -1)
+
         *fd_copy = fd;
 
         // add the deep copy into the free index map
