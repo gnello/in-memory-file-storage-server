@@ -16,6 +16,12 @@ struct gnl_simfs_file_descriptor_table {
     // the current size of the file descriptor table
     int size;
 
+    // the greater file descriptor currently
+    // present into the table
+    int max_fd;
+
+    int fd_copy[10000];
+
     // the map of the free file descriptor table index available,
     // it becomes useful to implement the "first fit" policy in
     // case an inode was removed from the table and a new one
@@ -40,6 +46,9 @@ struct gnl_simfs_file_descriptor_table *gnl_simfs_file_descriptor_table_init(int
     // initialize the size
     t->size = 0;
 
+    // initialize the max fd
+    t->max_fd = 0;
+
     // initialize the free index map
     t->free_index_map = gnl_min_heap_init();
     GNL_NULL_CHECK(t->free_index_map, errno, NULL)
@@ -58,9 +67,34 @@ void gnl_simfs_file_descriptor_table_destroy(struct gnl_simfs_file_descriptor_ta
         return;
     }
 
-    // destroy the table elements
-    for (size_t i=0; i<table->size; i++) {
-        free(table->table[i]);
+    // if the table is not empty...
+    if (table->size > 0) {
+
+        // we do not want to free the "wholes" left by a remove
+        // (because they are already been removed), so create a bitmap
+        // to map the elements to be freed: if 1 the element is still
+        // present in the table, if 0 the element was present but not anymore
+        int bitmap[table->max_fd];
+
+        // initialize the bitmap
+        for (size_t i=0; i<=table->max_fd; i++) {
+            bitmap[i] = 1;
+        }
+
+        // fill the bitmap
+        void *raw_fd;
+        while ((raw_fd = gnl_min_heap_extract_min(table->free_index_map)) != NULL) {
+            bitmap[*(int *)raw_fd] = 0;
+        }
+
+        free(raw_fd);
+
+        // destroy the table elements
+        for (size_t i=0; i<=table->max_fd; i++) {
+            if (bitmap[i] > 0) {
+                free(table->table[i]);
+            }
+        }
     }
 
     // destroy the table
@@ -132,6 +166,14 @@ int gnl_simfs_file_descriptor_table_put(struct gnl_simfs_file_descriptor_table *
     // increase the table size
     table->size++;
 
+    //TODO: doc
+    table->fd_copy[fd] = fd;
+
+    // update the max fd
+    if (fd > table->max_fd) {
+        table->max_fd = fd;
+    }
+
     // return the file descriptor
     return fd;
 }
@@ -142,12 +184,24 @@ int gnl_simfs_file_descriptor_table_put(struct gnl_simfs_file_descriptor_table *
 int gnl_simfs_file_descriptor_table_remove(struct gnl_simfs_file_descriptor_table *table, int fd) {
     GNL_NULL_CHECK(table, EINVAL, -1)
 
+    if (table->size == 0) {
+        errno = EPERM;
+
+        return -1;
+    }
+
     // remove the file descriptor
     free(table->table[fd]);
 
-    // add the removed file descriptor into the free index map
-    int res = gnl_min_heap_insert(table->free_index_map, (void *)&fd, fd);
-    GNL_MINUS1_CHECK(res, errno, -1)
+    // if the fd is the maximum active file descriptor decrease it by one
+    if (fd == table->max_fd) {
+        table->max_fd--;
+    }
+    // else add the removed file descriptor into the free index map
+    else {
+        int res = gnl_min_heap_insert(table->free_index_map, &table->fd_copy[fd], fd);
+        GNL_MINUS1_CHECK(res, errno, -1)
+    }
 
     // decrease the table size
     table->size--;
