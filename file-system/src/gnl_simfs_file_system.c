@@ -34,8 +34,8 @@ struct gnl_simfs_file_system {
     int memory_limit;
 
     // contains all the opened files in a precisely time,
-    // the index is the file descriptor, the value is the
-    // pointer to the inode of the file.
+    // the index is the file descriptor, the value is a
+    // copy of the inode of the file.
     struct gnl_simfs_file_descriptor_table *file_descriptor_table;
 
     // the lock of the file system
