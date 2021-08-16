@@ -31,11 +31,13 @@ extern void gnl_simfs_file_descriptor_table_destroy(struct gnl_simfs_file_descri
  *
  * @param table The file descriptor table instance where to put the inode.
  * @param inode The inode to insert into the given file descriptor table.
+ * @param pid   The owner of the entry that will be created.
  *
  * @return      On success, returns the file descriptor of the file within
  *              the inserted inode, on failure returns -1.
  */
-extern int gnl_simfs_file_descriptor_table_put(struct gnl_simfs_file_descriptor_table *table, const struct gnl_simfs_inode *inode);
+extern int gnl_simfs_file_descriptor_table_put(struct gnl_simfs_file_descriptor_table *table, const struct gnl_simfs_inode *inode,
+        unsigned long pid);
 
 /**
  * Remove a file descriptor from the given file descriptor table. It will not delete
@@ -43,10 +45,12 @@ extern int gnl_simfs_file_descriptor_table_put(struct gnl_simfs_file_descriptor_
  *
  * @param table The file descriptor table instance from where delete the file descriptor.
  * @param fd    The file descriptor to remove from the given file descriptor table.
+ * @param pid   The owner of the entry that will be created.
  *
  * @return      Return 0 on success, -1 otherwise.
  */
-extern int gnl_simfs_file_descriptor_table_remove(struct gnl_simfs_file_descriptor_table *table, unsigned int fd);
+extern int gnl_simfs_file_descriptor_table_remove(struct gnl_simfs_file_descriptor_table *table, unsigned int fd,
+        unsigned int pid);
 
 /**
  * Get the current size of the given file descriptor table.

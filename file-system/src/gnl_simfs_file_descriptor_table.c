@@ -5,6 +5,18 @@
 #include <gnl_macro_beg.h>
 
 /**
+ * The entry struct of the file descriptor table.
+ */
+struct gnl_simfs_file_descriptor_table_el {
+
+    // the owner id of the entry
+    unsigned int owner;
+
+    // the pointer to a inode copy
+    struct gnl_simfs_inode *inode;
+};
+
+/**
  * {@inheritDoc}
  */
 struct gnl_simfs_file_descriptor_table {
@@ -31,7 +43,7 @@ struct gnl_simfs_file_descriptor_table {
     // element does not cause a table shrink, but it
     // creates a "hole" that may will be filled on the
     // next put thankful to the "first fit" policy
-    struct gnl_simfs_inode **table;
+    struct gnl_simfs_file_descriptor_table_el **table;
 };
 
 /**
@@ -94,6 +106,7 @@ void gnl_simfs_file_descriptor_table_destroy(struct gnl_simfs_file_descriptor_ta
         // destroy the table elements
         for (size_t i=0; i<=table->max_fd; i++) {
             if (bitmap[i] > 0) {
+                free(table->table[i]->inode);
                 free(table->table[i]);
             }
         }
@@ -141,9 +154,35 @@ static unsigned int get_file_descriptor(struct gnl_simfs_file_descriptor_table *
 }
 
 /**
+ * Create a new table file descriptor entry.
+ *
+ * @param inode The inode to copy into the entry.
+ * @param pid   The owner id of the entry.
+ *
+ * @return      Returns the created entry on success, NULL otherwise.
+ */
+static struct gnl_simfs_file_descriptor_table_el *create_entry(const struct gnl_simfs_inode *inode, unsigned long pid) {
+    struct gnl_simfs_file_descriptor_table_el *entry = (struct gnl_simfs_file_descriptor_table_el *)malloc(sizeof(struct gnl_simfs_file_descriptor_table_el));
+    GNL_NULL_CHECK(entry, ENOMEM, NULL)
+
+    // set the owner of the entry
+    entry->owner = pid;
+
+    // allocate space for the new inode
+    entry->inode = (struct gnl_simfs_inode *)malloc(sizeof(struct gnl_simfs_inode));
+    GNL_NULL_CHECK(entry->inode, ENOMEM, NULL)
+
+    // insert a deep copy of the given inode
+    *(entry->inode) = *inode;
+
+    return entry;
+}
+
+/**
  * {@inheritDoc}
  */
-int gnl_simfs_file_descriptor_table_put(struct gnl_simfs_file_descriptor_table *table, const struct gnl_simfs_inode *inode) {
+int gnl_simfs_file_descriptor_table_put(struct gnl_simfs_file_descriptor_table *table, const struct gnl_simfs_inode *inode,
+        unsigned long pid) {
     GNL_NULL_CHECK(table, EINVAL, -1)
 
     // check if we can insert another element
@@ -164,18 +203,20 @@ int gnl_simfs_file_descriptor_table_put(struct gnl_simfs_file_descriptor_table *
     // - case 3 (none of the above):    there is a "hole" left by a previous remove,
     //                                  so the table already has the necessary space
     if (fd == 0 || fd > table->max_fd) {
-        struct gnl_simfs_inode **temp = realloc(table->table, (fd + 1) * sizeof(struct gnl_simfs_inode *));
+        struct gnl_simfs_file_descriptor_table_el **temp = realloc(table->table, (fd + 1) * sizeof(struct gnl_simfs_file_descriptor_table_el *));
         GNL_NULL_CHECK(temp, errno, -1)
 
         table->table = temp;
     }
 
-    // allocate space for the new inode
-    *(table->table + fd) = (struct gnl_simfs_inode *)malloc(sizeof(struct gnl_simfs_inode));
-    GNL_NULL_CHECK(*(table->table + fd), ENOMEM, -1)
+    // allocate space for the new table entry
 
-    // insert a deep copy of the given inode
-    **(table->table + fd) = *inode;
+    // create the entry
+    struct gnl_simfs_file_descriptor_table_el *entry = create_entry(inode, pid);
+    GNL_NULL_CHECK(entry, errno, -1)
+
+    // assign the entry
+    *(table->table + fd) = entry;
 
     // increase the table size
     table->size++;
@@ -192,16 +233,25 @@ int gnl_simfs_file_descriptor_table_put(struct gnl_simfs_file_descriptor_table *
 /**
  * {@inheritDoc}
  */
-int gnl_simfs_file_descriptor_table_remove(struct gnl_simfs_file_descriptor_table *table, unsigned int fd) {
+int gnl_simfs_file_descriptor_table_remove(struct gnl_simfs_file_descriptor_table *table, unsigned int fd, unsigned int pid) {
     GNL_NULL_CHECK(table, EINVAL, -1)
 
-    if (table->size == 0) {
+    // check that the given file descriptor is active
+    if (fd > table->max_fd || table->table[fd] == NULL) {
+        errno = EPERM;
+
+        return -1;
+    }
+
+    // check that we are allowed to remove the file descriptor
+    if (table->size == 0 || table->table[fd]->owner != pid) {
         errno = EPERM;
 
         return -1;
     }
 
     // remove the file descriptor
+    free(table->table[fd]->inode);
     free(table->table[fd]);
 
     // if the fd is the maximum active file descriptor decrease it by one

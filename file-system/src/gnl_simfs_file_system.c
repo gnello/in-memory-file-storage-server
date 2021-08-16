@@ -268,7 +268,7 @@ int gnl_simfs_file_system_open(struct gnl_simfs_file_system *file_system, char *
 
     // put the inode into the file descriptor table; do not check an error here
     // because we are immediately returning anyway
-    int fd = gnl_simfs_file_descriptor_table_put(file_system->file_descriptor_table, inode);
+    int fd = gnl_simfs_file_descriptor_table_put(file_system->file_descriptor_table, inode, pid);
 
     // release the lock
     GNL_SIMFS_LOCK_RELEASE(-1)

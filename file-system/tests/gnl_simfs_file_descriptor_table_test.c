@@ -33,7 +33,7 @@ int can_not_put() {
 
     struct gnl_simfs_inode *inode = gnl_simfs_inode_init();
 
-    int res = gnl_simfs_file_descriptor_table_put(table, inode);
+    int res = gnl_simfs_file_descriptor_table_put(table, inode, 1);
 
     if (res != -1) {
         return -1;
@@ -64,7 +64,7 @@ int can_put() {
     struct gnl_simfs_inode *inode_2 = gnl_simfs_inode_init();
     struct gnl_simfs_inode *inode_3 = gnl_simfs_inode_init();
 
-    int res = gnl_simfs_file_descriptor_table_put(table, inode_1);
+    int res = gnl_simfs_file_descriptor_table_put(table, inode_1, 1);
 
     if (res == -1) {
         return -1;
@@ -74,7 +74,7 @@ int can_put() {
         return -1;
     }
 
-    res = gnl_simfs_file_descriptor_table_put(table, inode_2);
+    res = gnl_simfs_file_descriptor_table_put(table, inode_2, 1);
 
     if (res == -1) {
         return -1;
@@ -84,7 +84,7 @@ int can_put() {
         return -1;
     }
 
-    res = gnl_simfs_file_descriptor_table_put(table, inode_3);
+    res = gnl_simfs_file_descriptor_table_put(table, inode_3, 1);
 
     if (res == -1) {
         return -1;
@@ -110,7 +110,7 @@ int can_not_remove() {
         return -1;
     }
 
-    int res = gnl_simfs_file_descriptor_table_remove(table, 4);
+    int res = gnl_simfs_file_descriptor_table_remove(table, 4, 1);
 
     if (res != -1) {
         return -1;
@@ -120,6 +120,37 @@ int can_not_remove() {
         return -1;
     }
 
+    gnl_simfs_file_descriptor_table_destroy(table);
+
+    return 0;
+}
+
+int can_not_remove_perm() {
+    struct gnl_simfs_file_descriptor_table *table = gnl_simfs_file_descriptor_table_init(100);
+
+    if (table == NULL) {
+        return -1;
+    }
+
+    struct gnl_simfs_inode *inode_1 = gnl_simfs_inode_init();
+
+    int res = gnl_simfs_file_descriptor_table_put(table, inode_1, 1);
+
+    if (res == -1) {
+        return -1;
+    }
+
+    res = gnl_simfs_file_descriptor_table_remove(table, 4, 2);
+
+    if (res != -1) {
+        return -1;
+    }
+
+    if (errno != EPERM) {
+        return -1;
+    }
+
+    gnl_simfs_inode_destroy(inode_1);
     gnl_simfs_file_descriptor_table_destroy(table);
 
     return 0;
@@ -140,7 +171,7 @@ int can_remove() {
     struct gnl_simfs_inode *inode_2 = gnl_simfs_inode_init();
     struct gnl_simfs_inode *inode_3 = gnl_simfs_inode_init();
 
-    int fd_1 = gnl_simfs_file_descriptor_table_put(table, inode_1);
+    int fd_1 = gnl_simfs_file_descriptor_table_put(table, inode_1, 1);
 
     if (fd_1 == -1) {
         return -1;
@@ -150,7 +181,7 @@ int can_remove() {
         return -1;
     }
 
-    int fd_2 = gnl_simfs_file_descriptor_table_put(table, inode_2);
+    int fd_2 = gnl_simfs_file_descriptor_table_put(table, inode_2, 1);
 
     if (fd_2 == -1) {
         return -1;
@@ -160,7 +191,7 @@ int can_remove() {
         return -1;
     }
 
-    int fd_3 = gnl_simfs_file_descriptor_table_put(table, inode_3);
+    int fd_3 = gnl_simfs_file_descriptor_table_put(table, inode_3, 1);
 
     if (fd_3 == -1) {
         return -1;
@@ -170,7 +201,7 @@ int can_remove() {
         return -1;
     }
 
-    int res = gnl_simfs_file_descriptor_table_remove(table, fd_2);
+    int res = gnl_simfs_file_descriptor_table_remove(table, fd_2, 1);
 
     if (res != 0) {
         return -1;
@@ -205,7 +236,7 @@ int can_put_after_remove() {
     struct gnl_simfs_inode *inode_3 = gnl_simfs_inode_init();
     struct gnl_simfs_inode *inode_4 = gnl_simfs_inode_init();
 
-    int fd_1 = gnl_simfs_file_descriptor_table_put(table, inode_1);
+    int fd_1 = gnl_simfs_file_descriptor_table_put(table, inode_1, 1);
 
     if (fd_1 == -1) {
         return -1;
@@ -215,7 +246,7 @@ int can_put_after_remove() {
         return -1;
     }
 
-    int fd_2 = gnl_simfs_file_descriptor_table_put(table, inode_2);
+    int fd_2 = gnl_simfs_file_descriptor_table_put(table, inode_2, 1);
 
     if (fd_2 == -1) {
         return -1;
@@ -225,7 +256,7 @@ int can_put_after_remove() {
         return -1;
     }
 
-    int fd_3 = gnl_simfs_file_descriptor_table_put(table, inode_3);
+    int fd_3 = gnl_simfs_file_descriptor_table_put(table, inode_3, 1);
 
     if (fd_3 == -1) {
         return -1;
@@ -235,7 +266,7 @@ int can_put_after_remove() {
         return -1;
     }
 
-    int res = gnl_simfs_file_descriptor_table_remove(table, fd_2);
+    int res = gnl_simfs_file_descriptor_table_remove(table, fd_2, 1);
 
     if (res != 0) {
         return -1;
@@ -245,7 +276,7 @@ int can_put_after_remove() {
         return -1;
     }
 
-    int fd_4 = gnl_simfs_file_descriptor_table_put(table, inode_4);
+    int fd_4 = gnl_simfs_file_descriptor_table_put(table, inode_4, 1);
 
     if (fd_4 == -1) {
         return -1;
@@ -280,7 +311,7 @@ int can_remove_all() {
     struct gnl_simfs_inode *inode_2 = gnl_simfs_inode_init();
     struct gnl_simfs_inode *inode_3 = gnl_simfs_inode_init();
 
-    int fd_1 = gnl_simfs_file_descriptor_table_put(table, inode_1);
+    int fd_1 = gnl_simfs_file_descriptor_table_put(table, inode_1, 1);
 
     if (fd_1 == -1) {
         return -1;
@@ -290,7 +321,7 @@ int can_remove_all() {
         return -1;
     }
 
-    int fd_2 = gnl_simfs_file_descriptor_table_put(table, inode_2);
+    int fd_2 = gnl_simfs_file_descriptor_table_put(table, inode_2, 1);
 
     if (fd_2 == -1) {
         return -1;
@@ -300,7 +331,7 @@ int can_remove_all() {
         return -1;
     }
 
-    int fd_3 = gnl_simfs_file_descriptor_table_put(table, inode_3);
+    int fd_3 = gnl_simfs_file_descriptor_table_put(table, inode_3, 1);
 
     if (fd_3 == -1) {
         return -1;
@@ -310,7 +341,7 @@ int can_remove_all() {
         return -1;
     }
 
-    int res = gnl_simfs_file_descriptor_table_remove(table, fd_2);
+    int res = gnl_simfs_file_descriptor_table_remove(table, fd_2, 1);
 
     if (res != 0) {
         return -1;
@@ -320,7 +351,7 @@ int can_remove_all() {
         return -1;
     }
 
-    res = gnl_simfs_file_descriptor_table_remove(table, fd_1);
+    res = gnl_simfs_file_descriptor_table_remove(table, fd_1, 1);
 
     if (res != 0) {
         return -1;
@@ -330,7 +361,7 @@ int can_remove_all() {
         return -1;
     }
 
-    res = gnl_simfs_file_descriptor_table_remove(table, fd_3);
+    res = gnl_simfs_file_descriptor_table_remove(table, fd_3, 1);
 
     if (res != 0) {
         return -1;
@@ -358,6 +389,7 @@ int main() {
     gnl_assert(can_put, "can put an element into a file descriptor table.");
 
     gnl_assert(can_not_remove, "can not remove an element from an empty file descriptor table.");
+    gnl_assert(can_not_remove_perm, "can not remove a not-owned element from a file descriptor table.");
     gnl_assert(can_remove, "can remove an element from a file descriptor table.");
 
     gnl_assert(can_put_after_remove, "can put an element into a file descriptor table after a remove.");
