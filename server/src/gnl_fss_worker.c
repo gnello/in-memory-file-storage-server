@@ -55,12 +55,12 @@ static int throw_internal_error(int fd_c) {
     return 0;
 }
 
-static struct gnl_socket_response *handle_request(struct gnl_simfs_file_system *file_system, struct gnl_socket_request *request) {
+static struct gnl_socket_response *handle_request(struct gnl_simfs_file_system *file_system, struct gnl_socket_request *request, int fd_c) {
     int res;
 
     switch (request->type) {
         case GNL_SOCKET_REQUEST_OPEN:
-            res = gnl_simfs_file_system_open(file_system, request->payload.open->string, request->payload.open->number);
+            res = gnl_simfs_file_system_open(file_system, request->payload.open->string, request->payload.open->number, fd_c);
             break;
 
         case GNL_SOCKET_REQUEST_READ_N:
@@ -251,7 +251,7 @@ void *gnl_fss_worker_handle(void* args)
 
                 // handle the request
                 struct gnl_socket_response *response;
-                response = handle_request(worker->file_system, request);
+                response = handle_request(worker->file_system, request, fd_c);
                 GNL_NULL_CHECK(response, errno, NULL)
                 //TODO: non ritornare mai ma scrivere sul log.
                 //TODO: creare risposta di errore standard/generica

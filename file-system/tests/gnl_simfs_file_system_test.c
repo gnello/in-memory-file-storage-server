@@ -42,12 +42,12 @@ int can_open_file_o_create() {
         return -1;
     }
 
-    int fd = gnl_simfs_file_system_open(fs, "/test/file_1", GNL_SIMFS_O_CREATE);
+    int fd = gnl_simfs_file_system_open(fs, "/test/file_1", GNL_SIMFS_O_CREATE, 1);
     if (fd != 0) {
         return -1;
     }
 
-    fd = gnl_simfs_file_system_open(fs, "/test/file_2", GNL_SIMFS_O_CREATE);
+    fd = gnl_simfs_file_system_open(fs, "/test/file_2", GNL_SIMFS_O_CREATE, 1);
     if (fd != 1) {
         return -1;
     }
@@ -64,12 +64,12 @@ int can_not_open_file_o_create() {
         return -1;
     }
 
-    int fd = gnl_simfs_file_system_open(fs, "/test/file_1", GNL_SIMFS_O_CREATE);
+    int fd = gnl_simfs_file_system_open(fs, "/test/file_1", GNL_SIMFS_O_CREATE, 1);
     if (fd != 0) {
         return -1;
     }
 
-    fd = gnl_simfs_file_system_open(fs, "/test/file_1", GNL_SIMFS_O_CREATE);
+    fd = gnl_simfs_file_system_open(fs, "/test/file_1", GNL_SIMFS_O_CREATE, 1);
     if (fd != -1) {
         return -1;
     }
@@ -90,17 +90,17 @@ int can_not_open_files_limit() {
         return -1;
     }
 
-    int fd = gnl_simfs_file_system_open(fs, "/test/file_1", GNL_SIMFS_O_CREATE);
+    int fd = gnl_simfs_file_system_open(fs, "/test/file_1", GNL_SIMFS_O_CREATE, 1);
     if (fd != 0) {
         return -1;
     }
 
-    fd = gnl_simfs_file_system_open(fs, "/test/file_2", GNL_SIMFS_O_CREATE);
+    fd = gnl_simfs_file_system_open(fs, "/test/file_2", GNL_SIMFS_O_CREATE, 1);
     if (fd != 1) {
         return -1;
     }
 
-    fd = gnl_simfs_file_system_open(fs, "/test/file_3", GNL_SIMFS_O_CREATE);
+    fd = gnl_simfs_file_system_open(fs, "/test/file_3", GNL_SIMFS_O_CREATE, 1);
     if (fd != -1) {
         return -1;
     }
@@ -121,19 +121,19 @@ int can_not_open_max_files() {
         return -1;
     }
 
-    int fd = gnl_simfs_file_system_open(fs, "/test/file_1", GNL_SIMFS_O_CREATE);
+    int fd = gnl_simfs_file_system_open(fs, "/test/file_1", GNL_SIMFS_O_CREATE, 1);
     if (fd != 0) {
         return -1;
     }
 
     for (size_t i=1; i<10240; i++) {
-        fd = gnl_simfs_file_system_open(fs, "/test/file_1", 0);
+        fd = gnl_simfs_file_system_open(fs, "/test/file_1", 0, 1);
         if (fd != i) {
             return -1;
         }
     }
 
-    fd = gnl_simfs_file_system_open(fs, "/test/file_1", 0);
+    fd = gnl_simfs_file_system_open(fs, "/test/file_1", 0, 1);
     if (fd != -1) {
         return -1;
     }
@@ -154,7 +154,7 @@ int can_not_open_file() {
         return -1;
     }
 
-    int res = gnl_simfs_file_system_open(fs, "/test/file", 0);
+    int res = gnl_simfs_file_system_open(fs, "/test/file", 0, 1);
     if (res != -1) {
         return -1;
     }

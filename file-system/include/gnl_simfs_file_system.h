@@ -41,13 +41,20 @@ extern struct gnl_simfs_file_system *gnl_simfs_file_system_init(unsigned int mem
 extern void gnl_simfs_file_system_destroy(struct gnl_simfs_file_system *file_system);
 
 /**
+ * Open the file pointed by the given filename and return a file descriptor referring
+ * to it. Multiple invocations on this method from the same process will obtain
+ * different file descriptors.
  *
- * @param file_system
- * @param filename
- * @param flags
+ * @param file_system   The file system instance from where to get the file.
+ * @param filename      The filename of the file to open.
+ * @param flags         If GNL_SIMFS_O_CREATE is given, the file will be created,
+ *                      if GNL_SIMFS_O_LOCK is given, the file will be opened in
+ *                      locked mode.
+ * @param pid           The id of the process who invoked this method.
  *
- * @return
+ * @return              Returns a file descriptor referring to the opened file
+ *                      on success, -1 otherwise.
  */
-extern int gnl_simfs_file_system_open(struct gnl_simfs_file_system *file_system, char *filename, int flags);
+extern int gnl_simfs_file_system_open(struct gnl_simfs_file_system *file_system, char *filename, int flags, unsigned int pid);
 
 #endif //GNL_SIMFS_FILE_SYSTEM_H

@@ -14,7 +14,7 @@
  * Macro to acquire the lock.
  */
 #define GNL_SIMFS_LOCK_ACQUIRE(return_value) {                      \
-    int lock_acquire_res = pthread_mutex_lock(&file_system->mtx);   \
+    int lock_acquire_res = pthread_mutex_lock(&(file_system->mtx));   \
     GNL_MINUS1_CHECK(lock_acquire_res, errno, return_value)         \
 }
 
@@ -22,7 +22,7 @@
  * Macro to release the lock.
  */
 #define GNL_SIMFS_LOCK_RELEASE(return_value) {                      \
-int lock_release_res = pthread_mutex_unlock(&file_system->mtx);     \
+int lock_release_res = pthread_mutex_unlock(&(file_system->mtx));     \
     GNL_MINUS1_CHECK(lock_release_res, errno, return_value)         \
 }
 
@@ -190,10 +190,17 @@ static struct gnl_simfs_inode *create_file(struct gnl_simfs_file_system *file_sy
     return inode;
 }
 
+static int wait_file_unlock(struct gnl_simfs_file_system *file_system, struct gnl_simfs_inode *inode, unsigned int pid) {
+    int is_file_locked = gnl_simfs_inode_is_file_locked(inode);
+    GNL_SIMFS_MINUS1_CHECK(is_file_locked, errno, -1)
+
+    return is_file_locked > 0 && is_file_locked != pid;
+}
+
 /**
- * {@inheritDoc} //TODO: se lo stesso requestor fa 2 open dello stesso file si torna lo stesso fd?
+ * {@inheritDoc}
  */
-int gnl_simfs_file_system_open(struct gnl_simfs_file_system *file_system, char *filename, int flags) {
+int gnl_simfs_file_system_open(struct gnl_simfs_file_system *file_system, char *filename, int flags, unsigned int pid) {
     // acquire the lock
     GNL_SIMFS_LOCK_ACQUIRE(-1)
 
@@ -236,12 +243,31 @@ int gnl_simfs_file_system_open(struct gnl_simfs_file_system *file_system, char *
         inode = (struct gnl_simfs_inode *)raw_inode;
     }
 
-    //TODO: controllare O_LOCK per lockare il file
+    // check if the file is locked: if the file is locked
+    // and the owner is not the given pid, wait for it
+    int test, res;
+    while ((test = wait_file_unlock(file_system, inode, pid)) > 0) {
+        GNL_SIMFS_MINUS1_CHECK(test, errno, -1)
 
-    // put the inode into the file descriptor table
+        res = gnl_simfs_inode_wait_unlock(inode, &(file_system->mtx));
+        GNL_SIMFS_MINUS1_CHECK(res, errno, -1)
+    }
+
+    // if this point is reached, the target file is unlocked
+    // or is locked by the given pid
+
+    // if the file must be locked
+    if (GNL_SIMFS_O_LOCK & flags) {
+
+    }
+
+    // increase the inode reference count
+    res = gnl_simfs_inode_increase_refs(inode);
+    GNL_SIMFS_MINUS1_CHECK(res, errno, -1)
+
+    // put the inode into the file descriptor table; do not check an error here
+    // because we are immediately returning anyway
     int fd = gnl_simfs_file_descriptor_table_put(file_system->file_descriptor_table, inode);
-
-    //TODO: che succede se un client prova ad aprire un file già lockato?
 
     // release the lock
     GNL_SIMFS_LOCK_RELEASE(-1)
