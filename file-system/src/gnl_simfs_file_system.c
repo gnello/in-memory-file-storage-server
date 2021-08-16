@@ -260,10 +260,10 @@ int gnl_simfs_file_system_open(struct gnl_simfs_file_system *file_system, char *
     if (GNL_SIMFS_O_LOCK & flags) {
         res = gnl_simfs_inode_file_lock(inode, pid);
         GNL_SIMFS_MINUS1_CHECK(res, errno, -1)
-    }
+    } //TODO: in caso di errore non lasciare lo stato della struct corrotto
 
     // increase the inode reference count
-    res = gnl_simfs_inode_increase_refs(inode);
+    res = gnl_simfs_inode_increase_refs(inode); //TODO: far diventare lista di pid
     GNL_SIMFS_MINUS1_CHECK(res, errno, -1)
 
     // put the inode into the file descriptor table; do not check an error here
