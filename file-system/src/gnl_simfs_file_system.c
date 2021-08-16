@@ -7,8 +7,53 @@
 #include "../include/gnl_simfs_file_system.h"
 #include <gnl_macro_beg.h>
 
-// the maximum number of simultaneously opened file allowed
+// the maximum number of simultaneously open file allowed
 #define MAX_FILES 10240
+
+/**
+ * Macro to acquire the lock.
+ */
+#define GNL_SIMFS_LOCK_ACQUIRE(return_value) {                      \
+    int lock_acquire_res = pthread_mutex_lock(&file_system->mtx);   \
+    GNL_MINUS1_CHECK(lock_acquire_res, errno, return_value)         \
+}
+
+/**
+ * Macro to release the lock.
+ */
+#define GNL_SIMFS_LOCK_RELEASE(return_value) {                      \
+int lock_release_res = pthread_mutex_unlock(&file_system->mtx);     \
+    GNL_MINUS1_CHECK(lock_release_res, errno, return_value)         \
+}
+
+/**
+ * Macro to compare two values, if they are not equals
+ * return an error and release the lock.
+ */
+#define GNL_SIMFS_COMPARE(actual, expected_error, errno_code, return_value) {   \
+    if ((actual) == (expected_error)) {                                         \
+        errno = errno_code;                                                     \
+        GNL_SIMFS_LOCK_RELEASE(return_value)                                    \
+                                                                                \
+        return return_value;                                                    \
+    }                                                                           \
+}
+
+/**
+ * Macro to check that a return value is not NULL,
+ * on error release the lock.
+ */
+#define GNL_SIMFS_NULL_CHECK(x, error_code, return_code) {  \
+    GNL_SIMFS_COMPARE(x, NULL, error_code, return_code)     \
+}
+
+/**
+ * Macro to check that a return value is not -1,
+ * on error release the lock.
+ */
+#define GNL_SIMFS_MINUS1_CHECK(x, error_code, return_code) {    \
+    GNL_SIMFS_COMPARE(x, -1, error_code, return_code)           \
+}
 
 /**
  * {@inheritDoc}
@@ -141,13 +186,18 @@ static struct gnl_simfs_inode *create_file(struct gnl_simfs_file_system *file_sy
  * {@inheritDoc}
  */
 int gnl_simfs_file_system_open(struct gnl_simfs_file_system *file_system, char *filename, int flags) {
-    // TODO: acquisire lock e ricordarsi di rilasciarlo in caso di errore
-    GNL_NULL_CHECK(file_system, EINVAL, -1)
+    // acquire the lock
+    GNL_SIMFS_LOCK_ACQUIRE(-1)
+
+    // validate the parameters
+    GNL_SIMFS_NULL_CHECK(file_system, EINVAL, -1)
 
     // check if we can open a file
     if (gnl_simfs_file_descriptor_table_size(file_system->file_descriptor_table) == MAX_FILES) {
-        errno = EMFILE;
-        return -1; //TODO: rilasciare lock
+        errno = ENFILE;
+        GNL_SIMFS_LOCK_RELEASE(-1)
+
+        return -1;
     }
 
     struct gnl_simfs_inode *inode;
@@ -159,11 +209,11 @@ int gnl_simfs_file_system_open(struct gnl_simfs_file_system *file_system, char *
         void *raw_inode = gnl_ternary_search_tree_get(file_system->file_table, filename);
 
         // if the file is present return an error
-        GNL_MINUS1_CHECK(-1 * !(raw_inode == NULL), EEXIST, -1)  //TODO: rilasciare lock
+        GNL_SIMFS_MINUS1_CHECK(-1 * !(raw_inode == NULL), EEXIST, -1)
 
         // the file is not present, create it
         inode = create_file(file_system, filename);
-        GNL_NULL_CHECK(inode, errno, -1)  //TODO: rilasciare lock
+        GNL_SIMFS_NULL_CHECK(inode, errno, -1)
     }
     // if the file must be present
     else {
@@ -172,7 +222,7 @@ int gnl_simfs_file_system_open(struct gnl_simfs_file_system *file_system, char *
         void *raw_inode = gnl_ternary_search_tree_get(file_system->file_table, filename);
 
         // if the file is not present return an error
-        GNL_NULL_CHECK(raw_inode, ENOENT, -1)  //TODO: rilasciare lock
+        GNL_SIMFS_NULL_CHECK(raw_inode, ENOENT, -1)
 
         // else cast the raw_inode
         inode = (struct gnl_simfs_inode *)raw_inode;
@@ -185,10 +235,18 @@ int gnl_simfs_file_system_open(struct gnl_simfs_file_system *file_system, char *
 
     //TODO: che succede se un client prova ad aprire un file già lockato?
 
-    //TODO: rilasciare lock
+    // release the lock
+    GNL_SIMFS_LOCK_RELEASE(-1)
 
     return fd;
 }
 
 #undef MAX_FILES
+
+#undef GNL_SIMFS_LOCK_ACQUIRE
+#undef GNL_SIMFS_LOCK_RELEASE
+#undef GNL_SIMFS_COMPARE
+#undef GNL_SIMFS_NULL_CHECK
+#undef GNL_SIMFS_MINUS1_CHECK
+
 #include <gnl_macro_end.h>
