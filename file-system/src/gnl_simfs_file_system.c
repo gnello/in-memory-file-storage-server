@@ -8,7 +8,7 @@
 #include <gnl_macro_beg.h>
 
 // the maximum number of simultaneously open file allowed
-#define MAX_FILES 10240
+#define GNL_SIMFS_MAX_OPEN_FILES 10240
 
 /**
  * Macro to acquire the lock.
@@ -99,7 +99,12 @@ struct gnl_simfs_file_system *gnl_simfs_file_system_init(unsigned int memory_lim
     fs->files_limit = files_limit;
 
     // initialize the file table
-    fs->file_descriptor_table = gnl_simfs_file_descriptor_table_init(MAX_FILES);
+    fs->file_table = NULL;
+
+    // initialize the file descriptor table
+    fs->file_descriptor_table = gnl_simfs_file_descriptor_table_init(GNL_SIMFS_MAX_OPEN_FILES);
+
+    // initialize the other values
     fs->heap_size = 0;
     fs->files_count = 0;
 
@@ -138,6 +143,9 @@ void gnl_simfs_file_system_destroy(struct gnl_simfs_file_system *file_system) {
 
     // destroy the file table
     gnl_ternary_search_tree_destroy(&file_system->file_table, destroy_inode);
+
+    // destroy the file descriptor table
+    gnl_simfs_file_descriptor_table_destroy(file_system->file_descriptor_table);
 
     // destroy the lock, proceed on error
     pthread_mutex_destroy(&(file_system->mtx));
@@ -183,7 +191,7 @@ static struct gnl_simfs_inode *create_file(struct gnl_simfs_file_system *file_sy
 }
 
 /**
- * {@inheritDoc}
+ * {@inheritDoc} //TODO: se lo stesso requestor fa 2 open dello stesso file si torna lo stesso fd?
  */
 int gnl_simfs_file_system_open(struct gnl_simfs_file_system *file_system, char *filename, int flags) {
     // acquire the lock
@@ -193,7 +201,7 @@ int gnl_simfs_file_system_open(struct gnl_simfs_file_system *file_system, char *
     GNL_SIMFS_NULL_CHECK(file_system, EINVAL, -1)
 
     // check if we can open a file
-    if (gnl_simfs_file_descriptor_table_size(file_system->file_descriptor_table) == MAX_FILES) {
+    if (gnl_simfs_file_descriptor_table_size(file_system->file_descriptor_table) == GNL_SIMFS_MAX_OPEN_FILES) {
         errno = ENFILE;
         GNL_SIMFS_LOCK_RELEASE(-1)
 
@@ -241,7 +249,7 @@ int gnl_simfs_file_system_open(struct gnl_simfs_file_system *file_system, char *
     return fd;
 }
 
-#undef MAX_FILES
+#undef GNL_SIMFS_MAX_OPEN_FILES
 
 #undef GNL_SIMFS_LOCK_ACQUIRE
 #undef GNL_SIMFS_LOCK_RELEASE
