@@ -61,7 +61,7 @@ static struct gnl_socket_response *handle_request(struct gnl_simfs_file_system *
     switch (request->type) {
         case GNL_SOCKET_REQUEST_OPEN:
             res = gnl_simfs_file_system_open(file_system, request->payload.open->string, request->payload.open->number, fd_c);
-            break;
+            break; //TODO: se "muore" un client chiudere tutti i suoi files aperti (occhio ai lock)
 
         case GNL_SOCKET_REQUEST_READ_N:
             //res = gnl_simfs_file_system_read_n(file_system, request->payload.read_N->number);
