@@ -26,11 +26,19 @@ struct gnl_simfs_inode {
     // the lock status must persist between different methods invocations
     unsigned int locked;
 
-    // the condition variable to track if a file is unlocked.
-    pthread_cond_t file_unlocked;
+    // the condition variable to track if a file can be locked or
+    // read and written by a hippie pid.
+    pthread_cond_t file_access_available;
 
-    // the reference counter of the inode
+    // the reference count of the inode
     unsigned int reference_count;
+
+    // the count of pid that opened the pointed file
+    // without any lock
+    unsigned int active_hippie_pid;
+
+    // the count of pid that want to lock the pointed file
+    unsigned int waiting_locker_pid;
 };
 
 /**
@@ -54,7 +62,7 @@ extern void gnl_simfs_inode_destroy(struct gnl_simfs_inode *inode);
  * @param inode The inode instance to check.
  *
  * @return      Returns the owner id of the lock if the file of the given
- *              inode is locked, 0 if it is unlocked, -1 on errors.
+ *              inode is locked, 0 if it is unlocked, -1 on error.
  */
 extern int gnl_simfs_inode_is_file_locked(struct gnl_simfs_inode *inode);
 
@@ -117,5 +125,63 @@ extern int gnl_simfs_inode_file_lock(struct gnl_simfs_inode *inode, unsigned int
  * @return      Returns 0 on success, -1 otherwise.
  */
 extern int gnl_simfs_inode_file_unlock(struct gnl_simfs_inode *inode, unsigned int pid);
+
+/**
+ * Increase the hippie pid count of the given inode.
+ *
+ * @param inode The inode instance where to increase the
+ *              hippie pid count.
+ *
+ * @return      Returns 0 on success, -1 otherwise.
+ */
+extern int gnl_simfs_inode_increase_hippie_pid(struct gnl_simfs_inode *inode);
+
+/**
+ * Decrease the hippie pid count of the given inode.
+ *
+ * @param inode The inode instance where to decrease the
+ *              hippie pid count.
+ *
+ * @return      Returns 0 on success, -1 otherwise.
+ */
+extern int gnl_simfs_inode_decrease_hippie_pid(struct gnl_simfs_inode *inode);
+
+/**
+ * Check whether the inode has active hippie pid.
+ *
+ * @param inode The inode instance to check.
+ *
+ * @return      Returns 0 on success, -1 otherwise.
+ */
+extern int gnl_simfs_inode_has_hippie_pid(struct gnl_simfs_inode *inode);
+
+/**
+ * Increase the locker pid count of the given inode.
+ *
+ * @param inode The inode instance where to increase the
+ *              locker pid count.
+ *
+ * @return      Returns 0 on success, -1 otherwise.
+ */
+extern int gnl_simfs_inode_increase_locker_pid(struct gnl_simfs_inode *inode);
+
+/**
+ * Decrease the locker pid count of the given inode.
+ *
+ * @param inode The inode instance where to decrease the
+ *              locker pid count.
+ *
+ * @return      Returns 0 on success, -1 otherwise.
+ */
+extern int gnl_simfs_inode_decrease_locker_pid(struct gnl_simfs_inode *inode);
+
+/**
+ * Check whether the inode has waiting locker pid.
+ *
+ * @param inode The inode instance to check.
+ *
+ * @return      Returns 0 on success, -1 otherwise.
+ */
+extern int gnl_simfs_inode_has_locker_pid(struct gnl_simfs_inode *inode);
 
 #endif //GNL_SIMFS_INODE_H

@@ -190,11 +190,50 @@ static struct gnl_simfs_inode *create_file(struct gnl_simfs_file_system *file_sy
     return inode;
 }
 
-static int wait_file_unlock(struct gnl_simfs_file_system *file_system, struct gnl_simfs_inode *inode, unsigned int pid) {
+/**
+ * Check whether we should wait for a file available signal.
+ *
+ * We should wait in three cases:
+ * - case 1:        the file is locked and the given pid does not own the lock
+ * - case 2:        the file is not locked but there are "active hippie pid"
+ * - case 3:        there are one or more waiting locker pid and the given pid
+ *                  is a hippie pid
+ *
+ * There is an invalid case that cause an error:
+ * - invalid case:  the file is not locked or the given pid owns the lock but
+ *                  there are "active hippie pid".
+ * The invalid case is invalid because breaks the Safety property "Never a file
+ * can be locked and have happy pid in the same time"
+ *
+ * @param file_system       The file system instance that owns the lock.
+ * @param inode             The inode where to check.
+ * @param pid               The current process id.
+ * @param lock_requested    Whether or not the given pid has requested to
+ *                          lock the file; 1 means yes, 0 means no.
+ *
+ * @return                  Returns 1 if we should wait, 0 if not,
+ *                          -1 on error
+ */
+static int wait_file_availability(struct gnl_simfs_file_system *file_system, struct gnl_simfs_inode *inode, unsigned int pid,
+        int lock_requested) {
     int is_file_locked = gnl_simfs_inode_is_file_locked(inode);
     GNL_SIMFS_MINUS1_CHECK(is_file_locked, errno, -1)
 
-    return is_file_locked > 0 && is_file_locked != pid;
+    int has_hippie_pid = gnl_simfs_inode_has_hippie_pid(inode);
+    GNL_SIMFS_MINUS1_CHECK(has_hippie_pid, errno, -1)
+
+    int has_locker_pid = gnl_simfs_inode_has_locker_pid(inode);
+    GNL_SIMFS_MINUS1_CHECK(has_locker_pid, errno, -1)
+
+    // check the Safety property: invalid case
+    if (is_file_locked > 0 && has_hippie_pid) {
+        errno = ENOTRECOVERABLE;
+        return -1;
+    }
+
+    return (is_file_locked > 0 && is_file_locked != pid) //case 1
+    || (lock_requested > 0 && has_hippie_pid) // case 2
+    || (lock_requested == 0 && has_locker_pid); // case 3
 }
 
 /**
@@ -246,12 +285,27 @@ int gnl_simfs_file_system_open(struct gnl_simfs_file_system *file_system, char *
     // check if the file is locked: if the file is locked
     // and the owner is not the given pid, wait for it
     int test, res;
-    while ((test = wait_file_unlock(file_system, inode, pid)) > 0) {
+
+    // if the file must be locked, increase the waiting locker pid
+    if (GNL_SIMFS_O_LOCK & flags) {
+        res = gnl_simfs_inode_increase_locker_pid(inode);
+        GNL_SIMFS_MINUS1_CHECK(res, errno, -1)
+    }
+
+    while ((test = wait_file_availability(file_system, inode, pid, GNL_SIMFS_O_LOCK & flags)) > 0) {
         GNL_SIMFS_MINUS1_CHECK(test, errno, -1)
 
         res = gnl_simfs_inode_wait_unlock(inode, &(file_system->mtx));
         GNL_SIMFS_MINUS1_CHECK(res, errno, -1)
     }
+
+    // if the file must be locked, decrease the waiting locker pid
+    if (GNL_SIMFS_O_LOCK & flags) {
+        res = gnl_simfs_inode_decrease_locker_pid(inode);
+        GNL_SIMFS_MINUS1_CHECK(res, errno, -1)
+    }
+
+    //TODO: da qui in poi in caso di errore non lasciare lo stato della struct corrotto
 
     // if this point is reached, the target file is unlocked
     // or is locked by the given pid
@@ -260,10 +314,15 @@ int gnl_simfs_file_system_open(struct gnl_simfs_file_system *file_system, char *
     if (GNL_SIMFS_O_LOCK & flags) {
         res = gnl_simfs_inode_file_lock(inode, pid);
         GNL_SIMFS_MINUS1_CHECK(res, errno, -1)
-    } //TODO: in caso di errore non lasciare lo stato della struct corrotto
+    }
+    // else increase the "hippie pid" count
+    else {
+        res = gnl_simfs_inode_increase_hippie_pid(inode);
+        GNL_SIMFS_MINUS1_CHECK(res, errno, -1)
+    }
 
     // increase the inode reference count
-    res = gnl_simfs_inode_increase_refs(inode); //TODO: far diventare lista di pid
+    res = gnl_simfs_inode_increase_refs(inode);
     GNL_SIMFS_MINUS1_CHECK(res, errno, -1)
 
     // put the inode into the file descriptor table; do not check an error here

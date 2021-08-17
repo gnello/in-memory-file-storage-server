@@ -15,7 +15,7 @@ struct gnl_simfs_inode *gnl_simfs_inode_init() {
     inode->creation_time = time(NULL);
 
     // initialize condition variables
-    int res = pthread_cond_init(&(inode->file_unlocked), NULL);
+    int res = pthread_cond_init(&(inode->file_access_available), NULL);
     GNL_MINUS1_CHECK(res, errno, NULL)
 
     // initialize others attributes
@@ -23,6 +23,8 @@ struct gnl_simfs_inode *gnl_simfs_inode_init() {
     inode->size = 0;
     inode->locked = 0;
     inode->direct_ptr = NULL;
+    inode->active_hippie_pid = 0;
+    inode->waiting_locker_pid = 0;
 
     return inode;
 }
@@ -39,7 +41,7 @@ void gnl_simfs_inode_destroy(struct gnl_simfs_inode *inode) {
     free(inode->direct_ptr);
 
     // destroy the condition variables
-    pthread_cond_destroy(&(inode->file_unlocked));
+    pthread_cond_destroy(&(inode->file_access_available));
 
     // destroy the inode
     free(inode);
@@ -58,7 +60,7 @@ int gnl_simfs_inode_is_file_locked(struct gnl_simfs_inode *inode) {
  * {@inheritDoc}
  */
 int gnl_simfs_inode_wait_unlock(struct gnl_simfs_inode *inode, pthread_mutex_t *mtx) {
-    return pthread_cond_wait(&(inode->file_unlocked), mtx);
+    return pthread_cond_wait(&(inode->file_access_available), mtx);
 }
 
 /**
@@ -136,7 +138,87 @@ int gnl_simfs_inode_file_unlock(struct gnl_simfs_inode *inode, unsigned int pid)
     inode->locked = 0;
 
     // wake up eventually waiting threads
-    return pthread_cond_signal(&(inode->file_unlocked));
+    return pthread_cond_signal(&(inode->file_access_available));
+}
+
+/**
+ * {@inheritDoc}
+ */
+int gnl_simfs_inode_increase_hippie_pid(struct gnl_simfs_inode *inode) {
+    GNL_NULL_CHECK(inode, EINVAL, -1)
+
+    inode->active_hippie_pid++;
+
+    return 0;
+}
+
+/**
+ * {@inheritDoc}
+ */
+int gnl_simfs_inode_decrease_hippie_pid(struct gnl_simfs_inode *inode) {
+    GNL_NULL_CHECK(inode, EINVAL, -1)
+
+    if (inode->active_hippie_pid == 0) {
+        errno = EPERM;
+        return -1;
+    }
+
+    inode->active_hippie_pid--;
+
+    if (inode->active_hippie_pid == 0) {
+        return pthread_cond_signal(&(inode->file_access_available));
+    }
+
+    return 0;
+}
+
+/**
+ * {@inheritDoc}
+ */
+int gnl_simfs_inode_has_hippie_pid(struct gnl_simfs_inode *inode) {
+    GNL_NULL_CHECK(inode, EINVAL, -1)
+
+    return inode->active_hippie_pid > 0;
+}
+
+/**
+ * {@inheritDoc}
+ */
+int gnl_simfs_inode_increase_locker_pid(struct gnl_simfs_inode *inode) {
+    GNL_NULL_CHECK(inode, EINVAL, -1)
+
+    inode->waiting_locker_pid++;
+
+    return 0;
+}
+
+/**
+ * {@inheritDoc}
+ */
+int gnl_simfs_inode_decrease_locker_pid(struct gnl_simfs_inode *inode) {
+    GNL_NULL_CHECK(inode, EINVAL, -1)
+
+    if (inode->waiting_locker_pid == 0) {
+        errno = EPERM;
+        return -1;
+    }
+
+    inode->waiting_locker_pid--;
+
+    if (inode->waiting_locker_pid == 0) {
+        return pthread_cond_signal(&(inode->file_access_available));
+    }
+
+    return 0;
+}
+
+/**
+ * {@inheritDoc}
+ */
+int gnl_simfs_inode_has_locker_pid(struct gnl_simfs_inode *inode) {
+    GNL_NULL_CHECK(inode, EINVAL, -1)
+
+    return inode->waiting_locker_pid > 0;
 }
 
 #include <gnl_macro_end.h>
