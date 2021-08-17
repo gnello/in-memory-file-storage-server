@@ -4,6 +4,7 @@
  */
 
 #include <stdlib.h>
+#include <string.h>
 #include <errno.h>
 #include "../include/gnl_ternary_search_tree_t.h"
 #include <gnl_macro_beg.h>
@@ -61,6 +62,9 @@ void gnl_ternary_search_tree_destroy(struct gnl_ternary_search_tree_t **t, void 
  */
 int gnl_ternary_search_tree_put(struct gnl_ternary_search_tree_t **t, char *key, void *el) {
     GNL_NULL_CHECK(key, EINVAL, -1)
+
+    // check if the key
+    GNL_MINUS1_CHECK(-1 * (strlen(key) == 0), EINVAL, -1)
 
     // if the root tree is empty add a new node
     if (*t == NULL) {
