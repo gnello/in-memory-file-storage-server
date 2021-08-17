@@ -8,9 +8,20 @@
  * The possibles type of a socket response.
  */
 enum gnl_socket_response_type {
+
+    // the request is successfully processed but
+    // there are evicted files
     GNL_SOCKET_RESPONSE_OK_EVICTED,
+
+    // the request is successfully processed and
+    // a file is returned
     GNL_SOCKET_RESPONSE_OK_FILE,
+
+    // the request is successfully processed
     GNL_SOCKET_RESPONSE_OK,
+
+    // there was an error during the processing
+    // of the request
     GNL_SOCKET_RESPONSE_ERROR
 };
 

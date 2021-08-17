@@ -346,13 +346,15 @@ struct gnl_socket_response *gnl_socket_response_get(const struct gnl_socket_conn
                                                     int (*on_message)(const struct gnl_socket_connection *connection,
                                                                       char **message, int size)) {
     char *message = NULL;
-    GNL_CALLOC(message, 10, NULL)
+    GNL_CALLOC(message, 100, NULL)
 
-    int res = on_message(connection, &message, 10);
+    int res = on_message(connection, &message, 100);
     GNL_MINUS1_CHECK(res, errno, NULL)
 
     struct gnl_socket_response *response = gnl_socket_response_read(message);
     GNL_NULL_CHECK(response, errno, NULL);
+
+    free(message);
 
     return response;
 }

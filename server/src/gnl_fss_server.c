@@ -9,6 +9,7 @@
 #include <bits/sigaction.h>
 #include <gnl_logger.h>
 #include "gnl_fss_thread_pool.c"
+#include <gnl_simfs_file_system.h>
 #include "../include/gnl_fss_server.h"
 #include <gnl_macro_beg.h>
 
@@ -368,7 +369,14 @@ int gnl_fss_server_start(const struct gnl_fss_config *config) {
     gnl_logger_info(logger, "server is starting");
 
     // instantiate the file_system
-    struct gnl_simfs_file_system *file_system = NULL;
+    int res = gnl_logger_debug(logger, "starting the file system...");
+    GNL_MINUS1_CHECK(res, errno, -1)
+
+    struct gnl_simfs_file_system *file_system = gnl_simfs_file_system_init(config->capacity, config->limit);
+    GNL_NULL_CHECK(logger, errno, -1)
+
+    res = gnl_logger_debug(logger, "file system started");
+    GNL_MINUS1_CHECK(res, errno, -1)
 
     // start the thread pool
     struct gnl_fss_thread_pool *thread_pool = create_thread_pool(config->thread_workers, file_system, config, logger);
@@ -396,7 +404,7 @@ int gnl_fss_server_start(const struct gnl_fss_config *config) {
     }
 
     // run the server
-    int res = run_server(fd_skt, thread_pool, logger);
+    res = run_server(fd_skt, thread_pool, logger);
     if (res == -1) {
         gnl_logger_error(logger, "error running the server: %s", strerror(errno));
 
@@ -406,6 +414,7 @@ int gnl_fss_server_start(const struct gnl_fss_config *config) {
     // if you reach this point means that the server execution
     // is terminated (due to an error or a signal), so free memory
     gnl_fss_thread_pool_destroy(thread_pool);
+    gnl_simfs_file_system_destroy(file_system);
     close(fd_skt);
     unlink(socket_name);
 

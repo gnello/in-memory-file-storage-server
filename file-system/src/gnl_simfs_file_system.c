@@ -1,5 +1,6 @@
 #include <stdlib.h>
 #include <errno.h>
+#include <string.h>
 #include <pthread.h>
 #include <gnl_ternary_search_tree_t.h>
 #include "./gnl_simfs_file_descriptor_table.c"
@@ -245,6 +246,7 @@ int gnl_simfs_file_system_open(struct gnl_simfs_file_system *file_system, char *
 
     // validate the parameters
     GNL_SIMFS_NULL_CHECK(file_system, EINVAL, -1)
+    GNL_SIMFS_MINUS1_CHECK(-1 * (strlen(filename) == 0), EINVAL, -1)
 
     // check if we can open a file
     if (gnl_simfs_file_descriptor_table_size(file_system->file_descriptor_table) == GNL_SIMFS_MAX_OPEN_FILES) {

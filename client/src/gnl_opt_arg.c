@@ -23,8 +23,10 @@
 static int gnl_opt_arg_send_file(const char *filename, const char *store_dirname) {
     int res;
 
-    res = gnl_fss_api_open_file(filename, O_CREATE & O_LOCK);
+    res = gnl_fss_api_open_file(filename, O_CREATE | O_LOCK);
     GNL_MINUS1_CHECK(res, errno, -1);
+
+    printf("send file res: %d\n", res);
 
     // send file
     res = gnl_fss_api_write_file(filename, store_dirname);
@@ -33,6 +35,9 @@ static int gnl_opt_arg_send_file(const char *filename, const char *store_dirname
     return 0;
 }
 
+/**
+ * {@inheritDoc}
+ */
 void arg_h(const char* program_name) { //7
     printf("Usage: %s [options]\n", program_name);
     printf("Write and read files to and from the In Memory Storage Server.\n");
@@ -75,6 +80,9 @@ void arg_h(const char* program_name) { //7
     gnl_print_table("-p", "Print the log of the requests made to the server.\n");
 }
 
+/**
+ * {@inheritDoc}
+ */
 int arg_f_start(const char* socket_name) { //3
     time_t now = time(0);
 
@@ -85,6 +93,9 @@ int arg_f_start(const char* socket_name) { //3
     return gnl_fss_api_open_connection(socket_name, SOCKET_TRY_EVERY_MILLISECONDS, tim);
 }
 
+/**
+ * {@inheritDoc}
+ */
 int arg_f_end(const char* socket_name) { //3
     return gnl_fss_api_close_connection(socket_name);
 }
@@ -127,6 +138,9 @@ static int arg_w_parse_arg(const char* arg, char **dirname, int *n) {
     return 0;
 }
 
+/**
+ * {@inheritDoc}
+ */
 int arg_w(const char *arg, const char *store_dirname) { //11
     int res;
     char *dirname;
@@ -140,7 +154,10 @@ int arg_w(const char *arg, const char *store_dirname) { //11
     // send n files
     queue = gnl_opt_rts_scan_dir(dirname, n);
 
+    // for each dir files
     while ((filename = (char *)gnl_queue_dequeue(queue)) != NULL) {
+
+        // send the file to the server
         res = gnl_opt_arg_send_file(filename, store_dirname);
         GNL_MINUS1_CHECK(res, errno, -1);
 
@@ -155,6 +172,9 @@ int arg_w(const char *arg, const char *store_dirname) { //11
     return 0;
 }
 
+/**
+ * {@inheritDoc}
+ */
 int arg_W(const char *arg, const char *store_dirname) { //11
     int res;
     struct gnl_queue_t *queue;
@@ -168,18 +188,24 @@ int arg_W(const char *arg, const char *store_dirname) { //11
     res = gnl_opt_rts_parse_file_list(arg, queue);
     GNL_MINUS1_CHECK(res, errno, -1);
 
-    // send the given files
+    // for each given files
     while ((filename = (char *)gnl_queue_dequeue(queue)) != NULL) {
+
+        // send the file to the server
         res = gnl_opt_arg_send_file(filename, store_dirname);
-        GNL_MINUS1_CHECK(res, errno, -1);
 
         free(filename);
+
+        // if an error happen stop the execution
+        if (res == -1) {
+            break;
+        }
     }
 
     // destroy the queue
     gnl_queue_destroy(queue, NULL);
 
-    return 0;
+    return res;
 }
 
 //

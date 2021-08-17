@@ -102,14 +102,26 @@ int gnl_opt_rts_parse_file_list(const char* file_list, struct gnl_queue_t *queue
     char *tok;
     char *copy_arg;
     char *token;
+    char *token_copy;
+    int res;
 
-    GNL_CALLOC(copy_arg, strlen(file_list) + 1, -1);
+    GNL_CALLOC(copy_arg, (strlen(file_list) + 1) * sizeof(char), -1);
     strncpy(copy_arg, file_list, strlen(file_list));
 
     // parse files and put it into the queue
     token = strtok_r(copy_arg, ",", &tok);
     while (token) {
-        gnl_queue_enqueue(queue, token);
+
+        // create a copy of the token to prevent
+        // value rewriting
+        GNL_CALLOC(token_copy, (strlen(token) + 1) * sizeof(char), -1);
+        strncpy(token_copy, token, strlen(token));
+
+        // enqueue the token (i.e. the filename)
+        res = gnl_queue_enqueue(queue, token_copy);
+        GNL_MINUS1_CHECK(res, errno, -1);
+
+        // proceed to the next token
         token = strtok_r(NULL, ",", &tok);
     }
 

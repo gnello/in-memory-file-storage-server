@@ -80,6 +80,9 @@ static int level_to_string(const enum gnl_log_level level, char **dest) {
     return 0;
 }
 
+/**
+ * {@inheritDoc}
+ */
 struct gnl_logger *gnl_logger_init(const char *path, const char *channel, const char *level) {
     if (path == NULL) {
         errno = EINVAL;
@@ -114,6 +117,9 @@ struct gnl_logger *gnl_logger_init(const char *path, const char *channel, const 
     return logger;
 }
 
+/**
+ * {@inheritDoc}
+ */
 void gnl_logger_destroy(struct gnl_logger *logger) {
     free(logger->path);
     free(logger->channel);
@@ -298,6 +304,9 @@ static int report(const struct gnl_logger *logger, const char *message, const en
     return 0;
 }
 
+/**
+ * {@inheritDoc}
+ */
 int gnl_logger_trace(const struct gnl_logger *logger, const char *message, ...) {
     int res = 0;
 
@@ -314,6 +323,9 @@ int gnl_logger_trace(const struct gnl_logger *logger, const char *message, ...) 
     return res;
 }
 
+/**
+ * {@inheritDoc}
+ */
 int gnl_logger_debug(const struct gnl_logger *logger, const char *message, ...) {
     int res = 0;
 
@@ -330,6 +342,9 @@ int gnl_logger_debug(const struct gnl_logger *logger, const char *message, ...) 
     return res;
 }
 
+/**
+ * {@inheritDoc}
+ */
 int gnl_logger_info(const struct gnl_logger *logger, const char *message, ...) {
     int res = 0;
 
@@ -346,6 +361,9 @@ int gnl_logger_info(const struct gnl_logger *logger, const char *message, ...) {
     return res;
 }
 
+/**
+ * {@inheritDoc}
+ */
 int gnl_logger_warn(const struct gnl_logger *logger, const char *message, ...) {
     int res = 0;
 
@@ -362,6 +380,9 @@ int gnl_logger_warn(const struct gnl_logger *logger, const char *message, ...) {
     return res;
 }
 
+/**
+ * {@inheritDoc}
+ */
 int gnl_logger_error(const struct gnl_logger *logger, const char *message, ...) {
     int res = 0;
 

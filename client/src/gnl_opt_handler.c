@@ -156,14 +156,15 @@ int gnl_opt_handler_parse_opt(struct gnl_opt_handler *handler, int argc, char* a
 
 int gnl_opt_handler_handle(struct gnl_opt_handler *handler) {
     int opt_t_value = 0;
+    int arg_f;
     int res;
 
     // first open the connection to the server
-    res = arg_f_start(handler->socket_filename);
-    GNL_MINUS1_CHECK(res, errno, -1);
+    arg_f = arg_f_start(handler->socket_filename);
+    GNL_MINUS1_CHECK(arg_f, errno, -1);
 
     struct gnl_opt_handler_el *el;
-    struct gnl_opt_handler_el previous_el;
+    struct gnl_opt_handler_el previous_el = {0, NULL};
 
     while ((el = (struct gnl_opt_handler_el *)gnl_queue_dequeue(handler->command_queue)) != NULL) {
 
@@ -184,8 +185,6 @@ int gnl_opt_handler_handle(struct gnl_opt_handler *handler) {
                 } else {
                     res = arg_w(el->arg, NULL);
                 }
-
-                GNL_MINUS1_CHECK(res, errno, -1);
                 break;
 
             case 'W':
@@ -194,22 +193,26 @@ int gnl_opt_handler_handle(struct gnl_opt_handler *handler) {
                 } else {
                     res = arg_W(el->arg, NULL);
                 }
-
-                GNL_MINUS1_CHECK(res, errno, -1);
                 break;
         }
 
         previous_el = *el;
 
         free(el);
+
+        // if an error happen stop the execution
+        if (res == -1) {
+            break;
+        }
+
         wait_microseconds(opt_t_value);
     }
 
     // at the end close the connection to the server
-    res = arg_f_end(handler->socket_filename);
-    GNL_MINUS1_CHECK(res, errno, -1);
+    arg_f = arg_f_end(handler->socket_filename);
+    GNL_MINUS1_CHECK(arg_f, errno, -1);
 
-    return 0;
+    return res;
 }
 
 #undef GNL_SHORT_OPTS

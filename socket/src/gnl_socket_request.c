@@ -455,7 +455,11 @@ int gnl_socket_request_send(const struct gnl_socket_request *request,
     int res = gnl_socket_request_write(request, &message);
     GNL_MINUS1_CHECK(res, EINVAL, -1)
 
-    return emit(connection, message);
+    res = emit(connection, message);
+
+    free(message);
+
+    return res;
 }
 
 #undef MAX_DIGITS_CHAR

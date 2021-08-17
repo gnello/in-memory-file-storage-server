@@ -48,7 +48,7 @@ static int throw_internal_error(int fd_c) {
     res = gnl_socket_response_write(response, &response_message);
     GNL_MINUS1_CHECK(res, errno, -1)
 
-    // send the response message to the client
+    // send the response message to the client //TODO: writen invece di write?
     res = write(fd_c, response_message, strlen(response_message));
     GNL_MINUS1_CHECK(res, errno, -1)
 
@@ -57,7 +57,10 @@ static int throw_internal_error(int fd_c) {
 
 static struct gnl_socket_response *handle_request(struct gnl_simfs_file_system *file_system, struct gnl_socket_request *request, int fd_c) {
     int res;
+    struct gnl_socket_response *response = NULL;
 
+    // handle the request with the correct handler
+    //TODO: creare un metodo handler per ogni type che gestisca separatamente gli errori?
     switch (request->type) {
         case GNL_SOCKET_REQUEST_OPEN:
             res = gnl_simfs_file_system_open(file_system, request->payload.open->string, request->payload.open->number, fd_c);
@@ -101,13 +104,20 @@ static struct gnl_socket_response *handle_request(struct gnl_simfs_file_system *
             break;
     }
 
-    GNL_MINUS1_CHECK(res, errno, NULL)
+    if (res == -1) {
+        response = gnl_socket_response_init(GNL_SOCKET_RESPONSE_ERROR, 1, errno);
+        GNL_NULL_CHECK(response, errno, NULL)
+    } else {
+        response = gnl_socket_response_init(GNL_SOCKET_RESPONSE_OK, 0);
+        GNL_NULL_CHECK(response, errno, NULL)
+    }
 
-
-
-    return 0;
+    return response;
 }
 
+/**
+ * {@inheritDoc}
+ */
 struct gnl_fss_worker *gnl_fss_worker_init(pthread_t id, struct gnl_ts_bb_queue_t *worker_queue, int pipe_channel,
         struct gnl_simfs_file_system *file_system, const struct gnl_fss_config *config) {
     if (worker_queue == NULL || file_system == NULL || config == NULL) {
@@ -146,6 +156,9 @@ struct gnl_fss_worker *gnl_fss_worker_init(pthread_t id, struct gnl_ts_bb_queue_
     return worker;
 }
 
+/**
+ * {@inheritDoc}
+ */
 void gnl_fss_worker_destroy(struct gnl_fss_worker *worker) {
     if (worker == NULL) {
         return;
@@ -157,6 +170,9 @@ void gnl_fss_worker_destroy(struct gnl_fss_worker *worker) {
     free(worker);
 }
 
+/**
+ * {@inheritDoc}
+ */
 void *gnl_fss_worker_handle(void* args)
 {
     // decode args
@@ -190,9 +206,9 @@ void *gnl_fss_worker_handle(void* args)
 
         // waiting for a ready file descriptor from the main thread
         raw_fd_c = gnl_ts_bb_queue_dequeue(worker->worker_queue);
-        GNL_NULL_CHECK(raw_fd_c, EINVAL, NULL);
+        GNL_NULL_CHECK(raw_fd_c, EINVAL, NULL); //TODO: return o si continua il ciclo?
 
-        gnl_logger_debug(logger, "received a new message");
+        gnl_logger_debug(logger, "new message received");
 
         // cast raw client file descriptor
         fd_c = *(int *)raw_fd_c;
@@ -221,6 +237,7 @@ void *gnl_fss_worker_handle(void* args)
         if (nread == 0) {
             // close the current file descriptor
             gnl_logger_debug(logger, "the message says that client %d has gone away", fd_c);
+            //TODO: chiudere tutti i file aperti
 
             // close the client file descriptor
             res = close(fd_c);
@@ -243,11 +260,14 @@ void *gnl_fss_worker_handle(void* args)
                 gnl_logger_error(logger, "invalid request: %s", strerror(errno));
             } else {
 
+                // get the request type
                 char *request_type;
                 res = gnl_socket_request_to_string(request, &request_type);
                 GNL_MINUS1_CHECK(res, errno, NULL)
 
                 gnl_logger_debug(logger, "request decoded, has type %s", request_type);
+
+                gnl_logger_debug(logger, "handle the %s request", request_type);
 
                 // handle the request
                 struct gnl_socket_response *response;
@@ -257,11 +277,11 @@ void *gnl_fss_worker_handle(void* args)
                 //TODO: creare risposta di errore standard/generica
 
                 // encode the response
-                char *response_message;
+                char *response_message = NULL;
                 res = gnl_socket_response_write(response, &response_message);
                 GNL_MINUS1_CHECK(res, errno, NULL)
 
-                // send the response message to the client
+                // send the response message to the client //TODO: writen invece di write?
                 res = write(fd_c, response_message, strlen(response_message));
                 GNL_MINUS1_CHECK(res, errno, NULL)
 

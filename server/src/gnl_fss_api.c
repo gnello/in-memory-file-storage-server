@@ -8,9 +8,15 @@
 #include "../include/gnl_fss_api.h"
 #include <gnl_macro_beg.h>
 
+/**
+ * {@inheritDoc}
+ */
 static struct gnl_socket_connection *socket_service_connection;
 int socket_service_connection_active = 0;
 
+/**
+ * {@inheritDoc}
+ */
 int gnl_fss_api_open_connection(const char *sockname, int msec, const struct timespec abstime) {
     if (sockname == NULL || msec <= 0) {
         errno = EINVAL;
@@ -53,6 +59,9 @@ int gnl_fss_api_open_connection(const char *sockname, int msec, const struct tim
     return 0;
 }
 
+/**
+ * {@inheritDoc}
+ */
 int gnl_fss_api_close_connection(const char *sockname) {
     if (!socket_service_connection_active
     || !gnl_socket_service_is_active(socket_service_connection)
@@ -71,6 +80,9 @@ int gnl_fss_api_close_connection(const char *sockname) {
     return res;
 }
 
+/**
+ * {@inheritDoc}
+ */
 int gnl_fss_api_open_file(const char *pathname, int flags) {
     if (pathname == NULL) {
         errno = EINVAL;
@@ -83,8 +95,8 @@ int gnl_fss_api_open_file(const char *pathname, int flags) {
     GNL_NULL_CHECK(request, ENOMEM, -1)
 
     // send the request
-    int res = gnl_socket_request_send(request, socket_service_connection, gnl_socket_service_emit);
-    GNL_MINUS1_CHECK(res, errno, -1)
+    int bytes_sent = gnl_socket_request_send(request, socket_service_connection, gnl_socket_service_emit);
+    GNL_MINUS1_CHECK(bytes_sent, errno, -1)
 
     // clean memory
     gnl_socket_request_destroy(request);
@@ -93,51 +105,84 @@ int gnl_fss_api_open_file(const char *pathname, int flags) {
     struct gnl_socket_response *response = gnl_socket_response_get(socket_service_connection, gnl_socket_service_read);
     GNL_NULL_CHECK(response, errno, -1)
 
-    // check for errors
-    if (response->type == GNL_SOCKET_RESPONSE_ERROR) {
-//        switch (response->payload.error->number) {
-//
-//        }
+    int res = 0;
+    switch (response->type) {
 
-        return -1;
+        case GNL_SOCKET_RESPONSE_ERROR:
+            // an error happen, get the errno
+            errno = response->payload.error->number;
+            res = -1;
+            break;
+
+        case GNL_SOCKET_RESPONSE_OK:
+            // success
+            break;
+
+        default:
+            // if this point is reached, the response can not be
+            // something different from an ok response
+            errno = EBADMSG;
+            res = -1;
     }
 
-    // Check for evicted files
-//    if (response->payload.open->number > 0) {
-//        // handle evicted files
-//    }
+    // free the memory
+    gnl_socket_response_destroy(response);
 
-    return 0;
+    return res;
 }
 
+/**
+ * {@inheritDoc}
+ */
 int gnl_fss_api_read_file(const char *pathname, void **buf, size_t *size) {
     return 0;
 }
 
+/**
+ * {@inheritDoc}
+ */
 int gnl_fss_api_read_N_files(int N, const char *dirname) {
     return 0;
 }
 
+/**
+ * {@inheritDoc}
+ */
 int gnl_fss_api_write_file(const char *pathname, const char *dirname) {
     return 0;
 }
 
+/**
+ * {@inheritDoc}
+ */
 int gnl_fss_api_append_to_file(const char *pathname, void *buf, size_t size, const char *dirname) {
     return 0;
 }
 
+/**
+ * {@inheritDoc}
+ */
 int gnl_fss_api_lock_file(const char *pathname) {
     return 0;
 }
 
+/**
+ * {@inheritDoc}
+ */
 int gnl_fss_api_unlock_file(const char *pathname) {
     return 0;
 }
 
+/**
+ * {@inheritDoc}
+ */
 int gnl_fss_api_close_file(const char *pathname) {
     return 0;
 }
 
+/**
+ * {@inheritDoc}
+ */
 int gnl_fss_api_remove_file(const char *pathname) {
     return 0;
 }
