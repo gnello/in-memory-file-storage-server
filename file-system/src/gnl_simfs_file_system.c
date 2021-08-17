@@ -199,7 +199,7 @@ static struct gnl_simfs_inode *create_file(struct gnl_simfs_file_system *file_sy
  * - case 3:        there are one or more waiting locker pid and the given pid
  *                  is a hippie pid
  *
- * There is an invalid case that cause an error:
+ * There is an invalid case that causes an error if it happens:
  * - invalid case:  the file is not locked or the given pid owns the lock but
  *                  there are "active hippie pid".
  * The invalid case is invalid because breaks the Safety property "Never a file
@@ -213,7 +213,7 @@ static struct gnl_simfs_inode *create_file(struct gnl_simfs_file_system *file_sy
  *
  * @return                  Returns 1 if we should wait, 0 if not,
  *                          -1 on error
- */
+ */ //TODO: aggiungere test appena possibile (mancano gli altri metodi)
 static int wait_file_availability(struct gnl_simfs_file_system *file_system, struct gnl_simfs_inode *inode, unsigned int pid,
         int lock_requested) {
     int is_file_locked = gnl_simfs_inode_is_file_locked(inode);
@@ -282,16 +282,16 @@ int gnl_simfs_file_system_open(struct gnl_simfs_file_system *file_system, char *
         inode = (struct gnl_simfs_inode *)raw_inode;
     }
 
-    // check if the file is locked: if the file is locked
-    // and the owner is not the given pid, wait for it
-    int test, res;
-
     // if the file must be locked, increase the waiting locker pid
+    int res;
     if (GNL_SIMFS_O_LOCK & flags) {
         res = gnl_simfs_inode_increase_locker_pid(inode);
         GNL_SIMFS_MINUS1_CHECK(res, errno, -1)
     }
 
+    // check if the file is locked: if the file is locked
+    // and the owner is not the given pid, wait for it
+    int test;
     while ((test = wait_file_availability(file_system, inode, pid, GNL_SIMFS_O_LOCK & flags)) > 0) {
         GNL_SIMFS_MINUS1_CHECK(test, errno, -1)
 
