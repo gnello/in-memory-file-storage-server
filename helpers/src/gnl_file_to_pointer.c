@@ -2,6 +2,9 @@
 #include <stdlib.h>
 #include <errno.h>
 
+/**
+ * {@inheritDoc}
+ */
 int gnl_file_to_pointer(char *filepath, char **pointer, long *size) {
     int res;
 

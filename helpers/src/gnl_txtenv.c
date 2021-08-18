@@ -77,6 +77,9 @@ static int setenv_from_file(FILE *file, int overwrite) {
     return 0;
 }
 
+/**
+ * {@inheritDoc}
+ */
 int gnl_txtenv_load(const char * path, int overwrite) {
     FILE *file;
     int res = 0;
