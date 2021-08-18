@@ -5,6 +5,7 @@
 #include <gnl_socket_request.h>
 #include <gnl_socket_response.h>
 #include <gnl_socket_service.h>
+#include <gnl_file_to_pointer.h>
 #include "../include/gnl_fss_api.h"
 #include <gnl_macro_beg.h>
 
@@ -84,24 +85,21 @@ int gnl_fss_api_close_connection(const char *sockname) {
  * {@inheritDoc}
  */
 int gnl_fss_api_open_file(const char *pathname, int flags) {
-    if (pathname == NULL) {
-        errno = EINVAL;
+    // validate the parameters
+    GNL_NULL_CHECK(pathname, EINVAL, -1)
 
-        return -1;
-    }
-
-    // create request
+    // create the request to send to the server
     struct gnl_socket_request *request = gnl_socket_request_init(GNL_SOCKET_REQUEST_OPEN, 2, pathname, flags);
     GNL_NULL_CHECK(request, ENOMEM, -1)
 
-    // send the request
+    // send the request to the server
     int bytes_sent = gnl_socket_request_send(request, socket_service_connection, gnl_socket_service_emit);
     GNL_MINUS1_CHECK(bytes_sent, errno, -1)
 
     // clean memory
     gnl_socket_request_destroy(request);
 
-    // get the response
+    // get the response from the server
     struct gnl_socket_response *response = gnl_socket_response_get(socket_service_connection, gnl_socket_service_read);
     GNL_NULL_CHECK(response, errno, -1)
 
@@ -149,7 +147,60 @@ int gnl_fss_api_read_N_files(int N, const char *dirname) {
  * {@inheritDoc}
  */
 int gnl_fss_api_write_file(const char *pathname, const char *dirname) {
-    return 0;
+    // validate the parameters
+    GNL_NULL_CHECK(pathname, EINVAL, -1)
+
+    // get the file to send
+    long size;
+    char *file = NULL;
+
+    int res = gnl_file_to_pointer("./testfile.txt", &file, &size);
+    GNL_MINUS1_CHECK(res, errno, -1)
+
+    // create the request to send to the server
+    struct gnl_socket_request *request = gnl_socket_request_init(GNL_SOCKET_REQUEST_WRITE, 2, pathname, file);
+    GNL_NULL_CHECK(request, ENOMEM, -1)
+
+    // send the request to the server
+    int bytes_sent = gnl_socket_request_send(request, socket_service_connection, gnl_socket_service_emit);
+    GNL_MINUS1_CHECK(bytes_sent, errno, -1)
+
+    // clean memory
+    gnl_socket_request_destroy(request);
+
+    // get the response from the server
+    struct gnl_socket_response *response = gnl_socket_response_get(socket_service_connection, gnl_socket_service_read);
+    GNL_NULL_CHECK(response, errno, -1)
+
+    res = 0;
+    switch (response->type) {
+
+        case GNL_SOCKET_RESPONSE_ERROR:
+            // an error happen, get the errno
+            errno = response->payload.error->number;
+            res = -1;
+            break;
+
+        case GNL_SOCKET_RESPONSE_OK:
+            // success
+            break;
+
+        case GNL_SOCKET_RESPONSE_OK_EVICTED:
+            // success but one or more files were evicted
+            break;
+
+        default:
+            // if this point is reached, the response can not be
+            // something different from an ok response
+            errno = EBADMSG;
+            res = -1;
+            break;
+    }
+
+    // free the memory
+    gnl_socket_response_destroy(response);
+
+    return res;
 }
 
 /**

@@ -201,10 +201,9 @@ static struct gnl_simfs_inode *create_file(struct gnl_simfs_file_system *file_sy
  *                  is a hippie pid
  *
  * There is an invalid case that causes an error if it happens:
- * - invalid case:  the file is not locked or the given pid owns the lock but
- *                  there are "active hippie pid".
+ * - invalid case:  the file is locked but there are "active hippie pid".
  * The invalid case is invalid because breaks the Safety property "Never a file
- * can be locked and have happy pid in the same time"
+ * can be locked and have happy pid in the same time".
  *
  * @param file_system       The file system instance that owns the lock.
  * @param inode             The inode where to check.
@@ -213,9 +212,9 @@ static struct gnl_simfs_inode *create_file(struct gnl_simfs_file_system *file_sy
  *                          lock the file; 1 means yes, 0 means no.
  *
  * @return                  Returns 1 if we should wait, 0 if not,
- *                          -1 on error
+ *                          -1 on error.
  */ //TODO: aggiungere test appena possibile (mancano gli altri metodi)
-static int wait_file_availability(struct gnl_simfs_file_system *file_system, struct gnl_simfs_inode *inode, unsigned int pid,
+static int is_file_not_available(struct gnl_simfs_file_system *file_system, struct gnl_simfs_inode *inode, unsigned int pid,
         int lock_requested) {
     int is_file_locked = gnl_simfs_inode_is_file_locked(inode);
     GNL_SIMFS_MINUS1_CHECK(is_file_locked, errno, -1)
@@ -291,13 +290,12 @@ int gnl_simfs_file_system_open(struct gnl_simfs_file_system *file_system, char *
         GNL_SIMFS_MINUS1_CHECK(res, errno, -1)
     }
 
-    // check if the file is locked: if the file is locked
-    // and the owner is not the given pid, wait for it
+    // check if the file is available: if not, wait for it
     int test;
-    while ((test = wait_file_availability(file_system, inode, pid, GNL_SIMFS_O_LOCK & flags)) > 0) {
+    while ((test = is_file_not_available(file_system, inode, pid, GNL_SIMFS_O_LOCK & flags)) > 0) {
         GNL_SIMFS_MINUS1_CHECK(test, errno, -1)
 
-        res = gnl_simfs_inode_wait_unlock(inode, &(file_system->mtx));
+        res = gnl_simfs_inode_wait_file_availability(inode, &(file_system->mtx));
         GNL_SIMFS_MINUS1_CHECK(res, errno, -1)
     }
 
@@ -335,6 +333,68 @@ int gnl_simfs_file_system_open(struct gnl_simfs_file_system *file_system, char *
     GNL_SIMFS_LOCK_RELEASE(-1)
 
     return fd;
+}
+
+/**
+ * {@inheritDoc}
+ */
+int gnl_simfs_file_system_write(struct gnl_simfs_file_system *file_system, int fd, const void *buf, size_t count,
+        unsigned int pid) {
+    // acquire the lock
+    GNL_SIMFS_LOCK_ACQUIRE(-1)
+
+    // validate the parameters
+    GNL_SIMFS_NULL_CHECK(file_system, EINVAL, -1)
+
+    // check if there is enough space to write the file //TODO: count + 1?
+    if (count > (file_system->memory_limit - file_system->heap_size)) {
+        errno = E2BIG;
+        GNL_SIMFS_LOCK_RELEASE(-1)
+
+        return -1;
+    }
+
+    // search the file in the file descriptor table
+    struct gnl_simfs_inode *inode = gnl_simfs_file_descriptor_table_get(file_system->file_descriptor_table, fd, pid);
+
+    // if the file is not present return an error
+    GNL_SIMFS_NULL_CHECK(inode, errno, -1)
+
+    // check if the file is available: if not, wait for it
+    int test, res;
+    while ((test = is_file_not_available(file_system, inode, pid, 0)) > 0) {
+        GNL_SIMFS_MINUS1_CHECK(test, errno, -1)
+
+        res = gnl_simfs_inode_wait_file_availability(inode, &(file_system->mtx));
+        GNL_SIMFS_MINUS1_CHECK(res, errno, -1)
+    }
+
+    //TODO: da qui in poi in caso di errore non lasciare lo stato della struct corrotto
+
+    // if this point is reached, the target file is ready to be used
+
+    // write the given buf into the file pointed by the inode
+    //TODO: allocare memoria con realloc
+    memcpy(inode->direct_ptr + inode->size, buf, count + 1); //TODO: creare metodi su interfaccia inode
+
+    // update the inode
+    //TODO: creare metodi su interfaccia inode
+    inode->size += (count + 1); // plus 1 for the '\0' terminator character
+
+    // update the inode into the file table
+    //TODO: aggiungere filename nell'inode per passarlo qui
+    char *filename = NULL;
+    res = gnl_ternary_search_tree_put(&file_system->file_table, filename, inode);
+    GNL_MINUS1_CHECK(res, errno, -1)
+
+    // update the file system
+    file_system->heap_size += (count + 1);
+
+    // release the lock
+    GNL_SIMFS_LOCK_RELEASE(-1)
+
+    return 0;
+
 }
 
 #undef GNL_SIMFS_MAX_OPEN_FILES

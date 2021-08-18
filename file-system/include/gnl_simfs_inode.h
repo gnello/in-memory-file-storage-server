@@ -78,7 +78,7 @@ extern int gnl_simfs_inode_is_file_locked(struct gnl_simfs_inode *inode);
  *
  * @return      Returns 0 on success, -1 otherwise.
  */
-extern int gnl_simfs_inode_wait_unlock(struct gnl_simfs_inode *inode, pthread_mutex_t *mtx);
+extern int gnl_simfs_inode_wait_file_availability(struct gnl_simfs_inode *inode, pthread_mutex_t *mtx);
 
 /**
  * Increase the reference count of the given inode.

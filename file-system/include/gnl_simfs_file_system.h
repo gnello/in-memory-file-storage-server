@@ -57,4 +57,18 @@ extern void gnl_simfs_file_system_destroy(struct gnl_simfs_file_system *file_sys
  */
 extern int gnl_simfs_file_system_open(struct gnl_simfs_file_system *file_system, char *filename, int flags, unsigned int pid);
 
+/**
+ * Write up to count bytes from the buffer starting at buf to the file referred to by
+ * the file descriptor fd. //TODO: decidere se è atomica o no
+ * //TODO: c'è un limite alla grandezza del file?
+ *
+ * @param file_system
+ * @param fd
+ * @param buf
+ * @param count
+ * @return
+ */
+extern int gnl_simfs_file_system_write(struct gnl_simfs_file_system *file_system, int fd, const void *buf, size_t count,
+        unsigned int pid);
+
 #endif //GNL_SIMFS_FILE_SYSTEM_H

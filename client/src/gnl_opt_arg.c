@@ -23,12 +23,11 @@
 static int gnl_opt_arg_send_file(const char *filename, const char *store_dirname) {
     int res;
 
+    // create and open the file on the server (with lock)
     res = gnl_fss_api_open_file(filename, O_CREATE | O_LOCK);
     GNL_MINUS1_CHECK(res, errno, -1);
 
-    printf("send file res: %d\n", res);
-
-    // send file
+    // send the file to the server
     res = gnl_fss_api_write_file(filename, store_dirname);
     GNL_MINUS1_CHECK(res, errno, -1);
 

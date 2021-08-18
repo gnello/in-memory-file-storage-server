@@ -23,7 +23,7 @@ LIBS += -Wl,-rpath,$(DATA_STRUCTURES_PATH_LIB) -L$(DATA_STRUCTURES_PATH_LIB) -lg
 INCLUDE += -I$(DATA_STRUCTURES_PATH_INCLUDE)
 
 # helpers library
-LIBS += -Wl,-rpath,$(HELPERS_PATH_LIB) -L$(HELPERS_PATH_LIB) -lgnl_colorshell -lgnl_assert -lgnl_txtenv
+LIBS += -Wl,-rpath,$(HELPERS_PATH_LIB) -L$(HELPERS_PATH_LIB) -lgnl_colorshell -lgnl_assert -lgnl_txtenv -lgnl_file_to_pointer
 INCLUDE += -I$(HELPERS_PATH_INCLUDE)
 
 # mocks library

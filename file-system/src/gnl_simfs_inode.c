@@ -59,7 +59,7 @@ int gnl_simfs_inode_is_file_locked(struct gnl_simfs_inode *inode) {
 /**
  * {@inheritDoc}
  */
-int gnl_simfs_inode_wait_unlock(struct gnl_simfs_inode *inode, pthread_mutex_t *mtx) {
+int gnl_simfs_inode_wait_file_availability(struct gnl_simfs_inode *inode, pthread_mutex_t *mtx) {
     return pthread_cond_wait(&(inode->file_access_available), mtx);
 }
 
