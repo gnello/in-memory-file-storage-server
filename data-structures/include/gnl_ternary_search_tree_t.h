@@ -17,7 +17,8 @@ struct gnl_ternary_search_tree_t;
 extern void gnl_ternary_search_tree_destroy(struct gnl_ternary_search_tree_t **t, void (*destroy)(void *data));
 
 /**
- * Put an element "el" into the ternary_search_tree "t".
+ * Put an element "el" into the ternary_search_tree "t". A second put of the same key
+ * will update the target el.
  *
  * @param t     The ternary_search_tree where to put the element.
  * @param key   The key of the element to put.

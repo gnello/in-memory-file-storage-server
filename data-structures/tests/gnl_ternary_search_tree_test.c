@@ -185,6 +185,42 @@ int can_not_put_empty_key() {
     return 0;
 }
 
+int can_update_an_element() {
+    struct gnl_ternary_search_tree_t *ternary_search_tree = NULL;
+
+    gnl_ternary_search_tree_put(&ternary_search_tree, "test", test_string_el1);
+
+    void *res = gnl_ternary_search_tree_get(ternary_search_tree, "test");
+
+    if (res == NULL) {
+        return -1;
+    }
+
+    char *actual = (char *)res;
+
+    if (strcmp(test_string_el1, actual) != 0) {
+        return -1;
+    }
+
+    gnl_ternary_search_tree_put(&ternary_search_tree, "test", test_string_el2);
+
+    res = gnl_ternary_search_tree_get(ternary_search_tree, "test");
+
+    if (res == NULL) {
+        return -1;
+    }
+
+    actual = (char *)res;
+
+    if (strcmp(test_string_el2, actual) != 0) {
+        return -1;
+    }
+
+    gnl_ternary_search_tree_destroy(&ternary_search_tree, NULL);
+
+    return 0;
+}
+
 int can_destroy_ternary_search_tree_complex_struct() {
     struct gnl_ternary_search_tree_t *ternary_search_tree = NULL;
     char *keys[5] = {"a", "b", "c", "d", "e"};
@@ -268,6 +304,7 @@ int main() {
     gnl_assert(can_remove_a_struct, "can remove a struct element from a ternary_search_tree.");
 
     gnl_assert(can_not_put_empty_key, "can not put an empty key to a ternary_search_tree.");
+    gnl_assert(can_update_an_element, "can update an element into a ternary_search_tree.");
 
     gnl_assert(can_destroy_ternary_search_tree_complex_struct, "can destroy a complex struct elements from a ternary_search_tree.");
     gnl_assert(can_remove_an_allocated_pointer, "can remove an allocated pointer elements with no memory leaks from a ternary_search_tree.");
@@ -276,6 +313,7 @@ int main() {
 
     gnl_assert(can_pass_null_ternary_search_tree, "can give a null ternary_search_tree safely to the ternary_search_tree interface.");
 
+    // the gnl_ternary_search_tree_get method is implicitly tested by the other tests
 
     // the gnl_ternary_search_tree_destroy method is implicitly tested in every
     // assert, if you don't believe it, run this tests with
