@@ -237,14 +237,14 @@ int gnl_simfs_file_descriptor_table_remove(struct gnl_simfs_file_descriptor_tabl
     GNL_NULL_CHECK(table, EINVAL, -1)
 
     // check that the given file descriptor is active
-    if (fd > table->max_fd || table->table[fd] == NULL) {
-        errno = EPERM;
+    if (table->size == 0 || fd > table->max_fd || table->table[fd] == NULL) {
+        errno = EBADF;
 
         return -1;
     }
 
     // check that we are allowed to remove the file descriptor
-    if (table->size == 0 || table->table[fd]->owner != pid) {
+    if (table->table[fd]->owner != pid) {
         errno = EPERM;
 
         return -1;
@@ -253,6 +253,7 @@ int gnl_simfs_file_descriptor_table_remove(struct gnl_simfs_file_descriptor_tabl
     // remove the file descriptor
     free(table->table[fd]->inode);
     free(table->table[fd]);
+    table->table[fd] = NULL;
 
     // if the fd is the maximum active file descriptor decrease it by one
     if (fd == table->max_fd) {
@@ -275,6 +276,31 @@ int gnl_simfs_file_descriptor_table_remove(struct gnl_simfs_file_descriptor_tabl
     table->size--;
 
     return 0;
+}
+
+/**
+ * {@inheritDoc}
+ */
+struct gnl_simfs_inode * gnl_simfs_file_descriptor_table_get(struct gnl_simfs_file_descriptor_table *table, unsigned int fd,
+        unsigned int pid) {
+    GNL_NULL_CHECK(table, EINVAL, NULL)
+
+    // check that the given file descriptor is active
+    if (table->size == 0 || fd > table->max_fd || table->table[fd] == NULL) {
+        errno = EBADF;
+
+        return NULL;
+    }
+
+    // check that we are allowed to get the file descriptor
+    if (table->table[fd]->owner != pid) {
+        errno = EPERM;
+
+        return NULL;
+    }
+
+    // return the file descriptor
+    return table->table[fd]->inode;
 }
 
 /**

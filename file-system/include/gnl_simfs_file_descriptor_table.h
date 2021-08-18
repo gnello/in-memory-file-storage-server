@@ -45,12 +45,24 @@ extern int gnl_simfs_file_descriptor_table_put(struct gnl_simfs_file_descriptor_
  *
  * @param table The file descriptor table instance from where delete the file descriptor.
  * @param fd    The file descriptor to remove from the given file descriptor table.
- * @param pid   The owner of the entry that will be created.
+ * @param pid   The id of the process that invoked this method, it should be the owner of the entry.
  *
  * @return      Return 0 on success, -1 otherwise.
  */
 extern int gnl_simfs_file_descriptor_table_remove(struct gnl_simfs_file_descriptor_table *table, unsigned int fd,
         unsigned int pid);
+
+/**
+ * Get a file descriptor inode from the given file descriptor table.
+ *
+ * @param table The file descriptor table instance from where to get the file descriptor.
+ * @param fd    The file descriptor to get from the given file descriptor table.
+ * @param pid   The id of the process that invoked this method, it should be the owner of the entry
+ *
+ * @return      Return the inode of the given fd on success, NULL otherwise.
+ */
+extern struct gnl_simfs_inode *gnl_simfs_file_descriptor_table_get(struct gnl_simfs_file_descriptor_table *table,
+        unsigned int fd, unsigned int pid);
 
 /**
  * Get the current size of the given file descriptor table.
