@@ -32,7 +32,7 @@ jobs:
 
     - name: Install Valgrind
       run: sudo apt install -y valgrind
-      
+
     # unit test
     - name: Run unit tests
       run: cp .env.test .env && chmod -R +x * && make -s tests
