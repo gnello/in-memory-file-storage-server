@@ -17,7 +17,7 @@ jobs:
     # upload the project
     - uses: actions/upload-artifact@v2
       with:
-        name: file-system
+        name: in-memory-file-storage-server
         path: ${{ github.workspace }}
         
   test:
@@ -26,8 +26,8 @@ jobs:
     needs: build
 
     steps:
-    - uses: actions/checkout@v2
-    - uses: actions/download-artifact@v2
+#    - uses: actions/checkout@v2
+#    - uses: actions/download-artifact@v2
 
     # test data-structures
     - run: chmod -R +x ./*
