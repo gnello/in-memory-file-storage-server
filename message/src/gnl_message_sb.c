@@ -37,7 +37,7 @@ struct gnl_message_sb *gnl_message_sb_init_with_args(char *string, void *bytes) 
     strncpy(message_sb->string, string, strlen(string) + 1);
 
     // assign bytes
-    message_sb->bytes = calloc(strlen(bytes) + 1, sizeof(void));
+    message_sb->bytes = calloc(strlen(bytes) + 1, sizeof(void *));
     GNL_NULL_CHECK(message_sb->bytes, ENOMEM, NULL)
 
     memcpy(message_sb->bytes, bytes, strlen(bytes) + 1);
@@ -102,7 +102,7 @@ int gnl_message_sb_read(const char *message, struct gnl_message_sb *message_sb) 
     }
 
     // get the bytes
-    message_sb->bytes = calloc(bytes_len + 1, sizeof(void));
+    message_sb->bytes = calloc(bytes_len + 1, sizeof(void *));
     GNL_NULL_CHECK(message_sb->bytes, ENOMEM, -1)
 
     memcpy(message_sb->bytes, message + MAX_DIGITS_INT + string_len + MAX_DIGITS_INT, bytes_len + 1);
