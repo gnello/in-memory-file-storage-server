@@ -30,5 +30,6 @@ jobs:
     - uses: actions/download-artifact@v2
 
     # test
+    - run: cp .env.test .env
     - run: chmod -R +x *
     - run: make -s tests
