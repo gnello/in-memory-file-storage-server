@@ -31,6 +31,5 @@ jobs:
         name: in-memory-file-storage-server
 
     # test
-    - run: cp .env.test .env
-    - run: chmod -R +x *
-    - run: make -s tests
+    - name: unit tests
+      run: cp .env.test .env && chmod -R +x * && make -s tests
