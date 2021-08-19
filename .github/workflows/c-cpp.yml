@@ -14,47 +14,11 @@ jobs:
     - run: cp .env.test .env
     - run: make dev
 
-    # upload data-structures
-    - uses: actions/upload-artifact@v2
-      with:
-        name: data-structures
-        path: data-structures
-
-    # upload helpers
-    - uses: actions/upload-artifact@v2
-      with:
-        name: helpers
-        path: helpers
-
-    # upload server
-    - uses: actions/upload-artifact@v2
-      with:
-        name: server
-        path: server
-
-    # upload message
-    - uses: actions/upload-artifact@v2
-      with:
-        name: message
-        path: message
-
-    # upload socket
-    - uses: actions/upload-artifact@v2
-      with:
-        name: socket
-        path: socket
-
-    # upload client
-    - uses: actions/upload-artifact@v2
-      with:
-        name: client
-        path: client
-
-    # upload file-system
+    # upload the project
     - uses: actions/upload-artifact@v2
       with:
         name: file-system
-        path: file-system
+        path: ${{ github.workspace }}
         
   test:
 
@@ -67,49 +31,5 @@ jobs:
 
     # test data-structures
     - run: chmod -R +x ./*
-      working-directory: data-structures/tests
     - run: cp .env.test .env
     - run: make -s tests
-      working-directory: data-structures/tests
-
-    # test helpers
-    - run: chmod -R +x ./*
-      working-directory: helpers/tests
-    - run: cp .env.test .env
-    - run: make -s tests
-      working-directory: helpers/tests
-
-    # test server
-    - run: chmod -R +x ./*
-      working-directory: server/tests
-    - run: cp .env.test .env
-    - run: make -s tests
-      working-directory: server/tests
-
-    # test message
-    - run: chmod -R +x ./*
-      working-directory: message/tests
-    - run: cp .env.test .env
-    - run: make -s tests
-      working-directory: message/tests
-
-    # test client
-    - run: chmod -R +x ./*
-      working-directory: client/tests
-    - run: cp .env.test .env
-    - run: make -s tests
-      working-directory: client/tests
-
-      # test socket
-    - run: chmod -R +x ./*
-      working-directory: socket/tests
-    - run: cp .env.test .env
-    - run: make -s tests
-      working-directory: socket/tests
-
-      # test file-system
-    - run: chmod -R +x ./*
-      working-directory: file-system/tests
-    - run: cp .env.test .env
-    - run: make -s tests
-      working-directory: file-system/tests
