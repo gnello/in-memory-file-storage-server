@@ -37,7 +37,7 @@ struct gnl_message_sb *gnl_message_sb_init_with_args(char *string, void *bytes) 
     strncpy(message_sb->string, string, strlen(string) + 1);
 
     // assign bytes
-    message_sb->bytes = calloc(strlen(bytes) + 1, sizeof(void *));
+    message_sb->bytes = calloc(strlen(bytes), sizeof(void *));
     GNL_NULL_CHECK(message_sb->bytes, ENOMEM, NULL)
 
     memcpy(message_sb->bytes, bytes, strlen(bytes));
@@ -58,7 +58,7 @@ int gnl_message_sb_write(const struct gnl_message_sb message_sb, char **dest) {
 
     GNL_CALLOC(*dest, message_sb_size + 1, -1)
 
-    int maxlen = message_sb_size - strlen(message_sb.bytes) + 1; // count also the '\0' char
+    int maxlen = (message_sb_size - strlen(message_sb.bytes)) + 1; // count also the '\0' char
 
     snprintf(*dest, maxlen, "%0*lu%s%0*lu", MAX_DIGITS_INT, strlen(message_sb.string), message_sb.string,
              MAX_DIGITS_INT, strlen(message_sb.bytes));
@@ -102,7 +102,7 @@ int gnl_message_sb_read(const char *message, struct gnl_message_sb *message_sb) 
     }
 
     // get the bytes
-    message_sb->bytes = calloc(bytes_len + 1, sizeof(void *));
+    message_sb->bytes = calloc(bytes_len, sizeof(void *));
     GNL_NULL_CHECK(message_sb->bytes, ENOMEM, -1)
 
     memcpy(message_sb->bytes, message + MAX_DIGITS_INT + string_len + MAX_DIGITS_INT, bytes_len);
