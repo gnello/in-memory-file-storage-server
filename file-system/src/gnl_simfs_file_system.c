@@ -375,11 +375,11 @@ int gnl_simfs_file_system_write(struct gnl_simfs_file_system *file_system, int f
 
     // write the given buf into the file pointed by the inode
     //TODO: allocare memoria con realloc
-    memcpy(inode->direct_ptr + inode->size, buf, count + 1); //TODO: creare metodi su interfaccia inode
+    memcpy(inode->direct_ptr + inode->size, buf, count); //TODO: creare metodi su interfaccia inode
 
     // update the inode
     //TODO: creare metodi su interfaccia inode
-    inode->size += (count + 1); // plus 1 for the '\0' terminator character
+    inode->size += count;
 
     // update the inode into the file table
     //TODO: aggiungere filename nell'inode per passarlo qui
