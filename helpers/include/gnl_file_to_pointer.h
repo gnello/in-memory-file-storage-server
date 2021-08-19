@@ -3,7 +3,8 @@
 #define GNL_FILE_TO_POINTER_H
 
 /**
- * Put the content of the file located at the given filepath in the given pointer.
+ * Put the content of the file located at the given filepath on the heap
+ * and return a pointer to it in the given pointer.
  *
  * @param filepath  The path of the file to read.
  * @param pointer   The pointer where to put the file read.

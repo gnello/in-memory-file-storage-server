@@ -26,7 +26,7 @@ extern struct gnl_message_sb *gnl_message_sb_init();
  * @return          The message_sb struct created on success,
  *                  NULL otherwise.
  */
-extern struct gnl_message_sb *gnl_message_sb_init_with_args(char *string, char *bytes);
+extern struct gnl_message_sb *gnl_message_sb_init_with_args(char *string, void *bytes);
 
 /**
  * Destroy the given message_sb.

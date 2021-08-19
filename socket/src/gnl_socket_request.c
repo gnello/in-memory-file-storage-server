@@ -37,7 +37,7 @@
             break;                                                                                      \
         case 2:                                                                                         \
             buffer_s = va_arg(a_list, char *);                                                          \
-            buffer_b = va_arg(a_list, char *);                                                          \
+            buffer_b = va_arg(a_list, void *);                                                          \
             ref = gnl_message_sb_init_with_args(buffer_s, buffer_b);   \
         break;                                                                                          \
             default:                                                                                    \
