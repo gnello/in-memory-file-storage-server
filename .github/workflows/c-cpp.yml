@@ -32,5 +32,5 @@ jobs:
     # test
     - run: cp .env.test .env
     - run: chmod -R +x *
-    - run: make -s tests
+    - run: make tests
       working-directory: ${{ github.workspace }}
