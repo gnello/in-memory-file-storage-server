@@ -57,6 +57,10 @@ tests:
 tests-valgrind:
 	$(foreach target,$(TARGETS_ALL),cd $(ROOT_DIR)/$(target)/tests && $(MAKE) tests-valgrind;)
 
+# run all tests present in this project with valgrind but reduce the output as much as possible
+tests-valgrind-short:
+	$(foreach target,$(TARGETS_ALL),cd $(ROOT_DIR)/$(target)/tests && $(MAKE) tests-valgrind-short;)
+
 clean:
 	$(foreach target,$(TARGETS_ALL),cd $(ROOT_DIR)/$(target) && $(MAKE) clean;)
 

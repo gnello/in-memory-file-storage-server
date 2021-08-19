@@ -98,6 +98,7 @@ socket | `make socket`| Compiles the socket library in `socket/lib`
 file-system | `make file-system`| Compiles the file system library in `file-system/lib`
 tests | `make tests`| Runs all the test suites
 tests-valgrind | `make tests-valgrind`| Runs all the test suites with valgrind
+tests-valgrind-short | `make tests-valgrind-short`| Runs all the test suites with valgrind but reduces output as much as possible
 clean | `make clean`| Clean all the executable, library and object files
 clean-dev | `make clean-dev`| Clean all the executable, library and object files, including tests
 
