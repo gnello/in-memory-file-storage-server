@@ -75,7 +75,7 @@ static struct gnl_socket_response *handle_request(struct gnl_simfs_file_system *
             break;
 
         case GNL_SOCKET_REQUEST_WRITE:
-            //res = gnl_simfs_file_system_write(file_system, request->payload.write->string, request->payload.write->bytes);
+            res = gnl_simfs_file_system_write(file_system, request->payload.write->string, request->payload.write->bytes, strlen(request->payload.write->bytes), fd_c);
             break;
 
         case GNL_SOCKET_REQUEST_APPEND:
