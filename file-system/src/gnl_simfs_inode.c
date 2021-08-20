@@ -1,13 +1,14 @@
 #include <stdlib.h>
 #include <errno.h>
 #include <time.h>
+#include <string.h>
 #include "../include/gnl_simfs_inode.h"
 #include <gnl_macro_beg.h>
 
 /**
  * {@inheritDoc}
  */
-struct gnl_simfs_inode *gnl_simfs_inode_init() {
+struct gnl_simfs_inode *gnl_simfs_inode_init(char *name) {
     struct gnl_simfs_inode *inode = (struct gnl_simfs_inode *)malloc(sizeof(struct gnl_simfs_inode));
     GNL_NULL_CHECK(inode, ENOMEM, NULL)
 
@@ -17,6 +18,10 @@ struct gnl_simfs_inode *gnl_simfs_inode_init() {
     // initialize condition variables
     int res = pthread_cond_init(&(inode->file_access_available), NULL);
     GNL_MINUS1_CHECK(res, errno, NULL)
+
+    // set the name
+    GNL_CALLOC(inode->name, strlen(name) + 1, NULL)
+    strncpy(inode->name, name, strlen(name));
 
     // initialize others attributes
     inode->last_modify_time = 0;
@@ -36,6 +41,9 @@ void gnl_simfs_inode_destroy(struct gnl_simfs_inode *inode) {
     if (inode == NULL) {
         return;
     }
+
+    // destroy the name
+    free(inode->name);
 
     // destroy the file pointer
     free(inode->direct_ptr);
@@ -219,6 +227,41 @@ int gnl_simfs_inode_has_locker_pid(struct gnl_simfs_inode *inode) {
     GNL_NULL_CHECK(inode, EINVAL, -1)
 
     return inode->waiting_locker_pid > 0;
+}
+
+/**
+ * {@inheritDoc}
+ */
+int gnl_simfs_inode_append_to_file(struct gnl_simfs_inode *inode, const void *buf, size_t count) {
+    //validate the parameters
+    GNL_NULL_CHECK(inode, EINVAL, -1)
+    GNL_NULL_CHECK(buf, EINVAL, -1)
+
+    // if we do not have to write data, return with an error
+    GNL_MINUS1_CHECK(-1 * (count <= 0), EINVAL, -1)
+
+    // calculate the new size
+    int size = inode->size + count;
+
+    // alloc the memory onto the heap for the write
+    void *temp = realloc(inode->direct_ptr, size);
+
+    // do not handle errors but bubble it, if an
+    // update fails we are ok with the fact that
+    // realloc does not free the original pointer
+    GNL_NULL_CHECK(temp, errno, -1)
+
+    // update the original pointer if it has changed (or not)
+    inode->direct_ptr = temp;
+
+    // write the data
+    memcpy(inode->direct_ptr + inode->size, buf, count);
+
+    // update the inode
+    inode->size += count;
+    inode->last_modify_time = time(NULL);
+
+    return 0;
 }
 
 #include <gnl_macro_end.h>

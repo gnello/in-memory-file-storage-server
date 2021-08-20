@@ -31,7 +31,7 @@ int can_not_put() {
         return -1;
     }
 
-    struct gnl_simfs_inode *inode = gnl_simfs_inode_init();
+    struct gnl_simfs_inode *inode = gnl_simfs_inode_init("test");
 
     int res = gnl_simfs_file_descriptor_table_put(table, inode, 1);
 
@@ -60,9 +60,9 @@ int can_put() {
         return -1;
     }
 
-    struct gnl_simfs_inode *inode_1 = gnl_simfs_inode_init();
-    struct gnl_simfs_inode *inode_2 = gnl_simfs_inode_init();
-    struct gnl_simfs_inode *inode_3 = gnl_simfs_inode_init();
+    struct gnl_simfs_inode *inode_1 = gnl_simfs_inode_init("test1");
+    struct gnl_simfs_inode *inode_2 = gnl_simfs_inode_init("test2");
+    struct gnl_simfs_inode *inode_3 = gnl_simfs_inode_init("test3");
 
     int res = gnl_simfs_file_descriptor_table_put(table, inode_1, 1);
 
@@ -132,9 +132,9 @@ int can_not_get_not_existing() {
         return -1;
     }
 
-    struct gnl_simfs_inode *inode_1 = gnl_simfs_inode_init();
-    struct gnl_simfs_inode *inode_2 = gnl_simfs_inode_init();
-    struct gnl_simfs_inode *inode_3 = gnl_simfs_inode_init();
+    struct gnl_simfs_inode *inode_1 = gnl_simfs_inode_init("test1");
+    struct gnl_simfs_inode *inode_2 = gnl_simfs_inode_init("test2");
+    struct gnl_simfs_inode *inode_3 = gnl_simfs_inode_init("test3");
 
     int res = gnl_simfs_file_descriptor_table_put(table, inode_1, 1);
 
@@ -183,9 +183,9 @@ int can_not_get_removed() {
         return -1;
     }
 
-    struct gnl_simfs_inode *inode_1 = gnl_simfs_inode_init();
-    struct gnl_simfs_inode *inode_2 = gnl_simfs_inode_init();
-    struct gnl_simfs_inode *inode_3 = gnl_simfs_inode_init();
+    struct gnl_simfs_inode *inode_1 = gnl_simfs_inode_init("test1");
+    struct gnl_simfs_inode *inode_2 = gnl_simfs_inode_init("test2");
+    struct gnl_simfs_inode *inode_3 = gnl_simfs_inode_init("test3");
 
     int res = gnl_simfs_file_descriptor_table_put(table, inode_1, 1);
 
@@ -250,7 +250,7 @@ int can_not_get_perm() {
         return -1;
     }
 
-    struct gnl_simfs_inode *inode_1 = gnl_simfs_inode_init();
+    struct gnl_simfs_inode *inode_1 = gnl_simfs_inode_init("test");
 
     int res = gnl_simfs_file_descriptor_table_put(table, inode_1, 1);
 
@@ -303,7 +303,7 @@ int can_not_remove_perm() {
         return -1;
     }
 
-    struct gnl_simfs_inode *inode_1 = gnl_simfs_inode_init();
+    struct gnl_simfs_inode *inode_1 = gnl_simfs_inode_init("test");
 
     int res = gnl_simfs_file_descriptor_table_put(table, inode_1, 1);
 
@@ -334,9 +334,9 @@ int can_get() {
         return -1;
     }
 
-    struct gnl_simfs_inode *inode_1 = gnl_simfs_inode_init();
-    struct gnl_simfs_inode *inode_2 = gnl_simfs_inode_init();
-    struct gnl_simfs_inode *inode_3 = gnl_simfs_inode_init();
+    struct gnl_simfs_inode *inode_1 = gnl_simfs_inode_init("test1");
+    struct gnl_simfs_inode *inode_2 = gnl_simfs_inode_init("test2");
+    struct gnl_simfs_inode *inode_3 = gnl_simfs_inode_init("test3");
 
     int res = gnl_simfs_file_descriptor_table_put(table, inode_1, 1);
 
@@ -397,9 +397,9 @@ int can_remove() {
         return -1;
     }
 
-    struct gnl_simfs_inode *inode_1 = gnl_simfs_inode_init();
-    struct gnl_simfs_inode *inode_2 = gnl_simfs_inode_init();
-    struct gnl_simfs_inode *inode_3 = gnl_simfs_inode_init();
+    struct gnl_simfs_inode *inode_1 = gnl_simfs_inode_init("test1");
+    struct gnl_simfs_inode *inode_2 = gnl_simfs_inode_init("test2");
+    struct gnl_simfs_inode *inode_3 = gnl_simfs_inode_init("test3");
 
     int fd_1 = gnl_simfs_file_descriptor_table_put(table, inode_1, 1);
 
@@ -461,10 +461,10 @@ int can_put_after_remove() {
         return -1;
     }
 
-    struct gnl_simfs_inode *inode_1 = gnl_simfs_inode_init();
-    struct gnl_simfs_inode *inode_2 = gnl_simfs_inode_init();
-    struct gnl_simfs_inode *inode_3 = gnl_simfs_inode_init();
-    struct gnl_simfs_inode *inode_4 = gnl_simfs_inode_init();
+    struct gnl_simfs_inode *inode_1 = gnl_simfs_inode_init("test1");
+    struct gnl_simfs_inode *inode_2 = gnl_simfs_inode_init("test2");
+    struct gnl_simfs_inode *inode_3 = gnl_simfs_inode_init("test3");
+    struct gnl_simfs_inode *inode_4 = gnl_simfs_inode_init("test4");
 
     int fd_1 = gnl_simfs_file_descriptor_table_put(table, inode_1, 1);
 
@@ -537,9 +537,9 @@ int can_remove_all() {
         return -1;
     }
 
-    struct gnl_simfs_inode *inode_1 = gnl_simfs_inode_init();
-    struct gnl_simfs_inode *inode_2 = gnl_simfs_inode_init();
-    struct gnl_simfs_inode *inode_3 = gnl_simfs_inode_init();
+    struct gnl_simfs_inode *inode_1 = gnl_simfs_inode_init("test1");
+    struct gnl_simfs_inode *inode_2 = gnl_simfs_inode_init("test2");
+    struct gnl_simfs_inode *inode_3 = gnl_simfs_inode_init("test3");
 
     int fd_1 = gnl_simfs_file_descriptor_table_put(table, inode_1, 1);
 

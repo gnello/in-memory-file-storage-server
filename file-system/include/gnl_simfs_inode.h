@@ -17,8 +17,12 @@ struct gnl_simfs_inode {
     // the size of the pointed file
     unsigned int size;
 
+    // the name of the file pointed by
+    // the direct_ptr attribute
+    char *name;
+
     // the direct pointer to the file
-    char *direct_ptr;
+    void *direct_ptr;
 
     // the owner id of the lock, it should be a number > 0:
     // if 0 then the inode is unlocked, if > 0 the inode is locked;
@@ -44,10 +48,14 @@ struct gnl_simfs_inode {
 /**
  * Create a new gnl_simfs_inode.
  *
- * @return  Returns the new gnl_simfs_inode created on success,
- *          NULL otherwise.
+ * @param name  The name of the inode. This is necessary in order to
+ *              find the inode into the file table or into other
+ *              data structures.
+ *
+ * @return      Returns the new gnl_simfs_inode created on success,
+ *              NULL otherwise.
  */
-extern struct gnl_simfs_inode *gnl_simfs_inode_init();
+extern struct gnl_simfs_inode *gnl_simfs_inode_init(char *name);
 
 /**
  * Destroy the given gnl_simfs_inode.
@@ -67,9 +75,9 @@ extern void gnl_simfs_inode_destroy(struct gnl_simfs_inode *inode);
 extern int gnl_simfs_inode_is_file_locked(struct gnl_simfs_inode *inode);
 
 /**
- * Wait for a file unlock using condition variable. Attention! This
- * method it will suspend the process execution until the target file
- * will be unlocked.
+ * Wait for a file to became available using condition variable.
+ * Attention! This method will suspend the process execution
+ * until the target file will become available.
  *
  * @param inode The inode instance containing the file where
  *              to wait the unlock.
@@ -102,7 +110,7 @@ extern int gnl_simfs_inode_decrease_refs(struct gnl_simfs_inode *inode);
 
 /**
  * Lock the file pointed by the given inode. The file must be
- * in unlocked.
+ * in the unlocked state.
  *
  * @param inode The inode instance containing the file
  *              to lock.
@@ -183,5 +191,18 @@ extern int gnl_simfs_inode_decrease_locker_pid(struct gnl_simfs_inode *inode);
  * @return      Returns 0 on success, -1 otherwise.
  */
 extern int gnl_simfs_inode_has_locker_pid(struct gnl_simfs_inode *inode);
+
+/**
+ * Write up to count bytes from the buffer starting at buf to the
+ * file within the given inode. This method updates the given inode
+ * size and last_modify_time attributes.
+ *
+ * @param inode The inode instance where to write to the file.
+ * @param buf   The buffer pointer containing the data to write.
+ * @param count The count of bytes to write.
+ *
+ * @return      Returns 0 on success, -1 otherwise.
+ */
+extern int gnl_simfs_inode_append_to_file(struct gnl_simfs_inode *inode, const void *buf, size_t count);
 
 #endif //GNL_SIMFS_INODE_H

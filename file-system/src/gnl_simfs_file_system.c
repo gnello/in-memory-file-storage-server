@@ -178,7 +178,7 @@ static struct gnl_simfs_inode *create_file(struct gnl_simfs_file_system *file_sy
     }
 
     // create a new inode
-    struct gnl_simfs_inode *inode = gnl_simfs_inode_init();
+    struct gnl_simfs_inode *inode = gnl_simfs_inode_init(filename);
     GNL_NULL_CHECK(inode, errno, NULL)
 
     // put the inode into the file table
@@ -346,7 +346,7 @@ int gnl_simfs_file_system_write(struct gnl_simfs_file_system *file_system, int f
     // validate the parameters
     GNL_SIMFS_NULL_CHECK(file_system, EINVAL, -1)
 
-    // check if there is enough space to write the file //TODO: count + 1?
+    // check if there is enough space to write the file
     if (count > (file_system->memory_limit - file_system->heap_size)) {
         errno = E2BIG;
         GNL_SIMFS_LOCK_RELEASE(-1)
@@ -374,17 +374,11 @@ int gnl_simfs_file_system_write(struct gnl_simfs_file_system *file_system, int f
     // if this point is reached, the target file is ready to be used
 
     // write the given buf into the file pointed by the inode
-    //TODO: allocare memoria con realloc
-    memcpy(inode->direct_ptr + inode->size, buf, count); //TODO: creare metodi su interfaccia inode
-
-    // update the inode
-    //TODO: creare metodi su interfaccia inode
-    inode->size += count;
+    res = gnl_simfs_inode_append_to_file(inode, buf, count);
+    GNL_SIMFS_MINUS1_CHECK(res, errno, -1)
 
     // update the inode into the file table
-    //TODO: aggiungere filename nell'inode per passarlo qui
-    char *filename = NULL;
-    res = gnl_ternary_search_tree_put(&file_system->file_table, filename, inode);
+    res = gnl_ternary_search_tree_put(&file_system->file_table, inode->name, inode);
     GNL_MINUS1_CHECK(res, errno, -1)
 
     // update the file system

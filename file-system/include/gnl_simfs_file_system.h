@@ -64,8 +64,8 @@ extern int gnl_simfs_file_system_open(struct gnl_simfs_file_system *file_system,
  *
  * @param file_system
  * @param fd
- * @param buf
- * @param count
+ * @param buf           The buffer pointer containing the data to write.
+ * @param count         The count of bytes to write.
  * @return
  */
 extern int gnl_simfs_file_system_write(struct gnl_simfs_file_system *file_system, int fd, const void *buf, size_t count,
