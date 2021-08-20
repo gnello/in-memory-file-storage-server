@@ -7,7 +7,7 @@ CC = gcc
 CFLAGS += -std=c99 -Wall -pedantic -g -D_POSIX_C_SOURCE=200112L
 
 # data-structures library
-LIBS += -Wl,-rpath,$(ROOT)$(DATA_STRUCTURES_LIB) -L$(ROOT)$(DATA_STRUCTURES_LIB) -lgnl_queue_t -lgnl_ternary_search_tree_t
+LIBS += -Wl,-rpath,$(ROOT)$(DATA_STRUCTURES_LIB) -L$(ROOT)$(DATA_STRUCTURES_LIB) -lgnl_queue_t
 INCLUDE += -I$(ROOT)$(DATA_STRUCTURES_INCLUDE)
 
 # helpers library

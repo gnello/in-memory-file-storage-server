@@ -17,7 +17,7 @@ LIBS = -Wl,-rpath,$(HELPERS_PATH_LIB) -L$(HELPERS_PATH_LIB) -lgnl_colorshell -lg
 INCLUDE = -I$(HELPERS_PATH_INCLUDE)
 
 # data-structures library
-LIBS += -Wl,-rpath,$(DATA_STRUCTURES_PATH_LIB) -L$(DATA_STRUCTURES_PATH_LIB) -lgnl_queue_t -lgnl_ternary_search_tree_t
+LIBS += -Wl,-rpath,$(DATA_STRUCTURES_PATH_LIB) -L$(DATA_STRUCTURES_PATH_LIB) -lgnl_queue_t
 INCLUDE += -I$(DATA_STRUCTURES_PATH_INCLUDE)
 
 TARGETS = gnl_opt_rts_test
