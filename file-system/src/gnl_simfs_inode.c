@@ -255,7 +255,7 @@ int gnl_simfs_inode_append_to_file(struct gnl_simfs_inode *inode, const void *bu
     inode->direct_ptr = temp;
 
     // write the data
-    memcpy(inode->direct_ptr + inode->size, buf, count);
+    memcpy((char *)inode->direct_ptr + inode->size, buf, count);
 
     // update the inode
     inode->size += count;

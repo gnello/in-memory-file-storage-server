@@ -26,34 +26,34 @@ struct gnl_fss_worker {
     struct gnl_simfs_file_system *file_system;
 };
 
-static struct gnl_socket_response *get_internal_error_response() {
-    struct gnl_socket_response *response;
-
-    response = gnl_socket_response_init(GNL_SOCKET_RESPONSE_ERROR, 1, GNL_FSS_ERRNO_INTERNAL);
-    GNL_NULL_CHECK(response, errno, NULL)
-
-    return response;
-}
-
-static int throw_internal_error(int fd_c) {
-    int res;
-    struct gnl_socket_response *response;
-
-    // get the internal error response
-    response = get_internal_error_response();
-    GNL_NULL_CHECK(response, errno, -1)
-
-    // encode the response
-    char *response_message;
-    res = gnl_socket_response_write(response, &response_message);
-    GNL_MINUS1_CHECK(res, errno, -1)
-
-    // send the response message to the client //TODO: writen invece di write?
-    res = write(fd_c, response_message, strlen(response_message));
-    GNL_MINUS1_CHECK(res, errno, -1)
-
-    return 0;
-}
+//static struct gnl_socket_response *get_internal_error_response() {
+//    struct gnl_socket_response *response;
+//
+//    response = gnl_socket_response_init(GNL_SOCKET_RESPONSE_ERROR, 1, GNL_FSS_ERRNO_INTERNAL);
+//    GNL_NULL_CHECK(response, errno, NULL)
+//
+//    return response;
+//}
+//
+//static int throw_internal_error(int fd_c) {
+//    int res;
+//    struct gnl_socket_response *response;
+//
+//    // get the internal error response
+//    response = get_internal_error_response();
+//    GNL_NULL_CHECK(response, errno, -1)
+//
+//    // encode the response
+//    char *response_message;
+//    res = gnl_socket_response_write(response, &response_message);
+//    GNL_MINUS1_CHECK(res, errno, -1)
+//
+//    // send the response message to the client //TODO: writen invece di write?
+//    res = write(fd_c, response_message, strlen(response_message));
+//    GNL_MINUS1_CHECK(res, errno, -1)
+//
+//    return 0;
+//}
 
 static struct gnl_socket_response *handle_request(struct gnl_simfs_file_system *file_system, struct gnl_socket_request *request, int fd_c) {
     int res;
@@ -75,7 +75,7 @@ static struct gnl_socket_response *handle_request(struct gnl_simfs_file_system *
             break;
 
         case GNL_SOCKET_REQUEST_WRITE:
-            res = gnl_simfs_file_system_write(file_system, request->payload.write->string, request->payload.write->bytes, strlen(request->payload.write->bytes), fd_c);
+            //res = gnl_simfs_file_system_write(file_system, request->payload.write->string, request->payload.write->bytes, strlen(request->payload.write->bytes), fd_c);
             break;
 
         case GNL_SOCKET_REQUEST_APPEND:
