@@ -26,7 +26,7 @@ extern void gnl_ternary_search_tree_destroy(struct gnl_ternary_search_tree_t **t
  *
  * @return int  Returns 0 on success, -1 otherwise.
  */
-extern int gnl_ternary_search_tree_put(struct gnl_ternary_search_tree_t **t, char *key, void *el);
+extern int gnl_ternary_search_tree_put(struct gnl_ternary_search_tree_t **t, const char *key, void *el);
 
 /**
  * Return an element from the ternary_search_tree "t".

@@ -60,7 +60,7 @@ void gnl_ternary_search_tree_destroy(struct gnl_ternary_search_tree_t **t, void 
 /**
  * {@inheritDoc}
  */
-int gnl_ternary_search_tree_put(struct gnl_ternary_search_tree_t **t, char *key, void *el) {
+int gnl_ternary_search_tree_put(struct gnl_ternary_search_tree_t **t, const char *key, void *el) {
     GNL_NULL_CHECK(key, EINVAL, -1)
 
     // check if the key is a valid string
