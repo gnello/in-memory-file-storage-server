@@ -12,6 +12,7 @@ INCLUDE += -I$(ROOT)$(HELPERS_INCLUDE)
 TARGETS =	gnl_message_n.so \
 			gnl_message_s.so \
 			gnl_message_sb.so \
+			gnl_message_nb.so \
 			gnl_message_sn.so
 
 TARGETS_PATH = ./lib

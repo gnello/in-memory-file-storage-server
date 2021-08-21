@@ -7,6 +7,7 @@
 #include <gnl_message_n.h>
 #include <gnl_message_sn.h>
 #include <gnl_message_sb.h>
+#include <gnl_message_nb.h>
 #include <gnl_macro_beg.h>
 #include "../include/gnl_socket_request.h"
 
@@ -48,6 +49,24 @@
     GNL_NULL_CHECK(ref, ENOMEM, NULL)                                       \
 }
 
+#define GNL_REQUEST_NB_INIT(num, ref, a_list) {                                                         \
+    switch (num) {                                                                                      \
+        case 0:                                                                                         \
+            ref = gnl_message_nb_init();                               \
+            break;                                                                                      \
+        case 2:                                                                                         \
+            buffer_n = va_arg(a_list, int);\
+            buffer_b = va_arg(a_list, void *);                                                          \
+            ref = gnl_message_nb_init_with_args(buffer_n, buffer_b);   \
+        break;                                                                                          \
+            default:                                                                                    \
+            errno = EINVAL;                                                                             \
+            return NULL;                                                                                \
+    }                                                                                                   \
+                                                                                                        \
+    GNL_NULL_CHECK(ref, ENOMEM, NULL)                                       \
+}
+
 #define GNL_REQUEST_S_READ_MESSAGE(payload_message, ref, type) {      \
     socket_request = gnl_socket_request_init(type, 0);          \
     GNL_NULL_CHECK(socket_request, ENOMEM, NULL)                    \
@@ -60,6 +79,13 @@
     GNL_NULL_CHECK(socket_request, ENOMEM, NULL)                    \
                                                                     \
     gnl_message_sb_read(payload_message, ref);      \
+}
+
+#define GNL_REQUEST_NB_READ_MESSAGE(payload_message, ref, type) {      \
+    socket_request = gnl_socket_request_init(type, 0);          \
+    GNL_NULL_CHECK(socket_request, ENOMEM, NULL)                    \
+                                                                    \
+    gnl_message_nb_read(payload_message, ref);      \
 }
 
 /**
@@ -196,6 +222,7 @@ struct gnl_socket_request *gnl_socket_request_init(enum gnl_socket_request_type 
     // declare utils vars
     char *buffer_s;
     char *buffer_b;
+    int buffer_n;
 
     // assign payload object
     switch (type) {
@@ -237,7 +264,7 @@ struct gnl_socket_request *gnl_socket_request_init(enum gnl_socket_request_type 
             break;
 
         case GNL_SOCKET_REQUEST_WRITE:
-            GNL_REQUEST_SB_INIT(num, socket_request->payload.write, a_list)
+            GNL_REQUEST_NB_INIT(num, socket_request->payload.write, a_list)
             break;
 
         case GNL_SOCKET_REQUEST_APPEND:
@@ -288,7 +315,7 @@ void gnl_socket_request_destroy(struct gnl_socket_request *request) {
             break;
 
         case GNL_SOCKET_REQUEST_WRITE:
-            gnl_message_sb_destroy(request->payload.write);
+            gnl_message_nb_destroy(request->payload.write);
             break;
 
         case GNL_SOCKET_REQUEST_APPEND:
@@ -343,7 +370,7 @@ struct gnl_socket_request *gnl_socket_request_read(const char *message) {
             break;
 
         case GNL_SOCKET_REQUEST_WRITE:
-            GNL_REQUEST_SB_READ_MESSAGE(payload_message, socket_request->payload.write, type);
+            GNL_REQUEST_NB_READ_MESSAGE(payload_message, socket_request->payload.write, type);
             break;
 
         case GNL_SOCKET_REQUEST_APPEND:
@@ -405,7 +432,7 @@ int gnl_socket_request_write(const struct gnl_socket_request *request, char **de
             break;
 
         case GNL_SOCKET_REQUEST_WRITE:
-            res = gnl_message_sb_write(*(request->payload.write), &built_message);
+            res = gnl_message_nb_write(*(request->payload.write), &built_message);
             break;
 
         case GNL_SOCKET_REQUEST_APPEND:
@@ -466,7 +493,9 @@ int gnl_socket_request_send(const struct gnl_socket_request *request,
 #undef MAX_DIGITS_INT
 #undef GNL_REQUEST_S_INIT
 #undef GNL_REQUEST_SB_INIT
+#undef GNL_REQUEST_NB_INIT
 #undef GNL_REQUEST_S_READ_MESSAGE
 #undef GNL_REQUEST_SB_READ_MESSAGE
+#undef GNL_REQUEST_NB_READ_MESSAGE
 
 #include <gnl_macro_end.h>

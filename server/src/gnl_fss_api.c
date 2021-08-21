@@ -224,9 +224,12 @@ int gnl_fss_api_write_file(const char *pathname, const char *dirname) {
 
     int res = gnl_file_to_pointer("./testfile.txt", &file, &size);
     GNL_MINUS1_CHECK(res, errno, -1)
-//TODO: prendere fd da file descriptor table e aggiungere la request message_nb
+
+    // get the fd associate with the given pathname
+    int fd = 0; //TODO: prendere fd da file descriptor table
+
     // create the request to send to the server
-    struct gnl_socket_request *request = gnl_socket_request_init(GNL_SOCKET_REQUEST_WRITE, 2, pathname, file);
+    struct gnl_socket_request *request = gnl_socket_request_init(GNL_SOCKET_REQUEST_WRITE, 2, fd, file);
     GNL_NULL_CHECK(request, ENOMEM, -1)
 
     // send the request to the server

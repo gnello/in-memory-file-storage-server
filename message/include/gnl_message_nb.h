@@ -1,6 +1,6 @@
 
-#ifndef GNL_MESSAGE_SB_H
-#define GNL_MESSAGE_SB_H
+#ifndef GNL_MESSAGE_NB_H
+#define GNL_MESSAGE_NB_H
 
 /**
  * The message_nb message.
@@ -56,4 +56,4 @@ extern int gnl_message_nb_write(struct gnl_message_nb message_nb, char **dest);
  */
 extern int gnl_message_nb_read(const char *message, struct gnl_message_nb *message_nb);
 
-#endif //GNL_MESSAGE_SB_H
+#endif //GNL_MESSAGE_NB_H

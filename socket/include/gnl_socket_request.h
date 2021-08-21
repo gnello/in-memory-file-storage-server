@@ -7,6 +7,7 @@
 #include <gnl_message_s.h>
 #include <gnl_message_n.h>
 #include <gnl_message_sb.h>
+#include <gnl_message_nb.h>
 
 /**
  * The possibles type of a socket request.
@@ -32,7 +33,7 @@ struct gnl_socket_request {
         struct gnl_message_sn *open;
         struct gnl_message_s *read;
         struct gnl_message_n *read_N;
-        struct gnl_message_sb *write;
+        struct gnl_message_nb *write;
         struct gnl_message_sb *append;
         struct gnl_message_s *lock;
         struct gnl_message_s *unlock;
@@ -51,7 +52,7 @@ struct gnl_socket_request {
  *              - GNL_SOCKET_REQUEST_OPEN: char *pathname, int flags
  *              - GNL_SOCKET_REQUEST_READ: char *pathname
  *              - GNL_SOCKET_RESPONSE_READ_N: int number_of_files_to_read
- *              - GNL_SOCKET_RESPONSE_WRITE: char *pathname, char *bytes
+ *              - GNL_SOCKET_RESPONSE_WRITE: int fd, char *bytes
  *              - GNL_SOCKET_RESPONSE_APPEND: char *pathname, char *bytes
  *              - GNL_SOCKET_REQUEST_LOCK: char *pathname
  *              - GNL_SOCKET_REQUEST_UNLOCK: char *pathname

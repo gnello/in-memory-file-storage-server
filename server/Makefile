@@ -24,7 +24,7 @@ LIBS += -Wl,-rpath,$(ROOT)$(SOCKET_LIB) -L$(ROOT)$(SOCKET_LIB) -lgnl_socket_requ
 INCLUDE += -I$(ROOT)$(SOCKET_INCLUDE)
 
 # message library
-LIBS += -Wl,-rpath,$(ROOT)$(MESSAGE_LIB) -L$(ROOT)$(MESSAGE_LIB) -lgnl_message_n -lgnl_message_s -lgnl_message_sb -lgnl_message_sn
+LIBS += -Wl,-rpath,$(ROOT)$(MESSAGE_LIB) -L$(ROOT)$(MESSAGE_LIB) -lgnl_message_n -lgnl_message_s -lgnl_message_sb -lgnl_message_sn -lgnl_message_nb
 INCLUDE += -I$(ROOT)$(MESSAGE_INCLUDE)
 
 # add thread support
