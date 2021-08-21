@@ -7,7 +7,7 @@
  */
 struct gnl_message_sb {
     char *string;
-    char *bytes;
+    void *bytes;
 };
 
 /**
@@ -43,7 +43,7 @@ extern void gnl_message_sb_destroy(struct gnl_message_sb *message_sb);
  *
  * @return              Returns 0 on success, -1 otherwise.
  */
-extern int gnl_message_sb_write(const struct gnl_message_sb message_sb, char **dest);
+extern int gnl_message_sb_write(struct gnl_message_sb message_sb, char **dest);
 
 /**
  * Decode the given message and fill the message_sb with it.

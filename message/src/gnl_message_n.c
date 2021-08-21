@@ -19,6 +19,9 @@ static int gnl_message_n_size(const struct gnl_message_n message_n) {
     return MAX_DIGITS_INT;
 }
 
+/**
+ * {@inheritDoc}
+ */
 struct gnl_message_n *gnl_message_n_init() {
     struct gnl_message_n *message_n = (struct gnl_message_n *)calloc(1, sizeof(struct gnl_message_n));
     GNL_NULL_CHECK(message_n, ENOMEM, NULL)
@@ -26,6 +29,9 @@ struct gnl_message_n *gnl_message_n_init() {
     return message_n;
 }
 
+/**
+ * {@inheritDoc}
+ */
 struct gnl_message_n *gnl_message_n_init_with_args(int number) {
     struct gnl_message_n *message_n = gnl_message_n_init();
     GNL_NULL_CHECK(message_n, ENOMEM, NULL)
@@ -35,24 +41,33 @@ struct gnl_message_n *gnl_message_n_init_with_args(int number) {
     return message_n;
 }
 
+/**
+ * {@inheritDoc}
+ */
 void gnl_message_n_destroy(struct gnl_message_n *message_n) {
     if (message_n != NULL) {
         free(message_n);
     }
 }
 
+/**
+ * {@inheritDoc}
+ */
 int gnl_message_n_write(const struct gnl_message_n message_n, char **dest) {
-    int read_N_size = gnl_message_n_size(message_n);
+    int message_n_size = gnl_message_n_size(message_n);
 
-    GNL_CALLOC(*dest, read_N_size + 1, -1)
+    GNL_CALLOC(*dest, message_n_size + 1, -1)
 
-    int maxlen = read_N_size + 1; // count also the '\0' char
+    int maxlen = message_n_size + 1; // count also the '\0' char
 
     snprintf(*dest, maxlen, "%0*d", MAX_DIGITS_INT, message_n.number);
 
     return 0;
 }
 
+/**
+ * {@inheritDoc}
+ */
 int gnl_message_n_read(const char *message, struct gnl_message_n *message_n) {
     if (message_n == NULL) {
         errno = EINVAL;
@@ -64,11 +79,14 @@ int gnl_message_n_read(const char *message, struct gnl_message_n *message_n) {
     char message_N[MAX_DIGITS_INT];
     strncpy(message_N, message, MAX_DIGITS_INT);
 
+    // reset the errno value
+    errno = 0;
+
     char *ptr = NULL;
     message_n->number = strtol(message_N, &ptr, 10);
 
     // if no digits found
-    if ((char *)message_n == ptr) {
+    if (message_N == ptr || errno != 0) {
         errno = EINVAL;
         free(ptr);
 

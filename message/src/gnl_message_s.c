@@ -19,6 +19,9 @@ static int gnl_message_s_size(const struct gnl_message_s message_s) {
     return MAX_DIGITS_INT + strlen(message_s.string);
 }
 
+/**
+ * {@inheritDoc}
+ */
 struct gnl_message_s *gnl_message_s_init() {
     struct gnl_message_s *message_s = (struct gnl_message_s *)calloc(1, sizeof(struct gnl_message_s));
     GNL_NULL_CHECK(message_s, ENOMEM, NULL)
@@ -26,6 +29,9 @@ struct gnl_message_s *gnl_message_s_init() {
     return message_s;
 }
 
+/**
+ * {@inheritDoc}
+ */
 struct gnl_message_s *gnl_message_s_init_with_args(char *string) {
     struct gnl_message_s *message_s = gnl_message_s_init();
     GNL_NULL_CHECK(message_s, ENOMEM, NULL)
@@ -38,6 +44,9 @@ struct gnl_message_s *gnl_message_s_init_with_args(char *string) {
     return message_s;
 }
 
+/**
+ * {@inheritDoc}
+ */
 void gnl_message_s_destroy(struct gnl_message_s *message) {
     if (message != NULL) {
         free(message->string);
@@ -45,6 +54,9 @@ void gnl_message_s_destroy(struct gnl_message_s *message) {
     }
 }
 
+/**
+ * {@inheritDoc}
+ */
 int gnl_message_s_write(const struct gnl_message_s message, char **dest) {
     int message_size = gnl_message_s_size(message);
 
@@ -57,6 +69,9 @@ int gnl_message_s_write(const struct gnl_message_s message, char **dest) {
     return 0;
 }
 
+/**
+ * {@inheritDoc}
+ */
 int gnl_message_s_read(const char *message, struct gnl_message_s *message_s) {
     if (message_s == NULL) {
         errno = EINVAL;

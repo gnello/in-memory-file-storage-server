@@ -19,6 +19,9 @@ static int gnl_message_sn_size(const struct gnl_message_sn message_sn) {
     return MAX_DIGITS_INT + strlen(message_sn.string) + MAX_DIGITS_INT;
 }
 
+/**
+ * {@inheritDoc}
+ */
 struct gnl_message_sn *gnl_message_sn_init() {
     struct gnl_message_sn *message_sn = (struct gnl_message_sn *)calloc(1, sizeof(struct gnl_message_sn));
     GNL_NULL_CHECK(message_sn, ENOMEM, NULL)
@@ -26,6 +29,9 @@ struct gnl_message_sn *gnl_message_sn_init() {
     return message_sn;
 }
 
+/**
+ * {@inheritDoc}
+ */
 struct gnl_message_sn *gnl_message_sn_init_with_args(char *string, int number) {
     struct gnl_message_sn *message_sn = gnl_message_sn_init();
     GNL_NULL_CHECK(message_sn, ENOMEM, NULL)
@@ -39,6 +45,9 @@ struct gnl_message_sn *gnl_message_sn_init_with_args(char *string, int number) {
     return message_sn;
 }
 
+/**
+ * {@inheritDoc}
+ */
 void gnl_message_sn_destroy(struct gnl_message_sn *message_sn) {
     if (message_sn != NULL) {
         free(message_sn->string);
@@ -46,6 +55,9 @@ void gnl_message_sn_destroy(struct gnl_message_sn *message_sn) {
     }
 }
 
+/**
+ * {@inheritDoc}
+ */
 int gnl_message_sn_write(const struct gnl_message_sn message_sn, char **dest) {
     int read_N_size = gnl_message_sn_size(message_sn);
 
@@ -59,6 +71,9 @@ int gnl_message_sn_write(const struct gnl_message_sn message_sn, char **dest) {
     return 0;
 }
 
+/**
+ * {@inheritDoc}
+ */
 int gnl_message_sn_read(const char *message, struct gnl_message_sn *message_sn) {
     if (message_sn == NULL) {
         errno = EINVAL;
@@ -80,11 +95,14 @@ int gnl_message_sn_read(const char *message, struct gnl_message_sn *message_sn) 
     char message_N[MAX_DIGITS_INT];
     strncpy(message_N, message + MAX_DIGITS_INT + string_len, MAX_DIGITS_INT);
 
+    // reset the errno value
+    errno = 0;
+
     char *ptr = NULL;
     message_sn->number = strtol(message_N, &ptr, 10);
 
     // if no digits found
-    if ((char *)message_N == ptr) {
+    if (message_N == ptr || errno != 0) {
         errno = EINVAL;
         free(ptr);
 

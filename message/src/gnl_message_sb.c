@@ -19,6 +19,9 @@ static int gnl_message_sb_size(const struct gnl_message_sb message_sb) {
     return MAX_DIGITS_INT + strlen(message_sb.string) + MAX_DIGITS_INT + strlen(message_sb.bytes);
 }
 
+/**
+ * {@inheritDoc}
+ */
 struct gnl_message_sb *gnl_message_sb_init() {
     struct gnl_message_sb *message_sb = (struct gnl_message_sb *)calloc(1, sizeof(struct gnl_message_sb));
     GNL_NULL_CHECK(message_sb, ENOMEM, NULL)
@@ -26,6 +29,9 @@ struct gnl_message_sb *gnl_message_sb_init() {
     return message_sb;
 }
 
+/**
+ * {@inheritDoc}
+ */
 struct gnl_message_sb *gnl_message_sb_init_with_args(char *string, void *bytes) {
     struct gnl_message_sb *message_sb = gnl_message_sb_init();
     GNL_NULL_CHECK(message_sb, ENOMEM, NULL)
@@ -45,6 +51,9 @@ struct gnl_message_sb *gnl_message_sb_init_with_args(char *string, void *bytes) 
     return message_sb;
 }
 
+/**
+ * {@inheritDoc}
+ */
 void gnl_message_sb_destroy(struct gnl_message_sb *message_sb) {
     if (message_sb != NULL) {
         free(message_sb->string);
@@ -53,7 +62,10 @@ void gnl_message_sb_destroy(struct gnl_message_sb *message_sb) {
     }
 }
 
-int gnl_message_sb_write(const struct gnl_message_sb message_sb, char **dest) {
+/**
+ * {@inheritDoc}
+ */
+int gnl_message_sb_write(struct gnl_message_sb message_sb, char **dest) {
     int message_sb_size = gnl_message_sb_size(message_sb);
 
     GNL_CALLOC(*dest, message_sb_size + 1, -1)
@@ -68,6 +80,9 @@ int gnl_message_sb_write(const struct gnl_message_sb message_sb, char **dest) {
     return 0;
 }
 
+/**
+ * {@inheritDoc}
+ */
 int gnl_message_sb_read(const char *message, struct gnl_message_sb *message_sb) {
     if (message_sb == NULL) {
         errno = EINVAL;
@@ -94,7 +109,7 @@ int gnl_message_sb_read(const char *message, struct gnl_message_sb *message_sb) 
     bytes_len = strtol(bytes_len_string, &ptr, 10);
 
     // if no digits found
-    if ((char *)bytes_len_string == ptr) {
+    if (bytes_len_string == ptr) {
         errno = EINVAL;
         free(ptr);
 

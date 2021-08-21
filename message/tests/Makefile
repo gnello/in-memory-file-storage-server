@@ -15,7 +15,8 @@ INCLUDE = -I$(HELPERS_PATH_INCLUDE)
 TARGETS =	gnl_message_s_test \
 			gnl_message_n_test \
 			gnl_message_sn_test \
-			gnl_message_sb_test
+			gnl_message_sb_test \
+			gnl_message_nb_test
 
 .PHONY: all clean tests tests-valgrind
 .SUFFIXES: .c .h
