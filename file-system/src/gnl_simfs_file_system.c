@@ -3,6 +3,7 @@
 #include <string.h>
 #include <pthread.h>
 #include <gnl_ternary_search_tree_t.h>
+#include <gnl_logger.h>
 #include "./gnl_simfs_file_descriptor_table.c"
 #include "./gnl_simfs_inode.c"
 #include "../include/gnl_simfs_file_system.h"
@@ -86,12 +87,16 @@ struct gnl_simfs_file_system {
 
     // the lock of the file system
     pthread_mutex_t mtx;
+
+    // the logger instance to use for logging
+    struct gnl_logger *logger;
 };
 
 /**
  * {@inheritDoc}
  */
-struct gnl_simfs_file_system *gnl_simfs_file_system_init(unsigned int memory_limit, unsigned int files_limit) {
+struct gnl_simfs_file_system *gnl_simfs_file_system_init(unsigned int memory_limit, unsigned int files_limit,
+        struct gnl_logger *logger) {
     struct gnl_simfs_file_system *fs = (struct gnl_simfs_file_system *)malloc(sizeof(struct gnl_simfs_file_system));
     GNL_NULL_CHECK(fs, ENOMEM, NULL)
 

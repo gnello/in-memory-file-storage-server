@@ -4,7 +4,7 @@
 #include "../src/gnl_simfs_file_system.c"
 
 int can_init_a_filesystem() {
-    struct gnl_simfs_file_system *fs = gnl_simfs_file_system_init(500, 100);
+    struct gnl_simfs_file_system *fs = gnl_simfs_file_system_init(500, 100, NULL);
 
     if (fs == NULL) {
         return -1;
@@ -36,7 +36,7 @@ int can_init_a_filesystem() {
 }
 
 int can_open_file_o_create() {
-    struct gnl_simfs_file_system *fs = gnl_simfs_file_system_init(500, 100);
+    struct gnl_simfs_file_system *fs = gnl_simfs_file_system_init(500, 100, NULL);
 
     if (fs == NULL) {
         return -1;
@@ -58,7 +58,7 @@ int can_open_file_o_create() {
 }
 
 int can_not_open_file_o_create() {
-    struct gnl_simfs_file_system *fs = gnl_simfs_file_system_init(500, 100);
+    struct gnl_simfs_file_system *fs = gnl_simfs_file_system_init(500, 100, NULL);
 
     if (fs == NULL) {
         return -1;
@@ -84,7 +84,7 @@ int can_not_open_file_o_create() {
 }
 
 int can_not_open_files_limit() {
-    struct gnl_simfs_file_system *fs = gnl_simfs_file_system_init(500, 2);
+    struct gnl_simfs_file_system *fs = gnl_simfs_file_system_init(500, 2, NULL);
 
     if (fs == NULL) {
         return -1;
@@ -115,7 +115,7 @@ int can_not_open_files_limit() {
 }
 
 int can_not_open_max_files() {
-    struct gnl_simfs_file_system *fs = gnl_simfs_file_system_init(500, 2);
+    struct gnl_simfs_file_system *fs = gnl_simfs_file_system_init(500, 2, NULL);
 
     if (fs == NULL) {
         return -1;
@@ -148,7 +148,7 @@ int can_not_open_max_files() {
 }
 
 int can_not_open_file() {
-    struct gnl_simfs_file_system *fs = gnl_simfs_file_system_init(500, 100);
+    struct gnl_simfs_file_system *fs = gnl_simfs_file_system_init(500, 100, NULL);
 
     if (fs == NULL) {
         return -1;
