@@ -388,7 +388,6 @@ int gnl_simfs_file_system_write(struct gnl_simfs_file_system *file_system, int f
     GNL_SIMFS_LOCK_RELEASE(-1)
 
     return 0;
-
 }
 
 #undef GNL_SIMFS_MAX_OPEN_FILES
