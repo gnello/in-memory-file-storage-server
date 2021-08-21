@@ -36,7 +36,7 @@ LIBS += -lgnl_socket_request -lgnl_socket_response
 INCLUDE += -I$(SOCKET_PATH_INCLUDE)
 
 # message library
-LIBS += -Wl,-rpath,$(ROOT)$(MESSAGE_LIB) -L$(ROOT)$(MESSAGE_LIB) -lgnl_message_n -lgnl_message_s -lgnl_message_sb -lgnl_message_sn
+LIBS += -Wl,-rpath,$(ROOT)$(MESSAGE_LIB) -L$(ROOT)$(MESSAGE_LIB) -lgnl_message_n -lgnl_message_s -lgnl_message_sb -lgnl_message_sn -lgnl_message_nb
 INCLUDE += -I$(ROOT)$(MESSAGE_INCLUDE)
 
 # file-system library
