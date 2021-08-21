@@ -9,7 +9,8 @@ CFLAGS += -std=c99 -Wall -pedantic -g
 HELPERS_PATH_LIB = $(ROOT)/$(HELPERS_LIB)
 HELPERS_PATH_INCLUDE = $(ROOT)/$(HELPERS_INCLUDE)
 
-LIBS = -Wl,-rpath,$(HELPERS_PATH_LIB) -L$(HELPERS_PATH_LIB) -lgnl_colorshell -lgnl_assert -lgnl_txtenv -lgnl_file_to_pointer
+# helpers library
+LIBS = -Wl,-rpath,$(HELPERS_PATH_LIB) -L$(HELPERS_PATH_LIB) -lgnl_colorshell -lgnl_assert -lgnl_txtenv -lgnl_file_to_pointer -lgnl_logger
 INCLUDE = -I$(HELPERS_PATH_INCLUDE)
 
 # data-structures library

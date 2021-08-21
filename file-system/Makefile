@@ -7,6 +7,7 @@ CC = gcc
 CFLAGS = -std=c99 -Wall -g -pedantic
 
 # helpers library
+LIBS = -Wl,-rpath,$(ROOT)$(HELPERS_LIB) -L$(ROOT)$(HELPERS_LIB) -lgnl_logger
 INCLUDE = -I$(ROOT)$(HELPERS_INCLUDE)
 
 # data-structures library

@@ -26,14 +26,15 @@ struct gnl_simfs_file_system;
  *                      If 0, the file system will not be limited.
  * @param files_limit   The maximum number of files that can be handled by the file system.
  *                      If 0, the file system can handle virtually an infinite number of files.
- * @param logger        The logger instance to use for logging. If NULL is passed, no logging
+ * @param log_path      The log path where to write the log. If NULL is passed, no logging
  *                      will be performed.
+ * @param log_level     The wanted log level. Accepted values: NULL, trace, debug, info, warn, error.
  *
  * @return              Returns the new gnl_simfs_file_system created on success,
  *                      NULL otherwise.
  */
 extern struct gnl_simfs_file_system *gnl_simfs_file_system_init(unsigned int memory_limit, unsigned int file_limit,
-        struct gnl_logger *logger);
+        const char *log_path, const char *log_level);
 
 /**
  * Destroy the given file system. Every file into it will be lost, all the allocated memory
