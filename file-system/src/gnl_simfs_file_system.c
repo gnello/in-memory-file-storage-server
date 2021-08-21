@@ -164,7 +164,7 @@ void gnl_simfs_file_system_destroy(struct gnl_simfs_file_system *file_system) {
  * @return              Returns the inode of the created file on success,
  *                      NULL otherwise.
  */
-static struct gnl_simfs_inode *create_file(struct gnl_simfs_file_system *file_system, char *filename) {
+static struct gnl_simfs_inode *create_file(struct gnl_simfs_file_system *file_system, const char *filename) {
     // check if we can create a new file
     if (file_system->files_count == file_system->files_limit) {
         errno = EDQUOT;
@@ -239,7 +239,7 @@ static int is_file_not_available(struct gnl_simfs_file_system *file_system, stru
 /**
  * {@inheritDoc}
  */
-int gnl_simfs_file_system_open(struct gnl_simfs_file_system *file_system, char *filename, int flags, unsigned int pid) {
+int gnl_simfs_file_system_open(struct gnl_simfs_file_system *file_system, const char *filename, int flags, unsigned int pid) {
     // acquire the lock
     GNL_SIMFS_LOCK_ACQUIRE(-1)
 

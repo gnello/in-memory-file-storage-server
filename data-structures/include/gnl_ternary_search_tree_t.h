@@ -37,7 +37,7 @@ extern int gnl_ternary_search_tree_put(struct gnl_ternary_search_tree_t **t, con
  * @return void*    Returns the element on success, if the
  *                  element is not found returns NULL.
  */
-extern void *gnl_ternary_search_tree_get(struct gnl_ternary_search_tree_t *t, char *key);
+extern void *gnl_ternary_search_tree_get(struct gnl_ternary_search_tree_t *t, const char *key);
 
 /**
  * Remove an element from the ternary_search_tree "t".

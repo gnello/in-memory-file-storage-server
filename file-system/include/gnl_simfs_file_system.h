@@ -55,7 +55,7 @@ extern void gnl_simfs_file_system_destroy(struct gnl_simfs_file_system *file_sys
  * @return              Returns a file descriptor referring to the opened file
  *                      on success, -1 otherwise.
  */
-extern int gnl_simfs_file_system_open(struct gnl_simfs_file_system *file_system, char *filename, int flags, unsigned int pid);
+extern int gnl_simfs_file_system_open(struct gnl_simfs_file_system *file_system, const char *filename, int flags, unsigned int pid);
 
 /**
  * Write up to count bytes from the buffer starting at buf to the file referred to by

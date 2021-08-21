@@ -8,7 +8,7 @@
 /**
  * {@inheritDoc}
  */
-struct gnl_simfs_inode *gnl_simfs_inode_init(char *name) {
+struct gnl_simfs_inode *gnl_simfs_inode_init(const char *name) {
     struct gnl_simfs_inode *inode = (struct gnl_simfs_inode *)malloc(sizeof(struct gnl_simfs_inode));
     GNL_NULL_CHECK(inode, ENOMEM, NULL)
 

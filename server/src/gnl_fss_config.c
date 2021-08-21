@@ -29,6 +29,11 @@ static int get_int_value_from_env(const char *name) {
     }
 
     char *ptr = NULL;
+
+    // reset the errno value
+    errno = 0;
+
+    // get the value
     int value = (int)strtol(env_value, &ptr, 10);
 
     // if no digits found

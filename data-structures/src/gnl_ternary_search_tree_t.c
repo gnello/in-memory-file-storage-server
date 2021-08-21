@@ -107,7 +107,7 @@ int gnl_ternary_search_tree_put(struct gnl_ternary_search_tree_t **t, const char
 /**
  * {@inheritDoc}
  */
-void *gnl_ternary_search_tree_get(struct gnl_ternary_search_tree_t *t, char *key) {
+void *gnl_ternary_search_tree_get(struct gnl_ternary_search_tree_t *t, const char *key) {
     GNL_NULL_CHECK(t, EINVAL, NULL)
 
     // if the given key is less than the tree key pick the left node

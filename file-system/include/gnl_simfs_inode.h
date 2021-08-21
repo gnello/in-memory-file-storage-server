@@ -55,7 +55,7 @@ struct gnl_simfs_inode {
  * @return      Returns the new gnl_simfs_inode created on success,
  *              NULL otherwise.
  */
-extern struct gnl_simfs_inode *gnl_simfs_inode_init(char *name);
+extern struct gnl_simfs_inode *gnl_simfs_inode_init(const char *name);
 
 /**
  * Destroy the given gnl_simfs_inode.
