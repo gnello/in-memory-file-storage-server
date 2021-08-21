@@ -121,6 +121,11 @@ struct gnl_logger *gnl_logger_init(const char *path, const char *channel, const 
  * {@inheritDoc}
  */
 void gnl_logger_destroy(struct gnl_logger *logger) {
+    // if the logger is null ignore the invocation
+    if (logger == NULL) {
+        return;
+    }
+
     free(logger->path);
     free(logger->channel);
     free(logger);
@@ -308,6 +313,9 @@ static int report(const struct gnl_logger *logger, const char *message, const en
  * {@inheritDoc}
  */
 int gnl_logger_trace(const struct gnl_logger *logger, const char *message, ...) {
+    // if the logger is null ignore the invocation
+    GNL_NULL_CHECK(logger, errno, 0)
+
     int res = 0;
 
     if (should_report(logger, GNL_LOGGER_TRACE)) {
@@ -327,6 +335,9 @@ int gnl_logger_trace(const struct gnl_logger *logger, const char *message, ...) 
  * {@inheritDoc}
  */
 int gnl_logger_debug(const struct gnl_logger *logger, const char *message, ...) {
+    // if the logger is null ignore the invocation
+    GNL_NULL_CHECK(logger, errno, 0)
+
     int res = 0;
 
     if (should_report(logger, GNL_LOGGER_DEBUG)) {
@@ -346,6 +357,9 @@ int gnl_logger_debug(const struct gnl_logger *logger, const char *message, ...) 
  * {@inheritDoc}
  */
 int gnl_logger_info(const struct gnl_logger *logger, const char *message, ...) {
+    // if the logger is null ignore the invocation
+    GNL_NULL_CHECK(logger, errno, 0)
+
     int res = 0;
 
     if (should_report(logger, GNL_LOGGER_INFO)) {
@@ -365,6 +379,9 @@ int gnl_logger_info(const struct gnl_logger *logger, const char *message, ...) {
  * {@inheritDoc}
  */
 int gnl_logger_warn(const struct gnl_logger *logger, const char *message, ...) {
+    // if the logger is null ignore the invocation
+    GNL_NULL_CHECK(logger, errno, 0)
+
     int res = 0;
 
     if (should_report(logger, GNL_LOGGER_WARN)) {
@@ -384,6 +401,9 @@ int gnl_logger_warn(const struct gnl_logger *logger, const char *message, ...) {
  * {@inheritDoc}
  */
 int gnl_logger_error(const struct gnl_logger *logger, const char *message, ...) {
+    // if the logger is null ignore the invocation
+    GNL_NULL_CHECK(logger, errno, 0)
+
     int res = 0;
 
     if (should_report(logger, GNL_LOGGER_ERROR)) {
