@@ -1,8 +1,3 @@
-//TODO: gnl_message_sl (string list) --> len_string + string + num of following elements + len_bytes + bytes + ...
-//TODO: e se invece nella risposta invio il numero di vittime così il client le puà chiedere? (message_sn)
-//TODO: gestire bene la max size, se un file supera ad es. 2000MB dividere le richieste
-//TODO: nel caso non le voglia allora si attacca
-
 #include <stdio.h>
 #include <string.h>
 #include <stdarg.h>
@@ -288,6 +283,10 @@ int gnl_socket_response_write(struct gnl_socket_response *response, char **dest)
         case GNL_SOCKET_RESPONSE_OK_FILE:
             res = gnl_message_sb_write(*(response->payload.ok_file), &built_message);
             break;
+
+//        case GNL_SOCKET_RESPONSE_OK_FD:
+//            res = gnl_message_n_write(*(response->payload.ok_fd), &built_message);
+//            break;
 
         case GNL_SOCKET_RESPONSE_OK:
             res = 0;
