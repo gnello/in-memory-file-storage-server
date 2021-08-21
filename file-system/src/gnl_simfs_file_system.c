@@ -112,11 +112,14 @@ struct gnl_simfs_file_system *gnl_simfs_file_system_init(unsigned int memory_lim
 
     // initialize the logger
     if (log_path == NULL) {
+        // if no log_path is given do not create a logger
         fs->logger = NULL;
     } else {
-        // instantiate the file_system
+        // if a log_path is given create a logger
         char *level = NULL;
 
+        // if a log_level is given then use it, otherwise
+        // set it to "error" on default
         if (log_level == NULL) {
             GNL_CALLOC(level, 6, NULL);
             strcpy(level, "error");
@@ -125,6 +128,7 @@ struct gnl_simfs_file_system *gnl_simfs_file_system_init(unsigned int memory_lim
             strncpy(level, log_level, strlen(log_level));
         }
 
+        // finally, instantiate the logger
         fs->logger = gnl_logger_init(log_path, "gnl_simfs_file_system", level);
 
         // free the level
@@ -330,7 +334,12 @@ int gnl_simfs_file_system_open(struct gnl_simfs_file_system *file_system, const 
         void *raw_inode = gnl_ternary_search_tree_get(file_system->file_table, filename);
 
         // if the file is not present return an error
-        GNL_SIMFS_NULL_CHECK(raw_inode, ENOENT, -1)
+        if (raw_inode == NULL) {
+            gnl_logger_debug(file_system->logger, "File does not exist: \"%s\", returning with error.", filename);
+            errno = ENOENT;
+
+            return -1;
+        }
 
         // else cast the raw_inode
         inode = (struct gnl_simfs_inode *)raw_inode;
@@ -388,7 +397,7 @@ int gnl_simfs_file_system_open(struct gnl_simfs_file_system *file_system, const 
     // because we are immediately returning anyway
     int fd = gnl_simfs_file_descriptor_table_put(file_system->file_descriptor_table, inode, pid);
 
-    gnl_logger_debug(file_system->logger, "File \"%s\" opened, returning fd %d to pid %d.", filename, fd, pid);
+    gnl_logger_debug(file_system->logger, "Open file succeeded: \"%s\", returning fd %d to pid %d.", filename, fd, pid);
 
     // release the lock
     GNL_SIMFS_LOCK_RELEASE(-1)
@@ -407,8 +416,13 @@ int gnl_simfs_file_system_write(struct gnl_simfs_file_system *file_system, int f
     // validate the parameters
     GNL_SIMFS_NULL_CHECK(file_system, EINVAL, -1)
 
+    gnl_logger_debug(file_system->logger, "Trying to write file descriptor: %d.", fd);
+
     // check if there is enough space to write the file
     if (count > (file_system->memory_limit - file_system->heap_size)) {
+
+        gnl_logger_warn(file_system->logger, "Write file descriptor failed, max heap size reached.");
+
         errno = E2BIG;
         GNL_SIMFS_LOCK_RELEASE(-1)
 
@@ -419,12 +433,20 @@ int gnl_simfs_file_system_write(struct gnl_simfs_file_system *file_system, int f
     struct gnl_simfs_inode *inode = gnl_simfs_file_descriptor_table_get(file_system->file_descriptor_table, fd, pid);
 
     // if the file is not present return an error
-    GNL_SIMFS_NULL_CHECK(inode, errno, -1)
+    if (inode == NULL) {
+        gnl_logger_debug(file_system->logger, "File descriptor does not exist: \"%d\", returning with error.", fd);
+
+        //let the errno bubble
+
+        return -1;
+    }
 
     // check if the file is available: if not, wait for it
     int test, res;
     while ((test = is_file_not_available(file_system, inode, pid, 0)) > 0) {
         GNL_SIMFS_MINUS1_CHECK(test, errno, -1)
+
+        gnl_logger_debug(file_system->logger, "File descriptor \"%d\" not available, waiting.", fd);
 
         res = gnl_simfs_inode_wait_file_availability(inode, &(file_system->mtx));
         GNL_SIMFS_MINUS1_CHECK(res, errno, -1)
@@ -433,6 +455,8 @@ int gnl_simfs_file_system_write(struct gnl_simfs_file_system *file_system, int f
     //TODO: da qui in poi in caso di errore non lasciare lo stato della struct corrotto
 
     // if this point is reached, the target file is ready to be used
+
+    gnl_logger_debug(file_system->logger, "File descriptor \"%d\" available, writing.", fd);
 
     // write the given buf into the file pointed by the inode
     res = gnl_simfs_inode_append_to_file(inode, buf, count);
@@ -444,6 +468,8 @@ int gnl_simfs_file_system_write(struct gnl_simfs_file_system *file_system, int f
 
     // update the file system
     file_system->heap_size += (count + 1);
+
+    gnl_logger_debug(file_system->logger, "Write file descriptor succeeded: \"%d\", inode updated, returning.", fd);
 
     // release the lock
     GNL_SIMFS_LOCK_RELEASE(-1)
