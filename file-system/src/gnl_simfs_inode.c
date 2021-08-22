@@ -30,6 +30,7 @@ struct gnl_simfs_inode *gnl_simfs_inode_init(const char *name) {
     inode->direct_ptr = NULL;
     inode->active_hippie_pid = 0;
     inode->waiting_locker_pid = 0;
+    inode->reference_count = 0;
 
     return inode;
 }
@@ -58,6 +59,9 @@ static void destroy_inode(struct gnl_simfs_inode *inode, int with_pointed_file) 
     if (with_pointed_file > 0) {
         free(inode->direct_ptr);
     }
+
+    // clear the waiting queue
+//    pthread_cond_broadcast(&(inode->file_access_available));
 
     // destroy the condition variables
     pthread_cond_destroy(&(inode->file_access_available));
