@@ -49,6 +49,6 @@ extern void *gnl_ternary_search_tree_get(struct gnl_ternary_search_tree_t *t, co
  *
  * @return void*    Returns 0 on success, -1 otherwise
  */
-extern int gnl_ternary_search_tree_remove(struct gnl_ternary_search_tree_t *t, char *key, void (*destroy)(void *data));
+extern int gnl_ternary_search_tree_remove(struct gnl_ternary_search_tree_t *t, const char *key, void (*destroy)(void *data));
 
 #endif //GNL_TERNARY_SEARCH_TREE_H

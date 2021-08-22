@@ -173,7 +173,7 @@ static int has_child(struct gnl_ternary_search_tree_t *t) {
  * @return          Returns 1 if the current node is not a leaf nor has it a child,
  *                  0 otherwise.
  */
-static int remove_node(struct gnl_ternary_search_tree_t *t, char *key, void (*destroy)(void *data)) {
+static int remove_node(struct gnl_ternary_search_tree_t *t, const char *key, void (*destroy)(void *data)) {
 
     // case 4: the given key has at least one other key as prefix key
     if (*(key + 1) == '\0') {
@@ -220,7 +220,7 @@ static int remove_node(struct gnl_ternary_search_tree_t *t, char *key, void (*de
 /**
  * {@inheritDoc}
  */
-int gnl_ternary_search_tree_remove(struct gnl_ternary_search_tree_t *t, char *key, void (*destroy)(void *data)) {
+int gnl_ternary_search_tree_remove(struct gnl_ternary_search_tree_t *t, const char *key, void (*destroy)(void *data)) {
     GNL_NULL_CHECK(t, EINVAL, -1)
 
     remove_node(t, key, destroy);
