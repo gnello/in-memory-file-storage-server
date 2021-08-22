@@ -5,7 +5,7 @@
 /**
  * {@inheritDoc}
  */
-int gnl_file_to_pointer(char *filepath, char **pointer, long *size) {
+int gnl_file_to_pointer(const char *filepath, char **pointer, long *size) {
     int res;
 
     // open the file

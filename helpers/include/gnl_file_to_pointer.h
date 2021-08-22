@@ -12,6 +12,6 @@
  *
  * @return          Returns 0 on success, -1 otherwise.
  */
-extern int gnl_file_to_pointer(char *filepath, char **pointer, long *size);
+extern int gnl_file_to_pointer(const char *filepath, char **pointer, long *size);
 
 #endif //GNL_FILE_TO_POINTER_H
