@@ -76,4 +76,4 @@ tests-valgrind:
 
 tests-valgrind-short:
 	echo "\nRunning server suite test...\n"
-	$(foreach test,$(TARGETS),echo "> running $(test) with valgrind..."; valgrind --log-file="valgrind-short.txt" ./$(test) > /dev/null; cat valgrind-short.txt | grep "in use at exit\|ERROR SUMMARY\|-- no leaks"; rm "valgrind-short.txt"; echo "\n";)
+	$(foreach test,$(TARGETS),echo "> running $(test) with valgrind..."; valgrind --leak-check=full --log-file="valgrind-short.txt" ./$(test) > /dev/null; cat valgrind-short.txt | grep "ERROR SUMMARY"; rm "valgrind-short.txt"; echo "\n";)
