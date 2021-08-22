@@ -662,7 +662,7 @@ int can_update() {
         return -1;
     }
 
-    free(name);
+    //free(name);
     gnl_simfs_inode_copy_destroy(new_inode);
     gnl_simfs_inode_destroy(inode);
 
