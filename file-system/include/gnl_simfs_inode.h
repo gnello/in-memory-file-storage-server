@@ -58,11 +58,20 @@ struct gnl_simfs_inode {
 extern struct gnl_simfs_inode *gnl_simfs_inode_init(const char *name);
 
 /**
- * Destroy the given gnl_simfs_inode.
+ * Destroy the given gnl_simfs_inode. Attention! This invocation
+ * will delete also the file pointed by the given inode. If you want
+ * to delete an inode-copy, use gnl_simfs_inode_copy_destroy instead.
  *
  * @param inode The inode instance to destroy.
  */
 extern void gnl_simfs_inode_destroy(struct gnl_simfs_inode *inode);
+
+/**
+ * Destroy the given gnl_simfs_inode but preserve the pointed file.
+ *
+ * @param inode The inode instance to destroy.
+ */
+extern void gnl_simfs_inode_copy_destroy(struct gnl_simfs_inode *inode);
 
 /**
  * Check whether the file of the given inode is locked or not.
@@ -204,5 +213,14 @@ extern int gnl_simfs_inode_has_locker_pid(struct gnl_simfs_inode *inode);
  * @return      Returns 0 on success, -1 otherwise.
  */
 extern int gnl_simfs_inode_append_to_file(struct gnl_simfs_inode *inode, const void *buf, size_t count);
+
+/**
+ * Create and return a copy of the given inode.
+ *
+ * @param inode The inode instance to copy.
+ *
+ * @return      Returns a copy of the given inode on success, -1 otherwise.
+ */
+extern struct gnl_simfs_inode *gnl_simfs_inode_copy(const struct gnl_simfs_inode *inode);
 
 #endif //GNL_SIMFS_INODE_H

@@ -16,16 +16,18 @@
  * Macro to acquire the lock.
  */
 #define GNL_SIMFS_LOCK_ACQUIRE(return_value) {                      \
-    int lock_acquire_res = pthread_mutex_lock(&(file_system->mtx));   \
+    int lock_acquire_res = pthread_mutex_lock(&(file_system->mtx)); \
     GNL_MINUS1_CHECK(lock_acquire_res, errno, return_value)         \
+    gnl_logger_debug(file_system->logger, "Lock acquired");         \
 }
 
 /**
  * Macro to release the lock.
  */
 #define GNL_SIMFS_LOCK_RELEASE(return_value) {                      \
-int lock_release_res = pthread_mutex_unlock(&(file_system->mtx));     \
+int lock_release_res = pthread_mutex_unlock(&(file_system->mtx));   \
     GNL_MINUS1_CHECK(lock_release_res, errno, return_value)         \
+    gnl_logger_debug(file_system->logger, "Lock released");         \
 }
 
 /**
@@ -69,7 +71,7 @@ struct gnl_simfs_file_system {
     // the allocated memory in bytes, it should be used
     // to compare the occupied memory size with the
     // memory limit set for the file system
-    int heap_size;
+    unsigned long heap_size;
 
     // the counter of the files present into the file system
     int files_count;
@@ -78,7 +80,7 @@ struct gnl_simfs_file_system {
     int files_limit;
 
     // the memory allocable in megabyte by the file system
-    int memory_limit;
+    unsigned long memory_limit;
 
     // contains all the open files in a precisely time,
     // the index is the file descriptor, the value is a
@@ -100,8 +102,11 @@ struct gnl_simfs_file_system *gnl_simfs_file_system_init(unsigned int memory_lim
     struct gnl_simfs_file_system *fs = (struct gnl_simfs_file_system *)malloc(sizeof(struct gnl_simfs_file_system));
     GNL_NULL_CHECK(fs, ENOMEM, NULL)
 
+    // convert the memory limit from Megabytes to bytes
+    int ml = memory_limit * 1048576;
+
     // assign arguments
-    fs->memory_limit = memory_limit;
+    fs->memory_limit = ml;
     fs->files_limit = files_limit;
 
     // initialize the file table
@@ -146,7 +151,7 @@ struct gnl_simfs_file_system *gnl_simfs_file_system_init(unsigned int memory_lim
     int res = pthread_mutex_init(&(fs->mtx), NULL);
     GNL_MINUS1_CHECK(res, errno, NULL)
 
-    gnl_logger_debug(fs->logger, "File system initialized.");
+    gnl_logger_debug(fs->logger, "File system initialized. Memory limit: %d bytes, max storable files: %d.", fs->memory_limit, fs->files_limit);
 
     return fs;
 }
@@ -157,7 +162,7 @@ struct gnl_simfs_file_system *gnl_simfs_file_system_init(unsigned int memory_lim
  *
  * @param ptr   The void pointer value of the gnl_ternary_search_tree data structure.
  */
-static void destroy_inode(void *ptr) {
+static void destroy_file_table_inode(void *ptr) {
     if (ptr == NULL) {
         return;
     }
@@ -179,11 +184,11 @@ void gnl_simfs_file_system_destroy(struct gnl_simfs_file_system *file_system) {
 
     gnl_logger_debug(file_system->logger, "Destroying the file system, all files will be lost.");
 
-    // destroy the file table
-    gnl_ternary_search_tree_destroy(&file_system->file_table, destroy_inode);
-
     // destroy the file descriptor table
     gnl_simfs_file_descriptor_table_destroy(file_system->file_descriptor_table);
+
+    // destroy the file table
+    gnl_ternary_search_tree_destroy(&file_system->file_table, destroy_file_table_inode);
 
     // destroy the lock, proceed on error
     pthread_mutex_destroy(&(file_system->mtx));
@@ -320,6 +325,8 @@ int gnl_simfs_file_system_open(struct gnl_simfs_file_system *file_system, const 
             gnl_logger_debug(file_system->logger, "File already exists: \"%s\", returning with error.", filename);
             errno = EEXIST;
 
+            GNL_SIMFS_LOCK_RELEASE(-1)
+
             return -1;
         }
 
@@ -393,9 +400,9 @@ int gnl_simfs_file_system_open(struct gnl_simfs_file_system *file_system, const 
     res = gnl_simfs_inode_increase_refs(inode);
     GNL_SIMFS_MINUS1_CHECK(res, errno, -1)
 
-    // put the inode into the file descriptor table; do not check an error here
-    // because we are immediately returning anyway
+    // put the inode copy into the file descriptor table
     int fd = gnl_simfs_file_descriptor_table_put(file_system->file_descriptor_table, inode, pid);
+    GNL_SIMFS_MINUS1_CHECK(fd, errno, -1)
 
     gnl_logger_debug(file_system->logger, "Open file succeeded: \"%s\", returning fd %d to pid %d.", filename, fd, pid);
 
@@ -416,12 +423,16 @@ int gnl_simfs_file_system_write(struct gnl_simfs_file_system *file_system, int f
     // validate the parameters
     GNL_SIMFS_NULL_CHECK(file_system, EINVAL, -1)
 
-    gnl_logger_debug(file_system->logger, "Trying to write file descriptor: %d.", fd);
+    gnl_logger_debug(file_system->logger, "Trying to write %d bytes in file descriptor: %d.", count, fd);
 
     // check if there is enough space to write the file
-    if (count > (file_system->memory_limit - file_system->heap_size)) {
+    int available_bytes = file_system->memory_limit - file_system->heap_size;
+    if (count > available_bytes) {
 
-        gnl_logger_warn(file_system->logger, "Write file descriptor failed, max heap size reached.");
+        gnl_logger_warn(file_system->logger, "Write file descriptor failed, max heap size reached."
+                                             "Memory limit: %d bytes, current heap size: %d bytes, "
+                                             "prevented heap size overflowing by %d bytes", file_system->memory_limit,
+                                             file_system->heap_size, count - available_bytes);
 
         errno = E2BIG;
         GNL_SIMFS_LOCK_RELEASE(-1)

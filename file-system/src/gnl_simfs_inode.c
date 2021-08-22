@@ -35,9 +35,18 @@ struct gnl_simfs_inode *gnl_simfs_inode_init(const char *name) {
 }
 
 /**
- * {@inheritDoc}
+ * Destroy the given inode. This method it supposed to be called with with_pointed_file=1
+ * when the intention is to destroy the inode, with with_pointed_file=0 if the intention
+ * is to destroy an its copy. This difference it is necessary because the copy of the inode
+ * contains a direct pointer to the original file within the inode from which the copy was
+ * made, so prevents accidental deletions.
+ *
+ * @param inode             The inode instance to destroy.
+ * @param with_pointed_file If > 0, an invocation to this method will delete
+ *                          also the file pointed by the given inode, If <= 0
+ *                          the pointed file will be preserved.
  */
-void gnl_simfs_inode_destroy(struct gnl_simfs_inode *inode) {
+static void destroy_inode(struct gnl_simfs_inode *inode, int with_pointed_file) {
     if (inode == NULL) {
         return;
     }
@@ -46,13 +55,29 @@ void gnl_simfs_inode_destroy(struct gnl_simfs_inode *inode) {
     free(inode->name);
 
     // destroy the file pointer
-    free(inode->direct_ptr);
+    if (with_pointed_file > 0) {
+        free(inode->direct_ptr);
+    }
 
     // destroy the condition variables
     pthread_cond_destroy(&(inode->file_access_available));
 
     // destroy the inode
     free(inode);
+}
+
+/**
+ * {@inheritDoc}
+ */
+void gnl_simfs_inode_destroy(struct gnl_simfs_inode *inode) {
+    destroy_inode(inode, 1);
+}
+
+/**
+ * {@inheritDoc}
+ */
+void gnl_simfs_inode_copy_destroy(struct gnl_simfs_inode *inode) {
+    destroy_inode(inode, 0);
 }
 
 /**
@@ -243,7 +268,7 @@ int gnl_simfs_inode_append_to_file(struct gnl_simfs_inode *inode, const void *bu
     // calculate the new size
     int size = inode->size + count;
 
-    // alloc the memory onto the heap for the write
+    // alloc the memory onto the heap for the writing
     void *temp = realloc(inode->direct_ptr, size);
 
     // do not handle errors but bubble it, if an
@@ -262,6 +287,37 @@ int gnl_simfs_inode_append_to_file(struct gnl_simfs_inode *inode, const void *bu
     inode->last_modify_time = time(NULL);
 
     return 0;
+}
+
+/**
+ * {@inheritDoc}
+ */
+struct gnl_simfs_inode *gnl_simfs_inode_copy(const struct gnl_simfs_inode *inode) {
+    GNL_NULL_CHECK(inode, EINVAL, NULL)
+
+    // allocate space for the new inode
+    struct gnl_simfs_inode *inode_copy = (struct gnl_simfs_inode *)malloc(sizeof(struct gnl_simfs_inode));
+    GNL_NULL_CHECK(inode_copy, ENOMEM, NULL)
+
+    // create a deep copy of the given inode
+    inode_copy->creation_time = inode->creation_time;
+    inode_copy->last_modify_time = inode->last_modify_time;
+    inode_copy->size = inode->size;
+
+    GNL_CALLOC(inode_copy->name, strlen(inode->name) + 1, NULL)
+    strcpy(inode_copy->name, inode->name);
+
+    inode_copy->direct_ptr = inode->direct_ptr;
+    inode_copy->locked = inode->locked;
+    inode_copy->reference_count = inode->reference_count;
+    inode_copy->active_hippie_pid = inode->active_hippie_pid;
+    inode_copy->waiting_locker_pid = inode->waiting_locker_pid;
+
+    // initialize condition variables
+    int res = pthread_cond_init(&(inode_copy->file_access_available), NULL);
+    GNL_MINUS1_CHECK(res, errno, NULL)
+
+    return inode_copy;
 }
 
 #include <gnl_macro_end.h>

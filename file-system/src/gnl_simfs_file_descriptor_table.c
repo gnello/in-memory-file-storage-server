@@ -106,7 +106,7 @@ void gnl_simfs_file_descriptor_table_destroy(struct gnl_simfs_file_descriptor_ta
         // destroy the table elements
         for (size_t i=0; i<=table->max_fd; i++) {
             if (bitmap[i] > 0) {
-                free(table->table[i]->inode);
+                gnl_simfs_inode_copy_destroy(table->table[i]->inode);
                 free(table->table[i]);
             }
         }
@@ -168,12 +168,9 @@ static struct gnl_simfs_file_descriptor_table_el *create_entry(const struct gnl_
     // set the owner of the entry
     entry->owner = pid;
 
-    // allocate space for the new inode
-    entry->inode = (struct gnl_simfs_inode *)malloc(sizeof(struct gnl_simfs_inode));
+    // create a deep copy of the given inode
+    entry->inode = gnl_simfs_inode_copy(inode);
     GNL_NULL_CHECK(entry->inode, ENOMEM, NULL)
-
-    // insert a deep copy of the given inode
-    *(entry->inode) = *inode;
 
     return entry;
 }
@@ -251,7 +248,7 @@ int gnl_simfs_file_descriptor_table_remove(struct gnl_simfs_file_descriptor_tabl
     }
 
     // remove the file descriptor
-    free(table->table[fd]->inode);
+    gnl_simfs_inode_copy_destroy(table->table[fd]->inode);
     free(table->table[fd]);
     table->table[fd] = NULL;
 

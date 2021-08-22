@@ -10,7 +10,8 @@ int can_init_a_filesystem() {
         return -1;
     }
 
-    if (fs->memory_limit != 500) {
+    // 1048576 is the size of 500 MB in bytes
+    if (fs->memory_limit != (500 * 1048576)) {
         return -1;
     }
 
