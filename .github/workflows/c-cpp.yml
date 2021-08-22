@@ -44,3 +44,7 @@ jobs:
     # valgrind-short test
     - name: Run valgrind-short tests
       run: cp .env.test .env && chmod -R +x * && make -s tests-valgrind-short
+
+    # valgrind-error test
+    - name: Run valgrind-error tests
+      run: cp .env.test .env && chmod -R +x * && make -s tests-valgrind-error
