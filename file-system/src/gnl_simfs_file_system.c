@@ -15,48 +15,48 @@
 /**
  * Macro to acquire the lock.
  */
-#define GNL_SIMFS_LOCK_ACQUIRE(return_value) {                      \
-    int lock_acquire_res = pthread_mutex_lock(&(file_system->mtx)); \
-    GNL_MINUS1_CHECK(lock_acquire_res, errno, return_value)         \
-    gnl_logger_debug(file_system->logger, "Lock acquired");         \
+#define GNL_SIMFS_LOCK_ACQUIRE(return_value, pid) {                         \
+    int lock_acquire_res = pthread_mutex_lock(&(file_system->mtx));         \
+    GNL_MINUS1_CHECK(lock_acquire_res, errno, return_value)                 \
+    gnl_logger_debug(file_system->logger, "Pid %d acquired the lock", pid); \
 }
 
 /**
  * Macro to release the lock.
  */
-#define GNL_SIMFS_LOCK_RELEASE(return_value) {                      \
-int lock_release_res = pthread_mutex_unlock(&(file_system->mtx));   \
-    GNL_MINUS1_CHECK(lock_release_res, errno, return_value)         \
-    gnl_logger_debug(file_system->logger, "Lock released");         \
+#define GNL_SIMFS_LOCK_RELEASE(return_value, pid) {                         \
+int lock_release_res = pthread_mutex_unlock(&(file_system->mtx));           \
+    GNL_MINUS1_CHECK(lock_release_res, errno, return_value)                 \
+    gnl_logger_debug(file_system->logger, "Pid %d released the lock", pid); \
 }
 
 /**
  * Macro to compare two values, if they are not equals
  * return an error and release the lock.
  */
-#define GNL_SIMFS_COMPARE(actual, expected_error, errno_code, return_value) {   \
-    if ((actual) == (expected_error)) {                                         \
-        errno = errno_code;                                                     \
-        GNL_SIMFS_LOCK_RELEASE(return_value)                                    \
-                                                                                \
-        return return_value;                                                    \
-    }                                                                           \
+#define GNL_SIMFS_COMPARE(actual, expected_error, errno_code, return_value, pid) {  \
+    if ((actual) == (expected_error)) {                                             \
+        errno = errno_code;                                                         \
+        GNL_SIMFS_LOCK_RELEASE(return_value, pid)                                   \
+                                                                                    \
+        return return_value;                                                        \
+    }                                                                               \
 }
 
 /**
  * Macro to check that a return value is not NULL,
  * on error release the lock.
  */
-#define GNL_SIMFS_NULL_CHECK(x, error_code, return_code) {  \
-    GNL_SIMFS_COMPARE(x, NULL, error_code, return_code)     \
+#define GNL_SIMFS_NULL_CHECK(x, error_code, return_code, pid) { \
+    GNL_SIMFS_COMPARE(x, NULL, error_code, return_code, pid)    \
 }
 
 /**
  * Macro to check that a return value is not -1,
  * on error release the lock.
  */
-#define GNL_SIMFS_MINUS1_CHECK(x, error_code, return_code) {    \
-    GNL_SIMFS_COMPARE(x, -1, error_code, return_code)           \
+#define GNL_SIMFS_MINUS1_CHECK(x, error_code, return_code, pid) {   \
+    GNL_SIMFS_COMPARE(x, -1, error_code, return_code, pid)          \
 }
 
 /**
@@ -95,68 +95,6 @@ struct gnl_simfs_file_system {
 };
 
 /**
- * {@inheritDoc}
- */
-struct gnl_simfs_file_system *gnl_simfs_file_system_init(unsigned int memory_limit, unsigned int files_limit,
-        const char *log_path, const char *log_level) {
-    struct gnl_simfs_file_system *fs = (struct gnl_simfs_file_system *)malloc(sizeof(struct gnl_simfs_file_system));
-    GNL_NULL_CHECK(fs, ENOMEM, NULL)
-
-    // convert the memory limit from Megabytes to bytes
-    int ml = memory_limit * 1048576;
-
-    // assign arguments
-    fs->memory_limit = ml;
-    fs->files_limit = files_limit;
-
-    // initialize the file table
-    fs->file_table = NULL;
-
-    // initialize the file descriptor table
-    fs->file_descriptor_table = gnl_simfs_file_descriptor_table_init(GNL_SIMFS_MAX_OPEN_FILES);
-
-    // initialize the logger
-    if (log_path == NULL) {
-        // if no log_path is given do not create a logger
-        fs->logger = NULL;
-    } else {
-        // if a log_path is given create a logger
-        char *level = NULL;
-
-        // if a log_level is given then use it, otherwise
-        // set it to "error" on default
-        if (log_level == NULL) {
-            GNL_CALLOC(level, 6, NULL);
-            strcpy(level, "error");
-        } else {
-            GNL_CALLOC(level, strlen(log_level) + 1, NULL);
-            strncpy(level, log_level, strlen(log_level));
-        }
-
-        // finally, instantiate the logger
-        fs->logger = gnl_logger_init(log_path, "gnl_simfs_file_system", level);
-
-        // free the level
-        free(level);
-
-        // check the logger instantiation result
-        GNL_NULL_CHECK(fs->logger, errno, NULL)
-    }
-
-    // initialize the other values
-    fs->heap_size = 0;
-    fs->files_count = 0;
-
-    // initialize lock
-    int res = pthread_mutex_init(&(fs->mtx), NULL);
-    GNL_MINUS1_CHECK(res, errno, NULL)
-
-    gnl_logger_debug(fs->logger, "File system initialized. Memory limit: %d bytes, max storable files: %d.", fs->memory_limit, fs->files_limit);
-
-    return fs;
-}
-
-/**
  * Destroy an inode. It should be passed to the gnl_ternary_search_tree_destroy
  * method of the gnl_ternary_search_tree data structure.
  *
@@ -172,34 +110,6 @@ static void destroy_file_table_inode(void *ptr) {
 
     // destroy the obtained inode
     gnl_simfs_inode_destroy(inode);
-}
-
-/**
- * {@inheritDoc}
- */
-void gnl_simfs_file_system_destroy(struct gnl_simfs_file_system *file_system) {
-    if (file_system == NULL) {
-        return;
-    }
-
-    gnl_logger_debug(file_system->logger, "Destroying the file system, all files will be lost.");
-
-    // destroy the file descriptor table
-    gnl_simfs_file_descriptor_table_destroy(file_system->file_descriptor_table);
-
-    // destroy the file table
-    gnl_ternary_search_tree_destroy(&file_system->file_table, destroy_file_table_inode);
-
-    // destroy the lock, proceed on error
-    pthread_mutex_destroy(&(file_system->mtx));
-
-    gnl_logger_debug(file_system->logger, "File system destroyed.");
-
-    // destroy the logger
-    gnl_logger_destroy(file_system->logger);
-
-    // destroy the file system
-    free(file_system);
 }
 
 /**
@@ -265,17 +175,17 @@ static struct gnl_simfs_inode *create_file(struct gnl_simfs_file_system *file_sy
  *
  * @return                  Returns 1 if we should wait, 0 if not,
  *                          -1 on error.
- */ //TODO: aggiungere test appena possibile (mancano gli altri metodi)
+*/ //TODO: aggiungere test appena possibile (mancano gli altri metodi)
 static int is_file_not_available(struct gnl_simfs_file_system *file_system, struct gnl_simfs_inode *inode, unsigned int pid,
         int lock_requested) {
     int is_file_locked = gnl_simfs_inode_is_file_locked(inode);
-    GNL_SIMFS_MINUS1_CHECK(is_file_locked, errno, -1)
+    GNL_SIMFS_MINUS1_CHECK(is_file_locked, errno, -1, pid)
 
     int has_hippie_pid = gnl_simfs_inode_has_hippie_pid(inode);
-    GNL_SIMFS_MINUS1_CHECK(has_hippie_pid, errno, -1)
+    GNL_SIMFS_MINUS1_CHECK(has_hippie_pid, errno, -1, pid)
 
     int has_locker_pid = gnl_simfs_inode_has_locker_pid(inode);
-    GNL_SIMFS_MINUS1_CHECK(has_locker_pid, errno, -1)
+    GNL_SIMFS_MINUS1_CHECK(has_locker_pid, errno, -1, pid)
 
     // check the Safety property: invalid case
     if (is_file_locked > 0 && has_hippie_pid) {
@@ -289,15 +199,149 @@ static int is_file_not_available(struct gnl_simfs_file_system *file_system, stru
 }
 
 /**
+ * Update an existing file table entry with the given new entry.
+ *
+ * @param file_system   The file system instance where the file table resides.
+ * @param key           The key of the entry to be updated.
+ * @param new_entry     The new entry to use to update the existing entry.
+ *
+ * @return              Returns 0 on success, -1 otherwise.
+ */
+static int update_file_table_entry(struct gnl_simfs_file_system *file_system, const char *key, const struct gnl_simfs_inode *new_entry) {
+    // validate the parameters
+    GNL_NULL_CHECK(file_system, EINVAL, -1)
+    GNL_NULL_CHECK(key, EINVAL, -1)
+    GNL_NULL_CHECK(new_entry, EINVAL, -1)
+
+    gnl_logger_debug(file_system->logger, "Update entry in the file table: %s.", key);
+
+    // search the key in the file table
+    void *raw_inode = gnl_ternary_search_tree_get(file_system->file_table, key);
+
+    // if the key is not present return an error
+    if (raw_inode == NULL) {
+        gnl_logger_debug(file_system->logger, "Entry not found: \"%s\", returning with error.", key);
+        errno = EINVAL;
+
+        return -1;
+    }
+
+    gnl_logger_debug(file_system->logger, "Entry found, updating.", key);
+
+    // else cast the raw_inode
+    struct gnl_simfs_inode *inode = (struct gnl_simfs_inode *)raw_inode;
+
+    // update the inode with the new entry
+    int res = gnl_simfs_inode_update(inode, new_entry);
+    if (res == -1) {
+        gnl_logger_debug(file_system->logger, "Update entry failed: \"%s\".", strerror(errno));
+    }
+
+    gnl_logger_debug(file_system->logger, "Update entry succeeded.");
+
+    return 0;
+}
+
+/**
+ * {@inheritDoc}
+ */
+struct gnl_simfs_file_system *gnl_simfs_file_system_init(unsigned int memory_limit, unsigned int files_limit,
+        const char *log_path, const char *log_level) {
+    struct gnl_simfs_file_system *fs = (struct gnl_simfs_file_system *)malloc(sizeof(struct gnl_simfs_file_system));
+    GNL_NULL_CHECK(fs, ENOMEM, NULL)
+
+    // convert the memory limit from Megabytes to bytes
+    int ml = memory_limit * 1048576;
+
+    // assign arguments
+    fs->memory_limit = ml;
+    fs->files_limit = files_limit;
+
+    // initialize the file table
+    fs->file_table = NULL;
+
+    // initialize the file descriptor table
+    fs->file_descriptor_table = gnl_simfs_file_descriptor_table_init(GNL_SIMFS_MAX_OPEN_FILES);
+
+    // initialize the logger
+    if (log_path == NULL) {
+        // if no log_path is given do not create a logger
+        fs->logger = NULL;
+    } else {
+        // if a log_path is given create a logger
+        char *level = NULL;
+
+        // if a log_level is given then use it, otherwise
+        // set it to "error" on default
+        if (log_level == NULL) {
+            GNL_CALLOC(level, 6, NULL);
+            strcpy(level, "error");
+        } else {
+            GNL_CALLOC(level, strlen(log_level) + 1, NULL);
+            strncpy(level, log_level, strlen(log_level));
+        }
+
+        // finally, instantiate the logger
+        fs->logger = gnl_logger_init(log_path, "gnl_simfs_file_system", level);
+
+        // free the level
+        free(level);
+
+        // check the logger instantiation result
+        GNL_NULL_CHECK(fs->logger, errno, NULL)
+    }
+
+    // initialize the other values
+    fs->heap_size = 0;
+    fs->files_count = 0;
+
+    // initialize lock
+    int res = pthread_mutex_init(&(fs->mtx), NULL);
+    GNL_MINUS1_CHECK(res, errno, NULL)
+
+    gnl_logger_debug(fs->logger, "File system initialized. Memory limit: %d bytes, max storable files: %d.", fs->memory_limit, fs->files_limit);
+
+    return fs;
+}
+
+/**
+ * {@inheritDoc}
+ */
+void gnl_simfs_file_system_destroy(struct gnl_simfs_file_system *file_system) {
+    if (file_system == NULL) {
+        return;
+    }
+
+    gnl_logger_debug(file_system->logger, "Destroying the file system, all files will be lost.");
+
+    // destroy the file descriptor table
+    gnl_simfs_file_descriptor_table_destroy(file_system->file_descriptor_table);
+
+    // destroy the file table
+    gnl_ternary_search_tree_destroy(&file_system->file_table, destroy_file_table_inode);
+
+    // destroy the lock, proceed on error
+    pthread_mutex_destroy(&(file_system->mtx));
+
+    gnl_logger_debug(file_system->logger, "File system destroyed.");
+
+    // destroy the logger
+    gnl_logger_destroy(file_system->logger);
+
+    // destroy the file system
+    free(file_system);
+}
+
+/**
  * {@inheritDoc}
  */
 int gnl_simfs_file_system_open(struct gnl_simfs_file_system *file_system, const char *filename, int flags, unsigned int pid) {
     // acquire the lock
-    GNL_SIMFS_LOCK_ACQUIRE(-1)
+    GNL_SIMFS_LOCK_ACQUIRE(-1, pid)
 
     // validate the parameters
-    GNL_SIMFS_NULL_CHECK(file_system, EINVAL, -1)
-    GNL_SIMFS_MINUS1_CHECK(-1 * (strlen(filename) == 0), EINVAL, -1)
+    GNL_SIMFS_NULL_CHECK(file_system, EINVAL, -1, pid)
+    GNL_SIMFS_MINUS1_CHECK(-1 * (strlen(filename) == 0), EINVAL, -1, pid)
 
     gnl_logger_debug(file_system->logger, "Trying to open file: \"%s\".", filename);
 
@@ -307,7 +351,7 @@ int gnl_simfs_file_system_open(struct gnl_simfs_file_system *file_system, const 
 
         gnl_logger_warn(file_system->logger, "Open file failed, max open files limit reached: \"%s\".", filename);
 
-        GNL_SIMFS_LOCK_RELEASE(-1)
+        GNL_SIMFS_LOCK_RELEASE(-1, pid)
 
         return -1;
     }
@@ -325,14 +369,14 @@ int gnl_simfs_file_system_open(struct gnl_simfs_file_system *file_system, const 
             gnl_logger_debug(file_system->logger, "File already exists: \"%s\", returning with error.", filename);
             errno = EEXIST;
 
-            GNL_SIMFS_LOCK_RELEASE(-1)
+            GNL_SIMFS_LOCK_RELEASE(-1, pid)
 
             return -1;
         }
 
         // the file is not present, create it
         inode = create_file(file_system, filename);
-        GNL_SIMFS_NULL_CHECK(inode, errno, -1)
+        GNL_SIMFS_NULL_CHECK(inode, errno, -1, pid)
     }
     // if the file must be present
     else {
@@ -356,18 +400,18 @@ int gnl_simfs_file_system_open(struct gnl_simfs_file_system *file_system, const 
     int res;
     if (GNL_SIMFS_O_LOCK & flags) {
         res = gnl_simfs_inode_increase_locker_pid(inode);
-        GNL_SIMFS_MINUS1_CHECK(res, errno, -1)
+        GNL_SIMFS_MINUS1_CHECK(res, errno, -1, pid)
     }
 
     // check if the file is available: if not, wait for it
     int test;
     while ((test = is_file_not_available(file_system, inode, pid, GNL_SIMFS_O_LOCK & flags)) > 0) {
-        GNL_SIMFS_MINUS1_CHECK(test, errno, -1)
+        GNL_SIMFS_MINUS1_CHECK(test, errno, -1, pid)
 
         gnl_logger_debug(file_system->logger, "File \"%s\" not available, waiting.", filename);
 
         res = gnl_simfs_inode_wait_file_availability(inode, &(file_system->mtx));
-        GNL_SIMFS_MINUS1_CHECK(res, errno, -1)
+        GNL_SIMFS_MINUS1_CHECK(res, errno, -1, pid)
     }
 
     gnl_logger_debug(file_system->logger, "File \"%s\" available, proceeding.", filename);
@@ -375,7 +419,7 @@ int gnl_simfs_file_system_open(struct gnl_simfs_file_system *file_system, const 
     // if the file must be locked, decrease the waiting locker pid
     if (GNL_SIMFS_O_LOCK & flags) {
         res = gnl_simfs_inode_decrease_locker_pid(inode);
-        GNL_SIMFS_MINUS1_CHECK(res, errno, -1)
+        GNL_SIMFS_MINUS1_CHECK(res, errno, -1, pid)
     }
 
     //TODO: da qui in poi in caso di errore non lasciare lo stato della struct corrotto
@@ -386,28 +430,28 @@ int gnl_simfs_file_system_open(struct gnl_simfs_file_system *file_system, const 
     // if the file must be locked, lock it
     if (GNL_SIMFS_O_LOCK & flags) {
         res = gnl_simfs_inode_file_lock(inode, pid);
-        GNL_SIMFS_MINUS1_CHECK(res, errno, -1)
+        GNL_SIMFS_MINUS1_CHECK(res, errno, -1, pid)
 
         gnl_logger_debug(file_system->logger, "File \"%s\" locked by pid %d.", filename, pid);
     }
     // else increase the "hippie pid" count
     else {
         res = gnl_simfs_inode_increase_hippie_pid(inode);
-        GNL_SIMFS_MINUS1_CHECK(res, errno, -1)
+        GNL_SIMFS_MINUS1_CHECK(res, errno, -1, pid)
     }
 
     // increase the inode reference count
     res = gnl_simfs_inode_increase_refs(inode);
-    GNL_SIMFS_MINUS1_CHECK(res, errno, -1)
+    GNL_SIMFS_MINUS1_CHECK(res, errno, -1, pid)
 
     // put the inode copy into the file descriptor table
     int fd = gnl_simfs_file_descriptor_table_put(file_system->file_descriptor_table, inode, pid);
-    GNL_SIMFS_MINUS1_CHECK(fd, errno, -1)
+    GNL_SIMFS_MINUS1_CHECK(fd, errno, -1, pid)
 
     gnl_logger_debug(file_system->logger, "Open file succeeded: \"%s\", returning fd %d to pid %d.", filename, fd, pid);
 
     // release the lock
-    GNL_SIMFS_LOCK_RELEASE(-1)
+    GNL_SIMFS_LOCK_RELEASE(-1, pid)
 
     return fd;
 }
@@ -419,10 +463,10 @@ int gnl_simfs_file_system_write(struct gnl_simfs_file_system *file_system, int f
         unsigned int pid) {
 
     // acquire the lock
-    GNL_SIMFS_LOCK_ACQUIRE(-1)
+    GNL_SIMFS_LOCK_ACQUIRE(-1, pid)
 
     // validate the parameters
-    GNL_SIMFS_NULL_CHECK(file_system, EINVAL, -1)
+    GNL_SIMFS_NULL_CHECK(file_system, EINVAL, -1, pid)
 
     gnl_logger_debug(file_system->logger, "Trying to write %d bytes in file descriptor: %d.", count, fd);
 
@@ -436,7 +480,7 @@ int gnl_simfs_file_system_write(struct gnl_simfs_file_system *file_system, int f
                                              file_system->heap_size, count - available_bytes);
 
         errno = E2BIG;
-        GNL_SIMFS_LOCK_RELEASE(-1)
+        GNL_SIMFS_LOCK_RELEASE(-1, pid)
 
         return -1;
     }
@@ -448,7 +492,7 @@ int gnl_simfs_file_system_write(struct gnl_simfs_file_system *file_system, int f
     if (inode == NULL) {
         gnl_logger_debug(file_system->logger, "File descriptor does not exist: \"%d\", returning with error.", fd);
 
-        GNL_SIMFS_LOCK_RELEASE(-1)
+        GNL_SIMFS_LOCK_RELEASE(-1, pid)
 
         //let the errno bubble
 
@@ -458,12 +502,12 @@ int gnl_simfs_file_system_write(struct gnl_simfs_file_system *file_system, int f
     // check if the file is available: if not, wait for it
     int test, res;
     while ((test = is_file_not_available(file_system, inode, pid, 0)) > 0) {
-        GNL_SIMFS_MINUS1_CHECK(test, errno, -1)
+        GNL_SIMFS_MINUS1_CHECK(test, errno, -1, pid)
 
         gnl_logger_debug(file_system->logger, "File descriptor \"%d\" not available, waiting.", fd);
 
         res = gnl_simfs_inode_wait_file_availability(inode, &(file_system->mtx));
-        GNL_SIMFS_MINUS1_CHECK(res, errno, -1)
+        GNL_SIMFS_MINUS1_CHECK(res, errno, -1, pid)
     }
 
     //TODO: da qui in poi in caso di errore non lasciare lo stato della struct corrotto
@@ -474,19 +518,19 @@ int gnl_simfs_file_system_write(struct gnl_simfs_file_system *file_system, int f
 
     // write the given buf into the file pointed by the inode
     res = gnl_simfs_inode_append_to_file(inode, buf, count);
-    GNL_SIMFS_MINUS1_CHECK(res, errno, -1)
+    GNL_SIMFS_MINUS1_CHECK(res, errno, -1, pid)
 
     // update the inode into the file table
-    res = gnl_ternary_search_tree_put(&file_system->file_table, inode->name, inode);
+    res = update_file_table_entry(file_system, inode->name, inode);
     GNL_MINUS1_CHECK(res, errno, -1)
 
     // update the file system
-    file_system->heap_size += (count + 1);
+    file_system->heap_size += count;
 
     gnl_logger_debug(file_system->logger, "Write file descriptor succeeded: \"%d\", inode updated, returning.", fd);
 
     // release the lock
-    GNL_SIMFS_LOCK_RELEASE(-1)
+    GNL_SIMFS_LOCK_RELEASE(-1, pid)
 
     return 0;
 }
