@@ -522,47 +522,8 @@ int can_add_to_file() {
     if (inode->size != size) {
         return -1;
     }
-    /*
 
-    struct gnl_simfs_inode *inode_copy = gnl_simfs_inode_copy(inode);
-
-    if (inode_copy->creation_time != inode->creation_time) {
-        return -1;
-    }
-
-    if (inode_copy->last_modify_time != inode->last_modify_time) {
-        return -1;
-    }
-
-    if (inode_copy->size != inode->size) {
-        return -1;
-    }
-
-    if (strcmp(inode_copy->name, inode->name) != 0) {
-        return -1;
-    }
-
-    if (inode_copy->direct_ptr != inode->direct_ptr) {
-        return -1;
-    }
-
-    if (inode_copy->locked != inode->locked) {
-        return -1;
-    }
-
-    if (inode_copy->reference_count != inode->reference_count) {
-        return -1;
-    }
-
-    if (inode_copy->active_hippie_pid != inode->active_hippie_pid) {
-        return -1;
-    }
-
-    if (inode_copy->waiting_locker_pid != inode->waiting_locker_pid) {
-        return -1;
-    }
-
-    gnl_simfs_inode_copy_destroy(inode_copy);*/
+    free(content);
     gnl_simfs_inode_destroy(inode);
 
     return 0;

@@ -58,6 +58,7 @@ static void destroy_inode(struct gnl_simfs_inode *inode, int with_pointed_file) 
     // destroy the file pointer
     if (with_pointed_file > 0) {
         free(inode->direct_ptr);
+        inode->direct_ptr = NULL;
     }
 
     // clear the waiting queue
