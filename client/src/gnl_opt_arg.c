@@ -31,6 +31,10 @@ static int gnl_opt_arg_send_file(const char *filename, const char *store_dirname
     res = gnl_fss_api_write_file(filename, store_dirname);
     GNL_MINUS1_CHECK(res, errno, -1);
 
+    // close the file
+    res = gnl_fss_api_close_file(filename);
+    GNL_MINUS1_CHECK(res, errno, -1);
+
     return 0;
 }
 
