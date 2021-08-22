@@ -152,7 +152,7 @@ int gnl_fss_api_open_file(const char *pathname, int flags) {
             res = -1;
             break;
 
-        case GNL_SOCKET_RESPONSE_OK:
+        case GNL_SOCKET_RESPONSE_OK_FD:
             // if success, appropriately set the open_with_create_lock_flags
             open_with_create_lock_flags = flags & (O_CREATE | O_LOCK);
 
@@ -160,8 +160,9 @@ int gnl_fss_api_open_file(const char *pathname, int flags) {
             fd_copy = malloc(sizeof(int));
             GNL_NULL_CHECK(fd_copy, ENOMEM, -1)
 
-            // TODO: aggiungere number alla response?
-            //*fd_copy = response->payload.ok->number;
+            // get the file descriptor from the response
+            *fd_copy = gnl_socket_response_get_fd(response);
+            GNL_MINUS1_CHECK(*fd_copy, errno, -1)
 
             // add the deep copy into the file_descriptor_table
             tmp_res = gnl_ternary_search_tree_put(&file_descriptor_table, pathname, fd_copy);
@@ -222,11 +223,14 @@ int gnl_fss_api_write_file(const char *pathname, const char *dirname) {
     long size;
     char *file = NULL;
 
-    int res = gnl_file_to_pointer("./testfile.txt", &file, &size);
+    int res = gnl_file_to_pointer(pathname, &file, &size);
     GNL_MINUS1_CHECK(res, errno, -1)
 
     // get the fd associate with the given pathname
-    int fd = 0; //TODO: prendere fd da file descriptor table
+    void *fd_raw = gnl_ternary_search_tree_get(file_descriptor_table, pathname);
+    GNL_NULL_CHECK(fd_raw, EINVAL, -1);
+
+    int fd = *(int *)fd_raw;
 
     // create the request to send to the server
     struct gnl_socket_request *request = gnl_socket_request_init(GNL_SOCKET_REQUEST_WRITE, 2, fd, file);
@@ -238,6 +242,7 @@ int gnl_fss_api_write_file(const char *pathname, const char *dirname) {
 
     // clean memory
     gnl_socket_request_destroy(request);
+    free(file);
 
     // get the response from the server
     struct gnl_socket_response *response = gnl_socket_response_get(socket_service_connection, gnl_socket_service_read);
@@ -319,6 +324,9 @@ int gnl_fss_api_close_file(const char *pathname) {
 
     // reset the openFile(pathname, O_CREATE| O_LOCK) check
     open_with_create_lock_flags = 0;
+
+    // remove the file from the file descriptor table
+    gnl_ternary_search_tree_remove(file_descriptor_table, pathname, free);
 
     return 0;
 }

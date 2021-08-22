@@ -361,18 +361,18 @@ int gnl_fss_server_start(const struct gnl_fss_config *config) {
     // install the signal handler
     handle_signals();
 
-    // instantiate the logger TODO: move in a thread
+    // instantiate the logger for the server TODO: move in a thread (push su coda che chiama i metodi del log)
     struct gnl_logger *logger;
     logger = gnl_logger_init(config->log_filepath, "gnl_fss_server", config->log_level);
     GNL_NULL_CHECK(logger, errno, -1)
 
     gnl_logger_info(logger, "server is starting");
 
-    // instantiate the file_system
+    // instantiate the file_system TODO: non controllare il res
     int res = gnl_logger_debug(logger, "starting the file system...");
     GNL_MINUS1_CHECK(res, errno, -1)
 
-    struct gnl_simfs_file_system *file_system = gnl_simfs_file_system_init(config->capacity, config->limit);
+    struct gnl_simfs_file_system *file_system = gnl_simfs_file_system_init(config->capacity, config->limit, config->log_filepath, config->log_level);
     GNL_NULL_CHECK(logger, errno, -1)
 
     res = gnl_logger_debug(logger, "file system started");
@@ -419,7 +419,6 @@ int gnl_fss_server_start(const struct gnl_fss_config *config) {
     unlink(socket_name);
 
     gnl_logger_info(logger, "server has been shut down.");
-
     gnl_logger_destroy(logger);
 
     return 0;

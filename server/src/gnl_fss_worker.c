@@ -8,7 +8,7 @@
 #include "../include/gnl_fss_worker.h"
 #include <gnl_macro_beg.h>
 
-#define GNL_FSS_WORKER_BUFFER_LEN 100
+#define GNL_FSS_WORKER_BUFFER_LEN 10000
 
 /**
  * id               The id of the worker.
@@ -64,6 +64,11 @@ static struct gnl_socket_response *handle_request(struct gnl_simfs_file_system *
     switch (request->type) {
         case GNL_SOCKET_REQUEST_OPEN:
             res = gnl_simfs_file_system_open(file_system, request->payload.open->string, request->payload.open->number, fd_c);
+
+            // if success create an ok_fd response
+            if (res >= 0) {
+                response = gnl_socket_response_init(GNL_SOCKET_RESPONSE_OK_FD, 1, res);
+            }
             break; //TODO: se "muore" un client chiudere tutti i suoi files aperti (occhio ai lock)
 
         case GNL_SOCKET_REQUEST_READ_N:
@@ -75,7 +80,12 @@ static struct gnl_socket_response *handle_request(struct gnl_simfs_file_system *
             break;
 
         case GNL_SOCKET_REQUEST_WRITE:
-            //res = gnl_simfs_file_system_write(file_system, request->payload.write->string, request->payload.write->bytes, strlen(request->payload.write->bytes), fd_c);
+            res = gnl_simfs_file_system_write(file_system, request->payload.write->number, request->payload.write->bytes, (strlen((char *)request->payload.write->bytes)), fd_c);
+
+            // if success create an ok response
+            if (res == 0) {
+                response = gnl_socket_response_init(GNL_SOCKET_RESPONSE_OK, 0);
+            }
             break;
 
         case GNL_SOCKET_REQUEST_APPEND:
@@ -107,10 +117,10 @@ static struct gnl_socket_response *handle_request(struct gnl_simfs_file_system *
     if (res == -1) {
         response = gnl_socket_response_init(GNL_SOCKET_RESPONSE_ERROR, 1, errno);
         GNL_NULL_CHECK(response, errno, NULL)
-    } else {
-        response = gnl_socket_response_init(GNL_SOCKET_RESPONSE_OK, 0);
-        GNL_NULL_CHECK(response, errno, NULL)
     }
+
+    // TODO: if this point is reached the response it can not be NULL
+    //GNL_NULL_CHECK(response, EINVAL, NULL)
 
     return response;
 }
@@ -173,8 +183,7 @@ void gnl_fss_worker_destroy(struct gnl_fss_worker *worker) {
 /**
  * {@inheritDoc}
  */
-void *gnl_fss_worker_handle(void* args)
-{
+void *gnl_fss_worker_handle(void* args) {
     // decode args
     struct gnl_fss_worker *worker = args;
 
@@ -225,6 +234,7 @@ void *gnl_fss_worker_handle(void* args)
         memset(buf, 0, GNL_FSS_WORKER_BUFFER_LEN);
 
         // read data
+        //TODO: readn -> spostare tutto dentro socket_read? così alloco dinamicamente
         nread = read(fd_c, buf, GNL_FSS_WORKER_BUFFER_LEN);
         if (nread == -1) {
             gnl_logger_error(logger, "error reading the message: %s", strerror(errno));
@@ -269,12 +279,19 @@ void *gnl_fss_worker_handle(void* args)
 
                 gnl_logger_debug(logger, "handle the %s request", request_type);
 
+                // the request_type is not necessary anymore, free memory
+                free(request_type);
+
                 // handle the request
                 struct gnl_socket_response *response;
                 response = handle_request(worker->file_system, request, fd_c);
-                GNL_NULL_CHECK(response, errno, NULL)
-                //TODO: non ritornare mai ma scrivere sul log.
-                //TODO: creare risposta di errore standard/generica
+
+                if (response == NULL) {
+                    //TODO: creare risposta di errore standard/generica
+                    gnl_logger_error(logger, "invalid response received from the request handler, stop.");
+
+                    continue;
+                }
 
                 // encode the response
                 char *response_message = NULL;
@@ -285,8 +302,7 @@ void *gnl_fss_worker_handle(void* args)
                 res = write(fd_c, response_message, strlen(response_message));
                 GNL_MINUS1_CHECK(res, errno, NULL)
 
-                // the request_type is not necessary anymore, free memory
-                free(request_type);
+                // free memory
                 free(response_message);
                 gnl_socket_response_destroy(response);
             }
