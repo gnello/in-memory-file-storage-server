@@ -223,4 +223,15 @@ extern int gnl_simfs_inode_append_to_file(struct gnl_simfs_inode *inode, const v
  */
 extern struct gnl_simfs_inode *gnl_simfs_inode_copy(const struct gnl_simfs_inode *inode);
 
+/**
+ * Update the given inode using a more up-to-date copy. This method will update
+ * only the last_modify_time, size and direct_ptr attributes of the given inode.
+ *
+ * @param inode The inode to be updated.
+ * @param with  The more up-to-date inode to use for the copy.
+ *
+ * @return      Returns 0 on success, -1 otherwise.
+ */
+extern int gnl_simfs_inode_update(struct gnl_simfs_inode *inode, const struct gnl_simfs_inode *with);
+
 #endif //GNL_SIMFS_INODE_H

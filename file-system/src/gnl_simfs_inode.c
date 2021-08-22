@@ -325,4 +325,20 @@ struct gnl_simfs_inode *gnl_simfs_inode_copy(const struct gnl_simfs_inode *inode
     return inode_copy;
 }
 
+/**
+ * {@inheritDoc}
+ */
+int gnl_simfs_inode_update(struct gnl_simfs_inode *inode, const struct gnl_simfs_inode *with) {
+    GNL_NULL_CHECK(inode, EINVAL, -1)
+    GNL_NULL_CHECK(with, EINVAL, -1)
+
+    // update the inode
+    inode->last_modify_time = with->last_modify_time;
+    inode->size = with->size;
+
+    inode->direct_ptr = with->direct_ptr;
+
+    return 0;
+}
+
 #include <gnl_macro_end.h>

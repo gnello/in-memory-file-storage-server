@@ -582,6 +582,93 @@ int can_copy() {
     return 0;
 }
 
+int can_update() {
+    struct gnl_simfs_inode *inode = gnl_simfs_inode_init("test");
+
+    time_t creation_time = inode->creation_time;
+
+    char *name = malloc((strlen(inode->name) + 1) * sizeof(char));
+    if (name == NULL) {
+        return -1;
+    }
+    strcpy(name, inode->name);
+
+    int locked = inode->locked;
+    int reference_count = inode->reference_count;
+    int active_hippie_pid = inode->active_hippie_pid;
+    int waiting_locker_pid = inode->waiting_locker_pid;
+
+    struct gnl_simfs_inode *new_inode = gnl_simfs_inode_copy(inode);
+    if (new_inode == NULL) {
+        return -1;
+    }
+
+    new_inode->locked = 4;
+    new_inode->reference_count = 1;
+    new_inode->active_hippie_pid = 2;
+    new_inode->waiting_locker_pid = 3;
+
+    time_t start_time = time(NULL);
+
+    int res = gnl_simfs_inode_append_to_file(new_inode, "string", 6);
+    if (res != 0) {
+        return -1;
+    }
+
+    time_t end_time = time(NULL);
+
+    res = gnl_simfs_inode_update(inode, new_inode);
+    if (res != 0) {
+        return -1;
+    }
+
+    if (inode->creation_time != creation_time) {
+        return -1;
+    }
+
+    if (strcmp(inode->name, name) != 0) {
+        return -1;
+    }
+
+    if (inode->locked != locked) {
+        return -1;
+    }
+
+    if (inode->reference_count != reference_count) {
+        return -1;
+    }
+
+    if (inode->active_hippie_pid != active_hippie_pid) {
+        return -1;
+    }
+
+    if (inode->waiting_locker_pid != waiting_locker_pid) {
+        return -1;
+    }
+
+    if (inode->size != 6) {
+        return -1;
+    }
+
+    char buf[7];
+    memcpy(buf, inode->direct_ptr, 6);
+    buf[6] = '\0';
+
+    if (strcmp(buf, "string") != 0) {
+        return -1;
+    }
+
+    if (inode->last_modify_time < start_time || inode->last_modify_time > end_time) {
+        return -1;
+    }
+
+    free(name);
+    gnl_simfs_inode_copy_destroy(new_inode);
+    gnl_simfs_inode_destroy(inode);
+
+    return 0;
+}
+
 int main() {
     gnl_printf_yellow("> gnl_simfs_inode test:\n\n");
 
@@ -609,6 +696,7 @@ int main() {
     gnl_assert(can_add_to_file, "can add bytes to the file within an inode.");
 
     gnl_assert(can_copy, "can get a copy of an inode.");
+    gnl_assert(can_update, "can update an inode.");
 
     // the gnl_simfs_inode_destroy method is implicitly tested in every
     // assert, if you don't believe it, run this tests with
