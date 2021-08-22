@@ -17,6 +17,10 @@ enum gnl_socket_response_type {
     // a file is returned
     GNL_SOCKET_RESPONSE_OK_FILE,
 
+    // the request is successfully processed and
+    // a file descriptor is returned
+    GNL_SOCKET_RESPONSE_OK_FD,
+
     // the request is successfully processed
     GNL_SOCKET_RESPONSE_OK,
 
@@ -33,6 +37,7 @@ struct gnl_socket_response {
     union {
         struct gnl_message_n *ok_evicted;
         struct gnl_message_sb *ok_file;
+        struct gnl_message_n *ok_fd;
         struct gnl_message_n *error;
     } payload;
 };
@@ -45,6 +50,7 @@ struct gnl_socket_response {
  * @param ...   The list of params supported by the given response type:
  *              - GNL_SOCKET_RESPONSE_OK_EVICTED: int number_of_files_evicted
  *              - GNL_SOCKET_RESPONSE_OK_FILE: char *filename, char *bytes
+ *              - GNL_SOCKET_RESPONSE_OK_FD: int file_descriptor
  *              - GNL_SOCKET_RESPONSE_ERROR: int error_code
  *
  * @return      Returns a gnl_socket_response struct on success,
@@ -99,7 +105,17 @@ extern int gnl_socket_response_write(struct gnl_socket_response *response, char 
  * @return          The number of evicted files on success,
  *                  -1 otherwise.
  */
-extern int gnl_socket_response_evicted(struct gnl_socket_response *response);
+extern int gnl_socket_response_get_evicted(struct gnl_socket_response *response);
+
+/**
+ * Read the file descriptor from the given response.
+ *
+ * @param response  The socket response.
+ *
+ * @return          The response file descriptor on success,
+ *                  -1 otherwise.
+ */
+extern int gnl_socket_response_get_fd(struct gnl_socket_response *response);
 
 /**
  * Get the error code of the given response.
@@ -109,14 +125,14 @@ extern int gnl_socket_response_evicted(struct gnl_socket_response *response);
  * @return          Returns the response error code on success,
  *                  -1 otherwise.
  */
-extern int gnl_socket_response_error(struct gnl_socket_response *response);
+extern int gnl_socket_response_get_error(struct gnl_socket_response *response);
 
 /**
  * Get the response from the given connection.
  *
  * @param connection    The socket service connection instance.
- * @param on_message    The function for read from the server, is typically a
- *                      function defined by a socket service.
+ * @param on_message    The function to which to delegate reading from the server,
+ *                      is typically a function defined by a socket service.
  *
  * @return              Returns 0 on success, -1 otherwise.
  */

@@ -88,6 +88,9 @@ static int decode(const char *message, char **dest, enum gnl_socket_response_typ
     return 0;
 }
 
+/**
+ * {@inheritDoc}
+ */
 int gnl_socket_response_to_string(struct gnl_socket_response *response, char **dest) {
     if (response == NULL) {
         errno = EINVAL;
@@ -104,6 +107,11 @@ int gnl_socket_response_to_string(struct gnl_socket_response *response, char **d
         case GNL_SOCKET_RESPONSE_OK_FILE:
             GNL_CALLOC(*dest, 8, -1);
             strcpy(*dest, "OK_FILE");
+            break;
+
+        case GNL_SOCKET_RESPONSE_OK_FD:
+            GNL_CALLOC(*dest, 6, -1);
+            strcpy(*dest, "OK_FD");
             break;
 
         case GNL_SOCKET_RESPONSE_OK:
@@ -126,6 +134,9 @@ int gnl_socket_response_to_string(struct gnl_socket_response *response, char **d
     return 0;
 }
 
+/**
+ * {@inheritDoc}
+ */
 struct gnl_socket_response *gnl_socket_response_init(enum gnl_socket_response_type type, int num, ...) {
     struct gnl_socket_response *socket_response = (struct gnl_socket_response *)malloc(sizeof(struct gnl_socket_response));
     GNL_NULL_CHECK(socket_response, ENOMEM, NULL)
@@ -165,6 +176,10 @@ struct gnl_socket_response *gnl_socket_response_init(enum gnl_socket_response_ty
             GNL_NULL_CHECK(socket_response->payload.ok_file, ENOMEM, NULL)
             break;
 
+        case GNL_SOCKET_RESPONSE_OK_FD:
+            GNL_RESPONSE_N_INIT(num, socket_response->payload.ok_fd, a_list)
+            break;
+
         case GNL_SOCKET_RESPONSE_OK:
             if (num != 0) {
                 errno = EINVAL;
@@ -193,6 +208,9 @@ struct gnl_socket_response *gnl_socket_response_init(enum gnl_socket_response_ty
     return socket_response;
 }
 
+/**
+ * {@inheritDoc}
+ */
 void gnl_socket_response_destroy(struct gnl_socket_response *response) {
     switch (response->type) {
         case GNL_SOCKET_RESPONSE_OK_EVICTED:
@@ -200,6 +218,9 @@ void gnl_socket_response_destroy(struct gnl_socket_response *response) {
             break;
         case GNL_SOCKET_RESPONSE_OK_FILE:
             gnl_message_sb_destroy(response->payload.ok_file);
+            break;
+        case GNL_SOCKET_RESPONSE_OK_FD:
+            gnl_message_n_destroy(response->payload.ok_fd);
             break;
         case GNL_SOCKET_RESPONSE_OK:
             break;
@@ -211,6 +232,9 @@ void gnl_socket_response_destroy(struct gnl_socket_response *response) {
     free(response);
 }
 
+/**
+ * {@inheritDoc}
+ */
 struct gnl_socket_response *gnl_socket_response_read(const char *message) {
     int res;
     struct gnl_socket_response *socket_response;
@@ -234,6 +258,14 @@ struct gnl_socket_response *gnl_socket_response_read(const char *message) {
             GNL_NULL_CHECK(socket_response, ENOMEM, NULL)
 
             res = gnl_message_sb_read(payload_message, socket_response->payload.ok_file);
+            GNL_MINUS1_CHECK(res, errno, NULL)
+            break;
+
+        case GNL_SOCKET_RESPONSE_OK_FD:
+            socket_response = gnl_socket_response_init(GNL_SOCKET_RESPONSE_OK_FD, 0);
+            GNL_NULL_CHECK(socket_response, ENOMEM, NULL)
+
+            res = gnl_message_n_read(payload_message, socket_response->payload.ok_fd);
             GNL_MINUS1_CHECK(res, errno, NULL)
             break;
 
@@ -262,6 +294,9 @@ struct gnl_socket_response *gnl_socket_response_read(const char *message) {
     return socket_response;
 }
 
+/**
+ * {@inheritDoc}
+ */
 int gnl_socket_response_write(struct gnl_socket_response *response, char **dest) {
     GNL_NULL_CHECK(response, EINVAL, -1)
 
@@ -284,9 +319,9 @@ int gnl_socket_response_write(struct gnl_socket_response *response, char **dest)
             res = gnl_message_sb_write(*(response->payload.ok_file), &built_message);
             break;
 
-//        case GNL_SOCKET_RESPONSE_OK_FD:
-//            res = gnl_message_n_write(*(response->payload.ok_fd), &built_message);
-//            break;
+        case GNL_SOCKET_RESPONSE_OK_FD:
+            res = gnl_message_n_write(*(response->payload.ok_fd), &built_message);
+            break;
 
         case GNL_SOCKET_RESPONSE_OK:
             res = 0;
@@ -314,8 +349,11 @@ int gnl_socket_response_write(struct gnl_socket_response *response, char **dest)
     return 0;
 }
 
+/**
+ * {@inheritDoc}
+ */
 //TODO: scrivere test
-int gnl_socket_response_evicted(struct gnl_socket_response *response) {
+int gnl_socket_response_get_evicted(struct gnl_socket_response *response) {
     GNL_NULL_CHECK(response, EINVAL, -1)
 
     if (response->type == GNL_SOCKET_RESPONSE_OK_EVICTED) {
@@ -327,8 +365,27 @@ int gnl_socket_response_evicted(struct gnl_socket_response *response) {
     return -1;
 }
 
+/**
+ * {@inheritDoc}
+ */
+//TODO: scrivere test
+int gnl_socket_response_get_fd(struct gnl_socket_response *response) {
+    GNL_NULL_CHECK(response, EINVAL, -1)
+
+    if (response->type == GNL_SOCKET_RESPONSE_OK_FD) {
+        return response->payload.ok_fd->number;
+    }
+
+    errno = EINVAL;
+
+    return -1;
+}
+
+/**
+ * {@inheritDoc}
+ */
 //TODO: aggiungere test dopo aver scritto la enum
-int gnl_socket_response_error(struct gnl_socket_response *response) {
+int gnl_socket_response_get_error(struct gnl_socket_response *response) {
     GNL_NULL_CHECK(response, EINVAL, -1)
 
     if (response->type == GNL_SOCKET_RESPONSE_ERROR) {
@@ -340,6 +397,9 @@ int gnl_socket_response_error(struct gnl_socket_response *response) {
     return -1;
 }
 
+/**
+ * {@inheritDoc}
+ */
 //TODO: scrivere test
 struct gnl_socket_response *gnl_socket_response_get(const struct gnl_socket_connection *connection,
                                                     int (*on_message)(const struct gnl_socket_connection *connection,

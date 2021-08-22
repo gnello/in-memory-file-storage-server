@@ -102,9 +102,9 @@
                                                                                 \
     if (strcmp(dest, (expected)) != 0) {                                        \
         res = -1;                                                               \
+    } else {                                                                    \
+        res = 0;                                                                    \
     }                                                                           \
-                                                                                \
-    res = 0;                                                                    \
                                                                                 \
     free(dest);                                                                 \
     gnl_socket_response_destroy(request);                                        \
@@ -232,6 +232,22 @@ int can_write_ok_file() {
     return 0;
 }
 
+int can_init_empty_ok_fd() {
+    GNL_TEST_RESPONSE_INIT(GNL_SOCKET_RESPONSE_OK_FD);
+}
+
+int can_init_args_ok_fd() {
+    GNL_TEST_RESPONSE_N_ARGS(GNL_SOCKET_RESPONSE_OK_FD, response->payload.ok_fd);
+}
+
+int can_read_ok_fd() {
+    GNL_TEST_RESPONSE_N_READ(GNL_SOCKET_RESPONSE_OK_FD, response->payload.ok_fd)
+}
+
+int can_write_ok_fd() {
+    GNL_TEST_RESPONSE_N_WRITE(GNL_SOCKET_RESPONSE_OK_FD)
+}
+
 int can_init_empty_ok() {
     GNL_TEST_RESPONSE_INIT(GNL_SOCKET_RESPONSE_OK);
 }
@@ -356,6 +372,10 @@ int can_to_string_ok_file() {
     GNL_TEST_TO_STRING(GNL_SOCKET_RESPONSE_OK_FILE, "OK_FILE");
 }
 
+int can_to_string_ok_fd() {
+    GNL_TEST_TO_STRING(GNL_SOCKET_RESPONSE_OK_FD, "OK_FD");
+}
+
 int can_to_string_ok() {
     GNL_TEST_TO_STRING(GNL_SOCKET_RESPONSE_OK, "OK");
 }
@@ -377,6 +397,11 @@ int main() {
     gnl_assert(can_read_ok_file, "can read a GNL_SOCKET_RESPONSE_OK_FILE response type message.");
     gnl_assert(can_write_ok_file, "can write a GNL_SOCKET_RESPONSE_OK_FILE response type.");
 
+    gnl_assert(can_init_empty_ok_fd, "can init an empty GNL_SOCKET_RESPONSE_OK_FD response type.");
+    gnl_assert(can_init_args_ok_fd, "can init a GNL_SOCKET_RESPONSE_OK_FD response type with args.");
+    gnl_assert(can_read_ok_fd, "can read a GNL_SOCKET_RESPONSE_OK_FD response type message.");
+    gnl_assert(can_write_ok_fd, "can write a GNL_SOCKET_RESPONSE_OK_FD response type.");
+
     gnl_assert(can_init_empty_ok, "can init an empty GNL_SOCKET_RESPONSE_OK response type.");
     gnl_assert(can_not_init_args_ok, "can not init a GNL_SOCKET_RESPONSE_OK response type with args.");
     gnl_assert(can_read_ok, "can read a GNL_SOCKET_RESPONSE_OK response type message.");
@@ -392,6 +417,7 @@ int main() {
 
     gnl_assert(can_to_string_ok_evicted, "can format to string a GNL_SOCKET_RESPONSE_OK_EVICTED response type");
     gnl_assert(can_to_string_ok_file, "can format to string a GNL_SOCKET_RESPONSE_OK_FILE response type");
+    gnl_assert(can_to_string_ok_fd, "can format to string a GNL_SOCKET_RESPONSE_OK_FD response type");
     gnl_assert(can_to_string_ok, "can format to string a GNL_SOCKET_RESPONSE_OK response type");
     gnl_assert(can_to_string_error, "can format to string a GNL_SOCKET_RESPONSE_ERROR response type");
 
