@@ -63,7 +63,7 @@ tests-valgrind-short:
 
 # run all tests present in this project and exit with an error code if errors are found
 tests-valgrind-error:
-	echo "> Valgrind errors check..."; $(MAKE) tests-valgrind-short >> ./valgrind-error.txt; errors=`cat valgrind-error.txt | grep "ERROR SUMMARY: [^0] errors" | wc -l`; if [ $errors > 0 ]; then echo "errors found" && rm "valgrind-error.txt" && exit 1; else echo "no errors found" && exit 0; fi; rm "valgrind-error.txt";
+	echo "> Valgrind errors check..."; $(MAKE) tests-valgrind-short >> ./valgrind-error.txt; errors=`cat valgrind-error.txt | grep "ERROR SUMMARY: [^0] errors" | wc -l`; if [[ $errors > 0 ]]; then echo "errors found" && rm "valgrind-error.txt" && exit 1; else echo "no errors found"; fi; rm "valgrind-error.txt";
 
 clean:
 	$(foreach target,$(TARGETS_ALL),cd $(ROOT_DIR)/$(target) && $(MAKE) clean;)
