@@ -417,6 +417,7 @@ int gnl_simfs_file_system_open(struct gnl_simfs_file_system *file_system, const 
  */
 int gnl_simfs_file_system_write(struct gnl_simfs_file_system *file_system, int fd, const void *buf, size_t count,
         unsigned int pid) {
+
     // acquire the lock
     GNL_SIMFS_LOCK_ACQUIRE(-1)
 
@@ -446,6 +447,8 @@ int gnl_simfs_file_system_write(struct gnl_simfs_file_system *file_system, int f
     // if the file is not present return an error
     if (inode == NULL) {
         gnl_logger_debug(file_system->logger, "File descriptor does not exist: \"%d\", returning with error.", fd);
+
+        GNL_SIMFS_LOCK_RELEASE(-1)
 
         //let the errno bubble
 
