@@ -66,8 +66,7 @@ tests-valgrind-error:
 	echo "> Valgrind errors check..."
 	$(MAKE) tests-valgrind-short >> ./valgrind-error.txt
 	ERRORS=$$(cat valgrind-error.txt | grep "ERROR SUMMARY: [^0] errors" | wc -l); \
- 	echo $$ERRORS; \
- 	if [ "$$ERRORS" -gt 0 ]; then echo "errors found" && rm "valgrind-error.txt" && exit 1; else echo "no errors found"; fi
+ 	if [ "$$ERRORS" -gt 0 ]; then echo "$${ERRORS} errors found" && rm "valgrind-error.txt" && exit 1; else echo "no errors found"; fi
 	rm "valgrind-error.txt"
 
 clean:
