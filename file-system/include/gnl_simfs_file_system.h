@@ -66,11 +66,12 @@ extern int gnl_simfs_file_system_open(struct gnl_simfs_file_system *file_system,
  * the file descriptor fd. //TODO: decidere se è atomica o no
  * //TODO: c'è un limite alla grandezza del file?
  *
- * @param file_system
- * @param fd
+ * @param file_system   The file system instance where to write the file.
+ * @param fd            The file descriptor referring the file where to write.
  * @param buf           The buffer pointer containing the data to write.
  * @param count         The count of bytes to write.
- * @return
+ *
+ * @return              Return 0 on success, -1 otherwise. //TODO: ritornare il numero di bytes scritti?
  */
 extern int gnl_simfs_file_system_write(struct gnl_simfs_file_system *file_system, int fd, const void *buf, size_t count,
         unsigned int pid);
