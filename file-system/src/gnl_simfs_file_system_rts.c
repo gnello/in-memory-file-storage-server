@@ -45,24 +45,6 @@ struct gnl_simfs_file_system {
 };
 
 /**
- * Destroy an inode. It should be passed to the gnl_ternary_search_tree_destroy
- * method of the gnl_ternary_search_tree data structure.
- *
- * @param ptr   The void pointer value of the gnl_ternary_search_tree data structure.
- */
-static void destroy_file_table_inode(void *ptr) {
-    if (ptr == NULL) {
-        return;
-    }
-
-    // implicitly cast the value
-    struct gnl_simfs_inode *inode = ptr;
-
-    // destroy the obtained inode
-    gnl_simfs_inode_destroy(inode);
-}
-
-/**
  * Create a new file and put it into the given file system.
  *
  * @param file_system   The file system instance where to put the created file.
@@ -202,7 +184,7 @@ static int update_file_table_entry(struct gnl_simfs_file_system *file_system, co
 }
 
 /**
- * Check if the file pointed by the given inode is available: if not, it waits for it.
+ * Check if the file pointed by the given inode is available: if not, wait for it.
  * Attention! An invocation to this method may block the process until the file pointed
  * by the given inode returns available.
  *
