@@ -321,14 +321,63 @@ int gnl_fss_api_unlock_file(const char *pathname) {
  * {@inheritDoc}
  */
 int gnl_fss_api_close_file(const char *pathname) {
+    // validate the parameters
+    GNL_NULL_CHECK(pathname, EINVAL, -1)
+
+    // get the fd associate with the given pathname
+    void *fd_raw = gnl_ternary_search_tree_get(file_descriptor_table, pathname);
+    GNL_NULL_CHECK(fd_raw, EINVAL, -1);
+
+    int fd = *(int *)fd_raw;
+
+    // create the request to send to the server
+    struct gnl_socket_request *request = gnl_socket_request_init(GNL_SOCKET_REQUEST_CLOSE, 1, fd);
+    GNL_NULL_CHECK(request, ENOMEM, -1)
+
+    // send the request to the server
+    int bytes_sent = gnl_socket_request_send(request, socket_service_connection, gnl_socket_service_emit);
+    GNL_MINUS1_CHECK(bytes_sent, errno, -1)
+
+    // clean memory
+    gnl_socket_request_destroy(request);
+
+    // get the response from the server
+    struct gnl_socket_response *response = gnl_socket_response_get(socket_service_connection, gnl_socket_service_read);
+    GNL_NULL_CHECK(response, errno, -1)
+
+    int res = 0;
+    int tmp_res;
+
+    // handle the response
+    switch (response->type) {
+
+        case GNL_SOCKET_RESPONSE_ERROR:
+            // an error happen, get the errno
+            errno = response->payload.error->number;
+            res = -1;
+            break;
+
+        case GNL_SOCKET_RESPONSE_OK:
+            // remove the fd from the file_descriptor_table
+            tmp_res = gnl_ternary_search_tree_remove(file_descriptor_table, pathname, free);
+            GNL_MINUS1_CHECK(tmp_res, errno, -1)
+
+            break;
+
+        default:
+            // if this point is reached, the response can not be
+            // something different from an ok response
+            errno = EBADMSG;
+            res = -1;
+    }
+
+    // free the memory
+    gnl_socket_response_destroy(response);
 
     // reset the openFile(pathname, O_CREATE| O_LOCK) check
     open_with_create_lock_flags = 0;
 
-    // remove the file from the file descriptor table
-    gnl_ternary_search_tree_remove(file_descriptor_table, pathname, free);
-
-    return 0;
+    return res;
 }
 
 /**
