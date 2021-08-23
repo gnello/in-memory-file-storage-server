@@ -75,4 +75,6 @@ extern int gnl_simfs_file_system_open(struct gnl_simfs_file_system *file_system,
 extern int gnl_simfs_file_system_write(struct gnl_simfs_file_system *file_system, int fd, const void *buf, size_t count,
         unsigned int pid);
 
+extern int gnl_simfs_file_system_close(struct gnl_simfs_file_system *file_system, int fd, unsigned int pid);
+
 #endif //GNL_SIMFS_FILE_SYSTEM_H

@@ -232,7 +232,7 @@ static int update_file_table_entry(struct gnl_simfs_file_system *file_system, co
     struct gnl_simfs_inode *inode = (struct gnl_simfs_inode *)raw_inode;
 
     // update the inode with the new entry
-    int res = gnl_simfs_inode_update(inode, new_entry);
+    int res = gnl_simfs_inode_update(inode, new_entry); //TODO: capire cosa fare con copie di inode modificati in tempi diversi
     if (res == -1) {
         gnl_logger_debug(file_system->logger, "Update entry failed: \"%s\".", strerror(errno));
     }
@@ -520,7 +520,7 @@ int gnl_simfs_file_system_write(struct gnl_simfs_file_system *file_system, int f
     res = gnl_simfs_inode_append_to_file(inode, buf, count);
     GNL_SIMFS_MINUS1_CHECK(res, errno, -1, pid)
 
-    // update the inode into the file table
+    // update the inode into the file table //TODO: farlo solo quando viene chiuso il file
     res = update_file_table_entry(file_system, inode->name, inode);
     GNL_MINUS1_CHECK(res, errno, -1)
 
@@ -532,6 +532,10 @@ int gnl_simfs_file_system_write(struct gnl_simfs_file_system *file_system, int f
     // release the lock
     GNL_SIMFS_LOCK_RELEASE(-1, pid)
 
+    return 0;
+}
+
+int gnl_simfs_file_system_close(struct gnl_simfs_file_system *file_system, int fd, unsigned int pid) {
     return 0;
 }
 
