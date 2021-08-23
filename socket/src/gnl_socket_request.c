@@ -14,17 +14,33 @@
 #define MAX_DIGITS_CHAR "10"
 #define MAX_DIGITS_INT 10
 
-#define GNL_REQUEST_S_INIT(num, ref, a_list) {                                \
+#define GNL_REQUEST_N_INIT(num, ref, a_list) {                          \
+    switch (num) {                                                      \
+        case 0:                                                         \
+            ref = gnl_message_n_init();                                 \
+            break;                                                      \
+        case 1:                                                         \
+            ref = gnl_message_n_init_with_args(va_arg(a_list, int));    \
+            break;                                                      \
+        default:                                                        \
+            errno = EINVAL;                                             \
+            return NULL;                                                \
+    }                                                                   \
+                                                                        \
+    GNL_NULL_CHECK(ref, ENOMEM, NULL)                                   \
+}
+
+#define GNL_REQUEST_S_INIT(num, ref, a_list) {                              \
     switch (num) {                                                          \
         case 0:                                                             \
-            ref = gnl_message_s_init();                    \
+            ref = gnl_message_s_init();                                     \
             break;                                                          \
         case 1:                                                             \
-            buffer_s = va_arg(a_list, char *);                                \
-            ref = gnl_message_s_init_with_args(buffer_s);    \
+            buffer_s = va_arg(a_list, char *);                              \
+            ref = gnl_message_s_init_with_args(buffer_s);                   \
             break;                                                          \
         default:                                                            \
-        errno = EINVAL;                                                     \
+            errno = EINVAL;                                                 \
             return NULL;                                                    \
     }                                                                       \
                                                                             \
@@ -67,25 +83,32 @@
     GNL_NULL_CHECK(ref, ENOMEM, NULL)                                       \
 }
 
-#define GNL_REQUEST_S_READ_MESSAGE(payload_message, ref, type) {      \
-    socket_request = gnl_socket_request_init(type, 0);          \
+#define GNL_REQUEST_N_READ_MESSAGE(payload_message, ref, type) {    \
+    socket_request = gnl_socket_request_init(type, 0);              \
     GNL_NULL_CHECK(socket_request, ENOMEM, NULL)                    \
                                                                     \
-    gnl_message_s_read(payload_message, ref);      \
+    gnl_message_n_read(payload_message, ref);                       \
 }
 
-#define GNL_REQUEST_SB_READ_MESSAGE(payload_message, ref, type) {      \
-    socket_request = gnl_socket_request_init(type, 0);          \
+#define GNL_REQUEST_S_READ_MESSAGE(payload_message, ref, type) {    \
+    socket_request = gnl_socket_request_init(type, 0);              \
     GNL_NULL_CHECK(socket_request, ENOMEM, NULL)                    \
                                                                     \
-    gnl_message_sb_read(payload_message, ref);      \
+    gnl_message_s_read(payload_message, ref);                       \
 }
 
-#define GNL_REQUEST_NB_READ_MESSAGE(payload_message, ref, type) {      \
-    socket_request = gnl_socket_request_init(type, 0);          \
+#define GNL_REQUEST_SB_READ_MESSAGE(payload_message, ref, type) {   \
+    socket_request = gnl_socket_request_init(type, 0);              \
     GNL_NULL_CHECK(socket_request, ENOMEM, NULL)                    \
                                                                     \
-    gnl_message_nb_read(payload_message, ref);      \
+    gnl_message_sb_read(payload_message, ref);                      \
+}
+
+#define GNL_REQUEST_NB_READ_MESSAGE(payload_message, ref, type) {   \
+    socket_request = gnl_socket_request_init(type, 0);              \
+    GNL_NULL_CHECK(socket_request, ENOMEM, NULL)                    \
+                                                                    \
+    gnl_message_nb_read(payload_message, ref);                      \
 }
 
 /**
@@ -244,19 +267,7 @@ struct gnl_socket_request *gnl_socket_request_init(enum gnl_socket_request_type 
             break;
         
         case GNL_SOCKET_REQUEST_READ_N:
-            switch (num) {
-                case 0:
-                    socket_request->payload.read_N = gnl_message_n_init();
-                    break;
-                case 1:
-                    socket_request->payload.read_N = gnl_message_n_init_with_args(va_arg(a_list, int));
-                    break;
-                default:
-                    errno = EINVAL;
-                    return NULL;
-            }
-
-            GNL_NULL_CHECK(socket_request->payload.read_N, ENOMEM, NULL)
+            GNL_REQUEST_N_INIT(num, socket_request->payload.read_N, a_list)
             break;
 
         case GNL_SOCKET_REQUEST_READ:
@@ -280,7 +291,7 @@ struct gnl_socket_request *gnl_socket_request_init(enum gnl_socket_request_type 
             break;
 
         case GNL_SOCKET_REQUEST_CLOSE:
-            GNL_REQUEST_S_INIT(num, socket_request->payload.close, a_list)
+            GNL_REQUEST_N_INIT(num, socket_request->payload.close, a_list)
             break;
 
         case GNL_SOCKET_REQUEST_REMOVE:
@@ -331,7 +342,7 @@ void gnl_socket_request_destroy(struct gnl_socket_request *request) {
             break;
 
         case GNL_SOCKET_REQUEST_CLOSE:
-            gnl_message_s_destroy(request->payload.close);
+            gnl_message_n_destroy(request->payload.close);
             break;
 
         case GNL_SOCKET_REQUEST_REMOVE:
@@ -359,10 +370,7 @@ struct gnl_socket_request *gnl_socket_request_read(const char *message) {
             break;
 
         case GNL_SOCKET_REQUEST_READ_N:
-            socket_request = gnl_socket_request_init(GNL_SOCKET_REQUEST_READ_N, 0);
-            GNL_NULL_CHECK(socket_request, ENOMEM, NULL)
-
-            gnl_message_n_read(payload_message, socket_request->payload.read_N);
+            GNL_REQUEST_N_READ_MESSAGE(payload_message, socket_request->payload.read_N, type);
             break;
 
         case GNL_SOCKET_REQUEST_READ:
@@ -386,7 +394,7 @@ struct gnl_socket_request *gnl_socket_request_read(const char *message) {
             break;
 
         case GNL_SOCKET_REQUEST_CLOSE:
-            GNL_REQUEST_S_READ_MESSAGE(payload_message, socket_request->payload.close, type);
+            GNL_REQUEST_N_READ_MESSAGE(payload_message, socket_request->payload.close, type);
             break;
 
         case GNL_SOCKET_REQUEST_REMOVE:
@@ -448,7 +456,7 @@ int gnl_socket_request_write(const struct gnl_socket_request *request, char **de
             break;
 
         case GNL_SOCKET_REQUEST_CLOSE:
-            res = gnl_message_s_write(*(request->payload.close), &built_message);
+            res = gnl_message_n_write(*(request->payload.close), &built_message);
             break;
 
         case GNL_SOCKET_REQUEST_REMOVE:
@@ -491,9 +499,11 @@ int gnl_socket_request_send(const struct gnl_socket_request *request,
 
 #undef MAX_DIGITS_CHAR
 #undef MAX_DIGITS_INT
+#undef GNL_REQUEST_N_INIT
 #undef GNL_REQUEST_S_INIT
 #undef GNL_REQUEST_SB_INIT
 #undef GNL_REQUEST_NB_INIT
+#undef GNL_REQUEST_N_READ_MESSAGE
 #undef GNL_REQUEST_S_READ_MESSAGE
 #undef GNL_REQUEST_SB_READ_MESSAGE
 #undef GNL_REQUEST_NB_READ_MESSAGE
