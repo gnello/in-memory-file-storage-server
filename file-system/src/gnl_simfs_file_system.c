@@ -57,6 +57,24 @@ int lock_release_res = pthread_mutex_unlock(&(file_system->mtx));           \
 }
 
 /**
+ * Destroy an inode. It should be passed to the gnl_ternary_search_tree_destroy
+ * method of the gnl_ternary_search_tree data structure.
+ *
+ * @param ptr   The void pointer value of the gnl_ternary_search_tree data structure.
+ */
+static void destroy_file_table_inode(void *ptr) {
+    if (ptr == NULL) {
+        return;
+    }
+
+    // implicitly cast the value
+    struct gnl_simfs_inode *inode = ptr;
+
+    // destroy the obtained inode
+    gnl_simfs_inode_destroy(inode);
+}
+
+/**
  * {@inheritDoc}
  */
 struct gnl_simfs_file_system *gnl_simfs_file_system_init(unsigned int memory_limit, unsigned int files_limit,
