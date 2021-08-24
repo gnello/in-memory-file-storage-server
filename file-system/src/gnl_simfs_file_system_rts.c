@@ -134,10 +134,14 @@ static int is_file_not_available(struct gnl_simfs_inode *inode, unsigned int pid
  * @param file_system   The file system instance where the file table resides.
  * @param key           The key of the entry to be updated.
  * @param new_entry     The new entry to use to update the existing entry.
+ * @param new_entry     The new entry to use to update the existing entry.
+ * @param count         The count of bytes eventually wrote in the file within
+ *                      the given new_entry inode.
  *
  * @return              Returns 0 on success, -1 otherwise.
  */
-static int update_file_table_entry(struct gnl_simfs_file_system *file_system, const char *key, const struct gnl_simfs_inode *new_entry) {
+static int update_file_table_entry(struct gnl_simfs_file_system *file_system, const char *key,
+        const struct gnl_simfs_inode *new_entry, size_t count) {
     // validate the parameters
     GNL_NULL_CHECK(file_system, EINVAL, -1)
     GNL_NULL_CHECK(key, EINVAL, -1)
@@ -161,11 +165,8 @@ static int update_file_table_entry(struct gnl_simfs_file_system *file_system, co
     // else cast the raw_inode
     struct gnl_simfs_inode *inode = (struct gnl_simfs_inode *)raw_inode;
 
-    // get the number of bytes added
-    int bytes_added = new_entry->size - inode->size;
-
     // update the inode with the new entry
-    int res = gnl_simfs_inode_update(inode, new_entry); //TODO: capire cosa fare con copie di inode modificati in tempi diversi
+    int res = gnl_simfs_inode_update(inode, new_entry, count);
     if (res == -1) {
         gnl_logger_debug(file_system->logger, "Update on entry \"%s\" failed: %s", key, strerror(errno));
 
@@ -175,10 +176,10 @@ static int update_file_table_entry(struct gnl_simfs_file_system *file_system, co
     }
 
     // update the file system
-    file_system->heap_size += bytes_added;
+    file_system->heap_size += count;
 
-    gnl_logger_debug(file_system->logger, "Update on entry \"%s\" succeeded, the heap size is now %d bytes",
-                     key, file_system->heap_size);
+    gnl_logger_debug(file_system->logger, "Update on entry \"%s\" succeeded, the heap size is now %d bytes, "
+                                          "the heap limit is %d bytes", key, file_system->heap_size, file_system->memory_limit);
 
     return 0;
 }
