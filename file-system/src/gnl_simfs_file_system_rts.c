@@ -1,4 +1,3 @@
-#include <stdlib.h>
 #include <errno.h>
 #include <string.h>
 #include <pthread.h>
@@ -6,7 +5,6 @@
 #include <gnl_logger.h>
 #include "./gnl_simfs_file_descriptor_table.c"
 #include "./gnl_simfs_inode.c"
-#include "../include/gnl_simfs_file_system.h"
 #include <gnl_macro_beg.h>
 
 /**
@@ -29,7 +27,7 @@ struct gnl_simfs_file_system {
     // the number of files that can be handled by the file system
     int files_limit;
 
-    // the memory allocable in megabyte by the file system
+    // the memory allocable in bytes by the file system
     unsigned long memory_limit;
 
     // contains all the open files in a precisely time,
@@ -163,8 +161,10 @@ static int update_file_table_entry(struct gnl_simfs_file_system *file_system, co
     // else cast the raw_inode
     struct gnl_simfs_inode *inode = (struct gnl_simfs_inode *)raw_inode;
 
+    // get the number of bytes added
+    int bytes_added = new_entry->size - inode->size;
+
     // update the inode with the new entry
-    //TODO: non è detto che ci sia stata una write, prendere l'inode vecchio e confrontare la size con quello nuovo
     int res = gnl_simfs_inode_update(inode, new_entry); //TODO: capire cosa fare con copie di inode modificati in tempi diversi
     if (res == -1) {
         gnl_logger_debug(file_system->logger, "Update on entry \"%s\" failed: %s", key, strerror(errno));
@@ -175,7 +175,7 @@ static int update_file_table_entry(struct gnl_simfs_file_system *file_system, co
     }
 
     // update the file system
-    file_system->heap_size += inode->size; //TODO: sistemare con la size corretta (da confrontare con l'inode vecchio)
+    file_system->heap_size += bytes_added;
 
     gnl_logger_debug(file_system->logger, "Update on entry \"%s\" succeeded, the heap size is now %d bytes",
                      key, file_system->heap_size);

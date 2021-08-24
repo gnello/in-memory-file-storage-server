@@ -3,6 +3,7 @@
 #include <string.h>
 #include <pthread.h>
 #include <gnl_logger.h>
+#include "../include/gnl_simfs_file_system.h"
 #include "./gnl_simfs_file_system_rts.c"
 #include <gnl_macro_beg.h>
 
@@ -322,7 +323,11 @@ int gnl_simfs_file_system_write(struct gnl_simfs_file_system *file_system, int f
     res = gnl_simfs_inode_append_to_file(inode, buf, count);
     GNL_SIMFS_MINUS1_CHECK(res, errno, -1, pid)
 
-    gnl_logger_debug(file_system->logger, "Write on file descriptor %d succeeded", fd);
+    // update the inode into the file table
+    res = update_file_table_entry(file_system, inode->name, inode);
+    GNL_SIMFS_MINUS1_CHECK(res, errno, -1, pid)
+
+    gnl_logger_debug(file_system->logger, "Write on file descriptor %d succeeded, inode updated", fd);
 
     // release the lock
     GNL_SIMFS_LOCK_RELEASE(-1, pid)
@@ -342,23 +347,11 @@ int gnl_simfs_file_system_close(struct gnl_simfs_file_system *file_system, int f
 
     gnl_logger_debug(file_system->logger, "Pid %d is trying to close file descriptor %d", pid, fd);
 
-    // search the file in the file descriptor table
-    struct gnl_simfs_inode *inode = get_inode_from_fd(file_system, fd, pid);
-    GNL_SIMFS_NULL_CHECK(inode, errno, -1, pid)
-
-    // check if the file is available: if not, wait for it
-    int res = wait_file_availability(file_system, inode, pid, 0);
-    GNL_SIMFS_MINUS1_CHECK(res, errno, -1, pid)
-
-    // update the inode into the file table
-    res = update_file_table_entry(file_system, inode->name, inode);
-    GNL_SIMFS_MINUS1_CHECK(res, errno, -1, pid)
-
     // remove the file descriptor from the file descriptor table
-    res = gnl_simfs_file_descriptor_table_remove(file_system->file_descriptor_table, fd, pid);
+    int res = gnl_simfs_file_descriptor_table_remove(file_system->file_descriptor_table, fd, pid);
     GNL_SIMFS_MINUS1_CHECK(res, errno, -1, pid)
 
-    gnl_logger_debug(file_system->logger, "Close on file descriptor %d succeeded, inode updated, "
+    gnl_logger_debug(file_system->logger, "Close on file descriptor %d succeeded, "
                                           "file descriptor %d destroyed", fd, fd);
 
     // release the lock
