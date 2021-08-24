@@ -634,7 +634,7 @@ int can_update() {
 
     time_t end_time = time(NULL);
 
-    res = gnl_simfs_inode_update(inode, new_inode);
+    res = gnl_simfs_inode_update(inode, new_inode, 6);
     if (res != 0) {
         return -1;
     }
@@ -694,6 +694,39 @@ int can_update() {
     return 0;
 }
 
+int can_not_update_size() {
+    struct gnl_simfs_inode *inode = gnl_simfs_inode_init("test");
+
+    if (inode == NULL) {
+        return -1;
+    }
+
+    struct gnl_simfs_inode *new_inode = gnl_simfs_inode_copy(inode);
+
+    if (new_inode == NULL) {
+        return -1;
+    }
+
+    int res = gnl_simfs_inode_append_to_file(new_inode, "string", 6);
+    if (res != 0) {
+        return -1;
+    }
+
+    res = gnl_simfs_inode_update(inode, new_inode, 7);
+    if (res == 0) {
+        return -1;
+    }
+
+    if (errno != EIO) {
+        return -1;
+    }
+
+    gnl_simfs_inode_copy_destroy(new_inode);
+    gnl_simfs_inode_destroy(inode);
+
+    return 0;
+}
+
 int main() {
     gnl_printf_yellow("> gnl_simfs_inode test:\n\n");
 
@@ -722,6 +755,7 @@ int main() {
 
     gnl_assert(can_copy, "can get a copy of an inode.");
     gnl_assert(can_update, "can update an inode.");
+    gnl_assert(can_not_update_size, "can not update an inode giving a wrong size.");
 
     // the gnl_simfs_inode_destroy method is implicitly tested in every
     // assert, if you don't believe it, run this tests with

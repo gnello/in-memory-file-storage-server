@@ -325,7 +325,7 @@ int gnl_simfs_inode_append_to_file(struct gnl_simfs_inode *inode, const void *bu
     // set the last status change timestamp of the inode
     inode->ctime = time(NULL);
 
-    return 0;
+    return count;
 }
 
 /**
@@ -366,12 +366,12 @@ struct gnl_simfs_inode *gnl_simfs_inode_copy(const struct gnl_simfs_inode *inode
 /**
  * {@inheritDoc}
  */
-int gnl_simfs_inode_update(struct gnl_simfs_inode *inode, const struct gnl_simfs_inode *with) {
+int gnl_simfs_inode_update(struct gnl_simfs_inode *inode, const struct gnl_simfs_inode *with, size_t count) {
     GNL_NULL_CHECK(inode, EINVAL, -1)
     GNL_NULL_CHECK(with, EINVAL, -1)
 
     // update the size of the file within the inode
-    inode->size = with->size;
+    inode->size += count;
 
     // update the pointer of the file within the inode
     inode->direct_ptr = with->direct_ptr;

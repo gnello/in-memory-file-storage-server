@@ -222,7 +222,8 @@ extern int gnl_simfs_inode_has_locker_pid(struct gnl_simfs_inode *inode);
  * @param buf   The buffer pointer containing the data to write.
  * @param count The count of bytes to write.
  *
- * @return      Returns 0 on success, -1 otherwise.
+ * @return      Returns the number of bytes wrote into the file on success,
+ *              -1 otherwise.
  */
 extern int gnl_simfs_inode_append_to_file(struct gnl_simfs_inode *inode, const void *buf, size_t count);
 
@@ -241,9 +242,11 @@ extern struct gnl_simfs_inode *gnl_simfs_inode_copy(const struct gnl_simfs_inode
  *
  * @param inode The inode to be updated.
  * @param with  The more up-to-date inode to use for the copy.
+ * @param count The count of bytes eventually wrote in the file within
+ *              the given with inode.
  *
  * @return      Returns 0 on success, -1 otherwise.
  */
-extern int gnl_simfs_inode_update(struct gnl_simfs_inode *inode, const struct gnl_simfs_inode *with);
+extern int gnl_simfs_inode_update(struct gnl_simfs_inode *inode, const struct gnl_simfs_inode *with, size_t count);
 
 #endif //GNL_SIMFS_INODE_H
