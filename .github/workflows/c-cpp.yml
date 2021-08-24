@@ -39,7 +39,7 @@ jobs:
 
     # unit test failures
     - name: Run unit test failures check
-      run: cp .env.test .env && chmod -R +x * && make -s tests-fail
+      run: cp .env.test .env && chmod -R +x * && make -s tests-failure
 
     # valgrind-short test
     - name: Run valgrind-short tests
