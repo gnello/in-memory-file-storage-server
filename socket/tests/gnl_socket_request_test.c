@@ -277,7 +277,7 @@
     return 0;                                                                                               \
 }
 
-#define GNL_TEST_EMPTY_REQUEST_NB(request_type, ref) {                                              \
+#define GNL_TEST_EMPTY_REQUEST_NNB(request_type, ref) {                                              \
     struct gnl_socket_request *request = gnl_socket_request_init(request_type, 0);  \
                                                                                             \
     if (request == NULL) {                                                                  \
@@ -290,6 +290,10 @@
                                                                                             \
     if (ref->number > 0) {                                          \
         return -1;                                                                          \
+    }                                                                                           \
+                                                                                            \
+    if (ref->count > 0) {                                          \
+        return -1;                                                                          \
     }                                                                                         \
                                                                                             \
     if (ref->bytes != NULL) {                                          \
@@ -301,8 +305,8 @@
     return 0;                                                                               \
 }
 
-#define GNL_TEST_REQUEST_NB_ARGS(request_type, ref) {                                                          \
-    struct gnl_socket_request *request = gnl_socket_request_init(request_type, 2, 220510, "\x41\x42\x43\x44");    \
+#define GNL_TEST_REQUEST_NNB_ARGS(request_type, ref) {                                                          \
+    struct gnl_socket_request *request = gnl_socket_request_init(request_type, 2, 220510, 4, "\x41\x42\x43\x44");    \
                                                                                                             \
     if (request == NULL) {                                                                                  \
         return -1;                                                                                          \
@@ -313,6 +317,10 @@
     }                                                                                                       \
                                                                                                             \
     if (ref->number != 220510) {                                                         \
+        return -1;                                                                                          \
+    }                                                                                                      \
+                                                                                                            \
+    if (ref->count != 4) {                                                         \
         return -1;                                                                                          \
     }                                                                                                          \
                                                                                                             \
@@ -325,7 +333,7 @@
     return 0;                                                                                               \
 }
 
-#define GNL_TEST_REQUEST_NB_READ(request_type, ref) {                              \
+#define GNL_TEST_REQUEST_NNB_READ(request_type, ref) {                              \
     struct gnl_socket_request *request;                                     \
                                                                                 \
     char message[55];                                                           \
@@ -353,8 +361,8 @@
     return 0;                                                                   \
 }
 
-#define GNL_TEST_REQUEST_NB_WRITE(request_type) {                                                              \
-struct gnl_socket_request *request = gnl_socket_request_init(request_type, 2, 220510, "\x41\x42\x43\x44");    \
+#define GNL_TEST_REQUEST_NNB_WRITE(request_type) {                                                              \
+struct gnl_socket_request *request = gnl_socket_request_init(request_type, 2, 220510, 4, "\x41\x42\x43\x44");    \
                                                                                                             \
     if (request == NULL) {                                                                                  \
         return -1;                                                                                          \
@@ -520,19 +528,19 @@ int can_write_read() {
 }
 
 int can_init_empty_write() {
-    GNL_TEST_EMPTY_REQUEST_NB(GNL_SOCKET_REQUEST_WRITE, request->payload.write)
+    GNL_TEST_EMPTY_REQUEST_NNB(GNL_SOCKET_REQUEST_WRITE, request->payload.write)
 }
 
 int can_init_args_write() {
-    GNL_TEST_REQUEST_NB_ARGS(GNL_SOCKET_REQUEST_WRITE, request->payload.write)
+    GNL_TEST_REQUEST_NNB_ARGS(GNL_SOCKET_REQUEST_WRITE, request->payload.write)
 }
 
 int can_read_write() {
-    GNL_TEST_REQUEST_NB_READ(GNL_SOCKET_REQUEST_WRITE, request->payload.write)
+    GNL_TEST_REQUEST_NNB_READ(GNL_SOCKET_REQUEST_WRITE, request->payload.write)
 }
 
 int can_write_write() {
-    GNL_TEST_REQUEST_NB_WRITE(GNL_SOCKET_REQUEST_WRITE)
+    GNL_TEST_REQUEST_NNB_WRITE(GNL_SOCKET_REQUEST_WRITE)
 }
 
 int can_init_empty_append() {
@@ -762,8 +770,8 @@ int main() {
 #undef GNL_TEST_REQUEST_SB_ARGS
 #undef GNL_TEST_REQUEST_SB_READ
 #undef GNL_TEST_REQUEST_SB_WRITE
-#undef GNL_TEST_EMPTY_REQUEST_NB
-#undef GNL_TEST_REQUEST_NB_ARGS
-#undef GNL_TEST_REQUEST_NB_READ
-#undef GNL_TEST_REQUEST_NB_WRITE
+#undef GNL_TEST_EMPTY_REQUEST_NNB
+#undef GNL_TEST_REQUEST_NNB_ARGS
+#undef GNL_TEST_REQUEST_NNB_READ
+#undef GNL_TEST_REQUEST_NNB_WRITE
 #undef GNL_TEST_TO_STRING
