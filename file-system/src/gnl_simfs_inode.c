@@ -12,8 +12,8 @@ struct gnl_simfs_inode *gnl_simfs_inode_init(const char *name) {
     struct gnl_simfs_inode *inode = (struct gnl_simfs_inode *)malloc(sizeof(struct gnl_simfs_inode));
     GNL_NULL_CHECK(inode, ENOMEM, NULL)
 
-    // set the creation time
-    inode->creation_time = time(NULL);
+    // set the creation time of the file
+    inode->btime = time(NULL);
 
     // initialize condition variables
     int res = pthread_cond_init(&(inode->file_access_available), NULL);
@@ -24,13 +24,17 @@ struct gnl_simfs_inode *gnl_simfs_inode_init(const char *name) {
     strncpy(inode->name, name, strlen(name));
 
     // initialize others attributes
-    inode->last_modify_time = 0;
+    inode->mtime = 0;
+    inode->atime = 0;
     inode->size = 0;
     inode->locked = 0;
     inode->direct_ptr = NULL;
     inode->active_hippie_pid = 0;
     inode->waiting_locker_pid = 0;
     inode->reference_count = 0;
+
+    // set the last status change timestamp of the inode
+    inode->ctime = time(NULL);
 
     return inode;
 }
@@ -109,6 +113,9 @@ int gnl_simfs_inode_increase_refs(struct gnl_simfs_inode *inode) {
 
     inode->reference_count++;
 
+    // set the last status change timestamp of the inode
+    inode->ctime = time(NULL);
+
     return 0;
 }
 
@@ -124,6 +131,9 @@ int gnl_simfs_inode_decrease_refs(struct gnl_simfs_inode *inode) {
     }
 
     inode->reference_count--;
+
+    // set the last status change timestamp of the inode
+    inode->ctime = time(NULL);
 
     return 0;
 }
@@ -150,6 +160,9 @@ int gnl_simfs_inode_file_lock(struct gnl_simfs_inode *inode, unsigned int pid) {
     // lock the file
     inode->locked = pid;
 
+    // set the last status change timestamp of the inode
+    inode->ctime = time(NULL);
+
     return 0;
 }
 
@@ -175,6 +188,9 @@ int gnl_simfs_inode_file_unlock(struct gnl_simfs_inode *inode, unsigned int pid)
     // unlock the file
     inode->locked = 0;
 
+    // set the last status change timestamp of the inode
+    inode->ctime = time(NULL);
+
     // wake up eventually waiting threads
     return pthread_cond_signal(&(inode->file_access_available));
 }
@@ -186,6 +202,9 @@ int gnl_simfs_inode_increase_hippie_pid(struct gnl_simfs_inode *inode) {
     GNL_NULL_CHECK(inode, EINVAL, -1)
 
     inode->active_hippie_pid++;
+
+    // set the last status change timestamp of the inode
+    inode->ctime = time(NULL);
 
     return 0;
 }
@@ -202,6 +221,9 @@ int gnl_simfs_inode_decrease_hippie_pid(struct gnl_simfs_inode *inode) {
     }
 
     inode->active_hippie_pid--;
+
+    // set the last status change timestamp of the inode
+    inode->ctime = time(NULL);
 
     if (inode->active_hippie_pid == 0) {
         return pthread_cond_signal(&(inode->file_access_available));
@@ -227,6 +249,9 @@ int gnl_simfs_inode_increase_locker_pid(struct gnl_simfs_inode *inode) {
 
     inode->waiting_locker_pid++;
 
+    // set the last status change timestamp of the inode
+    inode->ctime = time(NULL);
+
     return 0;
 }
 
@@ -242,6 +267,9 @@ int gnl_simfs_inode_decrease_locker_pid(struct gnl_simfs_inode *inode) {
     }
 
     inode->waiting_locker_pid--;
+
+    // set the last status change timestamp of the inode
+    inode->ctime = time(NULL);
 
     if (inode->waiting_locker_pid == 0) {
         return pthread_cond_signal(&(inode->file_access_available));
@@ -287,9 +315,15 @@ int gnl_simfs_inode_append_to_file(struct gnl_simfs_inode *inode, const void *bu
     // write the data
     memcpy((char *)inode->direct_ptr + inode->size, buf, count);
 
-    // update the inode
+    // update the size of the file within the inode
     inode->size += count;
-    inode->last_modify_time = time(NULL);
+
+    // update the last modification timestamp of the file
+    // within the inode
+    inode->mtime = time(NULL);
+
+    // set the last status change timestamp of the inode
+    inode->ctime = time(NULL);
 
     return 0;
 }
@@ -305,8 +339,9 @@ struct gnl_simfs_inode *gnl_simfs_inode_copy(const struct gnl_simfs_inode *inode
     GNL_NULL_CHECK(inode_copy, ENOMEM, NULL)
 
     // create a deep copy of the given inode
-    inode_copy->creation_time = inode->creation_time;
-    inode_copy->last_modify_time = inode->last_modify_time;
+    inode_copy->btime = inode->btime;
+    inode_copy->mtime = inode->mtime;
+    inode_copy->atime = inode->atime;
     inode_copy->size = inode->size;
 
     GNL_CALLOC(inode_copy->name, strlen(inode->name) + 1, NULL)
@@ -322,6 +357,9 @@ struct gnl_simfs_inode *gnl_simfs_inode_copy(const struct gnl_simfs_inode *inode
     int res = pthread_cond_init(&(inode_copy->file_access_available), NULL);
     GNL_MINUS1_CHECK(res, errno, NULL)
 
+    // set the last status change timestamp of the inode
+    inode_copy->ctime = time(NULL);
+
     return inode_copy;
 }
 
@@ -332,11 +370,14 @@ int gnl_simfs_inode_update(struct gnl_simfs_inode *inode, const struct gnl_simfs
     GNL_NULL_CHECK(inode, EINVAL, -1)
     GNL_NULL_CHECK(with, EINVAL, -1)
 
-    // update the inode
-    inode->last_modify_time = with->last_modify_time;
+    // update the size of the file within the inode
     inode->size = with->size;
 
+    // update the pointer of the file within the inode
     inode->direct_ptr = with->direct_ptr;
+
+    // set the last status change timestamp of the inode
+    inode->ctime = time(NULL);
 
     return 0;
 }

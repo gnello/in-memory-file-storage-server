@@ -8,13 +8,25 @@
  */
 struct gnl_simfs_inode {
 
-    // the creation time of the inode
-    time_t creation_time;
+    // the creation time timestamp of the file
+    // within the inode, it is set on file
+    // creation and not changed subsequently.
+    time_t btime;
 
-    // the last modify time of the inode
-    time_t last_modify_time;
+    // the last modification timestamp of the file
+    // within the inode, it is changed by writes
+    time_t mtime;
 
-    // the size of the pointed file
+    // the last access timestamp of the file within
+    // the inode, it is changed by reads
+    time_t atime;
+
+    // the last status change timestamp of the file
+    // within the inode, it is changed by writes or
+    // sets on the inode information
+    time_t ctime;
+
+    // the size in bytes of the file within the inode
     unsigned int size;
 
     // the name of the file pointed by
@@ -204,7 +216,7 @@ extern int gnl_simfs_inode_has_locker_pid(struct gnl_simfs_inode *inode);
 /**
  * Write up to count bytes from the buffer starting at buf to the
  * file within the given inode. This method updates the given inode
- * size and last_modify_time attributes.
+ * size and mtime attributes.
  *
  * @param inode The inode instance where to write to the file.
  * @param buf   The buffer pointer containing the data to write.
@@ -225,7 +237,7 @@ extern struct gnl_simfs_inode *gnl_simfs_inode_copy(const struct gnl_simfs_inode
 
 /**
  * Update the given inode using a more up-to-date copy. This method will update
- * only the last_modify_time, size and direct_ptr attributes of the given inode.
+ * only the mtime, size and direct_ptr attributes of the given inode.
  *
  * @param inode The inode to be updated.
  * @param with  The more up-to-date inode to use for the copy.

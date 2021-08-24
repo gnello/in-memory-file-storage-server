@@ -21,11 +21,19 @@ int can_init_an_inode() {
         return -1;
     }
 
-    if (inode->creation_time < start_time || inode->creation_time > end_time) {
+    if (inode->btime < start_time || inode->btime > end_time) {
         return -1;
     }
 
-    if (inode->last_modify_time != 0) {
+    if (inode->ctime < start_time || inode->ctime > end_time) {
+        return -1;
+    }
+
+    if (inode->mtime != 0) {
+        return -1;
+    }
+
+    if (inode->atime != 0) {
         return -1;
     }
 
@@ -515,7 +523,7 @@ int can_add_to_file() {
 
     time_t end_time = time(NULL);
 
-    if (inode->last_modify_time < start_time || inode->last_modify_time > end_time) {
+    if (inode->mtime < start_time || inode->mtime > end_time) {
         return -1;
     }
 
@@ -532,7 +540,7 @@ int can_add_to_file() {
 int can_copy() {
     struct gnl_simfs_inode *inode = gnl_simfs_inode_init("test");
 
-    inode->last_modify_time = time(NULL);
+    inode->mtime = time(NULL);
     int res = gnl_simfs_inode_append_to_file(inode, "string", 6);
     if (res == -1) {
         return -1;
@@ -540,11 +548,19 @@ int can_copy() {
 
     struct gnl_simfs_inode *inode_copy = gnl_simfs_inode_copy(inode);
 
-    if (inode_copy->creation_time != inode->creation_time) {
+    if (inode_copy->btime != inode->btime) {
         return -1;
     }
 
-    if (inode_copy->last_modify_time != inode->last_modify_time) {
+    if (inode_copy->mtime != inode->mtime) {
+        return -1;
+    }
+
+    if (inode_copy->atime != inode->atime) {
+        return -1;
+    }
+
+    if (inode_copy->ctime < inode->ctime) {
         return -1;
     }
 
@@ -585,14 +601,15 @@ int can_copy() {
 int can_update() {
     struct gnl_simfs_inode *inode = gnl_simfs_inode_init("test");
 
-    time_t creation_time = inode->creation_time;
-
     char *name = malloc((strlen(inode->name) + 1) * sizeof(char));
     if (name == NULL) {
         return -1;
     }
     strcpy(name, inode->name);
 
+    time_t btime = inode->btime;
+    time_t atime = inode->atime;
+    time_t mtime = inode->mtime;
     int locked = inode->locked;
     int reference_count = inode->reference_count;
     int active_hippie_pid = inode->active_hippie_pid;
@@ -622,7 +639,15 @@ int can_update() {
         return -1;
     }
 
-    if (inode->creation_time != creation_time) {
+    if (inode->btime != btime) {
+        return -1;
+    }
+
+    if (inode->atime != atime) {
+        return -1;
+    }
+
+    if (inode->mtime != mtime) {
         return -1;
     }
 
@@ -658,7 +683,7 @@ int can_update() {
         return -1;
     }
 
-    if (inode->last_modify_time < start_time || inode->last_modify_time > end_time) {
+    if (inode->ctime < start_time || inode->ctime > end_time) {
         return -1;
     }
 
