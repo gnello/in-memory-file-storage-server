@@ -53,6 +53,14 @@ dev: all helpers
 tests:
 	$(foreach target,$(TARGETS_ALL),cd $(ROOT_DIR)/$(target)/tests && $(MAKE) tests;)
 
+# run all tests present in this project and exit with an error code if test failures are found
+tests-failure:
+	echo "> Test failures check..."
+	$(MAKE) tests >> ./tests-fail.txt
+	FAILS=$$(cat tests-fail.txt | grep "FAILED" | wc -l); \
+ 	if [ "$$FAILS" -gt 0 ]; then echo "$${FAILS} test failures found" && rm "tests-fail.txt" && exit 1; else echo "no test failures found"; fi
+	rm "tests-fail.txt"
+
 # run all tests present in this project with valgrind
 tests-valgrind:
 	$(foreach target,$(TARGETS_ALL),cd $(ROOT_DIR)/$(target)/tests && $(MAKE) tests-valgrind;)
