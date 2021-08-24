@@ -233,7 +233,7 @@ int gnl_fss_api_write_file(const char *pathname, const char *dirname) {
     int fd = *(int *)fd_raw;
 
     // create the request to send to the server
-    struct gnl_socket_request *request = gnl_socket_request_init(GNL_SOCKET_REQUEST_WRITE, 2, fd, file);
+    struct gnl_socket_request *request = gnl_socket_request_init(GNL_SOCKET_REQUEST_WRITE, 2, fd, size, file);
     GNL_NULL_CHECK(request, ENOMEM, -1)
 
     // send the request to the server

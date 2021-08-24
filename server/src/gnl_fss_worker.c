@@ -80,7 +80,7 @@ static struct gnl_socket_response *handle_request(struct gnl_simfs_file_system *
             break;
 
         case GNL_SOCKET_REQUEST_WRITE:
-            res = gnl_simfs_file_system_write(file_system, request->payload.write->number, request->payload.write->bytes, (strlen((char *)request->payload.write->bytes)), fd_c);
+            res = gnl_simfs_file_system_write(file_system, request->payload.write->number, request->payload.write->bytes, request->payload.write->count, fd_c);
 
             // if success create an ok response
             if (res == 0) {
