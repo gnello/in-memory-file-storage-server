@@ -73,7 +73,7 @@ int gnl_message_nnb_write(const struct gnl_message_nnb *message_nnb, char **dest
 
     snprintf(*dest, maxlen, "%0*d%0*lu", MAX_DIGITS_INT, message_nnb->number, MAX_DIGITS_INT, message_nnb->count);
 
-    memcpy(*dest + MAX_DIGITS_INT + MAX_DIGITS_INT, message_nnb->bytes, message_nnb->count);
+    memcpy(*dest + maxlen, message_nnb->bytes, message_nnb->count);
 
     return message_nnb_size + 1;
 }
