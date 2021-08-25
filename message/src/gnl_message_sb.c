@@ -15,8 +15,8 @@
  *
  * @return              The size of the message_sb.
  */
-static int gnl_message_sb_size(const struct gnl_message_sb message_sb) {
-    return MAX_DIGITS_INT + strlen(message_sb.string) + MAX_DIGITS_INT + strlen(message_sb.bytes);
+static int gnl_message_sb_size(const struct gnl_message_sb *message_sb) {
+    return MAX_DIGITS_INT + strlen(message_sb->string) + MAX_DIGITS_INT + strlen(message_sb->bytes);
 }
 
 /**
@@ -65,19 +65,19 @@ void gnl_message_sb_destroy(struct gnl_message_sb *message_sb) {
 /**
  * {@inheritDoc}
  */
-int gnl_message_sb_write(struct gnl_message_sb message_sb, char **dest) {
+int gnl_message_sb_write(struct gnl_message_sb *message_sb, char **dest) {
     int message_sb_size = gnl_message_sb_size(message_sb);
 
     GNL_CALLOC(*dest, message_sb_size + 1, -1)
 
-    int maxlen = (message_sb_size - strlen(message_sb.bytes)) + 1; // count also the '\0' char
+    int maxlen = (message_sb_size - strlen(message_sb->bytes)) + 1; // count also the '\0' char
 
-    snprintf(*dest, maxlen, "%0*lu%s%0*lu", MAX_DIGITS_INT, strlen(message_sb.string), message_sb.string,
-             MAX_DIGITS_INT, strlen(message_sb.bytes));
+    snprintf(*dest, maxlen, "%0*lu%s%0*lu", MAX_DIGITS_INT, strlen(message_sb->string), message_sb->string,
+             MAX_DIGITS_INT, strlen(message_sb->bytes));
 
-    memcpy(*dest + MAX_DIGITS_INT + strlen(message_sb.string) + MAX_DIGITS_INT, message_sb.bytes, strlen(message_sb.bytes));
+    memcpy(*dest + MAX_DIGITS_INT + strlen(message_sb->string) + MAX_DIGITS_INT, message_sb->bytes, strlen(message_sb->bytes));
 
-    return 0;
+    return message_sb_size + 1;
 }
 
 /**

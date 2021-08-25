@@ -15,7 +15,7 @@
  *
  * @return          The size of the message_n.
  */
-static int gnl_message_n_size(const struct gnl_message_n message_n) {
+static int gnl_message_n_size(const struct gnl_message_n *message_n) {
     return MAX_DIGITS_INT;
 }
 
@@ -53,16 +53,16 @@ void gnl_message_n_destroy(struct gnl_message_n *message_n) {
 /**
  * {@inheritDoc}
  */
-int gnl_message_n_write(const struct gnl_message_n message_n, char **dest) {
+int gnl_message_n_write(const struct gnl_message_n *message_n, char **dest) {
     int message_n_size = gnl_message_n_size(message_n);
-
-    GNL_CALLOC(*dest, message_n_size + 1, -1)
 
     int maxlen = message_n_size + 1; // count also the '\0' char
 
-    snprintf(*dest, maxlen, "%0*d", MAX_DIGITS_INT, message_n.number);
+    GNL_CALLOC(*dest, maxlen, -1)
 
-    return 0;
+    snprintf(*dest, maxlen, "%0*d", MAX_DIGITS_INT, message_n->number);
+
+    return maxlen;
 }
 
 /**

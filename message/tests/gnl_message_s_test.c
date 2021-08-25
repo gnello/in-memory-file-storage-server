@@ -37,9 +37,9 @@ int can_build_message() {
     char *message;
     char *expected = "0000000010/fake/path";
 
-    int res = gnl_message_s_write(*message_s, &message);
+    int res = gnl_message_s_write(message_s, &message);
 
-    if (res != 0) {
+    if (res != (strlen(expected) + 1)) {
         return -1;
     }
 

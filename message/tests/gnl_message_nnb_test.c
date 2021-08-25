@@ -53,9 +53,9 @@ int can_build_message() {
     char *message;
     char *expected = "00002205100000000004ABCD";
 
-    int res = gnl_message_nnb_write(*message_nnb, &message);
+    int res = gnl_message_nnb_write(message_nnb, &message);
 
-    if (res != 0) {
+    if (res != (strlen(expected) + 1)) {
         return -1;
     }
 

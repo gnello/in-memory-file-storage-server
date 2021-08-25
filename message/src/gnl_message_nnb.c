@@ -15,8 +15,8 @@
  *
  * @return              The size of the message_nnb.
  */
-static int gnl_message_nnb_size(const struct gnl_message_nnb message_nnb) {
-    return MAX_DIGITS_INT + MAX_DIGITS_INT + message_nnb.count;
+static int gnl_message_nnb_size(const struct gnl_message_nnb *message_nnb) {
+    return MAX_DIGITS_INT + MAX_DIGITS_INT + message_nnb->count;
 }
 
 /**
@@ -64,18 +64,18 @@ void gnl_message_nnb_destroy(struct gnl_message_nnb *message_nnb) {
 /**
  * {@inheritDoc}
  */
-int gnl_message_nnb_write(const struct gnl_message_nnb message_nnb, char **dest) {
+int gnl_message_nnb_write(const struct gnl_message_nnb *message_nnb, char **dest) {
     int message_nnb_size = gnl_message_nnb_size(message_nnb);
 
     GNL_CALLOC(*dest, message_nnb_size + 1, -1)
 
-    int maxlen = (message_nnb_size - message_nnb.count) + 1; // count also the '\0' char
+    int maxlen = (message_nnb_size - message_nnb->count) + 1; // count also the '\0' char
 
-    snprintf(*dest, maxlen, "%0*d%0*lu", MAX_DIGITS_INT, message_nnb.number, MAX_DIGITS_INT, message_nnb.count);
+    snprintf(*dest, maxlen, "%0*d%0*lu", MAX_DIGITS_INT, message_nnb->number, MAX_DIGITS_INT, message_nnb->count);
 
-    memcpy(*dest + MAX_DIGITS_INT + MAX_DIGITS_INT, message_nnb.bytes, message_nnb.count);
+    memcpy(*dest + MAX_DIGITS_INT + MAX_DIGITS_INT, message_nnb->bytes, message_nnb->count);
 
-    return 0;
+    return message_nnb_size + 1;
 }
 
 /**

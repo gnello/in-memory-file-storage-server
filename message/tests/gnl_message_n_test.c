@@ -37,9 +37,9 @@ int can_build_message() {
     char *message;
     char *expected = "0000000015";
 
-    int res = gnl_message_n_write(*message_n, &message);
+    int res = gnl_message_n_write(message_n, &message);
 
-    if (res != 0) {
+    if (res != (strlen(expected) + 1)) {
         return -1;
     }
 

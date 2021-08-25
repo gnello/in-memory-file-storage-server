@@ -37,9 +37,10 @@ extern void gnl_message_s_destroy(struct gnl_message_s *message);
  * @param message   The message_s to be encoded.
  * @param dest      The destination where to write the encoded message.
  *
- * @return          Returns 0 on success, -1 otherwise.
+ * @return          Returns the number of bytes wrote on success,
+ *                  -1 otherwise.
  */
-extern int gnl_message_s_write(const struct gnl_message_s message, char **dest);
+extern int gnl_message_s_write(const struct gnl_message_s *message, char **dest);
 
 /**
  * Decode the given message and fill the message_s with it.
