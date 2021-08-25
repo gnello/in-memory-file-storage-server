@@ -85,12 +85,14 @@ extern int gnl_socket_request_to_string(struct gnl_socket_request *request, char
 /**
  * Decode the given socket request.
  *
- * @param request   The socket request received from a socket message.
+ * @param fd        The file descriptor where to read.
+ * @param request   The request to instantiate from reading. It must be
+ *                  initialized to NULL;
  *
- * @return          Returns a gnl_socket_request struct on success,
+ * @return          Returns the number of bytes read on success,
  *                  NULL otherwise.
  */
-extern struct gnl_socket_request *gnl_socket_request_read(const char *request);
+extern size_t gnl_socket_request_read(int fd, struct gnl_socket_request **request);
 
 /**
  * Encode the given socket request.
@@ -115,6 +117,6 @@ extern int gnl_socket_request_write(const struct gnl_socket_request *request, ch
  */
 extern int gnl_socket_request_send(const struct gnl_socket_request *request,
         const struct gnl_socket_connection *connection,
-        int (*emit)(const struct gnl_socket_connection *connection, const char *message));
+        int (*emit)(const struct gnl_socket_connection *connection, const char *message, size_t count));
 
 #endif //GNL_SOCKET_REQUEST_H

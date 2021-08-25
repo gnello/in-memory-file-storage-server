@@ -61,7 +61,7 @@ static int encode(const char *message, char **dest, enum gnl_socket_response_typ
 
     snprintf(*dest, maxlen, "%0*d%0*lu%s", MAX_DIGITS_INT, type, MAX_DIGITS_INT, message_size, message);
 
-    return 0;
+    return maxlen;
 }
 
 /**
@@ -308,27 +308,27 @@ int gnl_socket_response_write(struct gnl_socket_response *response, char **dest)
     }
 
     char *built_message = NULL;
-    int res;
+    size_t nwrite;
 
     switch (response->type) {
         case GNL_SOCKET_RESPONSE_OK_EVICTED:
-            res = gnl_message_n_write(*(response->payload.ok_evicted), &built_message);
+            nwrite = gnl_message_n_write(response->payload.ok_evicted, &built_message);
             break;
 
         case GNL_SOCKET_RESPONSE_OK_FILE:
-            res = gnl_message_sb_write(*(response->payload.ok_file), &built_message);
+            nwrite = gnl_message_sb_write(response->payload.ok_file, &built_message);
             break;
 
         case GNL_SOCKET_RESPONSE_OK_FD:
-            res = gnl_message_n_write(*(response->payload.ok_fd), &built_message);
+            nwrite = gnl_message_n_write(response->payload.ok_fd, &built_message);
             break;
 
         case GNL_SOCKET_RESPONSE_OK:
-            res = 0;
+            nwrite = 0;
             break;
 
         case GNL_SOCKET_RESPONSE_ERROR:
-            res = gnl_message_n_write(*(response->payload.error), &built_message);
+            nwrite = gnl_message_n_write(response->payload.error, &built_message);
             break;
 
         default:
@@ -338,15 +338,15 @@ int gnl_socket_response_write(struct gnl_socket_response *response, char **dest)
             break;
     }
 
-    if (res != 0) {
+    if (nwrite < 0) {
         return -1;
     }
 
-    encode(built_message, dest, response->type);
+    nwrite = encode(built_message, dest, response->type);
 
     free(built_message);
 
-    return 0;
+    return nwrite;
 }
 
 /**

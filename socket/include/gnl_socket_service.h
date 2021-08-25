@@ -40,11 +40,12 @@ extern int gnl_socket_service_close(struct gnl_socket_connection *connection);
  *
  * @param connection    The socket_service_connection instance.
  * @param message       The message to send.
+ * @param count         The number of bytes to write.
  *
  * @return              Returns the number of bytes sent on success,
  *                      -1 otherwise.
  */
-extern int gnl_socket_service_emit(const struct gnl_socket_connection *connection, const char *message);
+extern int gnl_socket_service_emit(const struct gnl_socket_connection *connection, const char *message, size_t count);
 
 /**
  * Read a message from the given connection.

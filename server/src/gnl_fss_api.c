@@ -220,10 +220,11 @@ int gnl_fss_api_write_file(const char *pathname, const char *dirname) {
     GNL_NULL_CHECK(pathname, EINVAL, -1)
 
     // get the file to send
-    long size;
+    long size; //TODO: size_t
     char *file = NULL;
 
     int res = gnl_file_to_pointer(pathname, &file, &size);
+
     GNL_MINUS1_CHECK(res, errno, -1)
 
     // get the fd associate with the given pathname

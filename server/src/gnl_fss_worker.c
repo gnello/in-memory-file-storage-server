@@ -8,8 +8,6 @@
 #include "../include/gnl_fss_worker.h"
 #include <gnl_macro_beg.h>
 
-#define GNL_FSS_WORKER_BUFFER_LEN 10000
-
 /**
  * id               The id of the worker.
  * worker_queue     The queue to use to receive a ready file descriptor
@@ -201,11 +199,8 @@ void *gnl_fss_worker_handle(void* args) {
     // temporary reference to a client file descriptor
     void *raw_fd_c;
 
-    // read buffer
-    char buf[GNL_FSS_WORKER_BUFFER_LEN];
-
     // number of chars read
-    long nread;
+    size_t nread;
 
     // generic result var
     int res;
@@ -235,12 +230,9 @@ void *gnl_fss_worker_handle(void* args) {
 
         gnl_logger_debug(logger, "message sent by client %d", fd_c);
 
-        // clear the buffer
-        memset(buf, 0, GNL_FSS_WORKER_BUFFER_LEN);
-
         // read data
-        //TODO: readn -> spostare tutto dentro socket_read? così alloco dinamicamente
-        nread = read(fd_c, buf, GNL_FSS_WORKER_BUFFER_LEN);
+        struct gnl_socket_request *request = NULL;
+        nread = gnl_socket_request_read(fd_c, &request); //TODO: usare il socket service
         if (nread == -1) {
             gnl_logger_error(logger, "error reading the message: %s", strerror(errno));
 
@@ -265,11 +257,7 @@ void *gnl_fss_worker_handle(void* args) {
             GNL_NULL_CHECK(message_to_master, errno, NULL)
         } else {
 
-            gnl_logger_debug(logger, "the message is a request, decoding", fd_c);
-
-            // decode request
-            struct gnl_socket_request *request;
-            request = gnl_socket_request_read(buf);
+            gnl_logger_debug(logger, "the message is a request");
 
             if (request == NULL) {
                 gnl_logger_error(logger, "invalid request: %s", strerror(errno));
@@ -293,19 +281,33 @@ void *gnl_fss_worker_handle(void* args) {
 
                 if (response == NULL) {
                     //TODO: creare risposta di errore standard/generica
-                    gnl_logger_error(logger, "invalid response received from the request handler, stop.");
+                    gnl_logger_error(logger, "invalid response received from the request handler, stop");
 
                     continue;
                 }
 
+                gnl_logger_debug(logger, "client %d request handled", fd_c);
+
                 // encode the response
-                char *response_message = NULL;
-                res = gnl_socket_response_write(response, &response_message);
+                char *response_type;
+                res = gnl_socket_response_to_string(response, &response_type);
                 GNL_MINUS1_CHECK(res, errno, NULL)
 
+                gnl_logger_debug(logger, "building a %s response for client %d", response_type, fd_c);
+
+                free(response_type);
+
+                char *response_message = NULL;
+                res = gnl_socket_response_write(response, &response_message);
+                GNL_MINUS1_CHECK(res, errno, NULL) // TODO: scrivere log!!!!
+
                 // send the response message to the client //TODO: writen invece di write?
-                res = write(fd_c, response_message, strlen(response_message));
+                gnl_logger_debug(logger, "send a response to client %d", fd_c);
+
+                res = write(fd_c, response_message, strlen(response_message)); //TODO usare il socket service che implementa writen
                 GNL_MINUS1_CHECK(res, errno, NULL)
+
+                gnl_logger_debug(logger, "response sent to client %d", fd_c);
 
                 // free memory
                 free(response_message);
@@ -322,11 +324,11 @@ void *gnl_fss_worker_handle(void* args) {
 
         // encode the message
         char *message;
-        res = gnl_message_n_write(*message_to_master, &message);
-        GNL_MINUS1_CHECK(res, errno, NULL)
+        size_t nwrite = gnl_message_n_write(message_to_master, &message);
+        GNL_MINUS1_CHECK(nwrite, errno, NULL)
 
         // send the message to the master
-        res = write(worker->pipe_channel, message, strlen(message));
+        res = write(worker->pipe_channel, message, nwrite); //TODO: usare writen oppure il socket service
         GNL_MINUS1_CHECK(res, errno, NULL)
 
         // free memory

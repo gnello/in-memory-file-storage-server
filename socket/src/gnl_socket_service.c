@@ -76,14 +76,14 @@ int gnl_socket_service_close(struct gnl_socket_connection *connection) {
     return 0;
 }
 
-int gnl_socket_service_emit(const struct gnl_socket_connection *connection, const char *message) {
+int gnl_socket_service_emit(const struct gnl_socket_connection *connection, const char *message, size_t count) {
     if (!gnl_socket_service_is_active(connection)) {
         errno = EINVAL;
 
         return -1;
     }
 
-    return write(connection->fd, (char *)message, strlen(message) + 1);
+    return write(connection->fd, (char *)message, count);
 }
 
 int gnl_socket_service_read(const struct gnl_socket_connection *connection, char **message, int size) {
