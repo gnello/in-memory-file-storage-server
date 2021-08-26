@@ -82,7 +82,8 @@ extern void gnl_socket_request_destroy(struct gnl_socket_request *request);
 extern int gnl_socket_request_to_string(struct gnl_socket_request *request, char **dest);
 
 /**
- * Decode the given socket request.
+ * Read the given socket request into the given gnl_socket_request struct.
+ * This function should be used to get a request from a socket.
  *
  * @param fd        The file descriptor where to read.
  * @param request   The request to instantiate from reading. It must be
