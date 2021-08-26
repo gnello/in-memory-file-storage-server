@@ -2,6 +2,7 @@
 #ifndef GNL_SOCKET_REQUEST_H
 #define GNL_SOCKET_REQUEST_H
 
+#include <sys/types.h>
 #include <gnl_message_sn.h>
 #include <gnl_message_s.h>
 #include <gnl_message_n.h>
@@ -91,9 +92,9 @@ extern int gnl_socket_request_to_string(struct gnl_socket_request *request, char
  * @param readn     The function to use to read from the given file descriptor.
  *
  * @return          Returns the number of bytes read on success,
- *                  NULL otherwise.
+ *                  -1 otherwise.
  */
-extern ssize_t gnl_socket_request_read(int fd, struct gnl_socket_request **request,
+extern size_t gnl_socket_request_read(int fd, struct gnl_socket_request **request,
         ssize_t (*readn)(int fd, void *ptr, size_t n));
 
 /**
@@ -107,7 +108,7 @@ extern ssize_t gnl_socket_request_read(int fd, struct gnl_socket_request **reque
  * @return          Returns the number of bytes wrote on success,
  *                  -1 otherwise.
  */
-extern ssize_t gnl_socket_request_write(int fd, const struct gnl_socket_request *request,
+extern size_t gnl_socket_request_write(int fd, const struct gnl_socket_request *request,
         ssize_t (*writen)(int fd, void *ptr, size_t n));
 
 #endif //GNL_SOCKET_REQUEST_H

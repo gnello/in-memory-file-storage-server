@@ -111,7 +111,7 @@ ssize_t gnl_socket_service_writen(int fd, void *ptr, size_t n) {
         }
 
         nleft -= nwritten;
-        (char *)ptr += nwritten;
+        ptr = (char *)ptr + nwritten;
     }
 
     // return >= 0
@@ -142,7 +142,7 @@ ssize_t gnl_socket_service_readn(int fd, void *ptr, size_t n) {
         }
 
         nleft -= nread;
-        (char *)ptr += nread;
+        ptr = (char *)ptr + nread;
     }
 
     // return >= 0
@@ -171,7 +171,7 @@ struct gnl_socket_response * gnl_socket_service_send(const struct gnl_socket_con
 
     // wait for the response
 
-    return res;
+    return NULL;
 }
 
 #include <gnl_macro_end.h>

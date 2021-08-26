@@ -129,14 +129,12 @@ int gnl_fss_api_open_file(const char *pathname, int flags) {
     GNL_NULL_CHECK(request, ENOMEM, -1)
 
     // send the request to the server
-    int bytes_sent = gnl_socket_request_send(request, socket_service_connection, gnl_socket_service_emit);
-    GNL_MINUS1_CHECK(bytes_sent, errno, -1)
+    struct gnl_socket_response *response = gnl_socket_service_send(socket_service_connection, request);
 
     // clean memory
     gnl_socket_request_destroy(request);
 
-    // get the response from the server
-    struct gnl_socket_response *response = gnl_socket_response_get(socket_service_connection, gnl_socket_service_read);
+    // check the response
     GNL_NULL_CHECK(response, errno, -1)
 
     int res = 0;
@@ -238,15 +236,13 @@ int gnl_fss_api_write_file(const char *pathname, const char *dirname) {
     GNL_NULL_CHECK(request, ENOMEM, -1)
 
     // send the request to the server
-    int bytes_sent = gnl_socket_request_send(request, socket_service_connection, gnl_socket_service_emit);
-    GNL_MINUS1_CHECK(bytes_sent, errno, -1)
+    struct gnl_socket_response *response = gnl_socket_service_send(socket_service_connection, request);
 
     // clean memory
     gnl_socket_request_destroy(request);
     free(file);
 
-    // get the response from the server
-    struct gnl_socket_response *response = gnl_socket_response_get(socket_service_connection, gnl_socket_service_read);
+    // check the response
     GNL_NULL_CHECK(response, errno, -1)
 
     res = 0;
@@ -336,14 +332,12 @@ int gnl_fss_api_close_file(const char *pathname) {
     GNL_NULL_CHECK(request, ENOMEM, -1)
 
     // send the request to the server
-    int bytes_sent = gnl_socket_request_send(request, socket_service_connection, gnl_socket_service_emit);
-    GNL_MINUS1_CHECK(bytes_sent, errno, -1)
+    struct gnl_socket_response *response = gnl_socket_service_send(socket_service_connection, request);
 
     // clean memory
     gnl_socket_request_destroy(request);
 
-    // get the response from the server
-    struct gnl_socket_response *response = gnl_socket_response_get(socket_service_connection, gnl_socket_service_read);
+    // check the response
     GNL_NULL_CHECK(response, errno, -1)
 
     int res = 0;

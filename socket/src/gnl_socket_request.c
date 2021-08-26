@@ -3,7 +3,6 @@
 #include <string.h>
 #include <errno.h>
 #include <stdarg.h>
-#include <unistd.h>
 #include <gnl_message_s.h>
 #include <gnl_message_n.h>
 #include <gnl_message_sn.h>
@@ -208,6 +207,70 @@ static size_t to_string(const struct gnl_socket_request *request, char **dest) {
     }
 
     return message_len;
+}
+
+/**
+ * Build a request from the given string.
+ *
+ * @param message   The message from where to build the request.
+ * @param type      The type of the request.
+ * @param request   The pointer where to build the request.
+ *
+ * @return          Returns 0 on success, -1 otherwise.
+ */
+static int from_string(const char *message, enum gnl_socket_request_type type, struct gnl_socket_request **request) {
+    //validate the parameters
+    GNL_NULL_CHECK(message, EINVAL, -1)
+    GNL_MINUS1_CHECK(-1 * (*request != NULL), EINVAL, -1)
+
+    // get the request string
+    switch (type) {
+        case GNL_SOCKET_REQUEST_OPEN:
+            *request = gnl_socket_request_init(GNL_SOCKET_REQUEST_OPEN, 0);
+            GNL_NULL_CHECK(*request, ENOMEM, -1)
+
+            gnl_message_sn_from_string(message, (*request)->payload.open);
+            break;
+
+        case GNL_SOCKET_REQUEST_READ_N:
+            GNL_REQUEST_N_READ_MESSAGE(message, (*request)->payload.read_N, type);
+            break;
+
+        case GNL_SOCKET_REQUEST_READ:
+            GNL_REQUEST_S_READ_MESSAGE(message, (*request)->payload.read, type);
+            break;
+
+        case GNL_SOCKET_REQUEST_WRITE:
+            GNL_REQUEST_NNB_READ_MESSAGE(message, (*request)->payload.write, type);
+            break;
+
+        case GNL_SOCKET_REQUEST_APPEND:
+            GNL_REQUEST_SB_READ_MESSAGE(message, (*request)->payload.append, type);
+            break;
+
+        case GNL_SOCKET_REQUEST_LOCK:
+            GNL_REQUEST_S_READ_MESSAGE(message, (*request)->payload.lock, type);
+            break;
+
+        case GNL_SOCKET_REQUEST_UNLOCK:
+            GNL_REQUEST_S_READ_MESSAGE(message, (*request)->payload.unlock, type);
+            break;
+
+        case GNL_SOCKET_REQUEST_CLOSE:
+            GNL_REQUEST_N_READ_MESSAGE(message, (*request)->payload.close, type);
+            break;
+
+        case GNL_SOCKET_REQUEST_REMOVE:
+            GNL_REQUEST_S_READ_MESSAGE(message, (*request)->payload.remove, type);
+            break;
+
+        default:
+            errno = EINVAL;
+            return -1;
+            /* UNREACHED */
+    }
+
+    return 0;
 }
 
 /**
@@ -485,7 +548,7 @@ void gnl_socket_request_destroy(struct gnl_socket_request *request) {
 /**
  * {@inheritDoc}
  */
-ssize_t gnl_socket_request_read(int fd, struct gnl_socket_request **request,
+size_t gnl_socket_request_read(int fd, struct gnl_socket_request **request,
         ssize_t (*readn)(int, void *, size_t)) {
 
     // validate the parameters
@@ -495,9 +558,7 @@ ssize_t gnl_socket_request_read(int fd, struct gnl_socket_request **request,
     char *payload_message = NULL;
     enum gnl_socket_request_type type;
 
-    int nread = decode(fd, &payload_message, &type);
-
-    // check the decode result
+    int nread = decode(fd, &payload_message, &type, readn);
     GNL_MINUS1_CHECK(nread, errno, -1)
 
     // if nread == 0 the connection is closed, return
@@ -505,51 +566,8 @@ ssize_t gnl_socket_request_read(int fd, struct gnl_socket_request **request,
         return 0;
     }
 
-    switch (type) {
-        case GNL_SOCKET_REQUEST_OPEN:
-            *request = gnl_socket_request_init(GNL_SOCKET_REQUEST_OPEN, 0);
-            GNL_NULL_CHECK(*request, ENOMEM, -1)
-
-            gnl_message_sn_from_string(payload_message, (*request)->payload.open);
-            break;
-
-        case GNL_SOCKET_REQUEST_READ_N:
-            GNL_REQUEST_N_READ_MESSAGE(payload_message, (*request)->payload.read_N, type);
-            break;
-
-        case GNL_SOCKET_REQUEST_READ:
-            GNL_REQUEST_S_READ_MESSAGE(payload_message, (*request)->payload.read, type);
-            break;
-
-        case GNL_SOCKET_REQUEST_WRITE:
-            GNL_REQUEST_NNB_READ_MESSAGE(payload_message, (*request)->payload.write, type);
-            break;
-
-        case GNL_SOCKET_REQUEST_APPEND:
-            GNL_REQUEST_SB_READ_MESSAGE(payload_message, (*request)->payload.append, type);
-            break;
-
-        case GNL_SOCKET_REQUEST_LOCK:
-            GNL_REQUEST_S_READ_MESSAGE(payload_message, (*request)->payload.lock, type);
-            break;
-
-        case GNL_SOCKET_REQUEST_UNLOCK:
-            GNL_REQUEST_S_READ_MESSAGE(payload_message, (*request)->payload.unlock, type);
-            break;
-
-        case GNL_SOCKET_REQUEST_CLOSE:
-            GNL_REQUEST_N_READ_MESSAGE(payload_message, (*request)->payload.close, type);
-            break;
-
-        case GNL_SOCKET_REQUEST_REMOVE:
-            GNL_REQUEST_S_READ_MESSAGE(payload_message, (*request)->payload.remove, type);
-            break;
-
-        default:
-            errno = EINVAL;
-            return -1;
-            /* UNREACHED */
-    }
+    // get the request from the message
+    nread = from_string(payload_message, type, request);
 
     free(payload_message);
 
@@ -559,7 +577,7 @@ ssize_t gnl_socket_request_read(int fd, struct gnl_socket_request **request,
 /**
  * {@inheritDoc}
  */
-ssize_t gnl_socket_request_write(int fd, const struct gnl_socket_request *request,
+size_t gnl_socket_request_write(int fd, const struct gnl_socket_request *request,
         ssize_t (*writen)(int, void *, size_t)) {
 
     // validate the parameters
