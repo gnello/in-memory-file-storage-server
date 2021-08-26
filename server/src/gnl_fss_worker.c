@@ -2,6 +2,7 @@
 #include <errno.h>
 #include <gnl_socket_request.h>
 #include <gnl_socket_response.h>
+#include <gnl_socket_service.h>
 #include <string.h>
 #include <gnl_message_n.h>
 #include <gnl_fss_errno.h>
@@ -232,7 +233,8 @@ void *gnl_fss_worker_handle(void* args) {
 
         // read data
         struct gnl_socket_request *request = NULL;
-        nread = gnl_socket_request_read(fd_c, &request); //TODO: usare il socket service
+        nread = gnl_socket_request_read(fd_c, &request, gnl_socket_service_readn);
+
         if (nread == -1) {
             gnl_logger_error(logger, "error reading the message: %s", strerror(errno));
 

@@ -8,6 +8,9 @@
 #include "./gnl_socket_rts.c"
 #include <gnl_macro_beg.h>
 
+/**
+ * {@inheritDoc}
+ */
 int gnl_socket_service_is_active(const struct gnl_socket_connection *connection) {
     if (connection == NULL) {
         return 0;
@@ -16,6 +19,9 @@ int gnl_socket_service_is_active(const struct gnl_socket_connection *connection)
     return connection->active;
 }
 
+/**
+ * {@inheritDoc}
+ */
 struct gnl_socket_connection *gnl_socket_service_connect(const char *socket_name) {
     struct gnl_socket_connection *connection = (struct gnl_socket_connection *)malloc(sizeof(struct gnl_socket_connection));
     GNL_NULL_CHECK(connection, ENOMEM, NULL)
@@ -46,9 +52,11 @@ struct gnl_socket_connection *gnl_socket_service_connect(const char *socket_name
 
     // connect to the socket
     int res = connect(connection->fd, (struct sockaddr *)&sa, sizeof(sa));
-    if (res != 0) {
+    if (res == -1) {
         free(connection->socket_name);
         free(connection);
+
+        // let the errno bubble
 
         return NULL;
     }
@@ -59,6 +67,9 @@ struct gnl_socket_connection *gnl_socket_service_connect(const char *socket_name
     return connection;
 }
 
+/**
+ * {@inheritDoc}
+ */
 int gnl_socket_service_close(struct gnl_socket_connection *connection) {
     if (!gnl_socket_service_is_active(connection)) {
         errno = EINVAL;
@@ -76,24 +87,91 @@ int gnl_socket_service_close(struct gnl_socket_connection *connection) {
     return 0;
 }
 
-int gnl_socket_service_emit(const struct gnl_socket_connection *connection, const char *message, size_t count) {
-    if (!gnl_socket_service_is_active(connection)) {
-        errno = EINVAL;
+/**
+ * {@inheritDoc}
+ */
+ssize_t gnl_socket_service_writen(int fd, void *ptr, size_t n) {
+    size_t nleft;
+    ssize_t nwritten;
 
-        return -1;
+    nleft = n;
+
+    while (nleft > 0) {
+
+        if ((nwritten = write(fd, ptr, nleft)) < 0) {
+            if (nleft == n) {
+                // error, return -1
+                return -1;
+            } else {
+                // error, return amount written so far
+                break;
+            }
+        } else if (nwritten == 0) {
+            break;
+        }
+
+        nleft -= nwritten;
+        (char *)ptr += nwritten;
     }
 
-    return write(connection->fd, (char *)message, count);
+    // return >= 0
+    return (n - nleft);
 }
 
-int gnl_socket_service_read(const struct gnl_socket_connection *connection, char **message, int size) {
+/**
+ * {@inheritDoc}
+ */
+ssize_t gnl_socket_service_readn(int fd, void *ptr, size_t n) {
+    size_t nleft;
+    ssize_t nread;
+
+    nleft = n;
+
+    while (nleft > 0) {
+        if ((nread = read(fd, ptr, nleft)) < 0) {
+            if (nleft == n) {
+                // error, return -1
+                return -1;
+            } else {
+                // error, return amount read so far
+                break;
+            }
+        } else if (nread == 0) {
+            // EOF
+            break;
+        }
+
+        nleft -= nread;
+        (char *)ptr += nread;
+    }
+
+    // return >= 0
+    return(n - nleft);
+}
+
+/**
+ * {@inheritDoc}
+ */
+struct gnl_socket_response * gnl_socket_service_send(const struct gnl_socket_connection *connection,
+                                                     const struct gnl_socket_request *request) {
+    //validate parameters
+    GNL_NULL_CHECK(connection, EINVAL, NULL);
+    GNL_NULL_CHECK(request, EINVAL, NULL);
+
+    // check if the connection is active
     if (!gnl_socket_service_is_active(connection)) {
         errno = EINVAL;
 
-        return -1;
+        return NULL;
     }
 
-    return read(connection->fd, *message, size);
+    // send the request through the socket
+    size_t bytes = gnl_socket_request_write(connection->fd, request, gnl_socket_service_writen);
+    GNL_MINUS1_CHECK(bytes, errno, NULL)
+
+    // wait for the response
+
+    return res;
 }
 
 #include <gnl_macro_end.h>

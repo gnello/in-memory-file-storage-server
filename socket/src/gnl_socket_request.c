@@ -133,7 +133,7 @@ static int size() {
  *
  * @return          Returns 0 on success, -1 otherwise.
  */
-static int encode(const char *message, char **dest, size_t count, enum gnl_socket_request_type type) {
+static size_t encode(const char *message, char **dest, size_t count, enum gnl_socket_request_type type) {
     int request_size = size();
 
     GNL_CALLOC(*dest, request_size + 1 + count, -1)
@@ -146,32 +146,83 @@ static int encode(const char *message, char **dest, size_t count, enum gnl_socke
 
     return maxlen + count;
 }
-ssize_t  /* Read "n" bytes from a descriptor */
-readn(int fd, void *ptr, size_t n) {
-    size_t   nleft;
-    ssize_t  nread;
 
-    nleft = n;
-    while (nleft > 0) {
-        if((nread = read(fd, ptr, nleft)) < 0) {
-            if (nleft == n) return -1; /* error, return -1 */
-            else break; /* error, return amount read so far */
-        } else if (nread == 0) break; /* EOF */
-        nleft -= nread;
-        ptr   += nread;
-    }
-    return(n - nleft); /* return >= 0 */
-}
 /**
- * Decode the given socket message.
+ * Get a string that represent the given request.
+ *
+ * @param request   The request to be represented.
+ * @param dest      The pointer where to write the request string.
+ *
+ * @return          Returns the length of the request string on success,
+ *                  -1 otherwise.
+ */
+static size_t to_string(const struct gnl_socket_request *request, char **dest) {
+    //validate the parameters
+    GNL_NULL_CHECK(request, EINVAL, -1)
+    GNL_MINUS1_CHECK(-1 * (*dest != NULL), EINVAL, -1)
+
+    size_t message_len;
+
+    // get the request string
+    switch (request->type) {
+        case GNL_SOCKET_REQUEST_OPEN:
+            message_len = gnl_message_sn_write(request->payload.open, dest);
+            break;
+
+        case GNL_SOCKET_REQUEST_READ_N:
+            message_len = gnl_message_n_write(request->payload.read_N, dest);
+            break;
+
+        case GNL_SOCKET_REQUEST_READ:
+            message_len = gnl_message_s_write(request->payload.read, dest);
+            break;
+
+        case GNL_SOCKET_REQUEST_WRITE:
+            message_len = gnl_message_nnb_write(request->payload.write, dest);
+            break;
+
+        case GNL_SOCKET_REQUEST_APPEND:
+            message_len = gnl_message_sb_write(request->payload.append, dest);
+            break;
+
+        case GNL_SOCKET_REQUEST_LOCK:
+            message_len = gnl_message_s_write(request->payload.lock, dest);
+            break;
+
+        case GNL_SOCKET_REQUEST_UNLOCK:
+            message_len = gnl_message_s_write(request->payload.unlock, dest);
+            break;
+
+        case GNL_SOCKET_REQUEST_CLOSE:
+            message_len = gnl_message_n_write(request->payload.close, dest);
+            break;
+
+        case GNL_SOCKET_REQUEST_REMOVE:
+            message_len = gnl_message_s_write(request->payload.remove, dest);
+            break;
+
+        default:
+            errno = EINVAL;
+            return -1;
+            /* UNREACHED */
+    }
+
+    return message_len;
+}
+
+/**
+ * Decode the given socket message. If an error occurs, the given "dest" pointer value
+ * is unpredictable and it should not be used. No leaks are raised.
  *
  * @param fd        The file descriptor where to read.
  * @param dest      The destination where to put the socket message.
  * @param type      The pointer where to put the operation type.
+ * @param readn     The function to use to read from the given file descriptor.
  *
- * @return          Returns 0 on success, -1 otherwise.
+ * @return          Returns the number of bytes read on success,
+ *                  -1 otherwise.
  */
-static size_t decode(int fd, char **dest, enum gnl_socket_request_type *type) {
+static ssize_t decode(int fd, char **dest, enum gnl_socket_request_type *type, ssize_t (*readn)(int, void *, size_t)) {
     char *message;
     size_t message_len;
 
@@ -182,17 +233,24 @@ static size_t decode(int fd, char **dest, enum gnl_socket_request_type *type) {
     // the type of the message in the first 10 chars and the
     // size of the message in the second 10 chars, the remaining
     // byte is the null terminator char
-    size_t nread = readn(fd, message, 21);
-    GNL_MINUS1_CHECK(nread, errno, -1)
+    ssize_t nread = readn(fd, message, 21);
 
-    // if nread == 0 the connection is closed, bubble it
+    // if nread == 0, the connection is closed, return
     if (nread == 0) {
+        free(message);
+
         return 0;
     }
 
     // check if the read succeeded
     if (nread != 21) {
-        errno = EBADMSG;
+        free(message);
+
+        // if nread == -1, let the errno bubble
+        if (nread != -1) {
+            errno = EBADMSG;
+        }
+
         return -1;
     }
 
@@ -202,16 +260,29 @@ static size_t decode(int fd, char **dest, enum gnl_socket_request_type *type) {
     // free memory
     free(message);
 
+    // check the message_len
+    if (message_len <= 0) {
+        errno = EBADMSG;
+
+        return -1;
+    }
+
     // allocate memory for the payload message
     GNL_CALLOC(*dest, message_len, -1)
 
     // get the message
     nread = readn(fd, *dest, message_len);
-    GNL_MINUS1_CHECK(nread, errno, -1)
 
     // check if the read succeeded
     if (nread != message_len) {
-        errno = EBADMSG;
+        free(*dest);
+        *dest = NULL;
+
+        // if nread == -1, let the errno bubble
+        if (nread != -1) {
+            errno = EBADMSG;
+        }
+
         return -1;
     }
 
@@ -278,7 +349,6 @@ int gnl_socket_request_to_string(struct gnl_socket_request *request, char **dest
             errno = EINVAL;
             return -1;
             /* UNREACHED */
-            break;
     }
 
     return 0;
@@ -359,7 +429,6 @@ struct gnl_socket_request *gnl_socket_request_init(enum gnl_socket_request_type 
             errno = EINVAL;
             return NULL;
             /* UNREACHED */
-            break;
     }
 
     // clean memory reserved for valist
@@ -416,20 +485,22 @@ void gnl_socket_request_destroy(struct gnl_socket_request *request) {
 /**
  * {@inheritDoc}
  */
-size_t gnl_socket_request_read(int fd, struct gnl_socket_request **request) {
-    if (*request != NULL) {
-        errno = EINVAL;
+ssize_t gnl_socket_request_read(int fd, struct gnl_socket_request **request,
+        ssize_t (*readn)(int, void *, size_t)) {
 
-        return -1;
-    }
+    // validate the parameters
+    GNL_MINUS1_CHECK(-1 * (request != NULL), EINVAL, -1)
+    GNL_NULL_CHECK(readn, EINVAL, -1)
 
-    char *payload_message;
+    char *payload_message = NULL;
     enum gnl_socket_request_type type;
 
     int nread = decode(fd, &payload_message, &type);
+
+    // check the decode result
     GNL_MINUS1_CHECK(nread, errno, -1)
 
-    // if nread == 0 the connection is closed, bubble it
+    // if nread == 0 the connection is closed, return
     if (nread == 0) {
         return 0;
     }
@@ -478,7 +549,6 @@ size_t gnl_socket_request_read(int fd, struct gnl_socket_request **request) {
             errno = EINVAL;
             return -1;
             /* UNREACHED */
-            break;
     }
 
     free(payload_message);
@@ -489,90 +559,55 @@ size_t gnl_socket_request_read(int fd, struct gnl_socket_request **request) {
 /**
  * {@inheritDoc}
  */
-int gnl_socket_request_write(const struct gnl_socket_request *request, char **dest) {
+ssize_t gnl_socket_request_write(int fd, const struct gnl_socket_request *request,
+        ssize_t (*writen)(int, void *, size_t)) {
+
+    // validate the parameters
     GNL_NULL_CHECK(request, EINVAL, -1)
+    GNL_NULL_CHECK(writen, EINVAL, -1)
 
-    // the destination must be empty
-    if (*dest != NULL) {
-        errno = EINVAL;
+    char *message = NULL;
+    char *built_message = NULL;
 
-        return -1;
-    }
+    // get the request string
+    int nwrite = to_string(request, &built_message);
 
-    char *built_message;
-    int nwrite;
 
-    switch (request->type) {
-        case GNL_SOCKET_REQUEST_OPEN:
-            nwrite = gnl_message_sn_write(request->payload.open, &built_message);
-            break;
-
-        case GNL_SOCKET_REQUEST_READ_N:
-            nwrite = gnl_message_n_write(request->payload.read_N, &built_message);
-            break;
-
-        case GNL_SOCKET_REQUEST_READ:
-            nwrite = gnl_message_s_write(request->payload.read, &built_message);
-            break;
-
-        case GNL_SOCKET_REQUEST_WRITE:
-            nwrite = gnl_message_nnb_write(request->payload.write, &built_message);
-            break;
-
-        case GNL_SOCKET_REQUEST_APPEND:
-            nwrite = gnl_message_sb_write(request->payload.append, &built_message);
-            break;
-
-        case GNL_SOCKET_REQUEST_LOCK:
-            nwrite = gnl_message_s_write(request->payload.lock, &built_message);
-            break;
-
-        case GNL_SOCKET_REQUEST_UNLOCK:
-            nwrite = gnl_message_s_write(request->payload.unlock, &built_message);
-            break;
-
-        case GNL_SOCKET_REQUEST_CLOSE:
-            nwrite = gnl_message_n_write(request->payload.close, &built_message);
-            break;
-
-        case GNL_SOCKET_REQUEST_REMOVE:
-            nwrite = gnl_message_s_write(request->payload.remove, &built_message);
-            break;
-
-        default:
-            errno = EINVAL;
-            return -1;
-            /* UNREACHED */
-            break;
-    }
-
+    // check the result of the to_string invocation
     if (nwrite <= 0) {
+        free(built_message);
+
         return -1;
     }
 
-    nwrite = encode(built_message, dest, nwrite, request->type);
+    // encode the request
+    nwrite = encode(built_message, &message, nwrite, request->type);
 
+    // free memory
     free(built_message);
 
-    return nwrite;
-}
+    // check the result of the encoding
+    if (nwrite <= 0) {
+        free(message);
 
-/**
- * {@inheritDoc}
- */
-int gnl_socket_request_send(const struct gnl_socket_request *request,
-                            const struct gnl_socket_connection *connection,
-                            int (*emit)(const struct gnl_socket_connection *connection, const char *message, size_t count)) {
-    char *message = NULL;
+        return -1;
+    }
 
-    int nwrite = gnl_socket_request_write(request, &message);
-    GNL_MINUS1_CHECK(nwrite, EINVAL, -1)
+    // send the request
+    nwrite = writen(fd, message, nwrite);
 
-    int res = emit(connection, message, nwrite);
-
+    // free memory
     free(message);
 
-    return res;
+    // check the result of the sending
+    if (nwrite <= 0) {
+
+        // let the errno bubble
+
+        return -1;
+    }
+
+    return nwrite;
 }
 
 #undef MAX_DIGITS_CHAR

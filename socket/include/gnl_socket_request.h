@@ -2,7 +2,6 @@
 #ifndef GNL_SOCKET_REQUEST_H
 #define GNL_SOCKET_REQUEST_H
 
-#include "./gnl_socket_service.h"
 #include <gnl_message_sn.h>
 #include <gnl_message_s.h>
 #include <gnl_message_n.h>
@@ -88,35 +87,26 @@ extern int gnl_socket_request_to_string(struct gnl_socket_request *request, char
  * @param fd        The file descriptor where to read.
  * @param request   The request to instantiate from reading. It must be
  *                  initialized to NULL;
+ * @param readn     The function to use to read from the given file descriptor.
  *
  * @return          Returns the number of bytes read on success,
  *                  NULL otherwise.
  */
-extern size_t gnl_socket_request_read(int fd, struct gnl_socket_request **request);
+extern ssize_t gnl_socket_request_read(int fd, struct gnl_socket_request **request,
+        ssize_t (*readn)(int fd, void *ptr, size_t n));
 
 /**
- * Encode the given socket request.
+ * Write the given request into the given file descriptor.
+ * This function should be used to send a request through a socket.
  *
+ * @param fd        The file descriptor where to write.
  * @param request   The socket request to encode.
- * @param dest      The destination where to write the encoded request,
- *                  his value must be initialized with NULL.
+ * @param writen    The function to use to write to the given file descriptor.
  *
- * @return          Returns 0 on success, -1 otherwise.
+ * @return          Returns the number of bytes wrote on success,
+ *                  -1 otherwise.
  */
-extern int gnl_socket_request_write(const struct gnl_socket_request *request, char **dest);
-
-/**
- * Send the given request to the given connection.
- *
- * @param request       The socket request to send to the server.
- * @param connection    The socket service connection instance.
- * @param emit          The function for emitting to the server, is typically a
- *                      function defined by a socket service.
- *
- * @return              Returns 0 on success, -1 otherwise.
- */
-extern int gnl_socket_request_send(const struct gnl_socket_request *request,
-        const struct gnl_socket_connection *connection,
-        int (*emit)(const struct gnl_socket_connection *connection, const char *message, size_t count));
+extern ssize_t gnl_socket_request_write(int fd, const struct gnl_socket_request *request,
+        ssize_t (*writen)(int fd, void *ptr, size_t n));
 
 #endif //GNL_SOCKET_REQUEST_H
