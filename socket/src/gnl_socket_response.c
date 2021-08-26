@@ -249,7 +249,7 @@ struct gnl_socket_response *gnl_socket_response_read(const char *message) {
             socket_response = gnl_socket_response_init(GNL_SOCKET_RESPONSE_OK_EVICTED, 0);
             GNL_NULL_CHECK(socket_response, ENOMEM, NULL)
 
-            res = gnl_message_n_read(payload_message, socket_response->payload.ok_evicted);
+            res = gnl_message_n_from_string(payload_message, socket_response->payload.ok_evicted);
             GNL_MINUS1_CHECK(res, errno, NULL)
             break;
 
@@ -257,7 +257,7 @@ struct gnl_socket_response *gnl_socket_response_read(const char *message) {
             socket_response = gnl_socket_response_init(GNL_SOCKET_RESPONSE_OK_FILE, 0);
             GNL_NULL_CHECK(socket_response, ENOMEM, NULL)
 
-            res = gnl_message_sb_read(payload_message, socket_response->payload.ok_file);
+            res = gnl_message_sb_from_string(payload_message, socket_response->payload.ok_file);
             GNL_MINUS1_CHECK(res, errno, NULL)
             break;
 
@@ -265,7 +265,7 @@ struct gnl_socket_response *gnl_socket_response_read(const char *message) {
             socket_response = gnl_socket_response_init(GNL_SOCKET_RESPONSE_OK_FD, 0);
             GNL_NULL_CHECK(socket_response, ENOMEM, NULL)
 
-            res = gnl_message_n_read(payload_message, socket_response->payload.ok_fd);
+            res = gnl_message_n_from_string(payload_message, socket_response->payload.ok_fd);
             GNL_MINUS1_CHECK(res, errno, NULL)
             break;
 
@@ -278,7 +278,7 @@ struct gnl_socket_response *gnl_socket_response_read(const char *message) {
             socket_response = gnl_socket_response_init(GNL_SOCKET_RESPONSE_ERROR, 0);
             GNL_NULL_CHECK(socket_response, ENOMEM, NULL)
 
-            res = gnl_message_n_read(payload_message, socket_response->payload.error);
+            res = gnl_message_n_from_string(payload_message, socket_response->payload.error);
             GNL_MINUS1_CHECK(res, errno, NULL)
             break;
 
@@ -312,15 +312,15 @@ int gnl_socket_response_write(struct gnl_socket_response *response, char **dest)
 
     switch (response->type) {
         case GNL_SOCKET_RESPONSE_OK_EVICTED:
-            nwrite = gnl_message_n_write(response->payload.ok_evicted, &built_message);
+            nwrite = gnl_message_n_to_string(response->payload.ok_evicted, &built_message);
             break;
 
         case GNL_SOCKET_RESPONSE_OK_FILE:
-            nwrite = gnl_message_sb_write(response->payload.ok_file, &built_message);
+            nwrite = gnl_message_sb_to_string(response->payload.ok_file, &built_message);
             break;
 
         case GNL_SOCKET_RESPONSE_OK_FD:
-            nwrite = gnl_message_n_write(response->payload.ok_fd, &built_message);
+            nwrite = gnl_message_n_to_string(response->payload.ok_fd, &built_message);
             break;
 
         case GNL_SOCKET_RESPONSE_OK:
@@ -328,7 +328,7 @@ int gnl_socket_response_write(struct gnl_socket_response *response, char **dest)
             break;
 
         case GNL_SOCKET_RESPONSE_ERROR:
-            nwrite = gnl_message_n_write(response->payload.error, &built_message);
+            nwrite = gnl_message_n_to_string(response->payload.error, &built_message);
             break;
 
         default:

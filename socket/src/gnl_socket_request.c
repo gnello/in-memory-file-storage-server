@@ -89,28 +89,28 @@
     *request = gnl_socket_request_init(type, 0);                    \
     GNL_NULL_CHECK(*request, ENOMEM, -1)                            \
                                                                     \
-    gnl_message_n_read(payload_message, ref);                       \
+    gnl_message_n_from_string(payload_message, ref);                       \
 }
 
 #define GNL_REQUEST_S_READ_MESSAGE(payload_message, ref, type) {    \
     *request = gnl_socket_request_init(type, 0);                    \
     GNL_NULL_CHECK(*request, ENOMEM, -1)                            \
                                                                     \
-    gnl_message_s_read(payload_message, ref);                       \
+    gnl_message_s_from_string(payload_message, ref);                       \
 }
 
 #define GNL_REQUEST_SB_READ_MESSAGE(payload_message, ref, type) {   \
     *request = gnl_socket_request_init(type, 0);                    \
     GNL_NULL_CHECK(*request, ENOMEM, -1)                            \
                                                                     \
-    gnl_message_sb_read(payload_message, ref);                      \
+    gnl_message_sb_from_string(payload_message, ref);                      \
 }
 
 #define GNL_REQUEST_NNB_READ_MESSAGE(payload_message, ref, type) {  \
     *request = gnl_socket_request_init(type, 0);                    \
     GNL_NULL_CHECK(*request, ENOMEM, -1)                            \
                                                                     \
-    gnl_message_nnb_read(payload_message, ref);                     \
+    gnl_message_nnb_from_string(payload_message, ref);                     \
 }
 
 /**
@@ -166,39 +166,39 @@ static size_t to_string(const struct gnl_socket_request *request, char **dest) {
     // get the request string
     switch (request->type) {
         case GNL_SOCKET_REQUEST_OPEN:
-            message_len = gnl_message_sn_write(request->payload.open, dest);
+            message_len = gnl_message_sn_to_string(request->payload.open, dest);
             break;
 
         case GNL_SOCKET_REQUEST_READ_N:
-            message_len = gnl_message_n_write(request->payload.read_N, dest);
+            message_len = gnl_message_n_to_string(request->payload.read_N, dest);
             break;
 
         case GNL_SOCKET_REQUEST_READ:
-            message_len = gnl_message_s_write(request->payload.read, dest);
+            message_len = gnl_message_s_to_string(request->payload.read, dest);
             break;
 
         case GNL_SOCKET_REQUEST_WRITE:
-            message_len = gnl_message_nnb_write(request->payload.write, dest);
+            message_len = gnl_message_nnb_to_string(request->payload.write, dest);
             break;
 
         case GNL_SOCKET_REQUEST_APPEND:
-            message_len = gnl_message_sb_write(request->payload.append, dest);
+            message_len = gnl_message_sb_to_string(request->payload.append, dest);
             break;
 
         case GNL_SOCKET_REQUEST_LOCK:
-            message_len = gnl_message_s_write(request->payload.lock, dest);
+            message_len = gnl_message_s_to_string(request->payload.lock, dest);
             break;
 
         case GNL_SOCKET_REQUEST_UNLOCK:
-            message_len = gnl_message_s_write(request->payload.unlock, dest);
+            message_len = gnl_message_s_to_string(request->payload.unlock, dest);
             break;
 
         case GNL_SOCKET_REQUEST_CLOSE:
-            message_len = gnl_message_n_write(request->payload.close, dest);
+            message_len = gnl_message_n_to_string(request->payload.close, dest);
             break;
 
         case GNL_SOCKET_REQUEST_REMOVE:
-            message_len = gnl_message_s_write(request->payload.remove, dest);
+            message_len = gnl_message_s_to_string(request->payload.remove, dest);
             break;
 
         default:
@@ -510,7 +510,7 @@ ssize_t gnl_socket_request_read(int fd, struct gnl_socket_request **request,
             *request = gnl_socket_request_init(GNL_SOCKET_REQUEST_OPEN, 0);
             GNL_NULL_CHECK(*request, ENOMEM, -1)
 
-            gnl_message_sn_read(payload_message, (*request)->payload.open);
+            gnl_message_sn_from_string(payload_message, (*request)->payload.open);
             break;
 
         case GNL_SOCKET_REQUEST_READ_N:

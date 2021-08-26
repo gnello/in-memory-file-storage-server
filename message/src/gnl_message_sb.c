@@ -65,7 +65,7 @@ void gnl_message_sb_destroy(struct gnl_message_sb *message_sb) {
 /**
  * {@inheritDoc}
  */
-int gnl_message_sb_write(struct gnl_message_sb *message_sb, char **dest) {
+int gnl_message_sb_to_string(struct gnl_message_sb *message_sb, char **dest) {
     int message_sb_size = gnl_message_sb_size(message_sb);
 
     GNL_CALLOC(*dest, message_sb_size + 1, -1)
@@ -83,7 +83,7 @@ int gnl_message_sb_write(struct gnl_message_sb *message_sb, char **dest) {
 /**
  * {@inheritDoc}
  */
-int gnl_message_sb_read(const char *message, struct gnl_message_sb *message_sb) {
+int gnl_message_sb_from_string(const char *message, struct gnl_message_sb *message_sb) {
     if (message_sb == NULL) {
         errno = EINVAL;
 

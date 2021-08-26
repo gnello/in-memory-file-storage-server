@@ -31,13 +31,13 @@ int can_init_args() {
     return 0;
 }
 
-int can_build_message() {
+int can_to_string_message() {
     struct gnl_message_s *message_s = gnl_message_s_init_with_args("/fake/path");
 
     char *message;
     char *expected = "0000000010/fake/path";
 
-    int res = gnl_message_s_write(message_s, &message);
+    int res = gnl_message_s_to_string(message_s, &message);
 
     if (res != (strlen(expected) + 1)) {
         return -1;
@@ -53,11 +53,11 @@ int can_build_message() {
     return 0;
 }
 
-int can_read_message() {
+int can_from_string_message() {
     struct gnl_message_s *message_s = gnl_message_s_init();
     char *message = "0000000010/fake/path";
 
-    int res = gnl_message_s_read(message, message_s);
+    int res = gnl_message_s_from_string(message, message_s);
 
     if (res != 0) {
         return -1;
@@ -78,8 +78,8 @@ int main() {
     gnl_assert(can_init, "can init an empty gnl_message_s struct.");
     gnl_assert(can_init_args, "can init a gnl_message_s struct with the given arguments.");
 
-    gnl_assert(can_build_message, "can build a message from a gnl_message_s struct.");
-    gnl_assert(can_read_message, "can read a message into a gnl_message_s struct.");
+    gnl_assert(can_to_string_message, "can get a message to string from a gnl_message_s struct.");
+    gnl_assert(can_from_string_message, "can get a message from a string into a gnl_message_s struct.");
 
     // the gnl_message_s_destroy method is implicitly tested in every
     // assert, if you don't believe it, run this tests with

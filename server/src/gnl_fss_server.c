@@ -290,7 +290,7 @@ static int run_server(int fd_skt, struct gnl_fss_thread_pool *thread_pool, const
                     GNL_NULL_CHECK(message_from_worker, errno, -1)
 
                     // decode the message sent by a worker
-                    res = gnl_message_n_read(buf, message_from_worker);
+                    res = gnl_message_n_from_string(buf, message_from_worker);
                     GNL_MINUS1_CHECK(res, errno, -1)
 
                     // finally get the file descriptor

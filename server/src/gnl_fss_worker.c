@@ -326,7 +326,7 @@ void *gnl_fss_worker_handle(void* args) {
 
         // encode the message
         char *message;
-        size_t nwrite = gnl_message_n_write(message_to_master, &message);
+        size_t nwrite = gnl_message_n_to_string(message_to_master, &message);
         GNL_MINUS1_CHECK(nwrite, errno, NULL)
 
         // send the message to the master

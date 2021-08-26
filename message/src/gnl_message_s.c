@@ -57,7 +57,7 @@ void gnl_message_s_destroy(struct gnl_message_s *message) {
 /**
  * {@inheritDoc}
  */
-int gnl_message_s_write(const struct gnl_message_s *message, char **dest) {
+int gnl_message_s_to_string(const struct gnl_message_s *message, char **dest) {
     int message_size = gnl_message_s_size(message);
 
     int maxlen = message_size + 1; // count also the '\0' char
@@ -72,7 +72,7 @@ int gnl_message_s_write(const struct gnl_message_s *message, char **dest) {
 /**
  * {@inheritDoc}
  */
-int gnl_message_s_read(const char *message, struct gnl_message_s *message_s) {
+int gnl_message_s_from_string(const char *message, struct gnl_message_s *message_s) {
     if (message_s == NULL) {
         errno = EINVAL;
 

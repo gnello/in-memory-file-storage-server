@@ -47,13 +47,13 @@ int can_init_args() {
     return 0;
 }
 
-int can_build_message() {
+int can_to_string_message() {
     struct gnl_message_nnb *message_nnb = gnl_message_nnb_init_with_args(220510, 4, "\x41\x42\x43\x44");
 
     char *message;
     char *expected = "00002205100000000004ABCD";
 
-    int res = gnl_message_nnb_write(message_nnb, &message);
+    int res = gnl_message_nnb_to_string(message_nnb, &message);
 
     if (res != (strlen(expected) + 1)) {
         return -1;
@@ -69,11 +69,11 @@ int can_build_message() {
     return 0;
 }
 
-int can_read_message() {
+int can_from_string_message() {
     struct gnl_message_nnb *message_nnb = gnl_message_nnb_init();
     char *message = "00002205100000000004ABCD";
 
-    int res = gnl_message_nnb_read(message, message_nnb);
+    int res = gnl_message_nnb_from_string(message, message_nnb);
 
     if (res != 0) {
         return -1;
@@ -102,8 +102,8 @@ int main() {
     gnl_assert(can_init, "can init an empty message_nnb struct.");
     gnl_assert(can_init_args, "can init a message_nnb struct with the given arguments.");
 
-    gnl_assert(can_build_message, "can build a message from a message_nnb struct.");
-    gnl_assert(can_read_message, "can read a message into a message_nnb struct.");
+    gnl_assert(can_to_string_message, "can get a message to string from a message_nnb struct.");
+    gnl_assert(can_from_string_message, "can get a message from a string into a message_nnb struct.");
 
     // the message_nnb_destroy method is implicitly tested in every
     // assert, if you don't believe it, run this tests with

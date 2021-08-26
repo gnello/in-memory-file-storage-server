@@ -46,7 +46,7 @@ extern void gnl_message_nnb_destroy(struct gnl_message_nnb *message_nnb);
  * @return              Returns the number of bytes wrote on success,
  *                      -1 otherwise.
  */
-extern int gnl_message_nnb_write(const struct gnl_message_nnb *message_nnb, char **dest);
+extern int gnl_message_nnb_to_string(const struct gnl_message_nnb *message_nnb, char **dest);
 
 /**
  * Decode the given message and fill the message_nnb with it.
@@ -57,6 +57,6 @@ extern int gnl_message_nnb_write(const struct gnl_message_nnb *message_nnb, char
  *
  * @return              Returns 0 on success, -1 otherwise.
  */
-extern int gnl_message_nnb_read(const char *message, struct gnl_message_nnb *message_nnb);
+extern int gnl_message_nnb_from_string(const char *message, struct gnl_message_nnb *message_nnb);
 
 #endif //GNL_MESSAGE_NNB_H
