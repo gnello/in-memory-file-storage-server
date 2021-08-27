@@ -95,7 +95,7 @@
     char *dest;                                                                 \
     struct gnl_socket_response *request = gnl_socket_response_init((type), 0);    \
                                                                                 \
-    int res = gnl_socket_response_to_string(request, &dest);                     \
+    int res = gnl_socket_response_get_type(request, &dest);                     \
     if (res != 0) {                                                             \
         return -1;                                                              \
     }                                                                           \

@@ -71,7 +71,7 @@
     }                                                                                   \
                                                                                         \
     char *message = NULL;                                                               \
-    int res = gnl_socket_request_write(request, &message);                              \
+    int res = gnl_socket_request_to_string(request, &message);                              \
     if (res == -1) {                                                                    \
         return -1;                                                                      \
     }                                                                                   \
@@ -160,7 +160,7 @@
     }                                                                                                       \
                                                                                                             \
     char *message = NULL;                                                                                          \
-    int res = gnl_socket_request_write(request, &message);                                                        \
+    int res = gnl_socket_request_to_string(request, &message);                                                        \
     if (res == -1) {                               \
         return -1;                                      \
     } \
@@ -262,7 +262,7 @@
     }                                                                                                       \
                                                                                                             \
     char *message = NULL;                                                                                          \
-    gnl_socket_request_write(request, &message);                                                        \
+    gnl_socket_request_to_string(request, &message);                                                        \
                                                                                                             \
     char expected[55];                                                                                      \
     sprintf(expected, "%0*d00000000340000000010/fake/path0000000004ABCD", 10, request_type);                              \
@@ -369,7 +369,7 @@ struct gnl_socket_request *request = gnl_socket_request_init(request_type, 2, 22
     }                                                                                                       \
                                                                                                             \
     char *message = NULL;                                                                                          \
-    gnl_socket_request_write(request, &message);                                                        \
+    gnl_socket_request_to_string(request, &message);                                                        \
                                                                                                             \
     char expected[55];                                                                                      \
     sprintf(expected, "%0*d000000002400002205100000000004ABCD", 10, request_type);                              \
@@ -388,7 +388,7 @@ struct gnl_socket_request *request = gnl_socket_request_init(request_type, 2, 22
     char *dest;                                                                 \
     struct gnl_socket_request *request = gnl_socket_request_init((type), 0);    \
                                                                                 \
-    int res = gnl_socket_request_to_string(request, &dest);                     \
+    int res = gnl_socket_request_get_type(request, &dest);                     \
     if (res != 0) {                                                             \
         return -1;                                                              \
     }                                                                           \
@@ -483,7 +483,7 @@ int can_write_open() {
     }
 
     char *message = NULL;
-    gnl_socket_request_write(request, &message);
+    gnl_socket_request_to_string(request, &message);
 
     if (strcmp("000000000000000000300000000010/fake/path0000000003", message) != 0) {
         return -1;
@@ -627,7 +627,7 @@ int can_not_write_empty_request() {
     char *dest;
     struct gnl_socket_request *request = NULL;
 
-    int res = gnl_socket_request_write(request, &dest);
+    int res = gnl_socket_request_to_string(request, &dest);
 
     if (res == 0) {
         return -1;
@@ -644,7 +644,7 @@ int can_not_write_not_empty_dest() {
     char *dest = "fake_string";
     struct gnl_socket_request *request = gnl_socket_request_init(GNL_SOCKET_REQUEST_OPEN, 0);
 
-    int res = gnl_socket_request_write(request, &dest);
+    int res = gnl_socket_request_to_string(request, &dest);
 
     if (res == 0) {
         return -1;

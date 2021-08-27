@@ -79,7 +79,17 @@ extern ssize_t gnl_socket_service_readn(int fd, void *ptr, size_t n);
  * @return              Returns a gnl_socket_response on success,
  *                      NULL otherwise.
  */
-extern struct gnl_socket_response * gnl_socket_service_send(const struct gnl_socket_connection *connection,
+extern struct gnl_socket_response *gnl_socket_service_send_request(const struct gnl_socket_connection *connection,
         const struct gnl_socket_request *request);
+
+/**
+ * Get a request from the given file descriptor.
+ *
+ * @param fd    The file descriptor from where to get the request.
+ *
+ * @return      Returns the gnl_socket_request read on success,
+ *              NULL otherwise.
+ */
+extern struct gnl_socket_request *gnl_socket_service_get_request(int fd);
 
 #endif //GNL_SOCKET_SERVICE_H

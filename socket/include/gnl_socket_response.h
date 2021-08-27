@@ -66,36 +66,15 @@ struct gnl_socket_response *gnl_socket_response_init(enum gnl_socket_response_ty
 extern void gnl_socket_response_destroy(struct gnl_socket_response *response);
 
 /**
- * Format to string the given response. The output string dest will be
+ * Get the type of the given response. The output string dest will be
  * written with the string type of the given response.
  *
- * @param response  The response to format to string.
- * @param dest      The destination where to write the string response.
+ * @param response  The response from where to get the type.
+ * @param dest      The destination where to write the string type.
  *
  * @return          Returns 0 on success, -1 otherwise.
  */
-extern int gnl_socket_response_to_string(struct gnl_socket_response *response, char **dest);
-
-/**
- * Decode the given socket response.
- *
- * @param response  The socket response received from a socket message.
- *
- * @return          Returns a gnl_socket_response struct on success,
- *                  NULL otherwise.
- */
-extern struct gnl_socket_response *gnl_socket_response_read(const char *response);
-
-/**
- * Encode the given socket response.
- *
- * @param response  The socket_response to encode.
- * @param dest      The destination where to write the encoded response,
- *                  his value must be initialized with NULL.
- *
- * @return          Returns 0 on success, -1 otherwise.
- */
-extern int gnl_socket_response_write(struct gnl_socket_response *response, char **dest);
+extern int gnl_socket_response_get_type(struct gnl_socket_response *response, char **dest);
 
 /**
  * Read the number of evicted files from the given response.
@@ -128,16 +107,29 @@ extern int gnl_socket_response_get_fd(struct gnl_socket_response *response);
 extern int gnl_socket_response_get_error(struct gnl_socket_response *response);
 
 /**
- * Get the response from the given connection.
+ * Read the given socket response into the given gnl_socket_response struct.
+ * This function should be used to get a response from a socket.
  *
- * @param connection    The socket service connection instance.
- * @param on_message    The function to which to delegate reading from the server,
- *                      is typically a function defined by a socket service.
+ * @param fd        The file descriptor where to read.
+ * @param readn     The function to use to read from the given file descriptor.
  *
- * @return              Returns 0 on success, -1 otherwise.
+ * @return          Returns the gnl_socket_response struct read from the file
+ *                  descriptor on success, NULL otherwise.
  */
-extern struct gnl_socket_response *gnl_socket_response_get(const struct gnl_socket_connection *connection,
-                                                           int (*on_message)(const struct gnl_socket_connection *connection,
-                                                                             char **message, int size));
+extern struct gnl_socket_response * gnl_socket_response_read(int fd, ssize_t (*readn)(int fd, void *ptr, size_t n));
+
+/**
+ * Write the given response into the given file descriptor.
+ * This function should be used to send a response through a socket.
+ *
+ * @param fd        The file descriptor where to write.
+ * @param response  The socket response to write.
+ * @param writen    The function to use to write to the given file descriptor.
+ *
+ * @return          Returns the number of bytes wrote on success,
+ *                  -1 otherwise.
+ */
+extern size_t gnl_socket_response_write(int fd, const struct gnl_socket_response *response,
+        ssize_t (*writen)(int fd, void *ptr, size_t n));
 
 #endif //GNL_SOCKET_RESPONSE_H

@@ -232,89 +232,87 @@ void *gnl_fss_worker_handle(void* args) {
         gnl_logger_debug(logger, "message sent by client %d", fd_c);
 
         // read data
-        struct gnl_socket_request *request = NULL;
-        nread = gnl_socket_request_read(fd_c, &request, gnl_socket_service_readn);
+        struct gnl_socket_request *request = gnl_socket_service_get_request();
 
-        if (nread == -1) {
-            gnl_logger_error(logger, "error reading the message: %s", strerror(errno));
+        if (request == NULL) {
 
-            // do not stop the server: the show must go on
-            continue;
-        }
+            // if EOF...
+            if (errno == EPIPE) {
 
-        // if EOF...
-        if (nread == 0) {
-            // close the current file descriptor
-            gnl_logger_debug(logger, "the message says that client %d has gone away", fd_c);
-            //TODO: chiudere tutti i file aperti
+                // close the current file descriptor
+                gnl_logger_debug(logger, "the message says that client %d has gone away", fd_c);
+                //TODO: chiudere tutti i file aperti
 
-            // close the client file descriptor
-            res = close(fd_c);
-            GNL_MINUS1_CHECK(res, errno, NULL)
+                // close the client file descriptor
+                res = close(fd_c);
+                GNL_MINUS1_CHECK(res, errno, NULL)
 
-            gnl_logger_debug(logger, "closed the connection with client %d", fd_c);
+                gnl_logger_debug(logger, "closed the connection with client %d", fd_c);
 
-            // create the message for the master, 0 means that a client has gone away
-            message_to_master = gnl_message_n_init_with_args(0);
-            GNL_NULL_CHECK(message_to_master, errno, NULL)
+                // create the message for the master, 0 means that a client has gone away
+                message_to_master = gnl_message_n_init_with_args(0);
+                GNL_NULL_CHECK(message_to_master, errno, NULL)
+
+            } else {
+
+                gnl_logger_error(logger, "error reading the message: %s", strerror(errno));
+
+                // do not stop the server: the show must go on
+                continue;
+            }
         } else {
 
             gnl_logger_debug(logger, "the message is a request");
 
-            if (request == NULL) {
-                gnl_logger_error(logger, "invalid request: %s", strerror(errno));
-            } else {
+            // get the request type
+            char *request_type;
+            res = gnl_socket_request_get_type(request, &request_type);
+            GNL_MINUS1_CHECK(res, errno, NULL)
 
-                // get the request type
-                char *request_type;
-                res = gnl_socket_request_to_string(request, &request_type);
-                GNL_MINUS1_CHECK(res, errno, NULL)
+            gnl_logger_debug(logger, "the request has type %s", request_type);
 
-                gnl_logger_debug(logger, "request decoded, has type %s", request_type);
+            gnl_logger_debug(logger, "handle the %s request", request_type);
 
-                gnl_logger_debug(logger, "handle the %s request", request_type);
+            // the request_type is not necessary anymore, free memory
+            free(request_type);
 
-                // the request_type is not necessary anymore, free memory
-                free(request_type);
+            // handle the request
+            struct gnl_socket_response *response;
+            response = handle_request(worker->file_system, request, fd_c);
 
-                // handle the request
-                struct gnl_socket_response *response;
-                response = handle_request(worker->file_system, request, fd_c);
+            if (response == NULL) {
+                //TODO: creare risposta di errore standard/generica
+                gnl_logger_error(logger, "invalid response received from the request handler, stop");
 
-                if (response == NULL) {
-                    //TODO: creare risposta di errore standard/generica
-                    gnl_logger_error(logger, "invalid response received from the request handler, stop");
-
-                    continue;
-                }
-
-                gnl_logger_debug(logger, "client %d request handled", fd_c);
-
-                // encode the response
-                char *response_type;
-                res = gnl_socket_response_to_string(response, &response_type);
-                GNL_MINUS1_CHECK(res, errno, NULL)
-
-                gnl_logger_debug(logger, "building a %s response for client %d", response_type, fd_c);
-
-                free(response_type);
-
-                char *response_message = NULL;
-                res = gnl_socket_response_write(response, &response_message);
-                GNL_MINUS1_CHECK(res, errno, NULL) // TODO: scrivere log!!!!
-
-                // send the response message to the client //TODO: writen invece di write?
-                gnl_logger_debug(logger, "send a response to client %d", fd_c);
-
-                res = write(fd_c, response_message, strlen(response_message)); //TODO usare il socket service che implementa writen
-                GNL_MINUS1_CHECK(res, errno, NULL)
-
-                gnl_logger_debug(logger, "response sent to client %d", fd_c);
-
-                // free memory
-                free(response_message);
-                gnl_socket_response_destroy(response);
+                continue;
             }
+
+            gnl_logger_debug(logger, "client %d request handled", fd_c);
+
+            // encode the response
+            char *response_type;
+            res = gnl_socket_response_get_type(response, &response_type);
+            GNL_MINUS1_CHECK(res, errno, NULL)
+
+            gnl_logger_debug(logger, "building a %s response for client %d", response_type, fd_c);
+
+            free(response_type);
+
+            char *response_message = NULL;
+            res = gnl_socket_response_write(response, &response_message);
+            GNL_MINUS1_CHECK(res, errno, NULL) // TODO: scrivere log!!!!
+
+            // send the response message to the client //TODO: writen invece di write?
+            gnl_logger_debug(logger, "send a response to client %d", fd_c);
+
+            res = write(fd_c, response_message, strlen(response_message)); //TODO usare il socket service che implementa writen
+            GNL_MINUS1_CHECK(res, errno, NULL)
+
+            gnl_logger_debug(logger, "response sent to client %d", fd_c);
+
+            // free memory
+            free(response_message);
+            gnl_socket_response_destroy(response);
 
             // the request is not necessary anymore, destroy it
             gnl_socket_request_destroy(request);

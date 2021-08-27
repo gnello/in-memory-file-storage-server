@@ -72,43 +72,36 @@ struct gnl_socket_request *gnl_socket_request_init(enum gnl_socket_request_type 
 extern void gnl_socket_request_destroy(struct gnl_socket_request *request);
 
 /**
- * Format to string the given request. The output string dest will be
+ * Get the type of the given request. The output string dest will be
  * written with the string type of the given request.
  *
- * @param request   The request to format to string.
- * @param dest      The destination where to write the string request.
+ * @param response  The request from where to get the type.
+ * @param dest      The destination where to write the string type.
  *
  * @return          Returns 0 on success, -1 otherwise.
  */
-extern int gnl_socket_request_to_string(struct gnl_socket_request *request, char **dest);
+extern int gnl_socket_request_get_type(struct gnl_socket_request *request, char **dest);
 
 /**
- * Read the given socket request into the given gnl_socket_request struct.
- * This function should be used to get a request from a socket.
+ * Get a string that represent the given request.
  *
- * @param fd        The file descriptor where to read.
- * @param request   The request to instantiate from reading. It must be
- *                  initialized to NULL;
- * @param readn     The function to use to read from the given file descriptor.
+ * @param request   The request to be represented.
+ * @param dest      The pointer where to write the request string.
  *
- * @return          Returns the number of bytes read on success,
+ * @return          Returns the length of the request string on success,
  *                  -1 otherwise.
  */
-extern size_t gnl_socket_request_read(int fd, struct gnl_socket_request **request,
-        ssize_t (*readn)(int fd, void *ptr, size_t n));
+extern size_t gnl_socket_request_to_string(const struct gnl_socket_request *request, char **dest);
 
 /**
- * Write the given request into the given file descriptor.
- * This function should be used to send a request through a socket.
+ * Build a request from the given string.
  *
- * @param fd        The file descriptor where to write.
- * @param request   The socket request to encode.
- * @param writen    The function to use to write to the given file descriptor.
+ * @param message   The message from where to build the request.
+ * @param type      The type of the request.
  *
- * @return          Returns the number of bytes wrote on success,
- *                  -1 otherwise.
+ * @return          Returns the built gnl_socket_request on success,
+ *                  NULL otherwise.
  */
-extern size_t gnl_socket_request_write(int fd, const struct gnl_socket_request *request,
-        ssize_t (*writen)(int fd, void *ptr, size_t n));
+extern struct gnl_socket_request *gnl_socket_request_from_string(const char *message, enum gnl_socket_request_type type);
 
 #endif //GNL_SOCKET_REQUEST_H
