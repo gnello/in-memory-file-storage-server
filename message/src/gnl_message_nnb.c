@@ -11,7 +11,7 @@
 /**
  * Calculate the size of the message_nnb.
  *
- * @param message_nnb    The message_nnb.
+ * @param message_nnb   The message_nnb.
  *
  * @return              The size of the message_nnb.
  */
