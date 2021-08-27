@@ -28,12 +28,28 @@ static int gnl_opt_arg_send_file(const char *filename, const char *store_dirname
     GNL_MINUS1_CHECK(res, errno, -1);
 
     // send the file to the server
-    res = gnl_fss_api_write_file(filename, store_dirname);
-    GNL_MINUS1_CHECK(res, errno, -1);
+    int res_write = gnl_fss_api_write_file(filename, store_dirname);
+    int errno_write = errno;
+
+    // an eventual error during the write_file will be checked later
 
     // close the file
-    res = gnl_fss_api_close_file(filename);
-    GNL_MINUS1_CHECK(res, errno, -1);
+    int res_close = gnl_fss_api_close_file(filename);
+    int errno_close = errno;
+
+    // check if there was an error during the write_file
+    if (res_write == -1) {
+        errno = errno_write;
+//TODO: rimuovere il file aperto
+        return -1;
+    }
+
+    // check if there was an error during the close_file
+    if (res_close == -1) {
+        errno = errno_close;
+
+        return -1;
+    }
 
     return 0;
 }
