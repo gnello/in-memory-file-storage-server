@@ -5,111 +5,111 @@
 #include <gnl_file_to_pointer.h>
 #include "../src/gnl_socket_response.c"
 
-#define GNL_TEST_RESPONSE_INIT(response_type) { \
-    struct gnl_socket_response *response = gnl_socket_response_init(response_type, 0); \
-\
-    if (response == NULL) { \
-        return -1; \
-    } \
-\
-    if (response->type != response_type) { \
-        return -1; \
-    } \
-\
-    gnl_socket_response_destroy(response); \
-\
-    return 0; \
+#define GNL_TEST_RESPONSE_INIT(response_type) {                                                                         \
+    struct gnl_socket_response *response = gnl_socket_response_init(response_type, 0);                                  \
+                                                                                                                        \
+    if (response == NULL) {                                                                                             \
+        return -1;                                                                                                      \
+    }                                                                                                                   \
+                                                                                                                        \
+    if (response->type != response_type) {                                                                              \
+        return -1;                                                                                                      \
+    }                                                                                                                   \
+                                                                                                                        \
+    gnl_socket_response_destroy(response);                                                                              \
+                                                                                                                        \
+    return 0;                                                                                                           \
 }
 
-#define GNL_TEST_RESPONSE_N_ARGS(response_type, message_n) { \
-    struct gnl_socket_response *response = gnl_socket_response_init(response_type, 1, 2); \
-\
-    if (response == NULL) { \
-        return -1; \
-    } \
-\
-    if (response->type != response_type) { \
-        return -1; \
-    } \
-\
-    if (message_n->number != 2) { \
-        return -1; \
-    } \
-\
-    gnl_socket_response_destroy(response); \
-\
-    return 0; \
+#define GNL_TEST_RESPONSE_N_ARGS(response_type, message_n) {                                                            \
+    struct gnl_socket_response *response = gnl_socket_response_init(response_type, 1, 2);                               \
+                                                                                                                        \
+    if (response == NULL) {                                                                                             \
+        return -1;                                                                                                      \
+    }                                                                                                                   \
+                                                                                                                        \
+    if (response->type != response_type) {                                                                              \
+        return -1;                                                                                                      \
+    }                                                                                                                   \
+                                                                                                                        \
+    if (message_n->number != 2) {                                                                                       \
+        return -1;                                                                                                      \
+    }                                                                                                                   \
+                                                                                                                        \
+    gnl_socket_response_destroy(response);                                                                              \
+                                                                                                                        \
+    return 0;                                                                                                           \
 }
 
-#define GNL_TEST_RESPONSE_N_READ(response_type, message_n) { \
-    struct gnl_socket_response *response;                    \
-                                                             \
-    char message[31]; \
-    sprintf(message, "%0*d00000000100000000003", 10, response_type); \
-\
-    response = gnl_socket_response_read(message); \
-    if (response == NULL) { \
-        return -1; \
-    } \
-\
-    if (response->type != response_type) { \
-        return -1; \
-    } \
-\
-    if (message_n->number != 3) { \
-        return -1; \
-    } \
-\
-    gnl_socket_response_destroy(response); \
-\
-    return 0; \
+#define GNL_TEST_RESPONSE_N_FROM_STRING(response_type, message_n) {                                                     \
+    struct gnl_socket_response *response;                                                                               \
+                                                                                                                        \
+    char message[31];                                                                                                   \
+    sprintf(message, "%0*d00000000100000000003", 10, response_type);                                                    \
+                                                                                                                        \
+    response = gnl_socket_response_from_string(message, response_type);                                                 \
+    if (response == NULL) {                                                                                             \
+        return -1;                                                                                                      \
+    }                                                                                                                   \
+                                                                                                                        \
+    if (response->type != response_type) {                                                                              \
+        return -1;                                                                                                      \
+    }                                                                                                                   \
+                                                                                                                        \
+    if (message_n->number != 3) {                                                                                       \
+        return -1;                                                                                                      \
+    }                                                                                                                   \
+                                                                                                                        \
+    gnl_socket_response_destroy(response);                                                                              \
+                                                                                                                        \
+    return 0;                                                                                                           \
 }
 
-#define GNL_TEST_RESPONSE_N_WRITE(response_type) { \
-    struct gnl_socket_response *response = gnl_socket_response_init(response_type, 1, 3); \
-                                                   \
-    char message[31]; \
-    sprintf(message, "%0*d00000000100000000003", 10, response_type); \
-\
-    if (response == NULL) { \
-        return -1; \
-    } \
-\
-    char *actual = NULL; \
-    int res = gnl_socket_response_write(response, &actual);                               \
-    if (res == -1) {                               \
-        return -1;                                      \
-    }                                              \
-                                                   \
-    if (strcmp(message, actual) != 0) { \
-        return -1; \
-    } \
-\
-    gnl_socket_response_destroy(response); \
-    free(actual); \
-\
-    return 0; \
+#define GNL_TEST_RESPONSE_N_TO_STRING(response_type) {                                                                  \
+    struct gnl_socket_response *response = gnl_socket_response_init(response_type, 1, 3);                               \
+                                                                                                                        \
+    char message[31];                                                                                                   \
+    sprintf(message, "%0*d00000000100000000003", 10, response_type);                                                    \
+                                                                                                                        \
+    if (response == NULL) {                                                                                             \
+        return -1;                                                                                                      \
+    }                                                                                                                   \
+                                                                                                                        \
+    char *actual = NULL;                                                                                                \
+    int res = gnl_socket_response_to_string(response, &actual);                                                         \
+    if (res == -1) {                                                                                                    \
+        return -1;                                                                                                      \
+    }                                                                                                                   \
+                                                                                                                        \
+    if (strcmp(message, actual) != 0) {                                                                                 \
+        return -1;                                                                                                      \
+    }                                                                                                                   \
+                                                                                                                        \
+    gnl_socket_response_destroy(response);                                                                              \
+    free(actual);                                                                                                       \
+                                                                                                                        \
+    return 0;                                                                                                           \
 }
 
-#define GNL_TEST_TO_STRING(type, expected) {                                    \
-    char *dest;                                                                 \
-    struct gnl_socket_response *request = gnl_socket_response_init((type), 0);    \
-                                                                                \
-    int res = gnl_socket_response_get_type(request, &dest);                     \
-    if (res != 0) {                                                             \
-        return -1;                                                              \
-    }                                                                           \
-                                                                                \
-    if (strcmp(dest, (expected)) != 0) {                                        \
-        res = -1;                                                               \
-    } else {                                                                    \
-        res = 0;                                                                    \
-    }                                                                           \
-                                                                                \
-    free(dest);                                                                 \
-    gnl_socket_response_destroy(request);                                        \
-                                                                                \
-    return res;                                                                 \
+#define GNL_TEST_TO_STRING(type, expected) {                                                                            \
+    char *dest;                                                                                                         \
+    struct gnl_socket_response *request = gnl_socket_response_init((type), 0);                                          \
+                                                                                                                        \
+    int res = gnl_socket_response_get_type(request, &dest);                                                             \
+    if (res != 0) {                                                                                                     \
+        return -1;                                                                                                      \
+    }                                                                                                                   \
+                                                                                                                        \
+    if (strcmp(dest, (expected)) != 0) {                                                                                \
+        res = -1;                                                                                                       \
+    } else {                                                                                                            \
+        res = 0;                                                                                                        \
+    }                                                                                                                   \
+                                                                                                                        \
+    free(dest);                                                                                                         \
+    gnl_socket_response_destroy(request);                                                                               \
+                                                                                                                        \
+    return res;                                                                                                         \
 }
 
 int can_init_empty_ok_evicted() {
@@ -121,11 +121,11 @@ int can_init_args_ok_evicted() {
 }
 
 int can_from_string_ok_evicted() {
-    GNL_TEST_RESPONSE_N_READ(GNL_SOCKET_RESPONSE_OK_EVICTED, response->payload.ok_evicted)
+    GNL_TEST_RESPONSE_N_FROM_STRING(GNL_SOCKET_RESPONSE_OK_EVICTED, response->payload.ok_evicted)
 }
 
 int can_to_string_ok_evicted() {
-    GNL_TEST_RESPONSE_N_WRITE(GNL_SOCKET_RESPONSE_OK_EVICTED)
+    GNL_TEST_RESPONSE_N_TO_STRING(GNL_SOCKET_RESPONSE_OK_EVICTED)
 }
 
 int can_init_empty_ok_file() {
@@ -173,7 +173,7 @@ int can_from_string_ok_file() {
     char message[91253];
     sprintf(message, "%0*d00000912330000000014./testfile.txt0000091199%s", 10, GNL_SOCKET_RESPONSE_OK_FILE, content);
 
-    response = gnl_socket_response_read(message);
+    response = gnl_socket_response_from_string(message, GNL_SOCKET_RESPONSE_OK_FILE);
     if (response == NULL) {
         return -1;
     }
@@ -216,7 +216,7 @@ int can_to_string_ok_file() {
     sprintf(message, "%0*d00000912330000000014./testfile.txt0000091199%s", 10, GNL_SOCKET_RESPONSE_OK_FILE, content);
 
     char *actual = NULL;
-    res = gnl_socket_response_write(response, &actual);
+    res = gnl_socket_response_to_string(response, &actual);
     if (res == -1) {
         return -1;
     }
@@ -241,11 +241,11 @@ int can_init_args_ok_fd() {
 }
 
 int can_from_string_ok_fd() {
-    GNL_TEST_RESPONSE_N_READ(GNL_SOCKET_RESPONSE_OK_FD, response->payload.ok_fd)
+    GNL_TEST_RESPONSE_N_FROM_STRING(GNL_SOCKET_RESPONSE_OK_FD, response->payload.ok_fd)
 }
 
 int can_to_string_ok_fd() {
-    GNL_TEST_RESPONSE_N_WRITE(GNL_SOCKET_RESPONSE_OK_FD)
+    GNL_TEST_RESPONSE_N_TO_STRING(GNL_SOCKET_RESPONSE_OK_FD)
 }
 
 int can_init_empty_ok() {
@@ -272,7 +272,7 @@ int can_from_string_ok() {
     char message[21];
     sprintf(message, "%0*d0000000000", 10, GNL_SOCKET_RESPONSE_OK);
 
-    response = gnl_socket_response_read(message);
+    response = gnl_socket_response_from_string(message, GNL_SOCKET_RESPONSE_OK);
     if (response == NULL) {
         return -1;
     }
@@ -297,7 +297,7 @@ int can_to_string_ok() {
     sprintf(message, "%0*d0000000000", 10, GNL_SOCKET_RESPONSE_OK);
 
     char *actual = NULL;
-    int res = gnl_socket_response_write(response, &actual);
+    int res = gnl_socket_response_to_string(response, &actual);
     if (res == -1) {
         return -1;
     }
@@ -321,18 +321,18 @@ int can_init_args_error() {
 }
 
 int can_from_string_error() {
-    GNL_TEST_RESPONSE_N_READ(GNL_SOCKET_RESPONSE_ERROR, response->payload.error)
+    GNL_TEST_RESPONSE_N_FROM_STRING(GNL_SOCKET_RESPONSE_ERROR, response->payload.error)
 }
 
 int can_to_string_error() {
-    GNL_TEST_RESPONSE_N_WRITE(GNL_SOCKET_RESPONSE_ERROR)
+    GNL_TEST_RESPONSE_N_TO_STRING(GNL_SOCKET_RESPONSE_ERROR)
 }
 
 int can_not_write_empty_response() {
     char *dest;
     struct gnl_socket_response *response = NULL;
 
-    int res = gnl_socket_response_write(response, &dest);
+    int res = gnl_socket_response_to_string(response, &dest);
 
     if (res == 0) {
         return -1;
@@ -349,7 +349,7 @@ int can_not_write_not_empty_dest() {
     char *dest = "fake_string";
     struct gnl_socket_response *response = gnl_socket_response_init(GNL_SOCKET_RESPONSE_OK_EVICTED, 0);
 
-    int res = gnl_socket_response_write(response, &dest);
+    int res = gnl_socket_response_to_string(response, &dest);
 
     if (res == 0) {
         return -1;
