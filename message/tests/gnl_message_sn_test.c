@@ -90,7 +90,7 @@ int main() {
     gnl_assert(can_init, "can init an empty gnl_message_sn struct.");
     gnl_assert(can_init_args, "can init a gnl_message_sn struct with the given arguments.");
 
-    gnl_assert(can_to_string_message, "can get a message to string from a gnl_message_sn struct.");
+    gnl_assert(can_to_string_message, "can get a message string from a gnl_message_sn struct.");
     gnl_assert(can_from_string_message, "can get a message from a string into a gnl_message_sn struct.");
 
     // the gnl_message_sn_destroy method is implicitly tested in every

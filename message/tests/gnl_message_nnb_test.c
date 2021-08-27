@@ -102,7 +102,7 @@ int main() {
     gnl_assert(can_init, "can init an empty message_nnb struct.");
     gnl_assert(can_init_args, "can init a message_nnb struct with the given arguments.");
 
-    gnl_assert(can_to_string_message, "can get a message to string from a message_nnb struct.");
+    gnl_assert(can_to_string_message, "can get a message string from a message_nnb struct.");
     gnl_assert(can_from_string_message, "can get a message from a string into a message_nnb struct.");
 
     // the message_nnb_destroy method is implicitly tested in every
