@@ -301,7 +301,7 @@ void *gnl_fss_worker_handle(void* args) {
             free(response_type);
 
             // send the response message to the client
-            gnl_logger_debug(logger, "send a response to client %d", fd_c);
+            gnl_logger_debug(logger, "send the response to client %d", fd_c);
 
             res = gnl_socket_service_send_response(fd_c, response);
             GNL_MINUS1_CHECK(res, errno, NULL)
