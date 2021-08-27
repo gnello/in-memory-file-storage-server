@@ -83,7 +83,7 @@ int can_from_string_message() {
         return -1;
     }
 
-    if (message_nnb->count != 4) { printf("count: %ld\n", message_nnb->count);
+    if (message_nnb->count != 4) {
         return -1;
     }
 
