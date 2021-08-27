@@ -42,8 +42,7 @@
 #define GNL_TEST_REQUEST_N_FROM_STRING(request_type, ref) {                                                             \
     struct gnl_socket_request *request;                                                                                 \
                                                                                                                         \
-    char message[31];                                                                                                   \
-    sprintf(message, "%0*d00000000100000000015", 10, request_type);                                                     \
+    char *message = "0000000015";                                                                                       \
                                                                                                                         \
     request = gnl_socket_request_from_string(message, request_type);                                                    \
     if (request == NULL) {                                                                                              \
@@ -76,8 +75,7 @@
         return -1;                                                                                                      \
     }                                                                                                                   \
                                                                                                                         \
-    char expected[31];                                                                                                  \
-    sprintf(expected, "%0*d00000000100000000015", 10, request_type);                                                    \
+    char *expected = "0000000015";                                                                                      \
     if (strcmp(expected, message) != 0) {                                                                               \
         return -1;                                                                                                      \
     }                                                                                                                   \
@@ -131,8 +129,7 @@
 #define GNL_TEST_REQUEST_S_FROM_STRING(request_type, ref) {                                                             \
     struct gnl_socket_request *request;                                                                                 \
                                                                                                                         \
-    char message[41];                                                                                                   \
-    sprintf(message, "%0*d00000000200000000010/fake/path", 10, request_type);                                           \
+    char *message = "0000000010/fake/path";                                                                             \
                                                                                                                         \
     request = gnl_socket_request_from_string(message, request_type);                                                    \
     if (request == NULL) {                                                                                              \
@@ -165,8 +162,7 @@
         return -1;                                                                                                      \
     }                                                                                                                   \
                                                                                                                         \
-    char expected[41];                                                                                                  \
-    sprintf(expected, "%0*d00000000200000000010/fake/path", 10, request_type);                                          \
+    char *expected = "0000000010/fake/path";                                                                            \
                                                                                                                         \
     if (strcmp(expected, message) != 0) {                                                                               \
         return -1;                                                                                                      \
@@ -336,8 +332,7 @@
 #define GNL_TEST_REQUEST_NNB_FROM_STRING(request_type, ref) {                                                           \
     struct gnl_socket_request *request;                                                                                 \
                                                                                                                         \
-    char message[55];                                                                                                   \
-    sprintf(message, "%0*d000000002400002205100000000004ABCD", 10, request_type);                                       \
+    char *message = "00002205100000000004ABCD";                                                                         \
                                                                                                                         \
     request = gnl_socket_request_from_string(message, request_type);                                                    \
     if (request == NULL) {                                                                                              \
@@ -349,6 +344,10 @@
     }                                                                                                                   \
                                                                                                                         \
     if (ref->number != 220510) {                                                                                        \
+        return -1;                                                                                                      \
+    }                                                                                                                   \
+                                                                                                                        \
+    if (ref->count != 4) {                                                                                              \
         return -1;                                                                                                      \
     }                                                                                                                   \
                                                                                                                         \
@@ -371,8 +370,7 @@ struct gnl_socket_request *request = gnl_socket_request_init(request_type, 2, 22
     char *message = NULL;                                                                                               \
     gnl_socket_request_to_string(request, &message);                                                                    \
                                                                                                                         \
-    char expected[55];                                                                                                  \
-    sprintf(expected, "%0*d000000002400002205100000000004ABCD", 10, request_type);                                      \
+    char *expected = "00002205100000000004";                                                                            \
                                                                                                                         \
     if (strcmp(expected, message) != 0) {                                                                               \
         return -1;                                                                                                      \
@@ -453,7 +451,7 @@ int can_init_args_open() {
 int can_from_string_open() {
     struct gnl_socket_request *request;
 
-    request = gnl_socket_request_from_string("000000000000000000300000000010/fake/path0000000003", GNL_SOCKET_REQUEST_OPEN);
+    request = gnl_socket_request_from_string("0000000010/fake/path0000000003", GNL_SOCKET_REQUEST_OPEN);
     if (request == NULL) {
         return -1;
     }
@@ -485,7 +483,7 @@ int can_to_string_open() {
     char *message = NULL;
     gnl_socket_request_to_string(request, &message);
 
-    if (strcmp("000000000000000000300000000010/fake/path0000000003", message) != 0) {
+    if (strcmp("0000000010/fake/path0000000003", message) != 0) {
         return -1;
     }
 
