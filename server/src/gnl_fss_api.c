@@ -331,9 +331,6 @@ int gnl_fss_api_close_file(const char *pathname) {
 
     int fd = *(int *)fd_raw;
 
-    // free memory
-    free(fd_raw);
-
     // create the request to send to the server
     struct gnl_socket_request *request = gnl_socket_request_init(GNL_SOCKET_REQUEST_CLOSE, 1, fd);
     GNL_NULL_CHECK(request, ENOMEM, -1)
