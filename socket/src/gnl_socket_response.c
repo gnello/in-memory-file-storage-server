@@ -87,6 +87,7 @@ struct gnl_socket_response *gnl_socket_response_init(enum gnl_socket_response_ty
     // declare utils vars
     char *buffer_s;
     char *buffer_b;
+    int buffer_n;
 
     // assign payload object
     switch (type) {
@@ -99,10 +100,11 @@ struct gnl_socket_response *gnl_socket_response_init(enum gnl_socket_response_ty
                 case 0:
                     socket_response->payload.ok_file = gnl_message_snb_init();
                     break;
-                case 2:
+                case 3:
                     buffer_s = va_arg(a_list, char *);
+                    buffer_n = va_arg(a_list, int);
                     buffer_b = va_arg(a_list, void *);
-                    socket_response->payload.ok_file = gnl_message_snb_init_with_args(buffer_s, buffer_b);
+                    socket_response->payload.ok_file = gnl_message_snb_init_with_args(buffer_s, buffer_n, buffer_b);
                     break;
                 default:
                     errno = EINVAL;

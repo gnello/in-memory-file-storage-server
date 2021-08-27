@@ -47,15 +47,16 @@
     GNL_NULL_CHECK(ref, ENOMEM, NULL)                                       \
 }
 
-#define GNL_REQUEST_SB_INIT(num, ref, a_list) {                                                         \
+#define GNL_REQUEST_SNB_INIT(num, ref, a_list) {                                                         \
     switch (num) {                                                                                      \
         case 0:                                                                                         \
             ref = gnl_message_snb_init();                               \
             break;                                                                                      \
-        case 2:                                                                                         \
+        case 3:                                                                                         \
             buffer_s = va_arg(a_list, char *);                                                          \
+            buffer_n1 = va_arg(a_list, int);                                                            \
             buffer_b = va_arg(a_list, void *);                                                          \
-            ref = gnl_message_snb_init_with_args(buffer_s, buffer_b);   \
+            ref = gnl_message_snb_init_with_args(buffer_s, buffer_n1, buffer_b);   \
         break;                                                                                          \
             default:                                                                                    \
             errno = EINVAL;                                                                             \
@@ -70,7 +71,7 @@
         case 0:                                                                                         \
             ref = gnl_message_nnb_init();                                                                \
             break;                                                                                      \
-        case 2:                                                                                         \
+        case 3:                                                                                         \
             buffer_n1 = va_arg(a_list, int);                                                            \
             buffer_n2 = va_arg(a_list, size_t);                                                         \
             buffer_b = va_arg(a_list, void *);                                                          \
@@ -98,7 +99,7 @@
     gnl_message_s_from_string(payload_message, ref);                \
 }
 
-#define GNL_REQUEST_SB_READ_MESSAGE(payload_message, ref, type) {   \
+#define GNL_REQUEST_SNB_READ_MESSAGE(payload_message, ref, type) {   \
     request = gnl_socket_request_init(type, 0);                     \
     GNL_NULL_CHECK(request, ENOMEM, NULL)                           \
                                                                     \
@@ -229,7 +230,7 @@ struct gnl_socket_request *gnl_socket_request_init(enum gnl_socket_request_type 
             break;
 
         case GNL_SOCKET_REQUEST_APPEND:
-            GNL_REQUEST_SB_INIT(num, socket_request->payload.append, a_list)
+            GNL_REQUEST_SNB_INIT(num, socket_request->payload.append, a_list)
             break;
 
         case GNL_SOCKET_REQUEST_LOCK:
@@ -343,7 +344,7 @@ struct gnl_socket_request *gnl_socket_request_from_string(const char *message, e
             break;
 
         case GNL_SOCKET_REQUEST_APPEND:
-            GNL_REQUEST_SB_READ_MESSAGE(message, request->payload.append, type);
+            GNL_REQUEST_SNB_READ_MESSAGE(message, request->payload.append, type);
             break;
 
         case GNL_SOCKET_REQUEST_LOCK:
@@ -440,11 +441,11 @@ size_t gnl_socket_request_to_string(const struct gnl_socket_request *request, ch
 #undef MAX_DIGITS_INT
 #undef GNL_REQUEST_N_INIT
 #undef GNL_REQUEST_S_INIT
-#undef GNL_REQUEST_SB_INIT
+#undef GNL_REQUEST_SNB_INIT
 #undef GNL_REQUEST_NNB_INIT
 #undef GNL_REQUEST_N_READ_MESSAGE
 #undef GNL_REQUEST_S_READ_MESSAGE
-#undef GNL_REQUEST_SB_READ_MESSAGE
+#undef GNL_REQUEST_SNB_READ_MESSAGE
 #undef GNL_REQUEST_NNB_READ_MESSAGE
 
 #include <gnl_macro_end.h>
