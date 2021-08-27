@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <gnl_colorshell.h>
 #include <gnl_assert.h>
+#include <gnl_file_to_pointer.h>
 #include "../src/gnl_socket_request.c"
 
 #define GNL_TEST_EMPTY_REQUEST_N(request_type, ref) {                                                                   \
@@ -174,7 +175,7 @@
     return 0;                                                                                                           \
 }
 
-#define GNL_TEST_EMPTY_REQUEST_SB(request_type, ref) {                                                                  \
+#define GNL_TEST_EMPTY_REQUEST_SNB(request_type, ref) {                                                                 \
     struct gnl_socket_request *request = gnl_socket_request_init(request_type, 0);                                      \
                                                                                                                         \
     if (request == NULL) {                                                                                              \
@@ -189,6 +190,10 @@
         return -1;                                                                                                      \
     }                                                                                                                   \
                                                                                                                         \
+    if (ref->count != 0) {                                                                                              \
+        return -1;                                                                                                      \
+    }                                                                                                                   \
+                                                                                                                        \
     if (ref->bytes != NULL) {                                                                                           \
         return -1;                                                                                                      \
     }                                                                                                                   \
@@ -198,8 +203,17 @@
     return 0;                                                                                                           \
 }
 
-#define GNL_TEST_REQUEST_SB_ARGS(request_type, ref) {                                                                   \
-    struct gnl_socket_request *request = gnl_socket_request_init(request_type, 2, "/fake/path", "\x41\x42\x43\x44");    \
+#define GNL_TEST_REQUEST_SNB_ARGS(request_type, ref) {                                                                  \
+    int res;                                                                                                            \
+    long size;                                                                                                          \
+    char *content = NULL;                                                                                               \
+                                                                                                                        \
+    res = gnl_file_to_pointer("./testfile.txt", &content, &size);                                                       \
+    if (res == -1) {                                                                                                    \
+        return -1;                                                                                                      \
+    }                                                                                                                   \
+                                                                                                                        \
+    struct gnl_socket_request *request = gnl_socket_request_init(request_type, 3, "/fake/path", size, content);         \
                                                                                                                         \
     if (request == NULL) {                                                                                              \
         return -1;                                                                                                      \
@@ -213,20 +227,36 @@
         return -1;                                                                                                      \
     }                                                                                                                   \
                                                                                                                         \
-    if (strcmp(ref->bytes, "ABCD") != 0) {                                                                              \
+    if (memcmp(ref->bytes, content, size) != 0) {                                                                       \
         return -1;                                                                                                      \
     }                                                                                                                   \
                                                                                                                         \
+    free(content);                                                                                                      \
     gnl_socket_request_destroy(request);                                                                                \
                                                                                                                         \
     return 0;                                                                                                           \
 }
 
-#define GNL_TEST_REQUEST_SB_FROM_STRING(request_type, ref) {                                                            \
+#define GNL_TEST_REQUEST_SNB_FROM_STRING(request_type, ref) {                                                           \
     struct gnl_socket_request *request;                                                                                 \
                                                                                                                         \
-    char message[55];                                                                                                   \
-    sprintf(message, "%0*d00000000340000000010/fake/path0000000004ABCD", 10, request_type);                             \
+    int res;                                                                                                            \
+    long size;                                                                                                          \
+    char *content = NULL;                                                                                               \
+                                                                                                                        \
+    res = gnl_file_to_pointer("./testfile.txt", &content, &size);                                                       \
+    if (res == -1) {                                                                                                    \
+        return -1;                                                                                                      \
+    }                                                                                                                   \
+                                                                                                                        \
+    char *message = calloc(31 + size, sizeof(char *));                                                                  \
+    if (message == NULL) {                                                                                              \
+        return -1;                                                                                                      \
+    }                                                                                                                   \
+                                                                                                                        \
+    sprintf(message, "0000000010/fake/path%0*ld", 10, size);                                                            \
+                                                                                                                        \
+    memcpy(message + 31, content, size);                                                                                \
                                                                                                                         \
     request = gnl_socket_request_from_string(message, request_type);                                                    \
     if (request == NULL) {                                                                                              \
@@ -241,34 +271,65 @@
         return -1;                                                                                                      \
     }                                                                                                                   \
                                                                                                                         \
-    if (strcmp(ref->bytes, "ABCD") != 0) {                                                                              \
+    if (ref->count != size) {                                                                                           \
         return -1;                                                                                                      \
     }                                                                                                                   \
                                                                                                                         \
+    if (memcmp(ref->bytes, content, size) != 0) {                                                                       \
+        return -1;                                                                                                      \
+    }                                                                                                                   \
+                                                                                                                        \
+    free(message);                                                                                                      \
+    free(content);                                                                                                      \
     gnl_socket_request_destroy(request);                                                                                \
                                                                                                                         \
     return 0;                                                                                                           \
 }
 
-#define GNL_TEST_REQUEST_SB_TO_STRING(request_type) {                                                                   \
-    struct gnl_socket_request *request = gnl_socket_request_init(request_type, 2, "/fake/path", "\x41\x42\x43\x44");    \
+#define GNL_TEST_REQUEST_SNB_TO_STRING(request_type) {                                                                  \
+    int res;                                                                                                            \
+    long size;                                                                                                          \
+    char *content = NULL;                                                                                               \
+                                                                                                                        \
+    res = gnl_file_to_pointer("./testfile.txt", &content, &size);                                                       \
+    if (res == -1) {                                                                                                    \
+        return -1;                                                                                                      \
+    }                                                                                                                   \
+                                                                                                                        \
+    struct gnl_socket_request *request = gnl_socket_request_init(request_type, 3, "/fake/path", size, content);         \
                                                                                                                         \
     if (request == NULL) {                                                                                              \
         return -1;                                                                                                      \
     }                                                                                                                   \
                                                                                                                         \
-    char *message = NULL;                                                                                               \
-    gnl_socket_request_to_string(request, &message);                                                                    \
-                                                                                                                        \
-    char expected[55];                                                                                                  \
-    sprintf(expected, "%0*d00000000340000000010/fake/path0000000004ABCD", 10, request_type);                            \
-                                                                                                                        \
-    if (strcmp(expected, message) != 0) {                                                                               \
+    char *expected = calloc(31 + size, sizeof(char *));                                                                 \
+    if (expected == NULL) {                                                                                             \
         return -1;                                                                                                      \
     }                                                                                                                   \
                                                                                                                         \
-    gnl_socket_request_destroy(request);                                                                                \
+    sprintf(expected, "0000000010/fake/path%0*ld", 10, size);                                                           \
+                                                                                                                        \
+    memcpy(expected + 31, content, size);                                                                               \
+                                                                                                                        \
+    char *message = NULL;                                                                                               \
+    res = gnl_socket_request_to_string(request, &message);                                                              \
+                                                                                                                        \
+    if (res != (strlen(expected) + 1) + size) {                                                                         \
+        return -1;                                                                                                      \
+    }                                                                                                                   \
+                                                                                                                        \
+    if (strcmp(message, expected) != 0) {                                                                               \
+        return -1;                                                                                                      \
+    }                                                                                                                   \
+                                                                                                                        \
+    if (memcmp(message + 31, content, size) != 0) {                                                                     \
+        return -1;                                                                                                      \
+    }                                                                                                                   \
+                                                                                                                        \
+    free(content);                                                                                                      \
     free(message);                                                                                                      \
+    free(expected);                                                                                                     \
+    gnl_socket_request_destroy(request);                                                                                \
                                                                                                                         \
     return 0;                                                                                                           \
 }
@@ -284,11 +345,11 @@
         return -1;                                                                                                      \
     }                                                                                                                   \
                                                                                                                         \
-    if (ref->number > 0) {                                                                                              \
+    if (ref->number != 0) {                                                                                             \
         return -1;                                                                                                      \
     }                                                                                                                   \
                                                                                                                         \
-    if (ref->count > 0) {                                                                                               \
+    if (ref->count != 0) {                                                                                              \
         return -1;                                                                                                      \
     }                                                                                                                   \
                                                                                                                         \
@@ -302,7 +363,16 @@
 }
 
 #define GNL_TEST_REQUEST_NNB_ARGS(request_type, ref) {                                                                  \
-    struct gnl_socket_request *request = gnl_socket_request_init(request_type, 2, 220510, 4, "\x41\x42\x43\x44");       \
+    int res;                                                                                                            \
+    long size;                                                                                                          \
+    char *content = NULL;                                                                                               \
+                                                                                                                        \
+    res = gnl_file_to_pointer("./testfile.txt", &content, &size);                                                       \
+    if (res == -1) {                                                                                                    \
+        return -1;                                                                                                      \
+    }                                                                                                                   \
+                                                                                                                        \
+    struct gnl_socket_request *request = gnl_socket_request_init(request_type, 3, 220510, size, content);               \
                                                                                                                         \
     if (request == NULL) {                                                                                              \
         return -1;                                                                                                      \
@@ -316,14 +386,15 @@
         return -1;                                                                                                      \
     }                                                                                                                   \
                                                                                                                         \
-    if (ref->count != 4) {                                                                                              \
+    if (ref->count != size) {                                                                                           \
         return -1;                                                                                                      \
     }                                                                                                                   \
                                                                                                                         \
-    if (strcmp(ref->bytes, "ABCD") != 0) {                                                                              \
+    if (memcmp(ref->bytes, content, size) != 0) {                                                                       \
         return -1;                                                                                                      \
     }                                                                                                                   \
                                                                                                                         \
+    free(content);                                                                                                      \
     gnl_socket_request_destroy(request);                                                                                \
                                                                                                                         \
     return 0;                                                                                                           \
@@ -332,7 +403,23 @@
 #define GNL_TEST_REQUEST_NNB_FROM_STRING(request_type, ref) {                                                           \
     struct gnl_socket_request *request;                                                                                 \
                                                                                                                         \
-    char *message = "00002205100000000004ABCD";                                                                         \
+    int res;                                                                                                            \
+    long size;                                                                                                          \
+    char *content = NULL;                                                                                               \
+                                                                                                                        \
+    res = gnl_file_to_pointer("./testfile.txt", &content, &size);                                                       \
+    if (res == -1) {                                                                                                    \
+        return -1;                                                                                                      \
+    }                                                                                                                   \
+                                                                                                                        \
+    char *message = calloc(21 + size, sizeof(char *));                                                                  \
+    if (message == NULL) {                                                                                              \
+        return -1;                                                                                                      \
+    }                                                                                                                   \
+                                                                                                                        \
+    sprintf(message, "0000220510%0*ld", 10, size);                                                                      \
+                                                                                                                        \
+    memcpy(message + 21, content, size);                                                                                \
                                                                                                                         \
     request = gnl_socket_request_from_string(message, request_type);                                                    \
     if (request == NULL) {                                                                                              \
@@ -347,37 +434,66 @@
         return -1;                                                                                                      \
     }                                                                                                                   \
                                                                                                                         \
-    if (ref->count != 4) {                                                                                              \
+    if (ref->count != size) {                                                                                           \
         return -1;                                                                                                      \
     }                                                                                                                   \
                                                                                                                         \
-    if (strcmp(ref->bytes, "ABCD") != 0) {                                                                              \
+    if (memcmp(ref->bytes, content, size) != 0) {                                                                       \
         return -1;                                                                                                      \
     }                                                                                                                   \
                                                                                                                         \
+    free(message);                                                                                                      \
+    free(content);                                                                                                      \
     gnl_socket_request_destroy(request);                                                                                \
                                                                                                                         \
     return 0;                                                                                                           \
 }
 
 #define GNL_TEST_REQUEST_NNB_TO_STRING(request_type) {                                                                  \
-struct gnl_socket_request *request = gnl_socket_request_init(request_type, 2, 220510, 4, "\x41\x42\x43\x44");           \
+    int res;                                                                                                            \
+    long size;                                                                                                          \
+    char *content = NULL;                                                                                               \
+                                                                                                                        \
+    res = gnl_file_to_pointer("./testfile.txt", &content, &size);                                                       \
+    if (res == -1) {                                                                                                    \
+        return -1;                                                                                                      \
+    }                                                                                                                   \
+                                                                                                                        \
+    struct gnl_socket_request *request = gnl_socket_request_init(request_type, 3, 220510, size, content);               \
                                                                                                                         \
     if (request == NULL) {                                                                                              \
         return -1;                                                                                                      \
     }                                                                                                                   \
                                                                                                                         \
-    char *message = NULL;                                                                                               \
-    gnl_socket_request_to_string(request, &message);                                                                    \
-                                                                                                                        \
-    char *expected = "00002205100000000004";                                                                            \
-                                                                                                                        \
-    if (strcmp(expected, message) != 0) {                                                                               \
+    char *expected = calloc(21 + size, sizeof(char *));                                                                 \
+    if (expected == NULL) {                                                                                             \
         return -1;                                                                                                      \
     }                                                                                                                   \
                                                                                                                         \
-    gnl_socket_request_destroy(request);                                                                                \
+    sprintf(expected, "0000220510%0*ld", 10, size);                                                                     \
+                                                                                                                        \
+    memcpy(expected + 21, content, size);                                                                               \
+                                                                                                                        \
+    char *message = NULL;                                                                                               \
+    res = gnl_socket_request_to_string(request, &message);                                                              \
+                                                                                                                        \
+    if (res != (strlen(expected) + 1) + size) {                                                                         \
+        return -1;                                                                                                      \
+    }                                                                                                                   \
+                                                                                                                        \
+    if (strcmp(message, expected) != 0) {                                                                               \
+        return -1;                                                                                                      \
+    }                                                                                                                   \
+                                                                                                                        \
+    if (memcmp(message + 21, content, size) != 0) {                                                                     \
+        return -1;                                                                                                      \
+    }                                                                                                                   \
+                                                                                                                        \
+    free(content);                                                                                                      \
     free(message);                                                                                                      \
+    free(expected);                                                                                                     \
+                                                                                                                        \
+    gnl_socket_request_destroy(request);                                                                                \
                                                                                                                         \
     return 0;                                                                                                           \
 }
@@ -542,19 +658,19 @@ int can_to_string_write() {
 }
 
 int can_init_empty_append() {
-    GNL_TEST_EMPTY_REQUEST_SB(GNL_SOCKET_REQUEST_APPEND, request->payload.append)
+    GNL_TEST_EMPTY_REQUEST_SNB(GNL_SOCKET_REQUEST_APPEND, request->payload.append)
 }
 
 int can_init_args_append() {
-    GNL_TEST_REQUEST_SB_ARGS(GNL_SOCKET_REQUEST_APPEND, request->payload.append)
+    GNL_TEST_REQUEST_SNB_ARGS(GNL_SOCKET_REQUEST_APPEND, request->payload.append)
 }
 
 int can_from_string_append() {
-    GNL_TEST_REQUEST_SB_FROM_STRING(GNL_SOCKET_REQUEST_APPEND, request->payload.append)
+    GNL_TEST_REQUEST_SNB_FROM_STRING(GNL_SOCKET_REQUEST_APPEND, request->payload.append)
 }
 
 int can_to_string_append() {
-    GNL_TEST_REQUEST_SB_TO_STRING(GNL_SOCKET_REQUEST_APPEND)
+    GNL_TEST_REQUEST_SNB_TO_STRING(GNL_SOCKET_REQUEST_APPEND)
 }
 
 int can_init_empty_lock() {
@@ -764,10 +880,10 @@ int main() {
 #undef GNL_TEST_REQUEST_S_ARGS
 #undef GNL_TEST_REQUEST_S_READ
 #undef GNL_TEST_REQUEST_S_WRITE
-#undef GNL_TEST_EMPTY_REQUEST_SB
-#undef GNL_TEST_REQUEST_SB_ARGS
-#undef GNL_TEST_REQUEST_SB_READ
-#undef GNL_TEST_REQUEST_SB_WRITE
+#undef GNL_TEST_EMPTY_REQUEST_SNB
+#undef GNL_TEST_REQUEST_SNB_ARGS
+#undef GNL_TEST_REQUEST_SNB_READ
+#undef GNL_TEST_REQUEST_SNB_WRITE
 #undef GNL_TEST_EMPTY_REQUEST_NNB
 #undef GNL_TEST_REQUEST_NNB_ARGS
 #undef GNL_TEST_REQUEST_NNB_READ

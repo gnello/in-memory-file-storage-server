@@ -44,8 +44,7 @@
 #define GNL_TEST_RESPONSE_N_FROM_STRING(response_type, message_n) {                                                     \
     struct gnl_socket_response *response;                                                                               \
                                                                                                                         \
-    char message[31];                                                                                                   \
-    sprintf(message, "%0*d00000000100000000003", 10, response_type);                                                    \
+    char *message = "0000000003";                                                                                       \
                                                                                                                         \
     response = gnl_socket_response_from_string(message, response_type);                                                 \
     if (response == NULL) {                                                                                             \
@@ -68,8 +67,7 @@
 #define GNL_TEST_RESPONSE_N_TO_STRING(response_type) {                                                                  \
     struct gnl_socket_response *response = gnl_socket_response_init(response_type, 1, 3);                               \
                                                                                                                         \
-    char message[31];                                                                                                   \
-    sprintf(message, "%0*d00000000100000000003", 10, response_type);                                                    \
+    char *message = "0000000003";                                                                                       \
                                                                                                                         \
     if (response == NULL) {                                                                                             \
         return -1;                                                                                                      \
@@ -142,7 +140,7 @@ int can_init_args_ok_file() {
         return -1;
     }
 
-    struct gnl_socket_response *response = gnl_socket_response_init(GNL_SOCKET_RESPONSE_OK_FILE, 2, "./testfile.txt", content);
+    struct gnl_socket_response *response = gnl_socket_response_init(GNL_SOCKET_RESPONSE_OK_FILE, 3, "./testfile.txt", size, content);
 
     if (response == NULL) {
         return -1;
@@ -152,8 +150,20 @@ int can_init_args_ok_file() {
         return -1;
     }
 
-    gnl_socket_response_destroy(response);
+    if (strcmp(response->payload.ok_file->string, "./testfile.txt") != 0) {
+        return -1;
+    }
+
+    if (response->payload.ok_file->count != size) {
+        return -1;
+    }
+
+    if (memcmp(response->payload.ok_file->bytes, content, size) != 0) {
+        return -1;
+    }
+
     free(content);
+    gnl_socket_response_destroy(response);
 
     return 0;
 }
@@ -170,8 +180,14 @@ int can_from_string_ok_file() {
 
     struct gnl_socket_response *response;
 
-    char message[91253];
-    sprintf(message, "%0*d00000912330000000014./testfile.txt0000091199%s", 10, GNL_SOCKET_RESPONSE_OK_FILE, content);
+    char *message = calloc(35 + size, sizeof(char *));
+    if (message == NULL) {
+        return -1;
+    }
+
+    sprintf(message, "0000000014./testfile.txt%0*ld", 10, size);
+
+    memcpy(message + 35, content, size);
 
     response = gnl_socket_response_from_string(message, GNL_SOCKET_RESPONSE_OK_FILE);
     if (response == NULL) {
@@ -186,10 +202,15 @@ int can_from_string_ok_file() {
         return -1;
     }
 
-    if (strcmp(response->payload.ok_file->bytes, content) != 0) {
+    if (response->payload.ok_file->count != size) {
         return -1;
     }
 
+    if (memcmp(response->payload.ok_file->bytes, content, size) != 0) {
+        return -1;
+    }
+
+    free(message);
     gnl_socket_response_destroy(response);
     free(content);
 
@@ -206,14 +227,14 @@ int can_to_string_ok_file() {
         return -1;
     }
 
-    struct gnl_socket_response *response = gnl_socket_response_init(GNL_SOCKET_RESPONSE_OK_FILE, 2, "./testfile.txt", content);
+    struct gnl_socket_response *response = gnl_socket_response_init(GNL_SOCKET_RESPONSE_OK_FILE, 3, "./testfile.txt", size, content);
 
     if (response == NULL) {
         return -1;
     }
 
-    char message[91253];
-    sprintf(message, "%0*d00000912330000000014./testfile.txt0000091199%s", 10, GNL_SOCKET_RESPONSE_OK_FILE, content);
+    char message[35];
+    sprintf(message, "0000000014./testfile.txt%0*ld", 10, size);
 
     char *actual = NULL;
     res = gnl_socket_response_to_string(response, &actual);
@@ -222,6 +243,10 @@ int can_to_string_ok_file() {
     }
 
     if (strcmp(message, actual) != 0) {
+        return -1;
+    }
+
+    if (memcmp(actual + 35, content, size) != 0) {
         return -1;
     }
 
@@ -293,16 +318,17 @@ int can_to_string_ok() {
         return -1;
     }
 
-    char message[21];
-    sprintf(message, "%0*d0000000000", 10, GNL_SOCKET_RESPONSE_OK);
-
     char *actual = NULL;
     int res = gnl_socket_response_to_string(response, &actual);
     if (res == -1) {
         return -1;
     }
 
-    if (strcmp(message, actual) != 0) {
+    if (actual != NULL) {
+        return -1;
+    }
+
+    if (res != 0) {
         return -1;
     }
 
