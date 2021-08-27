@@ -52,7 +52,7 @@ extern int gnl_message_nnb_to_string(const struct gnl_message_nnb *message_nnb, 
  * Decode the given message and fill the message_nnb with it.
  *
  * @param message       The message to decode.
- * @param message_nnb    The struct to fill with the decoded message, it must be previously
+ * @param message_nnb   The struct to fill with the decoded message, it must be previously
  *                      initialized with gnl_message_nnb_init.
  *
  * @return              Returns 0 on success, -1 otherwise.
