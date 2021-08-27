@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <gnl_colorshell.h>
 #include <gnl_assert.h>
+#include <gnl_file_to_pointer.h>
 #include "../src/gnl_message_nnb.c"
 
 int can_init() {
@@ -28,35 +29,59 @@ int can_init() {
 }
 
 int can_init_args() {
-    struct gnl_message_nnb *message_nnb = gnl_message_nnb_init_with_args(220510, 4,"\x41\x42\x43\x44");
+    int res;
+    long size;
+    char *content = NULL;
+
+    res = gnl_file_to_pointer("./testfile.txt", &content, &size);
+    if (res == -1) {
+        return -1;
+    }
+
+    struct gnl_message_nnb *message_nnb = gnl_message_nnb_init_with_args(220510, size,content);
 
     if (message_nnb->number != 220510) {
         return -1;
     }
 
-    if (message_nnb->count != 4) {
+    if (message_nnb->count != size) {
         return -1;
     }
 
-    if (strcmp(message_nnb->bytes, "ABCD") != 0) {
+    if (memcmp(message_nnb->bytes, content, size) != 0) {
         return -1;
     }
 
+    free(content);
     gnl_message_nnb_destroy(message_nnb);
 
     return 0;
 }
 
 int can_to_string_message() {
-    struct gnl_message_nnb *message_nnb = gnl_message_nnb_init_with_args(220510, 4, "\x41\x42\x43\x44");
+    int res;
+    long size;
+    char *content = NULL;
+
+    res = gnl_file_to_pointer("./testfile.txt", &content, &size);
+    if (res == -1) {
+        return -1;
+    }
+
+    struct gnl_message_nnb *message_nnb = gnl_message_nnb_init_with_args(220510, size, content);
+
+    char *expected = calloc(21 + size, sizeof(char *));
+    if (expected == NULL) {
+        return -1;
+    }
+
+    sprintf(expected, "0000220510%0*ld", 10, size);
 
     char *message;
-    char *expected = "00002205100000000004";
-    int bytes = 4; // x41 x42 x43 x44 = 4 bytes
 
-    int res = gnl_message_nnb_to_string(message_nnb, &message);
+    res = gnl_message_nnb_to_string(message_nnb, &message);
 
-    if (res != (strlen(expected) + 1) + bytes) {
+    if (res != (strlen(expected) + 1) + size) {
         return -1;
     }
 
@@ -64,17 +89,40 @@ int can_to_string_message() {
         return -1;
     }
 
+    if (memcmp(message + 21, content, size) != 0) {
+        return -1;
+    }
+
+    free(content);
     free(message);
+    free(expected);
     gnl_message_nnb_destroy(message_nnb);
 
     return 0;
 }
 
 int can_from_string_message() {
-    struct gnl_message_nnb *message_nnb = gnl_message_nnb_init();
-    char *message = "00002205100000000004ABCD";
+    int res;
+    long size;
+    char *content = NULL;
 
-    int res = gnl_message_nnb_from_string(message, message_nnb);
+    res = gnl_file_to_pointer("./testfile.txt", &content, &size);
+    if (res == -1) {
+        return -1;
+    }
+
+    struct gnl_message_nnb *message_nnb = gnl_message_nnb_init();
+
+    char *message = calloc(21 + size, sizeof(char *));
+    if (message == NULL) {
+        return -1;
+    }
+
+    sprintf(message, "0000220510%0*ld", 10, size);
+
+    memcpy(message + 21, content, size);
+
+    res = gnl_message_nnb_from_string(message, message_nnb);
 
     if (res != 0) {
         return -1;
@@ -84,14 +132,16 @@ int can_from_string_message() {
         return -1;
     }
 
-    if (message_nnb->count != 4) {
+    if (message_nnb->count != size) {
         return -1;
     }
 
-    if (strcmp(message_nnb->bytes, "ABCD") != 0) {
+    if (memcmp(message_nnb->bytes, content, size) != 0) {
         return -1;
     }
 
+    free(content);
+    free(message);
     gnl_message_nnb_destroy(message_nnb);
 
     return 0;
