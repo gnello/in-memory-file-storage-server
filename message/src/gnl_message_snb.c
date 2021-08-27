@@ -122,7 +122,7 @@ int gnl_message_snb_from_string(const char *message, struct gnl_message_snb *mes
     message_snb->bytes = calloc(message_snb->count, sizeof(void *));
     GNL_NULL_CHECK(message_snb->bytes, ENOMEM, -1)
 
-    memcpy(message_snb->bytes, message + MAX_DIGITS_INT + string_len + MAX_DIGITS_INT, message_snb->count);
+    memcpy(message_snb->bytes, message + MAX_DIGITS_INT + string_len + MAX_DIGITS_INT + 1, message_snb->count);
 
     return 0;
 }
