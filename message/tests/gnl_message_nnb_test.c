@@ -51,11 +51,12 @@ int can_to_string_message() {
     struct gnl_message_nnb *message_nnb = gnl_message_nnb_init_with_args(220510, 4, "\x41\x42\x43\x44");
 
     char *message;
-    char *expected = "00002205100000000004ABCD";
+    char *expected = "00002205100000000004";
+    int bytes = 4; // x41 x42 x43 x44 = 4 bytes
 
     int res = gnl_message_nnb_to_string(message_nnb, &message);
 
-    if (res != (strlen(expected) + 1)) {
+    if (res != (strlen(expected) + 1) + bytes) {
         return -1;
     }
 
