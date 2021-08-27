@@ -22,8 +22,11 @@
  * @return          Returns 0 on success, -1 otherwise.
  */
 static size_t write_protocol_message(int fd, const char *message, int type, size_t count) {
-    //validate parameters
-    GNL_NULL_CHECK(message, EINVAL, -1);
+    // validate parameters
+    // if count is > 0 then the message must not be null
+    if (count > 0) {
+        GNL_NULL_CHECK(message, EINVAL, -1);
+    }
 
     char *protocol_message;
 
@@ -35,14 +38,16 @@ static size_t write_protocol_message(int fd, const char *message, int type, size
     // add the protocol metadata
     snprintf(protocol_message, maxlen, "%0*d%0*lu", MAX_DIGITS_INT, type, MAX_DIGITS_INT, count);
 
-    // add the rest of the message
-    memcpy(protocol_message + maxlen, message, count);
+    // add the rest of the message (if the count is > 0)
+    if (count > 0) {
+        memcpy(protocol_message + maxlen, message, count);
+    }
 
     int len = maxlen + count;
 
     // send the request
     int nwrite = gnl_socket_service_writen(fd, protocol_message, len);
-printf("write: %d - %s - %d\n", nwrite, protocol_message, len);
+
     // free memory
     free(protocol_message);
 
