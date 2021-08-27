@@ -2,7 +2,7 @@
 #include <string.h>
 #include <stdarg.h>
 #include <gnl_message_n.h>
-#include <gnl_message_sb.h>
+#include <gnl_message_snb.h>
 #include "../include/gnl_socket_response.h"
 #include <gnl_macro_beg.h>
 
@@ -97,12 +97,12 @@ struct gnl_socket_response *gnl_socket_response_init(enum gnl_socket_response_ty
         case GNL_SOCKET_RESPONSE_OK_FILE:
             switch (num) {
                 case 0:
-                    socket_response->payload.ok_file = gnl_message_sb_init();
+                    socket_response->payload.ok_file = gnl_message_snb_init();
                     break;
                 case 2:
                     buffer_s = va_arg(a_list, char *);
                     buffer_b = va_arg(a_list, void *);
-                    socket_response->payload.ok_file = gnl_message_sb_init_with_args(buffer_s, buffer_b);
+                    socket_response->payload.ok_file = gnl_message_snb_init_with_args(buffer_s, buffer_b);
                     break;
                 default:
                     errno = EINVAL;
@@ -152,7 +152,7 @@ void gnl_socket_response_destroy(struct gnl_socket_response *response) {
             gnl_message_n_destroy(response->payload.ok_evicted);
             break;
         case GNL_SOCKET_RESPONSE_OK_FILE:
-            gnl_message_sb_destroy(response->payload.ok_file);
+            gnl_message_snb_destroy(response->payload.ok_file);
             break;
         case GNL_SOCKET_RESPONSE_OK_FD:
             gnl_message_n_destroy(response->payload.ok_fd);
@@ -242,7 +242,7 @@ struct gnl_socket_response *gnl_socket_response_from_string(const char *message,
             response = gnl_socket_response_init(GNL_SOCKET_RESPONSE_OK_FILE, 0);
             GNL_NULL_CHECK(response, ENOMEM, NULL)
 
-            res = gnl_message_sb_from_string(message, response->payload.ok_file);
+            res = gnl_message_snb_from_string(message, response->payload.ok_file);
             GNL_MINUS1_CHECK(res, errno, NULL)
             break;
 
@@ -292,7 +292,7 @@ size_t gnl_socket_response_to_string(const struct gnl_socket_response *response,
             break;
 
         case GNL_SOCKET_RESPONSE_OK_FILE:
-            len = gnl_message_sb_to_string(response->payload.ok_file, dest);
+            len = gnl_message_snb_to_string(response->payload.ok_file, dest);
             break;
 
         case GNL_SOCKET_RESPONSE_OK_FD:

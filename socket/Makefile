@@ -10,7 +10,7 @@ CFLAGS = -std=c99 -Wall -g -pedantic
 INCLUDE = -I$(ROOT)$(HELPERS_INCLUDE)
 
 # message library
-LIBS = -Wl,-rpath,$(ROOT)$(MESSAGE_LIB) -L$(ROOT)$(MESSAGE_LIB) -lgnl_message_n -lgnl_message_s -lgnl_message_sb -lgnl_message_sn -lgnl_message_nnb
+LIBS = -Wl,-rpath,$(ROOT)$(MESSAGE_LIB) -L$(ROOT)$(MESSAGE_LIB) -lgnl_message_n -lgnl_message_s -lgnl_message_snb -lgnl_message_sn -lgnl_message_nnb
 INCLUDE += -I$(ROOT)$(MESSAGE_INCLUDE)
 
 TARGETS =	gnl_socket_request.so \

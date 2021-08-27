@@ -13,7 +13,7 @@ LIBS = -Wl,-rpath,$(HELPERS_PATH_LIB) -L$(HELPERS_PATH_LIB) -lgnl_colorshell -lg
 INCLUDE = -I$(HELPERS_PATH_INCLUDE)
 
 # message library
-LIBS += -Wl,-rpath,$(ROOT)$(MESSAGE_LIB) -L$(ROOT)$(MESSAGE_LIB) -lgnl_message_n -lgnl_message_s -lgnl_message_sb -lgnl_message_sn -lgnl_message_nnb
+LIBS += -Wl,-rpath,$(ROOT)$(MESSAGE_LIB) -L$(ROOT)$(MESSAGE_LIB) -lgnl_message_n -lgnl_message_s -lgnl_message_snb -lgnl_message_sn -lgnl_message_nnb
 INCLUDE += -I$(ROOT)$(MESSAGE_INCLUDE)
 
 TARGETS =	gnl_socket_request_test \

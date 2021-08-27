@@ -36,7 +36,7 @@ struct gnl_socket_response {
     enum gnl_socket_response_type type;
     union {
         struct gnl_message_n *ok_evicted;
-        struct gnl_message_sb *ok_file;
+        struct gnl_message_snb *ok_file;
         struct gnl_message_n *ok_fd;
         struct gnl_message_n *error;
     } payload;

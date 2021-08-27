@@ -6,7 +6,7 @@
 #include <gnl_message_s.h>
 #include <gnl_message_n.h>
 #include <gnl_message_sn.h>
-#include <gnl_message_sb.h>
+#include <gnl_message_snb.h>
 #include <gnl_message_nnb.h>
 #include <gnl_macro_beg.h>
 #include "../include/gnl_socket_request.h"
@@ -50,12 +50,12 @@
 #define GNL_REQUEST_SB_INIT(num, ref, a_list) {                                                         \
     switch (num) {                                                                                      \
         case 0:                                                                                         \
-            ref = gnl_message_sb_init();                               \
+            ref = gnl_message_snb_init();                               \
             break;                                                                                      \
         case 2:                                                                                         \
             buffer_s = va_arg(a_list, char *);                                                          \
             buffer_b = va_arg(a_list, void *);                                                          \
-            ref = gnl_message_sb_init_with_args(buffer_s, buffer_b);   \
+            ref = gnl_message_snb_init_with_args(buffer_s, buffer_b);   \
         break;                                                                                          \
             default:                                                                                    \
             errno = EINVAL;                                                                             \
@@ -102,7 +102,7 @@
     request = gnl_socket_request_init(type, 0);                     \
     GNL_NULL_CHECK(request, ENOMEM, NULL)                           \
                                                                     \
-    gnl_message_sb_from_string(payload_message, ref);               \
+    gnl_message_snb_from_string(payload_message, ref);               \
 }
 
 #define GNL_REQUEST_NNB_READ_MESSAGE(payload_message, ref, type) {  \
@@ -282,7 +282,7 @@ void gnl_socket_request_destroy(struct gnl_socket_request *request) {
             break;
 
         case GNL_SOCKET_REQUEST_APPEND:
-            gnl_message_sb_destroy(request->payload.append);
+            gnl_message_snb_destroy(request->payload.append);
             break;
 
         case GNL_SOCKET_REQUEST_LOCK:
@@ -401,7 +401,7 @@ size_t gnl_socket_request_to_string(const struct gnl_socket_request *request, ch
             break;
 
         case GNL_SOCKET_REQUEST_APPEND:
-            message_len = gnl_message_sb_to_string(request->payload.append, dest);
+            message_len = gnl_message_snb_to_string(request->payload.append, dest);
             break;
 
         case GNL_SOCKET_REQUEST_LOCK:

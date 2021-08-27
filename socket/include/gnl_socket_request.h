@@ -6,7 +6,7 @@
 #include <gnl_message_sn.h>
 #include <gnl_message_s.h>
 #include <gnl_message_n.h>
-#include <gnl_message_sb.h>
+#include <gnl_message_snb.h>
 #include <gnl_message_nnb.h>
 
 /**
@@ -34,7 +34,7 @@ struct gnl_socket_request {
         struct gnl_message_s *read;
         struct gnl_message_n *read_N;
         struct gnl_message_nnb *write;
-        struct gnl_message_sb *append;
+        struct gnl_message_snb *append;
         struct gnl_message_s *lock;
         struct gnl_message_s *unlock;
         struct gnl_message_n *close;
