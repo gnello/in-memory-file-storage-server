@@ -397,7 +397,7 @@ int gnl_socket_service_send_response(int fd, const struct gnl_socket_response *r
 
 /**
  * {@inheritDoc}
- */ //TODO: se è richiesto di loggare i byte lato client allora ritornare i byte
+ */
 struct gnl_socket_response *gnl_socket_service_get_response(const struct gnl_socket_connection *connection) {
     //validate parameters
     GNL_NULL_CHECK(connection, EINVAL, NULL);
