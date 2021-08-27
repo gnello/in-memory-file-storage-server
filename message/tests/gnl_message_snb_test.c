@@ -14,6 +14,10 @@ int can_init() {
         return -1;
     }
 
+    if (message_snb->count > 0) {
+        return -1;
+    }
+
     if (message_snb->bytes != NULL) {
         return -1;
     }
@@ -24,9 +28,13 @@ int can_init() {
 }
 
 int can_init_args() {
-    struct gnl_message_snb *message_snb = gnl_message_snb_init_with_args("/fake/path", "\x41\x42\x43\x44");
+    struct gnl_message_snb *message_snb = gnl_message_snb_init_with_args("/fake/path", 4, "\x41\x42\x43\x44");
 
     if (strcmp(message_snb->string, "/fake/path") != 0) {
+        return -1;
+    }
+
+    if (message_snb->count != 4) {
         return -1;
     }
 
@@ -40,14 +48,15 @@ int can_init_args() {
 }
 
 int can_to_string_message() {
-    struct gnl_message_snb *message_snb = gnl_message_snb_init_with_args("/fake/path", "\x41\x42\x43\x44");
+    struct gnl_message_snb *message_snb = gnl_message_snb_init_with_args("/fake/path", 4, "\x41\x42\x43\x44");
 
     char *message;
-    char *expected = "0000000010/fake/path0000000004ABCD";
+    char *expected = "0000000010/fake/path0000000004";
+    int bytes = 4; // x41 x42 x43 x44 = 4 bytes
 
     int res = gnl_message_snb_to_string(message_snb, &message);
 
-    if (res != (strlen(expected) + 1)) {
+    if (res != (strlen(expected) + 1) + bytes) {
         return -1;
     }
 
@@ -72,6 +81,10 @@ int can_from_string_message() {
     }
 
     if (strcmp(message_snb->string, "/fake/path") != 0) {
+        return -1;
+    }
+
+    if (message_snb->count != 4) {
         return -1;
     }
 

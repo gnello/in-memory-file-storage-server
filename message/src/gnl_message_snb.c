@@ -11,12 +11,12 @@
 /**
  * Calculate the size of the message_snb.
  *
- * @param message_snb    The message_snb.
+ * @param message_snb   The message_snb.
  *
  * @return              The size of the message_snb.
  */
 static int gnl_message_snb_size(const struct gnl_message_snb *message_snb) {
-    return MAX_DIGITS_INT + strlen(message_snb->string) + MAX_DIGITS_INT + strlen(message_snb->bytes);
+    return MAX_DIGITS_INT + strlen(message_snb->string) + MAX_DIGITS_INT + message_snb->count;
 }
 
 /**
@@ -32,7 +32,7 @@ struct gnl_message_snb *gnl_message_snb_init() {
 /**
  * {@inheritDoc}
  */
-struct gnl_message_snb *gnl_message_snb_init_with_args(char *string, void *bytes) {
+struct gnl_message_snb *gnl_message_snb_init_with_args(char *string, size_t count, void *bytes) {
     struct gnl_message_snb *message_snb = gnl_message_snb_init();
     GNL_NULL_CHECK(message_snb, ENOMEM, NULL)
 
@@ -42,11 +42,14 @@ struct gnl_message_snb *gnl_message_snb_init_with_args(char *string, void *bytes
 
     strncpy(message_snb->string, string, strlen(string) + 1);
 
+    // assign the count
+    message_snb->count = count;
+
     // assign bytes
     message_snb->bytes = calloc(strlen(bytes), sizeof(void *));
     GNL_NULL_CHECK(message_snb->bytes, ENOMEM, NULL)
 
-    memcpy(message_snb->bytes, bytes, strlen(bytes));
+    memcpy(message_snb->bytes, bytes, count);
 
     return message_snb;
 }
@@ -65,17 +68,17 @@ void gnl_message_snb_destroy(struct gnl_message_snb *message_snb) {
 /**
  * {@inheritDoc}
  */
-int gnl_message_snb_to_string(struct gnl_message_snb *message_snb, char **dest) {
+int gnl_message_snb_to_string(const struct gnl_message_snb *message_snb, char **dest) {
     int message_snb_size = gnl_message_snb_size(message_snb);
 
     GNL_CALLOC(*dest, message_snb_size + 1, -1)
 
-    int maxlen = (message_snb_size - strlen(message_snb->bytes)) + 1; // count also the '\0' char
+    int maxlen = (message_snb_size - message_snb->count) + 1; // count also the '\0' char
 
     snprintf(*dest, maxlen, "%0*lu%s%0*lu", MAX_DIGITS_INT, strlen(message_snb->string), message_snb->string,
-             MAX_DIGITS_INT, strlen(message_snb->bytes));
+             MAX_DIGITS_INT, message_snb->count);
 
-    memcpy(*dest + MAX_DIGITS_INT + strlen(message_snb->string) + MAX_DIGITS_INT, message_snb->bytes, strlen(message_snb->bytes));
+    memcpy(*dest + maxlen, message_snb->bytes, message_snb->count);
 
     return message_snb_size + 1;
 }
@@ -104,9 +107,8 @@ int gnl_message_snb_from_string(const char *message, struct gnl_message_snb *mes
     char bytes_len_string[MAX_DIGITS_INT];
     strncpy(bytes_len_string, message + MAX_DIGITS_INT + string_len, MAX_DIGITS_INT);
 
-    int bytes_len;
     char *ptr = NULL;
-    bytes_len = strtol(bytes_len_string, &ptr, 10);
+    message_snb->count = strtol(bytes_len_string, &ptr, 10);
 
     // if no digits found
     if (bytes_len_string == ptr) {
@@ -117,10 +119,10 @@ int gnl_message_snb_from_string(const char *message, struct gnl_message_snb *mes
     }
 
     // get the bytes
-    message_snb->bytes = calloc(bytes_len, sizeof(void *));
+    message_snb->bytes = calloc(message_snb->count, sizeof(void *));
     GNL_NULL_CHECK(message_snb->bytes, ENOMEM, -1)
 
-    memcpy(message_snb->bytes, message + MAX_DIGITS_INT + string_len + MAX_DIGITS_INT, bytes_len);
+    memcpy(message_snb->bytes, message + MAX_DIGITS_INT + string_len + MAX_DIGITS_INT, message_snb->count);
 
     return 0;
 }
