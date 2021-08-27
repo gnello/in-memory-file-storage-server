@@ -76,10 +76,9 @@ extern ssize_t gnl_socket_service_readn(int fd, void *ptr, size_t n);
  * @param connection    The socket_service_connection instance.
  * @param request       The request to send.
  *
- * @return              Returns a gnl_socket_response on success,
- *                      NULL otherwise.
+ * @return              Returns 0 on success, -1 otherwise.
  */
-extern struct gnl_socket_response *gnl_socket_service_send_request(const struct gnl_socket_connection *connection,
+extern int gnl_socket_service_send_request(const struct gnl_socket_connection *connection,
         const struct gnl_socket_request *request);
 
 /**
@@ -91,5 +90,25 @@ extern struct gnl_socket_response *gnl_socket_service_send_request(const struct 
  *              NULL otherwise.
  */
 extern struct gnl_socket_request *gnl_socket_service_get_request(int fd);
+
+/**
+ * Send the given response through the given file descriptor.
+ *
+ * @param fd        The file descriptor where to send the response.
+ * @param response  The response to send.
+ *
+ * @return          Returns 0 on success, -1 otherwise.
+ */
+extern int gnl_socket_service_send_response(int fd, const struct gnl_socket_response *response);
+
+/**
+ * Get a response from the given connection.
+ *
+ * @param connection    The socket_service_connection instance.
+ *
+ * @return              Returns the gnl_socket_response read on success,
+ *                      NULL otherwise.
+ */
+extern struct gnl_socket_response *gnl_socket_service_get_response(const struct gnl_socket_connection *connection);
 
 #endif //GNL_SOCKET_SERVICE_H

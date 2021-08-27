@@ -129,12 +129,14 @@ int gnl_fss_api_open_file(const char *pathname, int flags) {
     GNL_NULL_CHECK(request, ENOMEM, -1)
 
     // send the request to the server
-    struct gnl_socket_response *response = gnl_socket_service_send(socket_service_connection, request);
+    int bytes_sent = gnl_socket_service_send_request(socket_service_connection, request);
+    GNL_MINUS1_CHECK(bytes_sent, errno, -1)
 
     // clean memory
     gnl_socket_request_destroy(request);
 
-    // check the response
+    // get the response from the server
+    struct gnl_socket_response *response = gnl_socket_service_get_response(socket_service_connection);
     GNL_NULL_CHECK(response, errno, -1)
 
     int res = 0;
@@ -236,13 +238,15 @@ int gnl_fss_api_write_file(const char *pathname, const char *dirname) {
     GNL_NULL_CHECK(request, ENOMEM, -1)
 
     // send the request to the server
-    struct gnl_socket_response *response = gnl_socket_service_send(socket_service_connection, request);
+    int bytes_sent = gnl_socket_service_send_request(socket_service_connection, request);
+    GNL_MINUS1_CHECK(bytes_sent, errno, -1)
 
     // clean memory
     gnl_socket_request_destroy(request);
     free(file);
 
-    // check the response
+    // get the response from the server
+    struct gnl_socket_response *response = gnl_socket_service_get_response(socket_service_connection);
     GNL_NULL_CHECK(response, errno, -1)
 
     res = 0;
@@ -332,12 +336,14 @@ int gnl_fss_api_close_file(const char *pathname) {
     GNL_NULL_CHECK(request, ENOMEM, -1)
 
     // send the request to the server
-    struct gnl_socket_response *response = gnl_socket_service_send(socket_service_connection, request);
+    int bytes_sent = gnl_socket_service_send_request(socket_service_connection, request);
+    GNL_MINUS1_CHECK(bytes_sent, errno, -1)
 
     // clean memory
     gnl_socket_request_destroy(request);
 
-    // check the response
+    // get the response from the server
+    struct gnl_socket_response *response = gnl_socket_service_get_response(socket_service_connection);
     GNL_NULL_CHECK(response, errno, -1)
 
     int res = 0;

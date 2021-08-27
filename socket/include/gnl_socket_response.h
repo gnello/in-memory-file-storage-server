@@ -107,29 +107,25 @@ extern int gnl_socket_response_get_fd(struct gnl_socket_response *response);
 extern int gnl_socket_response_get_error(struct gnl_socket_response *response);
 
 /**
- * Read the given socket response into the given gnl_socket_response struct.
- * This function should be used to get a response from a socket.
+ * Get a string that represent the given response.
  *
- * @param fd        The file descriptor where to read.
- * @param readn     The function to use to read from the given file descriptor.
+ * @param response  The response to be represented.
+ * @param dest      The pointer where to write the response string.
  *
- * @return          Returns the gnl_socket_response struct read from the file
- *                  descriptor on success, NULL otherwise.
- */
-extern struct gnl_socket_response * gnl_socket_response_read(int fd, ssize_t (*readn)(int fd, void *ptr, size_t n));
-
-/**
- * Write the given response into the given file descriptor.
- * This function should be used to send a response through a socket.
- *
- * @param fd        The file descriptor where to write.
- * @param response  The socket response to write.
- * @param writen    The function to use to write to the given file descriptor.
- *
- * @return          Returns the number of bytes wrote on success,
+ * @return          Returns the length of the response string on success,
  *                  -1 otherwise.
  */
-extern size_t gnl_socket_response_write(int fd, const struct gnl_socket_response *response,
-        ssize_t (*writen)(int fd, void *ptr, size_t n));
+extern size_t gnl_socket_response_to_string(const struct gnl_socket_response *response, char **dest);
+
+/**
+ * Build a response from the given string.
+ *
+ * @param message   The message from where to build the response.
+ * @param type      The type of the response.
+ *
+ * @return          Returns the built gnl_socket_response on success,
+ *                  NULL otherwise.
+ */
+extern struct gnl_socket_response *gnl_socket_response_from_string(const char *message, enum gnl_socket_response_type type);
 
 #endif //GNL_SOCKET_RESPONSE_H

@@ -42,7 +42,7 @@ static size_t write_protocol_message(int fd, const char *message, int type, size
 
     // send the request
     int nwrite = gnl_socket_service_writen(fd, protocol_message, len);
-
+printf("write: %d - %s - %d\n", nwrite, protocol_message, len);
     // free memory
     free(protocol_message);
 
@@ -73,7 +73,7 @@ static size_t read_protocol_message(int fd, char **dest, int *type) {
     size_t message_len;
 
     // allocate memory for the initial message reading
-    GNL_CALLOC(message, PROTOCOL_SIZE + 1, -1)
+    GNL_CALLOC(protocol_message, PROTOCOL_SIZE + 1, -1)
 
     // read the first 21 chars, the protocol standard puts
     // the type of the message in the first 10 chars and the
@@ -279,17 +279,18 @@ ssize_t gnl_socket_service_readn(int fd, void *ptr, size_t n) {
 /**
  * {@inheritDoc}
  */
-struct gnl_socket_response * gnl_socket_service_send_request(const struct gnl_socket_connection *connection,
-                                                     const struct gnl_socket_request *request) {
+int gnl_socket_service_send_request(const struct gnl_socket_connection *connection,
+        const struct gnl_socket_request *request) {
+
     //validate parameters
-    GNL_NULL_CHECK(connection, EINVAL, NULL);
-    GNL_NULL_CHECK(request, EINVAL, NULL);
+    GNL_NULL_CHECK(connection, EINVAL, -1);
+    GNL_NULL_CHECK(request, EINVAL, -1);
 
     // check if the connection is active
     if (!gnl_socket_service_is_active(connection)) {
         errno = EINVAL;
 
-        return NULL;
+        return -1;
     }
 
     char *message = NULL;
@@ -301,7 +302,7 @@ struct gnl_socket_response * gnl_socket_service_send_request(const struct gnl_so
         free(message);
         // let the errno bubble
 
-        return NULL;
+        return -1;
     }
 
     // send the request message through the socket
@@ -311,11 +312,9 @@ struct gnl_socket_response * gnl_socket_service_send_request(const struct gnl_so
     free(message);
 
     // check the writing result
-    GNL_MINUS1_CHECK(nwrite, errno, NULL)
+    GNL_MINUS1_CHECK(nwrite, errno, -1)
 
-    // wait for the response
-
-    return NULL;
+    return 0;
 }
 
 /**
@@ -353,6 +352,84 @@ struct gnl_socket_request *gnl_socket_service_get_request(int fd) {
     GNL_NULL_CHECK(request, errno, NULL);
 
     return request;
+}
+
+/**
+ * {@inheritDoc}
+ */
+int gnl_socket_service_send_response(int fd, const struct gnl_socket_response *response) {
+    //validate parameters
+    GNL_NULL_CHECK(response, EINVAL, -1);
+
+    char *message = NULL;
+
+    // get the request message
+    size_t bytes = gnl_socket_response_to_string(response, &message);
+
+    if (bytes == -1) {
+        free(message);
+        // let the errno bubble
+
+        return -1;
+    }
+
+    // send the request message through the socket
+    size_t nwrite = write_protocol_message(fd, message, response->type, bytes);
+
+    // free memory
+    free(message);
+
+    // check the writing result
+    GNL_MINUS1_CHECK(nwrite, errno, -1)
+
+    return 0;
+}
+
+/**
+ * {@inheritDoc}
+ */ //TODO: se è richiesto di loggare i byte lato client allora ritornare i byte
+struct gnl_socket_response *gnl_socket_service_get_response(const struct gnl_socket_connection *connection) {
+    //validate parameters
+    GNL_NULL_CHECK(connection, EINVAL, NULL);
+
+    // check if the connection is active
+    if (!gnl_socket_service_is_active(connection)) {
+        errno = EINVAL;
+
+        return NULL;
+    }
+
+    char *message = NULL;
+    int type;
+
+    size_t nread = read_protocol_message(connection->fd, &message, &type);
+
+    // check the reading result
+    if (nread == -1) {
+        free(message);
+        // let the errno bubble
+
+        return NULL;
+    }
+
+    // if nread == 0 the connection is closed, return
+    if (nread == 0) {
+        errno = EPIPE;
+
+        return NULL;
+    }
+
+    // get the request from the message
+    struct gnl_socket_response *response;
+    response = gnl_socket_response_from_string(message, type);
+
+    // free memory
+    free(message);
+
+    // check the request
+    GNL_NULL_CHECK(response, errno, NULL);
+
+    return response;
 }
 
 #undef MAX_DIGITS_CHAR

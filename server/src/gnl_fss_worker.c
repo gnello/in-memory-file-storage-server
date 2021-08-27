@@ -200,9 +200,6 @@ void *gnl_fss_worker_handle(void* args) {
     // temporary reference to a client file descriptor
     void *raw_fd_c;
 
-    // number of chars read
-    size_t nread;
-
     // generic result var
     int res;
 
@@ -232,7 +229,7 @@ void *gnl_fss_worker_handle(void* args) {
         gnl_logger_debug(logger, "message sent by client %d", fd_c);
 
         // read data
-        struct gnl_socket_request *request = gnl_socket_service_get_request();
+        struct gnl_socket_request *request = gnl_socket_service_get_request(fd_c);
 
         if (request == NULL) {
 
@@ -255,9 +252,14 @@ void *gnl_fss_worker_handle(void* args) {
 
             } else {
 
-                gnl_logger_error(logger, "error reading the message: %s", strerror(errno));
+                gnl_logger_error(logger, "error reading the message: %s, request ignored", strerror(errno));
 
                 // do not stop the server: the show must go on
+
+                // the request is not necessary anymore, destroy it
+                gnl_socket_request_destroy(request);
+
+                // resume loop
                 continue;
             }
         } else {
@@ -298,20 +300,15 @@ void *gnl_fss_worker_handle(void* args) {
 
             free(response_type);
 
-            char *response_message = NULL;
-            res = gnl_socket_response_write(response, &response_message);
-            GNL_MINUS1_CHECK(res, errno, NULL) // TODO: scrivere log!!!!
-
-            // send the response message to the client //TODO: writen invece di write?
+            // send the response message to the client
             gnl_logger_debug(logger, "send a response to client %d", fd_c);
 
-            res = write(fd_c, response_message, strlen(response_message)); //TODO usare il socket service che implementa writen
+            res = gnl_socket_service_send_response(fd_c, response);
             GNL_MINUS1_CHECK(res, errno, NULL)
 
             gnl_logger_debug(logger, "response sent to client %d", fd_c);
 
             // free memory
-            free(response_message);
             gnl_socket_response_destroy(response);
 
             // the request is not necessary anymore, destroy it
@@ -328,8 +325,8 @@ void *gnl_fss_worker_handle(void* args) {
         GNL_MINUS1_CHECK(nwrite, errno, NULL)
 
         // send the message to the master
-        res = write(worker->pipe_channel, message, nwrite); //TODO: usare writen oppure il socket service
-        GNL_MINUS1_CHECK(res, errno, NULL)
+        size_t writen = gnl_socket_service_writen(worker->pipe_channel, message, nwrite);
+        GNL_MINUS1_CHECK(writen, errno, NULL)
 
         // free memory
         free(message_to_master);

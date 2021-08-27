@@ -85,29 +85,29 @@
 }
 
 #define GNL_REQUEST_N_READ_MESSAGE(payload_message, ref, type) {    \
-    *request = gnl_socket_request_init(type, 0);                    \
-    GNL_NULL_CHECK(*request, ENOMEM, NULL)                          \
+    request = gnl_socket_request_init(type, 0);                     \
+    GNL_NULL_CHECK(request, ENOMEM, NULL)                           \
                                                                     \
     gnl_message_n_from_string(payload_message, ref);                \
 }
 
 #define GNL_REQUEST_S_READ_MESSAGE(payload_message, ref, type) {    \
-    *request = gnl_socket_request_init(type, 0);                    \
-    GNL_NULL_CHECK(*request, ENOMEM, NULL)                          \
+    request = gnl_socket_request_init(type, 0);                     \
+    GNL_NULL_CHECK(request, ENOMEM, NULL)                           \
                                                                     \
     gnl_message_s_from_string(payload_message, ref);                \
 }
 
 #define GNL_REQUEST_SB_READ_MESSAGE(payload_message, ref, type) {   \
-    *request = gnl_socket_request_init(type, 0);                    \
-    GNL_NULL_CHECK(*request, ENOMEM, NULL)                          \
+    request = gnl_socket_request_init(type, 0);                     \
+    GNL_NULL_CHECK(request, ENOMEM, NULL)                           \
                                                                     \
     gnl_message_sb_from_string(payload_message, ref);               \
 }
 
 #define GNL_REQUEST_NNB_READ_MESSAGE(payload_message, ref, type) {  \
-    *request = gnl_socket_request_init(type, 0);                    \
-    GNL_NULL_CHECK(*request, ENOMEM, NULL)                          \
+    request = gnl_socket_request_init(type, 0);                     \
+    GNL_NULL_CHECK(request, ENOMEM, NULL)                           \
                                                                     \
     gnl_message_nnb_from_string(payload_message, ref);              \
 }
@@ -378,7 +378,7 @@ size_t gnl_socket_request_to_string(const struct gnl_socket_request *request, ch
 
     // validate the parameters
     GNL_NULL_CHECK(request, EINVAL, -1)
-    GNL_MINUS1_CHECK(-1 * (dest != NULL), EINVAL, -1)
+    GNL_MINUS1_CHECK(-1 * (*dest != NULL), EINVAL, -1)
 
     size_t message_len;
 
