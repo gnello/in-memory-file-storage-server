@@ -3,40 +3,42 @@
 #include <gnl_colorshell.h>
 #include <gnl_assert.h>
 #include "../src/gnl_socket_service.c"
+#include "../src/gnl_socket_request.c"
+#include "../src/gnl_socket_response.c"
 #include <gnl_macro_beg.h>
 
 #define SOCKET_NAME "./test.sk"
 #define SOCKET_CONNECTION_ATTEMPTS 5
 #define SOCKET_CONNECTION_WAIT_SEC 2
 
-#define ALLOCATE_BUFFER(buffer) {       \
-    GNL_CALLOC(buffer, 256, -1);  \
+#define ALLOCATE_BUFFER(buffer) {                                                                                       \
+    GNL_CALLOC(buffer, 256, -1);                                                                                        \
+}
+
+#define CONNECT() {                                                                                                     \
+    int count = 0;                                                                                                      \
+                                                                                                                        \
+    while ((connection = gnl_socket_service_connect(SOCKET_NAME)) == NULL) {                                            \
+        count++;                                                                                                        \
+                                                                                                                        \
+        if (count > SOCKET_CONNECTION_ATTEMPTS) {                                                                       \
+            perror("gnl_socket_service_connect");                                                                       \
+            return -1;                                                                                                  \
+        }                                                                                                               \
+                                                                                                                        \
+        sleep(SOCKET_CONNECTION_WAIT_SEC);                                                                              \
+    }                                                                                                                   \
+}
+
+#define CHECK_CONNECTION(con, buffer) {                                                                                 \
+    gnl_socket_service_readn(con->fd, &buffer, 10);                                                                     \
+                                                                                                                        \
+    if (strcmp("connected", buffer) != 0) {                                                                             \
+        return -1;                                                                                                      \
+    }                                                                                                                   \
 }
 
 static struct gnl_socket_connection *connection;
-
-#define CONNECT() {                                         \
-    int count = 0;                                          \
-                                                            \
-    while ((connection = gnl_socket_service_connect(SOCKET_NAME)) == NULL) { \
-        count++;                                            \
-                                                            \
-        if (count > SOCKET_CONNECTION_ATTEMPTS) {           \
-            perror("gnl_socket_service_connect");           \
-            return -1;                                      \
-        }                                                   \
-                                                            \
-        sleep(SOCKET_CONNECTION_WAIT_SEC);                  \
-    }                                                       \
-}
-
-#define CHECK_CONNECTION(con, buffer) {          \
-    gnl_socket_service_read(con, &buffer, 256);  \
-                                            \
-    if (strcmp("connected", buffer) != 0) { \
-        return -1;                          \
-    }                                       \
-}
 
 int can_not_connect_to_socket() {
     struct gnl_socket_connection *res = gnl_socket_service_connect("nonexistent_socket");
@@ -119,7 +121,7 @@ int can_not_close_not_open_connection() {
     return 0;
 }
 
-int can_emit() {
+int can_writen() {
     int res;
 
     CONNECT()
@@ -129,10 +131,10 @@ int can_emit() {
     CHECK_CONNECTION(connection, buffer);
     char *message = "Hello World!";
 
-    res = gnl_socket_service_emit(connection, message);
+    res = gnl_socket_service_writen(connection->fd, message, strlen(message) + 1);
     GNL_MINUS1_CHECK(res, errno, -1)
 
-    gnl_socket_service_read(connection, &buffer, 256);
+    gnl_socket_service_readn(connection->fd, &buffer, strlen(message) + 1);
 
     if (strcmp(message, buffer) != 0) {
         return -1;
@@ -146,7 +148,7 @@ int can_emit() {
     return 0;
 }
 
-int can_not_emit() {
+int can_not_writen() {
     int res;
 
     connection = (struct gnl_socket_connection *)calloc(1, sizeof(struct gnl_socket_connection));
@@ -156,7 +158,7 @@ int can_not_emit() {
     ALLOCATE_BUFFER(buffer);
     char *message = "Hello World!";
 
-    res = gnl_socket_service_emit(connection, message);
+    res = gnl_socket_service_writen(connection->fd, message, strlen(message) + 1);
 
     free(connection);
 
@@ -169,7 +171,7 @@ int can_not_emit() {
     return 0;
 }
 
-int can_read() {
+int can_readn() {
     int res;
 
     CONNECT()
@@ -186,7 +188,7 @@ int can_read() {
     return 0;
 }
 
-int can_not_read() {
+int can_not_readn() {
     int res;
 
     connection = (struct gnl_socket_connection *)calloc(1, sizeof(struct gnl_socket_connection));
@@ -195,7 +197,7 @@ int can_not_read() {
     char *buffer;
     ALLOCATE_BUFFER(buffer);
 
-    res = gnl_socket_service_read(connection, &buffer, 256);
+    res = gnl_socket_service_readn(connection->fd, &buffer, 10);
 
     free(connection);
 
@@ -215,13 +217,13 @@ int main() {
     // close
     gnl_assert(can_not_close_not_open_connection, "can not close a not open connection.");
 
-    // emit
-    gnl_assert(can_emit, "can send messages through the socket.");
-    gnl_assert(can_not_emit, "can not send messages through a not open connection.");
+    // write
+    gnl_assert(can_writen, "can write N bytes in a socket.");
+    gnl_assert(can_not_writen, "can not write in a not open connection.");
 
     // read
-    gnl_assert(can_read, "can read a message from the socket.");
-    gnl_assert(can_not_read, "can not read messages from a not open connection.");
+    gnl_assert(can_readn, "can read N bytes from a socket.");
+    gnl_assert(can_not_readn, "can not read N bytes from a not open connection.");
 
     printf("\n");
 }
