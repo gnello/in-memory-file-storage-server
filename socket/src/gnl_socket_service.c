@@ -23,7 +23,7 @@
  */
 static size_t write_protocol_message(int fd, const char *message, int type, size_t count) {
     // validate parameters
-    // if count is > 0 then the message must not be null
+    // if count is > 0 then the message must not be NULL
     if (count > 0) {
         GNL_NULL_CHECK(message, EINVAL, -1);
     }
@@ -112,29 +112,34 @@ static size_t read_protocol_message(int fd, char **dest, int *type) {
     free(protocol_message);
 
     // check the message_len
-    if (message_len <= 0) {
+    if (message_len < 0) {
         errno = EBADMSG;
 
         return -1;
     }
 
-    // allocate memory for the payload message
-    GNL_CALLOC(*dest, message_len, -1)
+    // if the message len is > 0, read the message
+    size_t nread = 0;
 
-    // get the message
-    size_t nread = gnl_socket_service_readn(fd, *dest, message_len);
+    if (message_len > 0) {
+        // allocate memory for the payload message
+        GNL_CALLOC(*dest, message_len, -1)
 
-    // check if the read succeeded
-    if (nread != message_len) {
-        free(*dest);
-        *dest = NULL;
+        // get the message
+        nread = gnl_socket_service_readn(fd, *dest, message_len);
 
-        // if nread == -1, let the errno bubble
-        if (nread != -1) {
-            errno = EBADMSG;
+        // check if the read succeeded
+        if (nread != message_len) {
+            free(*dest);
+            *dest = NULL;
+
+            // if nread == -1, let the errno bubble
+            if (nread != -1) {
+                errno = EBADMSG;
+            }
+
+            return -1;
         }
-
-        return -1;
     }
 
     return proto_nread + nread;

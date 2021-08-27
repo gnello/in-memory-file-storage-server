@@ -220,7 +220,11 @@ int gnl_socket_response_get_error(struct gnl_socket_response *response) {
  */
 struct gnl_socket_response *gnl_socket_response_from_string(const char *message, enum gnl_socket_response_type type) {
     //validate the parameters
-    GNL_NULL_CHECK(message, EINVAL, NULL)
+    // if the type is not GNL_SOCKET_RESPONSE_OK then the message
+    // must not be NULL
+    if (type != GNL_SOCKET_RESPONSE_OK) {
+        GNL_NULL_CHECK(message, EINVAL, NULL)
+    }
 
     struct gnl_socket_response *response;
     int res;
