@@ -25,14 +25,15 @@ A file can be opened in "create" and/or "lock" mode by providing the appropriate
 
 #### Open with no flag
 In this case, the file must be present in the filesystem and it must not be locked by other threads. After that, it can 
-be accessed without additional concerns. If the file is not present or is locked, then the open will fail.
+be accessed without additional concerns. If the file is not present in the filesystem or is locked, then the open will fail.
 
 #### Open with "lock" flag
 In this case, the file must be present in the filesystem and it must not be locked by other threads. In addition, it 
 must not be already opened by other threads, including the invoking thread. After that, it can be locked without 
 additional concerns. If the file is not present or is locked by other threads, then the open will fail. If the file is 
 opened by other threads, including the invoking one, the filesystem will wait until each thread closes it, then it will 
-lock the file as soon as possible.
+lock the file as soon as possible. Notice that if a thread open a file without lock, and then try to open the same file
+providing the "lock" flag, but without closing the previous open, a deadlock will occurr. 
 
 #### Open with "create" flag
 In this case, the only concern is that the file must not be already present in the filesystem. After that, it can be

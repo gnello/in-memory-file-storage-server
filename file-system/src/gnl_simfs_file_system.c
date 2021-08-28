@@ -409,13 +409,13 @@ int gnl_simfs_file_system_remove(struct gnl_simfs_file_system *file_system, cons
 
     // if the key is not present return an error
     if (raw_inode == NULL) {
-        gnl_logger_debug(file_system->logger, "Entry \"%s\" not found, returning with error", inode_fd->name);
+        gnl_logger_debug(file_system->logger, "Entry \"%s\" not found, returning with error", filename);
         errno = EINVAL;
 
         return -1;
     }
 
-    gnl_logger_debug(file_system->logger, "Entry \"%s\" found, removing file", inode_fd->name);
+    gnl_logger_debug(file_system->logger, "Entry \"%s\" found, removing file", filename);
 
     // else cast the raw_inode
     struct gnl_simfs_inode *inode = (struct gnl_simfs_inode *)raw_inode;
