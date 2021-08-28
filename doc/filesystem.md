@@ -13,9 +13,10 @@ can operate on the filesystem.
 
 ## Interface
 As already mentioned, only one thread per time can operate on the filesystem. In addition, a thread can lock a file so 
-that other threads can not access it until the lock is released. To implement these requirements it is necessary to make 
-some considerations on borderline cases as well as on performance. Below we discuss the precautions to be taken for each 
-method of the public interface.
+that other threads can not access it until the lock is released. Finally, the filesystem must ensure data integrity 
+across multiple operations by different threads. To implement these requirements it is necessary to make some considerations 
+on borderline cases as well as on performance. Below we discuss the precautions to be taken for the most critical methods 
+of the public interface.
 
 ### Open a file
 ```c 
@@ -58,3 +59,8 @@ on it, the file can be written without additional concerns. If the file is locke
 
 #### Write a file that is locked, but we own the lock
 In this case, no other threads can write the file. Thus, the file can be written without additional concerns.
+
+### Remove a file
+```c 
+extern int gnl_simfs_file_system_remove(struct gnl_simfs_file_system *file_system, const char *filename, unsigned int pid);
+```
