@@ -370,6 +370,14 @@ int gnl_simfs_inode_update(struct gnl_simfs_inode *inode, const struct gnl_simfs
     GNL_NULL_CHECK(inode, EINVAL, -1)
     GNL_NULL_CHECK(with, EINVAL, -1)
 
+    // check that the given count is not greater than the
+    // "with" inode size. If so an EIO probably error occurred.
+    if (count > with->size) {
+        errno = EIO;
+
+        return -1;
+    }
+
     // update the size of the file within the inode
     inode->size += count;
 

@@ -136,7 +136,7 @@ static int is_file_not_available(struct gnl_simfs_inode *inode, unsigned int pid
  * @param new_entry     The new entry to use to update the existing entry.
  * @param new_entry     The new entry to use to update the existing entry.
  * @param count         The count of bytes eventually wrote in the file within
- *                      the given new_entry inode.
+ *                      the given new_entry inode since it was instantiate.
  *
  * @return              Returns 0 on success, -1 otherwise.
  */
