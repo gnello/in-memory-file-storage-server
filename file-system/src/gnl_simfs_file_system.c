@@ -350,9 +350,20 @@ int gnl_simfs_file_system_write(struct gnl_simfs_file_system *file_system, int f
     struct gnl_simfs_inode *inode = get_inode_from_fd(file_system, fd, pid);
     GNL_SIMFS_NULL_CHECK(inode, errno, -1, pid)
 
-    // check if the file is lockable: if not, wait for it
-    int res = wait_file_to_be_lockable(file_system, inode);
-    GNL_SIMFS_MINUS1_CHECK(res, errno, -1, pid)
+    // get if the file is locked information
+    int file_locked_by_pid = gnl_simfs_inode_is_file_locked(inode);
+    GNL_SIMFS_MINUS1_CHECK(file_locked_by_pid, errno, -1, pid)
+
+    // check if the file is not locked or if we own the lock
+    if (file_locked_by_pid > 0 && file_locked_by_pid != pid) {
+        errno = EBUSY;
+
+        gnl_logger_debug(file_system->logger, "Write failed: file \"%s\" is locked by pid %d", inode->name, pid);
+
+        GNL_SIMFS_LOCK_RELEASE(-1, pid)
+
+        return -1;
+    }
 
     //TODO: da qui in poi in caso di errore non lasciare lo stato della struct corrotto
 
@@ -361,7 +372,7 @@ int gnl_simfs_file_system_write(struct gnl_simfs_file_system *file_system, int f
     GNL_SIMFS_MINUS1_CHECK(nwrite, errno, -1, pid)
 
     // update the inode into the file table
-    res = update_file_table_entry(file_system, inode->name, inode, nwrite);
+    int res = update_file_table_entry(file_system, inode->name, inode, nwrite);
     GNL_SIMFS_MINUS1_CHECK(res, errno, -1, pid)
 
     gnl_logger_debug(file_system->logger, "Write on file descriptor %d succeeded, inode updated", fd);
