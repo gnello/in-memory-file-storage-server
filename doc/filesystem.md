@@ -33,7 +33,7 @@ must not be already opened by other threads, including the invoking thread. Afte
 additional concerns. If the file is not present or is locked by other threads, then the open will fail. If the file is 
 opened by other threads, including the invoking one, the filesystem will wait until each thread closes it, then it will 
 lock the file as soon as possible. Notice that if a thread open a file without lock, and then try to open the same file
-providing the "lock" flag, but without closing the previous open, a deadlock will occurr. 
+providing the "lock" flag, but without closing the previous open, then the open will fail preventing a deadlock. 
 
 #### Open with "create" flag
 In this case, the only concern is that the file must not be already present in the filesystem. After that, it can be

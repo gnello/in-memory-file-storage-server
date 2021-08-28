@@ -180,7 +180,8 @@ extern int gnl_simfs_inode_decrease_hippie_pid(struct gnl_simfs_inode *inode);
  *
  * @param inode The inode instance to check.
  *
- * @return      Returns 0 on success, -1 otherwise.
+ * @return      Returns 1 if the inode has one or more hippie pid,
+ *              0 otherwise, if an error occurred, returns -1.
  */
 extern int gnl_simfs_inode_has_hippie_pid(struct gnl_simfs_inode *inode);
 
@@ -209,7 +210,8 @@ extern int gnl_simfs_inode_decrease_locker_pid(struct gnl_simfs_inode *inode);
  *
  * @param inode The inode instance to check.
  *
- * @return      Returns 0 on success, -1 otherwise.
+ * @return      Returns 1 if the inode has one or more locker pid,
+ *              0 otherwise, if an error occurred, returns -1.
  */
 extern int gnl_simfs_inode_has_locker_pid(struct gnl_simfs_inode *inode);
 

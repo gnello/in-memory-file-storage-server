@@ -176,6 +176,8 @@ int gnl_simfs_file_system_open(struct gnl_simfs_file_system *file_system, const 
     GNL_SIMFS_NULL_CHECK(file_system, EINVAL, -1, pid)
     GNL_SIMFS_MINUS1_CHECK(-1 * (strlen(filename) == 0), EINVAL, -1, pid)
 
+    int res;
+
     gnl_logger_debug(file_system->logger, "Pid %d is trying to open the file \"%s\"", pid, filename);
 
     // check if we can open a file
@@ -229,37 +231,72 @@ int gnl_simfs_file_system_open(struct gnl_simfs_file_system *file_system, const 
         inode = (struct gnl_simfs_inode *)raw_inode;
     }
 
-    // if the file must be locked, increase the waiting locker pid
-    int res;
+    // check if the file is locked
+    int file_locked_by_pid = gnl_simfs_inode_is_file_locked(inode);
+    GNL_SIMFS_MINUS1_CHECK(file_locked_by_pid, errno, -1, pid)
+
+    // if the file must be locked
     if (GNL_SIMFS_O_LOCK & flags) {
+
+        // if the file is locked by other pid return an error
+        if (file_locked_by_pid > 0 && file_locked_by_pid != pid) {
+            errno = EBUSY;
+
+            gnl_logger_debug(file_system->logger, "Open failed: file \"%s\" locked by pid %d", filename, file_locked_by_pid);
+
+            GNL_SIMFS_LOCK_RELEASE(-1, pid)
+
+            return -1;
+        }
+
+        // increase the locker pid of the inode to inform that a lock
+        // is pending
         res = gnl_simfs_inode_increase_locker_pid(inode);
         GNL_SIMFS_MINUS1_CHECK(res, errno, -1, pid)
-    }
 
-    // check if the file is available: if not, wait for it
-    res = wait_file_availability(file_system, inode, pid, GNL_SIMFS_O_LOCK & flags);
-    GNL_SIMFS_MINUS1_CHECK(res, errno, -1, pid)
-
-    // if the file must be locked, decrease the waiting locker pid
-    if (GNL_SIMFS_O_LOCK & flags) {
-        res = gnl_simfs_inode_decrease_locker_pid(inode);
+        // check if the file can be locked: if not, wait for it
+        res = wait_file_to_be_lockable(file_system, inode);
         GNL_SIMFS_MINUS1_CHECK(res, errno, -1, pid)
-    }
 
-    //TODO: da qui in poi in caso di errore non lasciare lo stato della struct corrotto
-
-    // if this point is reached, the target file is unlocked
-    // or is locked by the given pid
-
-    // if the file must be locked, lock it
-    if (GNL_SIMFS_O_LOCK & flags) {
+        // lock the file //TODO: prevent deadlock EDEADLK
         res = gnl_simfs_inode_file_lock(inode, pid);
         GNL_SIMFS_MINUS1_CHECK(res, errno, -1, pid)
 
         gnl_logger_debug(file_system->logger, "File \"%s\" locked by pid %d", filename, pid);
+
+        // decrease the waiting locker pid
+        res = gnl_simfs_inode_decrease_locker_pid(inode);
+        GNL_SIMFS_MINUS1_CHECK(res, errno, -1, pid)
     }
-    // else increase the "hippie pid" count
+    // else if we want to access the file without lock
     else {
+
+        // if the file is locked return an error
+        if (file_locked_by_pid > 0) {
+            errno = EBUSY;
+
+            gnl_logger_debug(file_system->logger, "Open failed: file \"%s\" locked by pid %d", filename, file_locked_by_pid);
+
+            GNL_SIMFS_LOCK_RELEASE(-1, pid)
+
+            return -1;
+        }
+
+        // if there are pending locker pid return an error
+        int has_locker_pid = gnl_simfs_inode_has_locker_pid(inode);
+        GNL_SIMFS_MINUS1_CHECK(has_locker_pid, errno, -1, pid)
+
+        if (has_locker_pid > 0) {
+            errno = EBUSY;
+
+            gnl_logger_debug(file_system->logger, "Open failed: file \"%s\" is waiting to be locked", filename);
+
+            GNL_SIMFS_LOCK_RELEASE(-1, pid)
+
+            return -1;
+        }
+
+        // increase the "hippie pid" count
         res = gnl_simfs_inode_increase_hippie_pid(inode);
         GNL_SIMFS_MINUS1_CHECK(res, errno, -1, pid)
     }
@@ -313,8 +350,8 @@ int gnl_simfs_file_system_write(struct gnl_simfs_file_system *file_system, int f
     struct gnl_simfs_inode *inode = get_inode_from_fd(file_system, fd, pid);
     GNL_SIMFS_NULL_CHECK(inode, errno, -1, pid)
 
-    // check if the file is available: if not, wait for it
-    int res = wait_file_availability(file_system, inode, pid, 0);
+    // check if the file is lockable: if not, wait for it
+    int res = wait_file_to_be_lockable(file_system, inode);
     GNL_SIMFS_MINUS1_CHECK(res, errno, -1, pid)
 
     //TODO: da qui in poi in caso di errore non lasciare lo stato della struct corrotto
@@ -421,7 +458,7 @@ int gnl_simfs_file_system_remove(struct gnl_simfs_file_system *file_system, cons
     struct gnl_simfs_inode *inode = (struct gnl_simfs_inode *)raw_inode;
 
     // check if the file is available: if not, wait for it
-    int res = wait_file_availability(file_system, inode, pid, 0);
+    int res = wait_file_to_be_lockable(file_system, inode);
     GNL_SIMFS_MINUS1_CHECK(res, errno, -1, pid)
 
     // TODO: remove file, capire se si può fare (vedi reference count) (fare test per vedere cosa fa linux)

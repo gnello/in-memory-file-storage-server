@@ -84,51 +84,6 @@ static struct gnl_simfs_inode *create_file(struct gnl_simfs_file_system *file_sy
 }
 
 /**
- * Check whether we should wait for a file available signal.
- *
- * We should wait in three cases:
- * - case 1:        the file is locked and the given pid does not own the lock
- * - case 2:        the file is not locked but there are "active hippie pid"
- * - case 3:        there are one or more waiting locker pid and the given pid
- *                  is a hippie pid
- *
- * There is an invalid case that causes an error if it happens:
- * - invalid case:  the file is locked but there are "active hippie pid".
- * The invalid case is invalid because breaks the Safety property "Never a file
- * can be locked and have happy pid in the same time".
- *
- * @param inode             The inode where to check.
- * @param pid               The current process id.
- * @param lock_requested    Whether or not the given pid has requested to
- *                          lock the file; 1 means yes, 0 means no.
- *
- * @return                  Returns 1 if we should wait, 0 if not,
- *                          -1 on error.
-*/ //TODO: aggiungere test appena possibile (mancano gli altri metodi)
-static int is_file_not_available(struct gnl_simfs_inode *inode, unsigned int pid, int lock_requested) {
-    GNL_NULL_CHECK(inode, EINVAL, -1)
-
-    int is_file_locked = gnl_simfs_inode_is_file_locked(inode);
-    GNL_MINUS1_CHECK(is_file_locked, errno, -1)
-
-    int has_hippie_pid = gnl_simfs_inode_has_hippie_pid(inode);
-    GNL_MINUS1_CHECK(has_hippie_pid, errno, -1)
-
-    int has_locker_pid = gnl_simfs_inode_has_locker_pid(inode);
-    GNL_MINUS1_CHECK(has_locker_pid, errno, -1)
-
-    // check the Safety property: invalid case
-    if (is_file_locked > 0 && has_hippie_pid) {
-        errno = ENOTRECOVERABLE;
-        return -1;
-    }
-
-    return (is_file_locked > 0 && is_file_locked != pid) //case 1
-    || (lock_requested > 0 && has_hippie_pid) // case 2
-    || (lock_requested == 0 && has_locker_pid); // case 3
-}
-
-/**
  * Update an existing file table entry with the given new entry.
  *
  * @param file_system   The file system instance where the file table resides.
@@ -190,31 +145,27 @@ static int update_file_table_entry(struct gnl_simfs_file_system *file_system, co
 }
 
 /**
- * Check if the file pointed by the given inode is available: if not, wait for it.
+ * Check if the file pointed by the given inode is lockable: if not, wait for it.
  * Attention! An invocation to this method may block the process until the file pointed
- * by the given inode returns available.
+ * by the given inode returns lockable.
  *
- * @param file_system       The file system instance containing the lock to be released
- *                          in case of waiting.
+ * @param file_system       The file system instance where the given inode resides.
  * @param inode             The inode pointing to the target file.
- * @param pid               The current process id.
- * @param lock_requested    Whether or not the given pid has requested to
- *                          lock the file; 1 means yes, 0 means no.
  *
  * @return                  Returns 0 on success, -1 otherwise.
  */
-static int wait_file_availability(struct gnl_simfs_file_system *file_system, struct gnl_simfs_inode *inode,
-        unsigned int pid, int lock_requested) {
+static int wait_file_to_be_lockable(struct gnl_simfs_file_system *file_system, struct gnl_simfs_inode *inode) {
 
     // validate the parameters
     GNL_NULL_CHECK(file_system, EINVAL, -1)
     GNL_NULL_CHECK(inode, EINVAL, -1)
 
     int test, res;
-    while ((test = is_file_not_available(inode, pid, lock_requested)) > 0) {
+    while ((test = gnl_simfs_inode_has_hippie_pid(inode)) > 0) {
         GNL_MINUS1_CHECK(test, errno, -1)
 
-        gnl_logger_debug(file_system->logger, "The file \"%s\" is not available, waiting", inode->name);
+        gnl_logger_debug(file_system->logger, "The file \"%s\" is opened (but not locked) by one or more pid, "
+                                              "it can not be locked, waiting", inode->name);
 
         res = gnl_simfs_inode_wait_file_availability(inode, &(file_system->mtx));
         GNL_MINUS1_CHECK(res, errno, -1)
@@ -222,7 +173,7 @@ static int wait_file_availability(struct gnl_simfs_file_system *file_system, str
 
     // if this point is reached, the target file is ready to be used
 
-    gnl_logger_debug(file_system->logger, "The file \"%s\" is now available", inode->name);
+    gnl_logger_debug(file_system->logger, "The file \"%s\" is now lockable", inode->name);
 
     return 0;
 }
