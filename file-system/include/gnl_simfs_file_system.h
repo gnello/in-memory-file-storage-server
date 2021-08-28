@@ -70,12 +70,23 @@ extern int gnl_simfs_file_system_open(struct gnl_simfs_file_system *file_system,
  * @param fd            The file descriptor referring the file where to write.
  * @param buf           The buffer pointer containing the data to write.
  * @param count         The count of bytes to write.
+ * @param pid           The id of the process who invoked this method.
  *
- * @return              Return 0 on success, -1 otherwise. //TODO: ritornare il numero di bytes scritti?
+ * @return              Return 0 on success, -1 otherwise.
  */
 extern int gnl_simfs_file_system_write(struct gnl_simfs_file_system *file_system, int fd, const void *buf, size_t count,
         unsigned int pid);
 
+/**
+ * Close the given file descriptor. After this invocation the given file descriptor will no
+ * longer be valid.
+ *
+ * @param file_system   The file system instance where to close the given file descriptor.
+ * @param fd            The file descriptor to close.
+ * @param pid           The id of the process who invoked this method.
+ *
+ * @return              Return 0 on success, -1 otherwise.
+ */
 extern int gnl_simfs_file_system_close(struct gnl_simfs_file_system *file_system, int fd, unsigned int pid);
 
 #endif //GNL_SIMFS_FILE_SYSTEM_H
