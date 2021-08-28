@@ -31,7 +31,7 @@
 }
 
 #define CHECK_CONNECTION(con, buffer) {                                                                                 \
-    gnl_socket_service_readn(con->fd, &buffer, 10);                                                                     \
+    gnl_socket_service_readn(con->fd, buffer, 10);                                                                      \
                                                                                                                         \
     if (strcmp("connected", buffer) != 0) {                                                                             \
         return -1;                                                                                                      \
@@ -134,7 +134,7 @@ int can_writen() {
     res = gnl_socket_service_writen(connection->fd, message, strlen(message) + 1);
     GNL_MINUS1_CHECK(res, errno, -1)
 
-    gnl_socket_service_readn(connection->fd, &buffer, strlen(message) + 1);
+    gnl_socket_service_readn(connection->fd, buffer, strlen(message) + 1);
 
     if (strcmp(message, buffer) != 0) {
         return -1;
@@ -158,7 +158,7 @@ int can_not_writen() {
     ALLOCATE_BUFFER(buffer);
     char *message = "Hello World!";
 
-    res = gnl_socket_service_writen(connection->fd, message, strlen(message) + 1);
+    res = gnl_socket_service_writen(-1, message, strlen(message) + 1);
 
     free(connection);
 
@@ -191,15 +191,10 @@ int can_readn() {
 int can_not_readn() {
     int res;
 
-    connection = (struct gnl_socket_connection *)calloc(1, sizeof(struct gnl_socket_connection));
-    GNL_NULL_CHECK(connection, errno, -1);
-
     char *buffer;
     ALLOCATE_BUFFER(buffer);
 
-    res = gnl_socket_service_readn(connection->fd, &buffer, 10);
-
-    free(connection);
+    res = gnl_socket_service_readn(-1, buffer, 10);
 
     free(buffer);
 
@@ -219,11 +214,11 @@ int main() {
 
     // write
     gnl_assert(can_writen, "can write N bytes in a socket.");
-    gnl_assert(can_not_writen, "can not write in a not open connection.");
+    gnl_assert(can_not_writen, "can not write in a not open file descriptor.");
 
     // read
     gnl_assert(can_readn, "can read N bytes from a socket.");
-    gnl_assert(can_not_readn, "can not read N bytes from a not open connection.");
+    gnl_assert(can_not_readn, "can not read N bytes from a not open file descriptor.");
 
     printf("\n");
 }
