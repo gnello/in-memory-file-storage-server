@@ -231,7 +231,7 @@ int gnl_simfs_file_system_open(struct gnl_simfs_file_system *file_system, const 
         inode = (struct gnl_simfs_inode *)raw_inode;
     }
 
-    // check if the file is locked
+    // get if the file is locked information
     int file_locked_by_pid = gnl_simfs_inode_is_file_locked(inode);
     GNL_SIMFS_MINUS1_CHECK(file_locked_by_pid, errno, -1, pid)
 
