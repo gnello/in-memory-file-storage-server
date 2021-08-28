@@ -395,6 +395,46 @@ int gnl_simfs_file_system_close(struct gnl_simfs_file_system *file_system, int f
     return 0;
 }
 
+int gnl_simfs_file_system_remove(struct gnl_simfs_file_system *file_system, const char *filename, unsigned int pid) {
+    // acquire the lock
+    GNL_SIMFS_LOCK_ACQUIRE(-1, pid)
+
+    // validate the parameters
+    GNL_SIMFS_NULL_CHECK(file_system, EINVAL, -1, pid)
+
+    gnl_logger_debug(file_system->logger, "Pid %d is trying to remove file %s", pid, filename);
+
+    // search the key in the file table
+    void *raw_inode = gnl_ternary_search_tree_get(file_system->file_table, filename);
+
+    // if the key is not present return an error
+    if (raw_inode == NULL) {
+        gnl_logger_debug(file_system->logger, "Entry \"%s\" not found, returning with error", inode_fd->name);
+        errno = EINVAL;
+
+        return -1;
+    }
+
+    gnl_logger_debug(file_system->logger, "Entry \"%s\" found, removing file", inode_fd->name);
+
+    // else cast the raw_inode
+    struct gnl_simfs_inode *inode = (struct gnl_simfs_inode *)raw_inode;
+
+    // check if the file is available: if not, wait for it
+    int res = wait_file_availability(file_system, inode, pid, 0);
+    GNL_SIMFS_MINUS1_CHECK(res, errno, -1, pid)
+
+    // TODO: remove file, capire se si può fare (vedi reference count) (fare test per vedere cosa fa linux)
+    // TODO: fare buffer s scrivere lì, riportare nell'inode solo alla chiusura se il file non è stato rimosso
+    // TODO: la lettura può avvenire tranquillamente dalla copia buffer
+    //TODO: decrease hippie pid
+
+    // release the lock
+    GNL_SIMFS_LOCK_RELEASE(-1, pid)
+
+    return 0;
+}
+
 #undef GNL_SIMFS_MAX_OPEN_FILES
 
 #undef GNL_SIMFS_LOCK_ACQUIRE

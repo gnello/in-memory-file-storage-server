@@ -89,4 +89,16 @@ extern int gnl_simfs_file_system_write(struct gnl_simfs_file_system *file_system
  */
 extern int gnl_simfs_file_system_close(struct gnl_simfs_file_system *file_system, int fd, unsigned int pid);
 
+/**
+ * Remove the file pointed by the given filename. After this invocation the file removed
+ * can not be accessed anymore as it will completely destroyed.
+ *
+ * @param file_system   The file system instance where to remove the given file name.
+ * @param filename      The filename of the file to remove.
+ * @param pid           The id of the process who invoked this method.
+ *
+ * @return              Return 0 on success, -1 otherwise.
+ */
+extern int gnl_simfs_file_system_remove(struct gnl_simfs_file_system *file_system, const char *filename, unsigned int pid);
+
 #endif //GNL_SIMFS_FILE_SYSTEM_H
