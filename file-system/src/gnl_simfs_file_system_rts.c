@@ -178,8 +178,13 @@ static int update_file_table_entry(struct gnl_simfs_file_system *file_system, co
     // update the file system
     file_system->heap_size += count;
 
-    gnl_logger_debug(file_system->logger, "Update on entry \"%s\" succeeded, the heap size has now %d bytes left",
-                     key, file_system->memory_limit - file_system->heap_size);
+    // if count > 0, provide details about the heap
+    if (count > 0) {
+        gnl_logger_debug(file_system->logger, "Update on entry \"%s\" succeeded, the heap size has now %d bytes left",
+                         key, file_system->memory_limit - file_system->heap_size);
+    } else {
+        gnl_logger_debug(file_system->logger, "Update on entry \"%s\" succeeded", key);
+    }
 
     return 0;
 }

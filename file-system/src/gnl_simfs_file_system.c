@@ -347,12 +347,47 @@ int gnl_simfs_file_system_close(struct gnl_simfs_file_system *file_system, int f
 
     gnl_logger_debug(file_system->logger, "Pid %d is trying to close file descriptor %d", pid, fd);
 
+    // search the file in the file descriptor table
+    struct gnl_simfs_inode *inode_fd = get_inode_from_fd(file_system, fd, pid);
+    GNL_SIMFS_NULL_CHECK(inode_fd, errno, -1, pid)
+
+    // search the key in the file table
+    void *raw_inode = gnl_ternary_search_tree_get(file_system->file_table, inode_fd->name);
+
+    // if the key is not present return an error
+    if (raw_inode == NULL) {
+        gnl_logger_debug(file_system->logger, "Entry \"%s\" not found, returning with error", inode_fd->name);
+        errno = EINVAL;
+
+        return -1;
+    }
+
+    gnl_logger_debug(file_system->logger, "Entry \"%s\" found, closing file", inode_fd->name);
+
+    // else cast the raw_inode
+    struct gnl_simfs_inode *inode = (struct gnl_simfs_inode *)raw_inode;
+
+    // remove lock if pid owns it
+    int res = gnl_simfs_inode_is_file_locked(inode);
+    GNL_SIMFS_MINUS1_CHECK(res, errno, -1, pid)
+
+    if (res > 0 && res == pid) {
+        res = gnl_simfs_inode_file_unlock(inode, pid);
+        GNL_SIMFS_MINUS1_CHECK(res, errno, -1, pid)
+
+        gnl_logger_debug(file_system->logger, "File \"%s\" unlocked by pid %d", inode->name, pid);
+    }
+
     // remove the file descriptor from the file descriptor table
-    int res = gnl_simfs_file_descriptor_table_remove(file_system->file_descriptor_table, fd, pid);
+    res = gnl_simfs_file_descriptor_table_remove(file_system->file_descriptor_table, fd, pid);
+    GNL_SIMFS_MINUS1_CHECK(res, errno, -1, pid)
+
+    // update the inode into the file table
+    res = update_file_table_entry(file_system, inode->name, inode, 0);
     GNL_SIMFS_MINUS1_CHECK(res, errno, -1, pid)
 
     gnl_logger_debug(file_system->logger, "Close on file descriptor %d succeeded, "
-                                          "file descriptor %d destroyed", fd, fd);
+                                          "file descriptor %d destroyed, inode updated", fd, fd);
 
     // release the lock
     GNL_SIMFS_LOCK_RELEASE(-1, pid)
