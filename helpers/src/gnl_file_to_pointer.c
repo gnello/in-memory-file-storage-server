@@ -27,7 +27,7 @@ int gnl_file_to_pointer(const char *filepath, char **pointer, long *size) {
     rewind(fp);
 
     // allocate memory
-     *pointer = calloc(*size + 1, sizeof(char));
+    *pointer = calloc(*size + 1, sizeof(char));
     if (*pointer == NULL) {
         fclose(fp);
         errno = ENOMEM;
