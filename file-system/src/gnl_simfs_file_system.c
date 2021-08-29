@@ -349,7 +349,8 @@ int gnl_simfs_file_system_write(struct gnl_simfs_file_system *file_system, int f
     if (file_locked_by_pid > 0 && file_locked_by_pid != pid) {
         errno = EBUSY;
 
-        gnl_logger_debug(file_system->logger, "Write failed: file \"%s\" is locked by pid %d", inode_copy->name, pid);
+        gnl_logger_debug(file_system->logger, "Write failed: file \"%s\" is locked by pid %d and it can not be "
+                                              "accessed", inode_copy->name, file_locked_by_pid);
 
         GNL_SIMFS_LOCK_RELEASE(-1, pid)
 
