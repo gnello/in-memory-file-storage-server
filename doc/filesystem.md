@@ -1,17 +1,20 @@
 # Filesystem
-The filesystem is implemented by two data structures: 
+The filesystem is implemented by three data structures: 
 
-- a **File Table**: contains the inodes of all the files in the filesystem 
-- a **File Descriptor Table**: contains inode copies of the open files, a file descriptor is the index of an entry in this table
+- the **File Table**: contains the inodes of all the files in the filesystem 
+- the **File Descriptor Table**: contains inode copies of the open files, a file descriptor is the index of an entry in this table
+- the **Inode**: contains the file information and a direct pointer to it
 
 All the public interface methods of the filesystem are performed under a lock, this means that only one thread per time
 can operate on the filesystem.
 
-## The File Table
+## File Table
 
-## The File Descriptor Table
+## File Descriptor Table
 
-## Interface
+## Inode
+
+## The Filesystem Interface
 As already mentioned, only one thread per time can operate on the filesystem. In addition, a thread can lock a file so 
 that other threads can not access it until the lock is released. Finally, the filesystem must ensure data integrity 
 across multiple operations by different threads. To implement these requirements it is necessary to make some considerations 
