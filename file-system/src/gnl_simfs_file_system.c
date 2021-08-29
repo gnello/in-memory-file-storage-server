@@ -415,15 +415,21 @@ int gnl_simfs_file_system_close(struct gnl_simfs_file_system *file_system, int f
     // else cast the raw_inode
     struct gnl_simfs_inode *inode = (struct gnl_simfs_inode *)raw_inode;
 
-    // remove lock if pid owns it
+    // get if the file is locked information
     int res = gnl_simfs_inode_is_file_locked(inode);
     GNL_SIMFS_MINUS1_CHECK(res, errno, -1, pid)
 
+    // remove lock if pid owns it
     if (res > 0 && res == pid) {
         res = gnl_simfs_inode_file_unlock(inode, pid);
         GNL_SIMFS_MINUS1_CHECK(res, errno, -1, pid)
 
         gnl_logger_debug(file_system->logger, "File \"%s\" unlocked by pid %d", inode->name, pid);
+    }
+    // else decrease the hippie pid count
+    else {
+        res = gnl_simfs_inode_decrease_hippie_pid(inode);
+        GNL_SIMFS_MINUS1_CHECK(res, errno, -1, pid)
     }
 
     // remove the file descriptor from the file descriptor table
@@ -431,6 +437,7 @@ int gnl_simfs_file_system_close(struct gnl_simfs_file_system *file_system, int f
     GNL_SIMFS_MINUS1_CHECK(res, errno, -1, pid)
 
     // update the inode into the file table
+    // TODO: necessario? forse serve solo per la write, se è così mettere nome più descrittivo
     res = update_file_table_entry(file_system, inode->name, inode, 0);
     GNL_SIMFS_MINUS1_CHECK(res, errno, -1, pid)
 
@@ -443,6 +450,9 @@ int gnl_simfs_file_system_close(struct gnl_simfs_file_system *file_system, int f
     return 0;
 }
 
+/**
+ * {@inheritDoc}
+ */
 int gnl_simfs_file_system_remove(struct gnl_simfs_file_system *file_system, const char *filename, unsigned int pid) {
     // acquire the lock
     GNL_SIMFS_LOCK_ACQUIRE(-1, pid)
@@ -468,14 +478,30 @@ int gnl_simfs_file_system_remove(struct gnl_simfs_file_system *file_system, cons
     // else cast the raw_inode
     struct gnl_simfs_inode *inode = (struct gnl_simfs_inode *)raw_inode;
 
-    // check if the file is available: if not, wait for it
-    int res = wait_file_to_be_lockable(file_system, inode);
+    // get if the file is locked information
+    int file_locked_by_pid = gnl_simfs_inode_is_file_locked(inode);
+    GNL_SIMFS_MINUS1_CHECK(file_locked_by_pid, errno, -1, pid)
+
+    // check if the file is locked and if the given pid owns the lock
+    if (file_locked_by_pid == 0 || file_locked_by_pid != pid) {
+        errno = EPERM;
+
+        gnl_logger_debug(file_system->logger, "Remove failed: file \"%s\" is not locked by pid %d", filename, pid);
+
+        GNL_SIMFS_LOCK_RELEASE(-1, pid)
+
+        return -1;
+    }
+
+    // remove the file
+    int res = gnl_ternary_search_tree_remove(file_system->file_table, filename, destroy_file_table_inode);
     GNL_SIMFS_MINUS1_CHECK(res, errno, -1, pid)
 
-    // TODO: remove file, capire se si può fare (vedi reference count) (fare test per vedere cosa fa linux)
-    // TODO: fare buffer s scrivere lì, riportare nell'inode solo alla chiusura se il file non è stato rimosso
+    // aggiornare la heap size
+
+    // TODO: remove file, capire se si può fare (vedi reference count) (fare test per vedere cosa fa linux) -> vedere gnl_simfs_file_system_lock
+    // TODO: fare buffer s scrivere lì, riportare nell'inode solo alla chiusura (NO, meglio alla write) se il file non è stato rimosso
     // TODO: la lettura può avvenire tranquillamente dalla copia buffer
-    //TODO: decrease hippie pid
 
     // release the lock
     GNL_SIMFS_LOCK_RELEASE(-1, pid)

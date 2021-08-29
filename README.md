@@ -9,6 +9,10 @@ master-worker design pattern, signals handling and file system.
 This project it is far to be perfect, any suggestions or criticisms are welcome. Open an issue to suggest improvements 
 or to argue about something that does not add up to you, and I will be happy to answer.
 
+## Documentation
+
+- [Filesystem](doc/filesystem.md)
+
 ## Installation
 This project is totally conform to POSIX, this means that you do not need any extra library to use it
 except for those already present in your operating system.
