@@ -58,24 +58,6 @@ int lock_release_res = pthread_mutex_unlock(&(file_system->mtx));           \
 }
 
 /**
- * Destroy an inode. It should be passed to the gnl_ternary_search_tree_destroy
- * method of the gnl_ternary_search_tree data structure.
- *
- * @param ptr   The void pointer value of the gnl_ternary_search_tree data structure.
- */
-static void destroy_file_table_inode(void *ptr) {
-    if (ptr == NULL) {
-        return;
-    }
-
-    // implicitly cast the value
-    struct gnl_simfs_inode *inode = ptr;
-
-    // destroy the obtained inode
-    gnl_simfs_inode_destroy(inode);
-}
-
-/**
  * {@inheritDoc}
  */
 struct gnl_simfs_file_system *gnl_simfs_file_system_init(unsigned int memory_limit, unsigned int files_limit,
@@ -210,7 +192,7 @@ int gnl_simfs_file_system_open(struct gnl_simfs_file_system *file_system, const 
         }
 
         // the file is not present, create it
-        inode = create_file(file_system, filename);
+        inode = file_table_create(file_system, filename);
         GNL_SIMFS_NULL_CHECK(inode, errno, -1, pid)
     }
     // if the file must be present
@@ -230,7 +212,7 @@ int gnl_simfs_file_system_open(struct gnl_simfs_file_system *file_system, const 
         // else cast the raw_inode
         inode = (struct gnl_simfs_inode *)raw_inode;
     }
-
+    printf("GREPPAQUI size: %d - pointer: %p\n", inode->size, inode->direct_ptr);
     // get if the file is locked information
     int file_locked_by_pid = gnl_simfs_inode_is_file_locked(inode);
     GNL_SIMFS_MINUS1_CHECK(file_locked_by_pid, errno, -1, pid)
@@ -347,18 +329,18 @@ int gnl_simfs_file_system_write(struct gnl_simfs_file_system *file_system, int f
     }
 
     // search the file in the file descriptor table
-    struct gnl_simfs_inode *inode = get_inode_from_fd(file_system, fd, pid);
-    GNL_SIMFS_NULL_CHECK(inode, errno, -1, pid)
+    struct gnl_simfs_inode *inode_copy = get_inode_from_fd(file_system, fd, pid);
+    GNL_SIMFS_NULL_CHECK(inode_copy, errno, -1, pid)
 
     // get if the file is locked information
-    int file_locked_by_pid = gnl_simfs_inode_is_file_locked(inode);
+    int file_locked_by_pid = gnl_simfs_inode_is_file_locked(inode_copy);
     GNL_SIMFS_MINUS1_CHECK(file_locked_by_pid, errno, -1, pid)
 
     // check if the file is not locked or if we own the lock
     if (file_locked_by_pid > 0 && file_locked_by_pid != pid) {
         errno = EBUSY;
 
-        gnl_logger_debug(file_system->logger, "Write failed: file \"%s\" is locked by pid %d", inode->name, pid);
+        gnl_logger_debug(file_system->logger, "Write failed: file \"%s\" is locked by pid %d", inode_copy->name, pid);
 
         GNL_SIMFS_LOCK_RELEASE(-1, pid)
 
@@ -368,11 +350,13 @@ int gnl_simfs_file_system_write(struct gnl_simfs_file_system *file_system, int f
     //TODO: da qui in poi in caso di errore non lasciare lo stato della struct corrotto
 
     // write the given buf into the file pointed by the inode
-    int nwrite = gnl_simfs_inode_append_to_file(inode, buf, count);
+    int nwrite = gnl_simfs_inode_append_to_file(inode_copy, buf, count);
     GNL_SIMFS_MINUS1_CHECK(nwrite, errno, -1, pid)
 
-    // update the inode into the file table
-    int res = update_file_table_entry(file_system, inode->name, inode, nwrite);
+    // update the inode into the file table, this invocation is
+    // mandatory because we are working on a copy of the inode,
+    // so the original one needs to be updated with the modified copy
+    int res = file_table_fflush(file_system, inode_copy->name, inode_copy, nwrite);
     GNL_SIMFS_MINUS1_CHECK(res, errno, -1, pid)
 
     gnl_logger_debug(file_system->logger, "Write on file descriptor %d succeeded, inode updated", fd);
@@ -396,21 +380,21 @@ int gnl_simfs_file_system_close(struct gnl_simfs_file_system *file_system, int f
     gnl_logger_debug(file_system->logger, "Pid %d is trying to close file descriptor %d", pid, fd);
 
     // search the file in the file descriptor table
-    struct gnl_simfs_inode *inode_fd = get_inode_from_fd(file_system, fd, pid);
-    GNL_SIMFS_NULL_CHECK(inode_fd, errno, -1, pid)
+    struct gnl_simfs_inode *inode_copy = get_inode_from_fd(file_system, fd, pid);
+    GNL_SIMFS_NULL_CHECK(inode_copy, errno, -1, pid)
 
     // search the key in the file table
-    void *raw_inode = gnl_ternary_search_tree_get(file_system->file_table, inode_fd->name);
+    void *raw_inode = gnl_ternary_search_tree_get(file_system->file_table, inode_copy->name);
 
     // if the key is not present return an error
     if (raw_inode == NULL) {
-        gnl_logger_debug(file_system->logger, "Entry \"%s\" not found, returning with error", inode_fd->name);
+        gnl_logger_debug(file_system->logger, "Entry \"%s\" not found, returning with error", inode_copy->name);
         errno = EINVAL;
 
         return -1;
     }
 
-    gnl_logger_debug(file_system->logger, "Entry \"%s\" found, closing file", inode_fd->name);
+    gnl_logger_debug(file_system->logger, "Entry \"%s\" found, closing file", inode_copy->name);
 
     // else cast the raw_inode
     struct gnl_simfs_inode *inode = (struct gnl_simfs_inode *)raw_inode;
@@ -428,17 +412,12 @@ int gnl_simfs_file_system_close(struct gnl_simfs_file_system *file_system, int f
     }
     // else decrease the hippie pid count
     else {
-        res = gnl_simfs_inode_decrease_hippie_pid(inode);
+        res = gnl_simfs_inode_decrease_hippie_pid(inode); //TODO: rimuovere hippie count e fare con le reference
         GNL_SIMFS_MINUS1_CHECK(res, errno, -1, pid)
     }
 
     // remove the file descriptor from the file descriptor table
     res = gnl_simfs_file_descriptor_table_remove(file_system->file_descriptor_table, fd, pid);
-    GNL_SIMFS_MINUS1_CHECK(res, errno, -1, pid)
-
-    // update the inode into the file table
-    // TODO: necessario? forse serve solo per la write, se è così mettere nome più descrittivo
-    res = update_file_table_entry(file_system, inode->name, inode, 0);
     GNL_SIMFS_MINUS1_CHECK(res, errno, -1, pid)
 
     gnl_logger_debug(file_system->logger, "Close on file descriptor %d succeeded, "
@@ -494,20 +473,20 @@ int gnl_simfs_file_system_remove(struct gnl_simfs_file_system *file_system, cons
     }
 
     // remove the file
-    int res = gnl_ternary_search_tree_remove(file_system->file_table, filename, destroy_file_table_inode);
+    int res = file_table_remove(file_system, filename);
     GNL_SIMFS_MINUS1_CHECK(res, errno, -1, pid)
 
-    // aggiornare la heap size
-
-    // TODO: remove file, capire se si può fare (vedi reference count) (fare test per vedere cosa fa linux) -> vedere gnl_simfs_file_system_lock
-    // TODO: fare buffer s scrivere lì, riportare nell'inode solo alla chiusura (NO, meglio alla write) se il file non è stato rimosso
-    // TODO: la lettura può avvenire tranquillamente dalla copia buffer
+    gnl_logger_debug(file_system->logger, "Remove of file \"%s\" succeeded, inode destoyed", filename);
 
     // release the lock
     GNL_SIMFS_LOCK_RELEASE(-1, pid)
 
     return 0;
 }
+
+// TODO: remove file, capire se si può fare (vedi reference count) (fare test per vedere cosa fa linux) -> vedere gnl_simfs_file_system_lock
+// TODO: fare buffer s scrivere lì, riportare nell'inode solo alla chiusura (NO, meglio alla write) se il file non è stato rimosso
+// TODO: la lettura può avvenire tranquillamente dalla copia buffer
 
 #undef GNL_SIMFS_MAX_OPEN_FILES
 

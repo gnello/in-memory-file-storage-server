@@ -43,6 +43,24 @@ struct gnl_simfs_file_system {
 };
 
 /**
+ * Destroy an inode. It should be passed to the gnl_ternary_search_tree_destroy
+ * method of the gnl_ternary_search_tree data structure.
+ *
+ * @param ptr   The void pointer value of the gnl_ternary_search_tree data structure.
+ */
+static void destroy_file_table_inode(void *ptr) {
+    if (ptr == NULL) {
+        return;
+    }
+
+    // implicitly cast the value
+    struct gnl_simfs_inode *inode = ptr;
+
+    // destroy the obtained inode
+    gnl_simfs_inode_destroy(inode);
+}
+
+/**
  * Create a new file and put it into the given file system.
  *
  * @param file_system   The file system instance where to put the created file.
@@ -51,7 +69,7 @@ struct gnl_simfs_file_system {
  * @return              Returns the inode of the created file on success,
  *                      NULL otherwise.
  */
-static struct gnl_simfs_inode *create_file(struct gnl_simfs_file_system *file_system, const char *filename) {
+static struct gnl_simfs_inode *file_table_create(struct gnl_simfs_file_system *file_system, const char *filename) {
 
     gnl_logger_debug(file_system->logger, "Creating file: \"%s\"", filename);
 
@@ -84,23 +102,22 @@ static struct gnl_simfs_inode *create_file(struct gnl_simfs_file_system *file_sy
 }
 
 /**
- * Update an existing file table entry with the given new entry.
+ * Update an existing file table entry with the given buffer entry.
  *
  * @param file_system   The file system instance where the file table resides.
  * @param key           The key of the entry to be updated.
- * @param new_entry     The new entry to use to update the existing entry.
- * @param new_entry     The new entry to use to update the existing entry.
+ * @param buffer_entry     The new entry to use to update the existing entry.
  * @param count         The count of bytes eventually wrote in the file within
- *                      the given new_entry inode since it was instantiate.
+ *                      the given buffer_entry inode since it was instantiate.
  *
  * @return              Returns 0 on success, -1 otherwise.
  */
-static int update_file_table_entry(struct gnl_simfs_file_system *file_system, const char *key,
-        const struct gnl_simfs_inode *new_entry, size_t count) {
+static int file_table_fflush(struct gnl_simfs_file_system *file_system, const char *key,
+        const struct gnl_simfs_inode *buffer_entry, size_t count) {
     // validate the parameters
     GNL_NULL_CHECK(file_system, EINVAL, -1)
     GNL_NULL_CHECK(key, EINVAL, -1)
-    GNL_NULL_CHECK(new_entry, EINVAL, -1)
+    GNL_NULL_CHECK(buffer_entry, EINVAL, -1)
 
     gnl_logger_debug(file_system->logger, "Updating entry \"%s\" in the file table", key);
 
@@ -121,7 +138,7 @@ static int update_file_table_entry(struct gnl_simfs_file_system *file_system, co
     struct gnl_simfs_inode *inode = (struct gnl_simfs_inode *)raw_inode;
 
     // update the inode with the new entry
-    int res = gnl_simfs_inode_update(inode, new_entry, count);
+    int res = gnl_simfs_inode_update(inode, buffer_entry, count);
     if (res == -1) {
         gnl_logger_debug(file_system->logger, "Update on entry \"%s\" failed: %s", key, strerror(errno));
 
@@ -140,6 +157,59 @@ static int update_file_table_entry(struct gnl_simfs_file_system *file_system, co
     } else {
         gnl_logger_debug(file_system->logger, "Update on entry \"%s\" succeeded", key);
     }
+
+    return 0;
+}
+
+/**
+ * Remove an existing file table entry.
+ *
+ * @param file_system   The file system instance where the file table resides.
+ * @param key           The key of the entry to be removed.
+ *
+ * @return              Returns 0 on success, -1 otherwise.
+ */
+static int file_table_remove(struct gnl_simfs_file_system *file_system, const char *key) {
+    // validate the parameters
+    GNL_NULL_CHECK(file_system, EINVAL, -1)
+    GNL_NULL_CHECK(key, EINVAL, -1)
+
+    gnl_logger_debug(file_system->logger, "Removing entry \"%s\" from the file table", key);
+
+    // search the key in the file table
+    void *raw_inode = gnl_ternary_search_tree_get(file_system->file_table, key);
+
+    // if the key is not present return an error
+    if (raw_inode == NULL) {
+        gnl_logger_debug(file_system->logger, "Entry \"%s\" not found, returning with error", key);
+        errno = EINVAL;
+
+        return -1;
+    }
+
+    gnl_logger_debug(file_system->logger, "Entry \"%s\" found, removing", key);
+
+    // else cast the raw_inode
+    struct gnl_simfs_inode *inode = (struct gnl_simfs_inode *)raw_inode;
+
+    // get the size of the inode
+    int count = inode->size;
+
+    // remove the file
+    int res = gnl_ternary_search_tree_remove(file_system->file_table, key, destroy_file_table_inode);
+    if (res == -1) {
+        gnl_logger_debug(file_system->logger, "Remove on entry \"%s\" failed: %s", key, strerror(errno));
+
+        //let the errno bubble
+
+        return -1;
+    }
+
+    // update the file system
+    file_system->heap_size -= count;
+
+    gnl_logger_debug(file_system->logger, "Remove on entry \"%s\" succeeded, %d bytes freed, the heap size has now %d bytes left",
+                     key, count, file_system->memory_limit - file_system->heap_size);
 
     return 0;
 }
