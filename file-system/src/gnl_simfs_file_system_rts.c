@@ -42,7 +42,7 @@ struct gnl_simfs_file_system {
  * @return              Returns the inode of the given filename on success,
  *                      NULL otherwise.
  */
-static struct gnl_simfs_inode *file_table_get(struct gnl_simfs_file_system *file_system, const char *filename) {
+static struct gnl_simfs_inode *gnl_simfs_rts_get_inode(struct gnl_simfs_file_system *file_system, const char *filename) {
     // get the inode of the filename
     struct gnl_simfs_inode *inode = gnl_simfs_file_table_get(file_system->file_table, filename);
 
@@ -71,7 +71,7 @@ static struct gnl_simfs_inode *file_table_get(struct gnl_simfs_file_system *file
  * @return              Returns the inode of the created file on success,
  *                      NULL otherwise.
  */
-static struct gnl_simfs_inode *file_table_create(struct gnl_simfs_file_system *file_system, const char *filename) {
+static struct gnl_simfs_inode *gnl_simfs_rts_create_inode(struct gnl_simfs_file_system *file_system, const char *filename) {
 
     gnl_logger_debug(file_system->logger, "Creating file: \"%s\"", filename);
 
@@ -113,7 +113,7 @@ static struct gnl_simfs_inode *file_table_create(struct gnl_simfs_file_system *f
  *
  * @return              Returns 0 on success, -1 otherwise.
  */
-static int file_table_fflush(struct gnl_simfs_file_system *file_system, const char *key,
+static int gnl_simfs_rts_fflush_inode(struct gnl_simfs_file_system *file_system, const char *key,
         const struct gnl_simfs_inode *buffer_entry, size_t count) {
     // validate the parameters
     GNL_NULL_CHECK(file_system, EINVAL, -1)
@@ -154,7 +154,7 @@ static int file_table_fflush(struct gnl_simfs_file_system *file_system, const ch
  *
  * @return              Returns 0 on success, -1 otherwise.
  */
-static int file_table_remove(struct gnl_simfs_file_system *file_system, const char *key) {
+static int gnl_simfs_rts_remove_inode(struct gnl_simfs_file_system *file_system, const char *key) {
     // validate the parameters
     GNL_NULL_CHECK(file_system, EINVAL, -1)
     GNL_NULL_CHECK(key, EINVAL, -1)
@@ -162,7 +162,7 @@ static int file_table_remove(struct gnl_simfs_file_system *file_system, const ch
     gnl_logger_debug(file_system->logger, "Removing entry \"%s\" from the file table", key);
 
     // search the file in the file table
-    struct gnl_simfs_inode *inode = file_table_get(file_system, key);
+    struct gnl_simfs_inode *inode = gnl_simfs_rts_get_inode(file_system, key);
     GNL_NULL_CHECK(inode, errno, -1)
 
     gnl_logger_debug(file_system->logger, "Entry \"%s\" found, removing", key);
@@ -199,7 +199,7 @@ static int file_table_remove(struct gnl_simfs_file_system *file_system, const ch
  *
  * @return                  Returns 0 on success, -1 otherwise.
  */
-static int wait_file_to_be_lockable(struct gnl_simfs_file_system *file_system, struct gnl_simfs_inode *inode) {
+static int gnl_simfs_rts_wait_file_to_be_lockable(struct gnl_simfs_file_system *file_system, struct gnl_simfs_inode *inode) {
 
     // validate the parameters
     GNL_NULL_CHECK(file_system, EINVAL, -1)
@@ -233,7 +233,7 @@ static int wait_file_to_be_lockable(struct gnl_simfs_file_system *file_system, s
  * @return              Returns the inode referred by fd on success,
  *                      NULL otherwise.
  */
-static struct gnl_simfs_inode *get_inode_from_fd(struct gnl_simfs_file_system *file_system, int fd, unsigned int pid) {
+static struct gnl_simfs_inode *gnl_simfs_rts_get_inode_by_fd(struct gnl_simfs_file_system *file_system, int fd, unsigned int pid) {
     // validate the parameters
     GNL_NULL_CHECK(file_system, EINVAL, NULL)
 

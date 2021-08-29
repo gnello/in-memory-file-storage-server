@@ -201,7 +201,7 @@ int gnl_simfs_file_system_open(struct gnl_simfs_file_system *file_system, const 
         }
 
         // the file is not present, create it
-        inode = file_table_create(file_system, filename);
+        inode = gnl_simfs_rts_create_inode(file_system, filename);
         GNL_SIMFS_NULL_CHECK(inode, errno, -1, pid)
     }
     // if the file must be present
@@ -241,7 +241,7 @@ int gnl_simfs_file_system_open(struct gnl_simfs_file_system *file_system, const 
         GNL_SIMFS_MINUS1_CHECK(res, errno, -1, pid)
 
         // check if the file can be locked: if not, wait for it
-        res = wait_file_to_be_lockable(file_system, inode);
+        res = gnl_simfs_rts_wait_file_to_be_lockable(file_system, inode);
         GNL_SIMFS_MINUS1_CHECK(res, errno, -1, pid)
 
         // lock the file //TODO: prevent deadlock EDEADLK
@@ -338,7 +338,7 @@ int gnl_simfs_file_system_write(struct gnl_simfs_file_system *file_system, int f
     }
 
     // search the file in the file descriptor table
-    struct gnl_simfs_inode *inode_copy = get_inode_from_fd(file_system, fd, pid);
+    struct gnl_simfs_inode *inode_copy = gnl_simfs_rts_get_inode_by_fd(file_system, fd, pid);
     GNL_SIMFS_NULL_CHECK(inode_copy, errno, -1, pid)
 
     // get if the file is locked information
@@ -365,7 +365,7 @@ int gnl_simfs_file_system_write(struct gnl_simfs_file_system *file_system, int f
     // update the inode into the file table, this invocation is
     // mandatory because we are working on a copy of the inode,
     // so the original one needs to be updated with the modified copy
-    int res = file_table_fflush(file_system, inode_copy->name, inode_copy, nwrite);
+    int res = gnl_simfs_rts_fflush_inode(file_system, inode_copy->name, inode_copy, nwrite);
     GNL_SIMFS_MINUS1_CHECK(res, errno, -1, pid)
 
     gnl_logger_debug(file_system->logger, "Write: write on file descriptor %d succeeded, inode updated", fd);
@@ -389,11 +389,11 @@ int gnl_simfs_file_system_close(struct gnl_simfs_file_system *file_system, int f
     gnl_logger_debug(file_system->logger, "Close: pid %d is trying to close file descriptor %d", pid, fd);
 
     // search the file in the file descriptor table
-    struct gnl_simfs_inode *inode_copy = get_inode_from_fd(file_system, fd, pid);
+    struct gnl_simfs_inode *inode_copy = gnl_simfs_rts_get_inode_by_fd(file_system, fd, pid);
     GNL_SIMFS_NULL_CHECK(inode_copy, errno, -1, pid)
 
     // search the key in the file table
-    struct gnl_simfs_inode *inode = file_table_get(file_system, inode_copy->name);
+    struct gnl_simfs_inode *inode = gnl_simfs_rts_get_inode(file_system, inode_copy->name);
     GNL_SIMFS_NULL_CHECK(inode, errno, -1, pid)
 
     gnl_logger_debug(file_system->logger, "Close: entry \"%s\" found, closing file", inode_copy->name);
@@ -441,7 +441,7 @@ int gnl_simfs_file_system_remove(struct gnl_simfs_file_system *file_system, cons
     gnl_logger_debug(file_system->logger, "Remove: pid %d is trying to remove file %s", pid, filename);
 
     // search the file in the file table
-    struct gnl_simfs_inode *inode = file_table_get(file_system, filename);
+    struct gnl_simfs_inode *inode = gnl_simfs_rts_get_inode(file_system, filename);
     GNL_SIMFS_NULL_CHECK(inode, errno, -1, pid)
 
     gnl_logger_debug(file_system->logger, "Remove: entry \"%s\" found, removing file", filename);
@@ -462,7 +462,7 @@ int gnl_simfs_file_system_remove(struct gnl_simfs_file_system *file_system, cons
     }
 
     // remove the file
-    int res = file_table_remove(file_system, filename);
+    int res = gnl_simfs_rts_remove_inode(file_system, filename);
     GNL_SIMFS_MINUS1_CHECK(res, errno, -1, pid)
 
     gnl_logger_debug(file_system->logger, "Remove: remove of file \"%s\" succeeded, inode destoyed", filename);
