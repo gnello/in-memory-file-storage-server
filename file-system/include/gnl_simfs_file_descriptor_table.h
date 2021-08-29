@@ -4,7 +4,7 @@
 #include "./gnl_simfs_inode.h"
 
 /**
- * The file descriptor table structure.
+ * The file descriptor table data structure.
  */
 struct gnl_simfs_file_descriptor_table;
 
@@ -22,7 +22,7 @@ extern struct gnl_simfs_file_descriptor_table *gnl_simfs_file_descriptor_table_i
 /**
  * Destroy the given file descriptor table.
  *
- * @param file_system   The file descriptor table instance to destroy.
+ * @param table The file descriptor table instance to destroy.
  */
 extern void gnl_simfs_file_descriptor_table_destroy(struct gnl_simfs_file_descriptor_table *table);
 

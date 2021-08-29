@@ -19,18 +19,6 @@ int can_init_a_filesystem() {
         return -1;
     }
 
-    if (fs->heap_size != 0) {
-        return -1;
-    }
-
-    if (fs->files_count != 0) {
-        return -1;
-    }
-
-    if (fs->file_table != NULL) {
-        return -1;
-    }
-
     gnl_simfs_file_system_destroy(fs);
 
     return 0;
