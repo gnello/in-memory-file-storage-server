@@ -64,3 +64,9 @@ In this case, no other threads can write the file. Thus, the file can be written
 ```c 
 extern int gnl_simfs_file_system_remove(struct gnl_simfs_file_system *file_system, const char *filename, unsigned int pid);
 ```
+We can remove a file only if the file is locked and we own the lock, thus we can refer to the ["Lock a file" section](###-lock-a-file)
+for this method. After that, the file can be removed without additional concerns. If the file is not locked, or if it is 
+and we do not own the lock, then the removing will fail.
+
+### Lock a file
+
