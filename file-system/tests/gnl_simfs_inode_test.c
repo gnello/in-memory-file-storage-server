@@ -53,10 +53,6 @@ int can_init_an_inode() {
         return -1;
     }
 
-    if (inode->active_hippie_pid != 0) {
-        return -1;
-    }
-
     if (inode->waiting_locker_pid != 0) {
         return -1;
     }
@@ -273,112 +269,24 @@ int can_not_decrease_refs() {
     return 0;
 }
 
-int can_increase_hippie_pid() {
+int can_check_refs() {
     struct gnl_simfs_inode *inode = gnl_simfs_inode_init("test");
 
     if (inode == NULL) {
         return -1;
     }
 
-    if (inode->active_hippie_pid != 0) {
-        return -1;
-    }
-
-    int res;
-    for (size_t i=0; i<13; i++) {
-        res = gnl_simfs_inode_increase_hippie_pid(inode);
-        if (res == -1) {
-            return -1;
-        }
-    }
-
-    if (inode->active_hippie_pid != 13) {
-        return -1;
-    }
-
-    gnl_simfs_inode_destroy(inode);
-
-    return 0;
-}
-
-int can_decrease_hippie_pid() {
-    struct gnl_simfs_inode *inode = gnl_simfs_inode_init("test");
-
-    if (inode == NULL) {
-        return -1;
-    }
-
-    int res;
-    for (size_t i=0; i<13; i++) {
-        res = gnl_simfs_inode_increase_hippie_pid(inode);
-        if (res == -1) {
-            return -1;
-        }
-    }
-
-    if (inode->active_hippie_pid != 13) {
-        return -1;
-    }
-
-    for (size_t i=0; i<13; i++) {
-        res = gnl_simfs_inode_decrease_hippie_pid(inode);
-        if (res == -1) {
-            return -1;
-        }
-    }
-
-    if (inode->active_hippie_pid != 0) {
-        return -1;
-    }
-
-    gnl_simfs_inode_destroy(inode);
-
-    return 0;
-}
-
-int can_not_decrease_hippie_pid() {
-    struct gnl_simfs_inode *inode = gnl_simfs_inode_init("test");
-
-    if (inode == NULL) {
-        return -1;
-    }
-
-    int res = gnl_simfs_inode_decrease_hippie_pid(inode);
-    if (res != -1) {
-        return -1;
-    }
-
-    if (inode->active_hippie_pid != 0) {
-        return -1;
-    }
-
-    if (errno != EPERM) {
-        return -1;
-    }
-
-    gnl_simfs_inode_destroy(inode);
-
-    return 0;
-}
-
-int can_check_hippie_pid() {
-    struct gnl_simfs_inode *inode = gnl_simfs_inode_init("test");
-
-    if (inode == NULL) {
-        return -1;
-    }
-
-    int res = gnl_simfs_inode_has_hippie_pid(inode);
+    int res = gnl_simfs_inode_has_refs(inode);
     if (res != 0) {
         return -1;
     }
 
-    res = gnl_simfs_inode_increase_hippie_pid(inode);
+    res = gnl_simfs_inode_increase_refs(inode);
     if (res == -1) {
         return -1;
     }
 
-    res = gnl_simfs_inode_has_hippie_pid(inode);
+    res = gnl_simfs_inode_has_refs(inode);
     if (res != 1) {
         return -1;
     }
@@ -584,10 +492,6 @@ int can_copy() {
         return -1;
     }
 
-    if (inode_copy->active_hippie_pid != inode->active_hippie_pid) {
-        return -1;
-    }
-
     if (inode_copy->waiting_locker_pid != inode->waiting_locker_pid) {
         return -1;
     }
@@ -612,7 +516,6 @@ int can_update() {
     time_t mtime = inode->mtime;
     int locked = inode->locked;
     int reference_count = inode->reference_count;
-    int active_hippie_pid = inode->active_hippie_pid;
     int waiting_locker_pid = inode->waiting_locker_pid;
 
     struct gnl_simfs_inode *new_inode = gnl_simfs_inode_copy(inode);
@@ -622,7 +525,6 @@ int can_update() {
 
     new_inode->locked = 4;
     new_inode->reference_count = 1;
-    new_inode->active_hippie_pid = 2;
     new_inode->waiting_locker_pid = 3;
 
     time_t start_time = time(NULL);
@@ -660,10 +562,6 @@ int can_update() {
     }
 
     if (inode->reference_count != reference_count) {
-        return -1;
-    }
-
-    if (inode->active_hippie_pid != active_hippie_pid) {
         return -1;
     }
 
@@ -773,11 +671,7 @@ int main() {
     gnl_assert(can_increase_refs, "can increase an inode reference count.");
     gnl_assert(can_decrease_refs, "can decrease an inode reference count.");
     gnl_assert(can_not_decrease_refs, "can not decrease an inode reference count if it was not previously increased.");
-
-    gnl_assert(can_increase_hippie_pid, "can increase an inode hippie pid.");
-    gnl_assert(can_decrease_hippie_pid, "can decrease an inode hippie pid.");
-    gnl_assert(can_not_decrease_hippie_pid, "can not decrease an inode hippie pid if it was not previously increased.");
-    gnl_assert(can_check_hippie_pid, "can check if an inode has hippie pid.");
+    gnl_assert(can_check_refs, "can check if an inode has references to it.");
 
     gnl_assert(can_increase_locker_pid, "can increase an inode locker pid.");
     gnl_assert(can_decrease_locker_pid, "can decrease an inode locker pid.");

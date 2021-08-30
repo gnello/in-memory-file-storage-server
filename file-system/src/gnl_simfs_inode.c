@@ -29,7 +29,6 @@ struct gnl_simfs_inode *gnl_simfs_inode_init(const char *name) {
     inode->size = 0;
     inode->locked = 0;
     inode->direct_ptr = NULL;
-    inode->active_hippie_pid = 0;
     inode->waiting_locker_pid = 0;
     inode->reference_count = 0;
 
@@ -141,6 +140,15 @@ int gnl_simfs_inode_decrease_refs(struct gnl_simfs_inode *inode) {
 /**
  * {@inheritDoc}
  */
+int gnl_simfs_inode_has_refs(struct gnl_simfs_inode *inode) {
+    GNL_NULL_CHECK(inode, EINVAL, -1)
+
+    return inode->reference_count > 0;
+}
+
+/**
+ * {@inheritDoc}
+ */
 int gnl_simfs_inode_file_lock(struct gnl_simfs_inode *inode, unsigned int pid) {
     GNL_NULL_CHECK(inode, EINVAL, -1)
 
@@ -193,52 +201,6 @@ int gnl_simfs_inode_file_unlock(struct gnl_simfs_inode *inode, unsigned int pid)
 
     // wake up eventually waiting threads
     return pthread_cond_signal(&(inode->file_access_available));
-}
-
-/**
- * {@inheritDoc}
- */
-int gnl_simfs_inode_increase_hippie_pid(struct gnl_simfs_inode *inode) {
-    GNL_NULL_CHECK(inode, EINVAL, -1)
-
-    inode->active_hippie_pid++;
-
-    // set the last status change timestamp of the inode
-    inode->ctime = time(NULL);
-
-    return 0;
-}
-
-/**
- * {@inheritDoc}
- */
-int gnl_simfs_inode_decrease_hippie_pid(struct gnl_simfs_inode *inode) {
-    GNL_NULL_CHECK(inode, EINVAL, -1)
-
-    if (inode->active_hippie_pid == 0) {
-        errno = EPERM;
-        return -1;
-    }
-
-    inode->active_hippie_pid--;
-
-    // set the last status change timestamp of the inode
-    inode->ctime = time(NULL);
-
-    if (inode->active_hippie_pid == 0) {
-        return pthread_cond_signal(&(inode->file_access_available));
-    }
-
-    return 0;
-}
-
-/**
- * {@inheritDoc}
- */
-int gnl_simfs_inode_has_hippie_pid(struct gnl_simfs_inode *inode) {
-    GNL_NULL_CHECK(inode, EINVAL, -1)
-
-    return inode->active_hippie_pid > 0;
 }
 
 /**
@@ -350,7 +312,6 @@ struct gnl_simfs_inode *gnl_simfs_inode_copy(const struct gnl_simfs_inode *inode
     inode_copy->direct_ptr = inode->direct_ptr;
     inode_copy->locked = inode->locked;
     inode_copy->reference_count = inode->reference_count;
-    inode_copy->active_hippie_pid = inode->active_hippie_pid;
     inode_copy->waiting_locker_pid = inode->waiting_locker_pid;
 
     // initialize condition variables

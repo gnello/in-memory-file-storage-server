@@ -283,19 +283,20 @@ int gnl_simfs_file_system_open(struct gnl_simfs_file_system *file_system, const 
 
             return -1;
         }
-
-        // increase the "hippie pid" count
-        res = gnl_simfs_inode_increase_hippie_pid(inode);
-        GNL_SIMFS_MINUS1_CHECK(res, errno, -1, pid)
     }
+
+    // put the inode copy into the file descriptor table
+    int fd = gnl_simfs_file_descriptor_table_put(file_system->file_descriptor_table, inode, pid);
+    GNL_SIMFS_MINUS1_CHECK(fd, errno, -1, pid)
+
+    gnl_logger_debug(file_system->logger, "Open: created file descriptor %d for file %s", fd, filename);
 
     // increase the inode reference count
     res = gnl_simfs_inode_increase_refs(inode);
     GNL_SIMFS_MINUS1_CHECK(res, errno, -1, pid)
 
-    // put the inode copy into the file descriptor table
-    int fd = gnl_simfs_file_descriptor_table_put(file_system->file_descriptor_table, inode, pid);
-    GNL_SIMFS_MINUS1_CHECK(fd, errno, -1, pid)
+    gnl_logger_debug(file_system->logger, "Open: reference count of file %s increased, the file has now %d "
+                                          "references", filename, inode->reference_count);
 
     gnl_logger_debug(file_system->logger, "Open: open on file \"%s\" succeeded, returning fd %d to pid %d", filename, fd, pid);
 
@@ -405,20 +406,24 @@ int gnl_simfs_file_system_close(struct gnl_simfs_file_system *file_system, int f
 
     // remove lock if pid owns it
     if (res > 0 && res == pid) {
-        res = gnl_simfs_inode_file_unlock(inode, pid);
+        res = gnl_simfs_inode_file_unlock(inode, pid); //TODO: chiamare l'unlock del filesystem?
         GNL_SIMFS_MINUS1_CHECK(res, errno, -1, pid)
 
         gnl_logger_debug(file_system->logger, "Close: file \"%s\" unlocked by pid %d", inode->name, pid);
-    }
-    // else decrease the hippie pid count
-    else {
-        res = gnl_simfs_inode_decrease_hippie_pid(inode); //TODO: rimuovere hippie count e fare con le reference
-        GNL_SIMFS_MINUS1_CHECK(res, errno, -1, pid)
     }
 
     // remove the file descriptor from the file descriptor table
     res = gnl_simfs_file_descriptor_table_remove(file_system->file_descriptor_table, fd, pid);
     GNL_SIMFS_MINUS1_CHECK(res, errno, -1, pid)
+
+    gnl_logger_debug(file_system->logger, "Close: file descriptor %d removed", fd);
+
+    // decrease the inode reference count
+    res = gnl_simfs_inode_decrease_refs(inode);
+    GNL_SIMFS_MINUS1_CHECK(res, errno, -1, pid)
+
+    gnl_logger_debug(file_system->logger, "Close: reference count of file %s decreased, the file has now %d "
+                                          "references", inode->name, inode->reference_count);
 
     gnl_logger_debug(file_system->logger, "Close: close on file descriptor %d succeeded, "
                                           "file descriptor %d destroyed, inode updated", fd, fd);
@@ -550,7 +555,6 @@ int gnl_simfs_file_system_lock(struct gnl_simfs_file_system *file_system, const 
 }
 // TODO: fare buffer s scrivere lì, riportare nell'inode solo alla chiusura (NO, meglio alla write) se il file non è stato rimosso
 // TODO: la lettura può avvenire dal direct pointer, la scrittura farla nella copia buffer (metterci solo i nuovi bytes e fare la free dopo il fflush)
-// TODO: usare solo le reference e togliere gli hippie pid
 // TODO: forza, manca solo la lock/unlock e la read!!!
 
 #undef GNL_SIMFS_MAX_OPEN_FILES

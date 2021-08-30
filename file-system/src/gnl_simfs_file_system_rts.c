@@ -212,8 +212,19 @@ static int gnl_simfs_rts_wait_file_to_be_lockable(struct gnl_simfs_file_system *
     GNL_NULL_CHECK(file_system, EINVAL, -1)
     GNL_NULL_CHECK(inode, EINVAL, -1)
 
+    // get if the file is locked information
+    int file_locked_by_pid = gnl_simfs_inode_is_file_locked(inode);
+    GNL_MINUS1_CHECK(file_locked_by_pid, errno, -1)
+
+    // if the file is locked return an error
+    if (file_locked_by_pid > 0) {
+        errno = EPERM;
+
+        return -1;
+    }
+
     int test, res;
-    while ((test = gnl_simfs_inode_has_hippie_pid(inode)) > 0) {
+    while ((test = gnl_simfs_inode_has_refs(inode)) > 0) {
         GNL_MINUS1_CHECK(test, errno, -1)
 
         gnl_logger_debug(file_system->logger, "The file \"%s\" is opened (but not locked) by one or more pid, "
