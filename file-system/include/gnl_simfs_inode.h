@@ -37,10 +37,10 @@ struct gnl_simfs_inode {
     void *direct_ptr;
 
     // the buffer to write in a file
-    void *buffer; //TODO: implement
+    void *buffer;
 
     // the buffer size in bytes
-    void *buffer_size; //TODO: implement
+    int buffer_size;
 
     // the owner id of the lock, it should be a number > 0:
     // if 0 then the inode is unlocked, if > 0 the inode is locked;
@@ -208,10 +208,11 @@ extern int gnl_simfs_inode_has_pending_locks(struct gnl_simfs_inode *inode);
  * @return      Returns the number of bytes wrote into the file on success,
  *              -1 otherwise.
  */
-extern int gnl_simfs_inode_append_to_file(struct gnl_simfs_inode *inode, const void *buf, size_t count);
+extern int gnl_simfs_inode_write(struct gnl_simfs_inode *inode, const void *buf, size_t count);
 
 /**
- * Create and return a copy of the given inode.
+ * Create and return a copy of the given inode. The copy does not preserve
+ * the original inode buffer.
  *
  * @param inode The inode instance to copy.
  *
@@ -220,16 +221,14 @@ extern int gnl_simfs_inode_append_to_file(struct gnl_simfs_inode *inode, const v
 extern struct gnl_simfs_inode *gnl_simfs_inode_copy(const struct gnl_simfs_inode *inode);
 
 /**
- * Update the given inode using a more up-to-date copy. This method will update
- * only the mtime, size and direct_ptr attributes of the given inode.
+ * Flush the buffer of the given inode into his direct pointer. This method
+ * will reset the buffer and will update the mtime, ctime, size and direct_ptr
+ * attributes of the given inode.
  *
- * @param inode The inode to be updated.
- * @param with  The more up-to-date inode to use for the copy.
- * @param count The count of bytes eventually wrote in the file within
- *              the given with inode.
+ * @param inode The inode to be flushed.
  *
  * @return      Returns 0 on success, -1 otherwise.
  */
-extern int gnl_simfs_inode_update(struct gnl_simfs_inode *inode, const struct gnl_simfs_inode *with, size_t count);
+extern int gnl_simfs_inode_fflush(struct gnl_simfs_inode *inode);
 
 #endif //GNL_SIMFS_INODE_H

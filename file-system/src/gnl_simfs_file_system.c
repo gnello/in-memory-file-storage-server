@@ -360,14 +360,14 @@ int gnl_simfs_file_system_write(struct gnl_simfs_file_system *file_system, int f
 
     //TODO: da qui in poi in caso di errore non lasciare lo stato della struct corrotto
 
-    // write the given buf into the file pointed by the inode
-    int nwrite = gnl_simfs_inode_append_to_file(inode_copy, buf, count);
+    // write the given buf into the inode copy buffer
+    int nwrite = gnl_simfs_inode_write(inode_copy, buf, count);
     GNL_SIMFS_MINUS1_CHECK(nwrite, errno, -1, pid)
 
     // update the inode into the file table, this invocation is
     // mandatory because we are working on a copy of the inode,
     // so the original one needs to be updated with the modified copy
-    int res = gnl_simfs_rts_fflush_inode(file_system, inode_copy->name, inode_copy, nwrite);
+    int res = gnl_simfs_rts_fflush_inode(file_system, inode_copy);
     GNL_SIMFS_MINUS1_CHECK(res, errno, -1, pid)
 
     gnl_logger_debug(file_system->logger, "Write: write on file descriptor %d succeeded, inode updated", fd);

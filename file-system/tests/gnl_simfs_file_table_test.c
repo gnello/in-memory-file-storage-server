@@ -174,7 +174,7 @@ int can_fflush() {
         return -1;
     }
 
-    res = gnl_simfs_inode_append_to_file(inode_copy, content, size);
+    res = gnl_simfs_inode_write(inode_copy, content, size);
     if (res == -1) {
         return -1;
     }
@@ -183,7 +183,7 @@ int can_fflush() {
         return -1;
     }
 
-    res = gnl_simfs_file_table_fflush(table, inode_copy, size);
+    res = gnl_simfs_file_table_fflush(table, inode_copy);
     if (res == -1) {
         return -1;
     }
@@ -219,7 +219,7 @@ int can_not_fflush() {
         return -1;
     }
 
-    res = gnl_simfs_inode_append_to_file(inode, content, size);
+    res = gnl_simfs_inode_write(inode, content, size);
     if (res == -1) {
         return -1;
     }
@@ -228,7 +228,7 @@ int can_not_fflush() {
         return -1;
     }
 
-    res = gnl_simfs_file_table_fflush(table, inode, size);
+    res = gnl_simfs_file_table_fflush(table, inode);
     if (res == 0) {
         return -1;
     }
@@ -284,12 +284,12 @@ int can_remove() {
         return -1;
     }
 
-    res = gnl_simfs_inode_append_to_file(inode_copy, content, size);
+    res = gnl_simfs_inode_write(inode_copy, content, size);
     if (res == -1) {
         return -1;
     }
 
-    res = gnl_simfs_file_table_fflush(table, inode_copy, size);
+    res = gnl_simfs_file_table_fflush(table, inode_copy);
     if (res == -1) {
         return -1;
     }
@@ -367,12 +367,12 @@ int can_get_size() {
         return -1;
     }
 
-    res = gnl_simfs_inode_append_to_file(inode_copy, content, size);
+    res = gnl_simfs_inode_write(inode_copy, content, size);
     if (res == -1) {
         return -1;
     }
 
-    res = gnl_simfs_file_table_fflush(table, inode_copy, size);
+    res = gnl_simfs_file_table_fflush(table, inode_copy);
     if (res == -1) {
         return -1;
     }
@@ -428,7 +428,7 @@ int main() {
     gnl_assert(can_get, "can get an entry from a file table.");
     gnl_assert(can_not_get, "can not get a non-existing entry from a file table.");
 
-    gnl_assert(can_fflush, "can flush an entry with a buffer entry in a file table.");
+    gnl_assert(can_fflush, "can flush an entry with an entry copy in a file table.");
     gnl_assert(can_not_fflush, "can not flush an entry with the original entry in a file table.");
 
     gnl_assert(can_remove, "can remove an entry from a file table.");

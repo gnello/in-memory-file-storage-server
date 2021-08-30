@@ -146,31 +146,50 @@ static struct gnl_simfs_inode *gnl_simfs_file_table_create(struct gnl_simfs_file
 /**
  * {@inheritDoc}
  */
-static int gnl_simfs_file_table_fflush(struct gnl_simfs_file_table *file_table,
-        const struct gnl_simfs_inode *buffer_entry, size_t count) {
+static int gnl_simfs_file_table_fflush(struct gnl_simfs_file_table *file_table, struct gnl_simfs_inode *new_inode) {
     // validate the parameters
     GNL_NULL_CHECK(file_table, EINVAL, -1)
-    GNL_NULL_CHECK(buffer_entry, EINVAL, -1)
+    GNL_NULL_CHECK(new_inode, EINVAL, -1)
 
     // search the key in the file table
-    struct gnl_simfs_inode *inode = gnl_simfs_file_table_get(file_table, buffer_entry->name);
+    struct gnl_simfs_inode *inode = gnl_simfs_file_table_get(file_table, new_inode->name);
 
     // if the key is not present return an error
     GNL_NULL_CHECK(inode, errno, -1)
 
     // check if the buffer_entry is not the original inode
-    if (inode == buffer_entry) {
+    if (inode == new_inode) {
         errno = EINVAL;
 
         return -1;
     }
 
-    // update the inode with the new entry
-    int res = gnl_simfs_inode_update(inode, buffer_entry, count);
+    // calculate the bytes that will be added into the heap by the fflush
+    int bytes_added = new_inode->buffer_size;
+
+    // if no bytes were added, return with an error
+    if (bytes_added == 0) {
+        errno = EINVAL;
+
+        return -1;
+    }
+
+    // fflush the inode
+    int res = gnl_simfs_inode_fflush(new_inode);
     GNL_MINUS1_CHECK(res, errno, -1)
 
+    // update the inode with the flushed one
+    inode->direct_ptr = new_inode->direct_ptr;
+    inode->mtime = new_inode->mtime;
+
+    // update the size
+    inode->size += bytes_added;
+
+    // set the last status change timestamp of the inode
+    inode->ctime = time(NULL);
+
     // update the file table size
-    file_table->size += count;
+    file_table->size += bytes_added;
 
     return 0;
 }

@@ -113,42 +113,37 @@ static struct gnl_simfs_inode *gnl_simfs_rts_create_inode(struct gnl_simfs_file_
  * Update an existing file table entry with the given buffer entry.
  *
  * @param file_system   The file system instance where the file table resides.
- * @param key           The key of the entry to be updated.
- * @param buffer_entry     The new entry to use to update the existing entry.
- * @param count         The count of bytes eventually wrote in the file within
- *                      the given buffer_entry inode since it was instantiate.
+ * @param buffer_entry  The inode to use to fflush.
  *
  * @return              Returns 0 on success, -1 otherwise.
  */
-static int gnl_simfs_rts_fflush_inode(struct gnl_simfs_file_system *file_system, const char *key,
-        const struct gnl_simfs_inode *buffer_entry, size_t count) {
+static int gnl_simfs_rts_fflush_inode(struct gnl_simfs_file_system *file_system, struct gnl_simfs_inode *inode) {
     // validate the parameters
     GNL_NULL_CHECK(file_system, EINVAL, -1)
-    GNL_MINUS1_CHECK(-1 * (strlen(key) == 0), EINVAL, -1)
-    GNL_NULL_CHECK(buffer_entry, EINVAL, -1)
+    GNL_NULL_CHECK(inode, EINVAL, -1)
 
-    gnl_logger_debug(file_system->logger, "Flushing file entry \"%s\" in the file table", key);
+    // if we have nothing to flush, return with an error
+    GNL_MINUS1_CHECK(-1 * (inode->buffer_size <= 0), EINVAL, -1)
+
+    gnl_logger_debug(file_system->logger, "Flushing %d bytes of the file entry \"%s\" in the file table",
+                     inode->buffer_size, inode->name);
 
     // update the inode with the new entry
-    int res = gnl_simfs_file_table_fflush(file_system->file_table, buffer_entry, count);
+    int res = gnl_simfs_file_table_fflush(file_system->file_table, inode);
     if (res == -1) {
-        gnl_logger_debug(file_system->logger, "File flush on entry \"%s\" failed: %s", key, strerror(errno));
+        gnl_logger_debug(file_system->logger, "File flush on entry \"%s\" failed: %s", inode->name, strerror(errno));
 
         //let the errno bubble
 
         return -1;
     }
 
-    // if count > 0, provide details about the heap
-    if (count > 0) {
-        int size = gnl_simfs_file_table_size(file_system->file_table);
-        GNL_MINUS1_CHECK(size, errno, -1);
+    // log the new file table size
+    int size = gnl_simfs_file_table_size(file_system->file_table);
+    GNL_MINUS1_CHECK(size, errno, -1);
 
-        gnl_logger_debug(file_system->logger, "File flush on entry \"%s\" succeeded, the heap size has now %d bytes left",
-                         key, file_system->memory_limit - size);
-    } else {
-        gnl_logger_debug(file_system->logger, "File flush on entry \"%s\" succeeded", key);
-    }
+    gnl_logger_debug(file_system->logger, "File flush on entry \"%s\" succeeded, the heap size has now %d bytes left",
+                     inode->name, file_system->memory_limit - size);
 
     return 0;
 }

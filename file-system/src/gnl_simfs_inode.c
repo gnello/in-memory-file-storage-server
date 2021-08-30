@@ -31,6 +31,8 @@ struct gnl_simfs_inode *gnl_simfs_inode_init(const char *name) {
     inode->direct_ptr = NULL;
     inode->pending_locks = 0;
     inode->reference_count = 0;
+    inode->buffer = NULL;
+    inode->buffer_size = 0;
 
     // set the last status change timestamp of the inode
     inode->ctime = time(NULL);
@@ -63,6 +65,10 @@ static void destroy_inode(struct gnl_simfs_inode *inode, int with_pointed_file) 
         free(inode->direct_ptr);
         inode->direct_ptr = NULL;
     }
+
+    // destroy the buffer
+    free(inode->buffer);
+    inode->buffer = NULL;
 
     // clear the waiting queue
 //    pthread_cond_broadcast(&(inode->file_access_available));
@@ -252,7 +258,7 @@ int gnl_simfs_inode_has_pending_locks(struct gnl_simfs_inode *inode) {
 /**
  * {@inheritDoc}
  */
-int gnl_simfs_inode_append_to_file(struct gnl_simfs_inode *inode, const void *buf, size_t count) {
+int gnl_simfs_inode_write(struct gnl_simfs_inode *inode, const void *buf, size_t count) {
     //validate the parameters
     GNL_NULL_CHECK(inode, EINVAL, -1)
     GNL_NULL_CHECK(buf, EINVAL, -1)
@@ -261,10 +267,10 @@ int gnl_simfs_inode_append_to_file(struct gnl_simfs_inode *inode, const void *bu
     GNL_MINUS1_CHECK(-1 * (count <= 0), EINVAL, -1)
 
     // calculate the new size
-    int size = inode->size + count;
+    int new_size = inode->buffer_size + count;
 
-    // alloc the memory onto the heap for the writing
-    void *temp = realloc(inode->direct_ptr, size);
+    // realloc the memory onto the buffer for the writing
+    void *temp = realloc(inode->buffer, new_size);
 
     // do not handle errors but bubble it, if an
     // update fails we are ok with the fact that
@@ -272,17 +278,13 @@ int gnl_simfs_inode_append_to_file(struct gnl_simfs_inode *inode, const void *bu
     GNL_NULL_CHECK(temp, errno, -1)
 
     // update the original pointer if it has changed (or not)
-    inode->direct_ptr = temp;
+    inode->buffer = temp;
 
     // write the data
-    memcpy((char *)inode->direct_ptr + inode->size, buf, count);
+    memcpy((char *)inode->buffer + inode->buffer_size, buf, count);
 
-    // update the size of the file within the inode
-    inode->size += count;
-
-    // update the last modification timestamp of the file
-    // within the inode
-    inode->mtime = time(NULL);
+    // update the size of the buffer
+    inode->buffer_size = new_size;
 
     // set the last status change timestamp of the inode
     inode->ctime = time(NULL);
@@ -314,6 +316,10 @@ struct gnl_simfs_inode *gnl_simfs_inode_copy(const struct gnl_simfs_inode *inode
     inode_copy->reference_count = inode->reference_count;
     inode_copy->pending_locks = inode->pending_locks;
 
+    // do not preserve the buffer
+    inode_copy->buffer = NULL;
+    inode_copy->buffer_size = 0;
+
     // initialize condition variables
     int res = pthread_cond_init(&(inode_copy->file_access_available), NULL);
     GNL_MINUS1_CHECK(res, errno, NULL)
@@ -327,23 +333,39 @@ struct gnl_simfs_inode *gnl_simfs_inode_copy(const struct gnl_simfs_inode *inode
 /**
  * {@inheritDoc}
  */
-int gnl_simfs_inode_update(struct gnl_simfs_inode *inode, const struct gnl_simfs_inode *with, size_t count) {
+int gnl_simfs_inode_fflush(struct gnl_simfs_inode *inode) {
     GNL_NULL_CHECK(inode, EINVAL, -1)
-    GNL_NULL_CHECK(with, EINVAL, -1)
 
-    // check that the given count is not greater than the
-    // "with" inode size. If so an EIO probably error occurred.
-    if (count > with->size) {
-        errno = EIO;
+    // calculate the new size
+    int new_size = inode->size + inode->buffer_size;
 
-        return -1;
-    }
+    // realloc the memory onto the direct pointer for the writing
+    void *temp = realloc(inode->direct_ptr, new_size);
+
+    // do not handle errors but bubble it, if an
+    // update fails we are ok with the fact that
+    // realloc does not free the original pointer
+    GNL_NULL_CHECK(temp, errno, -1)
+
+    // update the original pointer if it has changed (or not)
+    inode->direct_ptr = temp;
+
+    // write the data
+    memcpy((char *)inode->direct_ptr + inode->size, inode->buffer, inode->buffer_size);
 
     // update the size of the file within the inode
-    inode->size += count;
+    inode->size = new_size;
 
-    // update the pointer of the file within the inode
-    inode->direct_ptr = with->direct_ptr;
+    // free the buffer
+    free(inode->buffer);
+    inode->buffer = NULL;
+
+    // reset the buffer size
+    inode->buffer_size = 0;
+
+    // update the last modification timestamp of the file
+    // within the inode
+    inode->mtime = time(NULL);
 
     // set the last status change timestamp of the inode
     inode->ctime = time(NULL);

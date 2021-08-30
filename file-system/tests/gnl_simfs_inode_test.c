@@ -57,6 +57,14 @@ int can_init_an_inode() {
         return -1;
     }
 
+    if (inode->buffer != NULL) {
+        return -1;
+    }
+
+    if (inode->buffer_size != 0) {
+        return -1;
+    }
+
     gnl_simfs_inode_destroy(inode);
 
     return 0;
@@ -411,7 +419,7 @@ int can_check_pending_locks() {
     return 0;
 }
 
-int can_add_to_file() {
+int can_write() {
     struct gnl_simfs_inode *inode = gnl_simfs_inode_init("test");
 
     long size;
@@ -424,18 +432,22 @@ int can_add_to_file() {
 
     time_t start_time = time(NULL);
 
-    res = gnl_simfs_inode_append_to_file(inode, content, size);
+    res = gnl_simfs_inode_write(inode, content, size);
     if (res == -1) {
         return -1;
     }
 
     time_t end_time = time(NULL);
 
-    if (inode->mtime < start_time || inode->mtime > end_time) {
+    if (inode->ctime < start_time || inode->ctime > end_time) {
         return -1;
     }
 
-    if (inode->size != size) {
+    if (inode->buffer == NULL) {
+        return -1;
+    }
+
+    if (inode->buffer_size != size) {
         return -1;
     }
 
@@ -449,7 +461,7 @@ int can_copy() {
     struct gnl_simfs_inode *inode = gnl_simfs_inode_init("test");
 
     inode->mtime = time(NULL);
-    int res = gnl_simfs_inode_append_to_file(inode, "string", 6);
+    int res = gnl_simfs_inode_write(inode, "string", 6);
     if (res == -1) {
         return -1;
     }
@@ -496,76 +508,48 @@ int can_copy() {
         return -1;
     }
 
+    if (inode_copy->buffer != NULL) {
+        return -1;
+    }
+
+    if (inode_copy->buffer_size != 0) {
+        return -1;
+    }
+
     gnl_simfs_inode_copy_destroy(inode_copy);
     gnl_simfs_inode_destroy(inode);
 
     return 0;
 }
 
-int can_update() {
+int can_fflush() {
     struct gnl_simfs_inode *inode = gnl_simfs_inode_init("test");
 
-    char *name = malloc((strlen(inode->name) + 1) * sizeof(char));
-    if (name == NULL) {
-        return -1;
-    }
-    strcpy(name, inode->name);
+    time_t now = time(NULL);
 
-    time_t btime = inode->btime;
-    time_t atime = inode->atime;
-    time_t mtime = inode->mtime;
-    int locked = inode->locked;
-    int reference_count = inode->reference_count;
-    int pending_locks = inode->pending_locks;
-
-    struct gnl_simfs_inode *new_inode = gnl_simfs_inode_copy(inode);
-    if (new_inode == NULL) {
-        return -1;
-    }
-
-    new_inode->locked = 4;
-    new_inode->reference_count = 1;
-    new_inode->pending_locks = 3;
-
-    time_t start_time = time(NULL);
-
-    int res = gnl_simfs_inode_append_to_file(new_inode, "string", 6);
+    int res = gnl_simfs_inode_write(inode, "string", 6);
     if (res <= 0) {
         return -1;
     }
 
-    time_t end_time = time(NULL);
+    if (inode->direct_ptr != NULL) {
+        return -1;
+    }
 
-    res = gnl_simfs_inode_update(inode, new_inode, 6);
+    if (inode->size != 0) {
+        return -1;
+    }
+
+    res = gnl_simfs_inode_fflush(inode);
     if (res != 0) {
         return -1;
     }
 
-    if (inode->btime != btime) {
+    if (inode->mtime < now) {
         return -1;
     }
 
-    if (inode->atime != atime) {
-        return -1;
-    }
-
-    if (inode->mtime != mtime) {
-        return -1;
-    }
-
-    if (strcmp(inode->name, name) != 0) {
-        return -1;
-    }
-
-    if (inode->locked != locked) {
-        return -1;
-    }
-
-    if (inode->reference_count != reference_count) {
-        return -1;
-    }
-
-    if (inode->pending_locks != pending_locks) {
+    if (inode->ctime < now) {
         return -1;
     }
 
@@ -581,78 +565,37 @@ int can_update() {
         return -1;
     }
 
-    if (inode->ctime < start_time || inode->ctime > end_time) {
-        return -1;
-    }
-
-    free(name);
-    gnl_simfs_inode_copy_destroy(new_inode);
-    gnl_simfs_inode_destroy(inode);
-
-    return 0;
-}
-
-int can_update_size() {
-    struct gnl_simfs_inode *inode = gnl_simfs_inode_init("test");
-
-    if (inode == NULL) {
-        return -1;
-    }
-
-    struct gnl_simfs_inode *new_inode = gnl_simfs_inode_copy(inode);
-
-    if (new_inode == NULL) {
-        return -1;
-    }
-
-    int res = gnl_simfs_inode_append_to_file(new_inode, "string", 6);
+    res = gnl_simfs_inode_write(inode, "anotherstring", 13);
     if (res <= 0) {
         return -1;
     }
 
-    res = gnl_simfs_inode_update(inode, new_inode, 2);
+    res = gnl_simfs_inode_write(inode, "thefinalstring", 14);
+    if (res <= 0) {
+        return -1;
+    }
+
+    if (inode->size != 6) {
+        return -1;
+    }
+
+    res = gnl_simfs_inode_fflush(inode);
     if (res != 0) {
         return -1;
     }
 
-    if (inode->size != 2) {
+    if (inode->size != 33) {
         return -1;
     }
 
-    gnl_simfs_inode_copy_destroy(new_inode);
-    gnl_simfs_inode_destroy(inode);
+    char buf2[34];
+    memcpy(buf2, inode->direct_ptr, 33);
+    buf2[33] = '\0';
 
-    return 0;
-}
-
-int can_not_update_size() {
-    struct gnl_simfs_inode *inode = gnl_simfs_inode_init("test");
-
-    if (inode == NULL) {
+    if (strcmp(buf2, "stringanotherstringthefinalstring") != 0) {
         return -1;
     }
 
-    struct gnl_simfs_inode *new_inode = gnl_simfs_inode_copy(inode);
-
-    if (new_inode == NULL) {
-        return -1;
-    }
-
-    int res = gnl_simfs_inode_append_to_file(new_inode, "string", 6);
-    if (res <= 0) {
-        return -1;
-    }
-
-    res = gnl_simfs_inode_update(inode, new_inode, 7);
-    if (res != -1) {
-        return -1;
-    }
-
-    if (errno != EIO) {
-        return -1;
-    }
-
-    gnl_simfs_inode_destroy(new_inode);
     gnl_simfs_inode_destroy(inode);
 
     return 0;
@@ -678,12 +621,10 @@ int main() {
     gnl_assert(can_not_decrease_pending_locks, "can not decrease an inode pending locks if it was not previously increased.");
     gnl_assert(can_check_pending_locks, "can check if an inode has pending locks.");
 
-    gnl_assert(can_add_to_file, "can add bytes to the file within an inode.");
+    gnl_assert(can_write, "can write bytes into the file within an inode.");
 
     gnl_assert(can_copy, "can get a copy of an inode.");
-    gnl_assert(can_update, "can update an inode.");
-    gnl_assert(can_update_size, "can update an inode size giving a count of bytes.");
-    gnl_assert(can_not_update_size, "can not update an inode size giving a count of bytes greater than the size of the new inode.");
+    gnl_assert(can_fflush, "can fflush an inode.");
 
     // the gnl_simfs_inode_destroy method is implicitly tested in every
     // assert, if you don't believe it, run this tests with

@@ -66,17 +66,15 @@ static struct gnl_simfs_inode *gnl_simfs_file_table_get(struct gnl_simfs_file_ta
 static struct gnl_simfs_inode *gnl_simfs_file_table_create(struct gnl_simfs_file_table *file_table, const char *filename);
 
 /**
- * Update an existing file table entry with the given buffer entry.
+ * Flush the given inode into the given file table.
  *
- * @param file_table    The file table instance where to update the entry.
- * @param buffer_entry  The new entry to use to update the existing entry.
- * @param count         The count of bytes eventually wrote in the file within
- *                      the given buffer_entry inode since it was instantiate.
+ * @param file_table    The file table instance where to flush the inode.
+ * @param inode         The inode to use to flush. It must be a copy of an original
+ *                      inode got from the file table.
  *
  * @return              Returns 0 on success, -1 otherwise.
  */
-static int gnl_simfs_file_table_fflush(struct gnl_simfs_file_table *file_table,
-                                       const struct gnl_simfs_inode *buffer_entry, size_t count);
+static int gnl_simfs_file_table_fflush(struct gnl_simfs_file_table *file_table, struct gnl_simfs_inode *new_inode);
 
 /**
  * Remove an existing file table entry.
