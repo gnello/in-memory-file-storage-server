@@ -53,7 +53,7 @@ int can_init_an_inode() {
         return -1;
     }
 
-    if (inode->waiting_locker_pid != 0) {
+    if (inode->pending_locks != 0) {
         return -1;
     }
 
@@ -296,26 +296,26 @@ int can_check_refs() {
     return 0;
 }
 
-int can_increase_locker_pid() {
+int can_increase_pending_locks() {
     struct gnl_simfs_inode *inode = gnl_simfs_inode_init("test");
 
     if (inode == NULL) {
         return -1;
     }
 
-    if (inode->waiting_locker_pid != 0) {
+    if (inode->pending_locks != 0) {
         return -1;
     }
 
     int res;
     for (size_t i=0; i<13; i++) {
-        res = gnl_simfs_inode_increase_locker_pid(inode);
+        res = gnl_simfs_inode_increase_pending_locks(inode);
         if (res == -1) {
             return -1;
         }
     }
 
-    if (inode->waiting_locker_pid != 13) {
+    if (inode->pending_locks != 13) {
         return -1;
     }
 
@@ -324,7 +324,7 @@ int can_increase_locker_pid() {
     return 0;
 }
 
-int can_decrease_locker_pid() {
+int can_decrease_pending_locks() {
     struct gnl_simfs_inode *inode = gnl_simfs_inode_init("test");
 
     if (inode == NULL) {
@@ -333,24 +333,24 @@ int can_decrease_locker_pid() {
 
     int res;
     for (size_t i=0; i<13; i++) {
-        res = gnl_simfs_inode_increase_locker_pid(inode);
+        res = gnl_simfs_inode_increase_pending_locks(inode);
         if (res == -1) {
             return -1;
         }
     }
 
-    if (inode->waiting_locker_pid != 13) {
+    if (inode->pending_locks != 13) {
         return -1;
     }
 
     for (size_t i=0; i<13; i++) {
-        res = gnl_simfs_inode_decrease_locker_pid(inode);
+        res = gnl_simfs_inode_decrease_pending_locks(inode);
         if (res == -1) {
             return -1;
         }
     }
 
-    if (inode->waiting_locker_pid != 0) {
+    if (inode->pending_locks != 0) {
         return -1;
     }
 
@@ -359,19 +359,19 @@ int can_decrease_locker_pid() {
     return 0;
 }
 
-int can_not_decrease_locker_pid() {
+int can_not_decrease_pending_locks() {
     struct gnl_simfs_inode *inode = gnl_simfs_inode_init("test");
 
     if (inode == NULL) {
         return -1;
     }
 
-    int res = gnl_simfs_inode_decrease_locker_pid(inode);
+    int res = gnl_simfs_inode_decrease_pending_locks(inode);
     if (res != -1) {
         return -1;
     }
 
-    if (inode->waiting_locker_pid != 0) {
+    if (inode->pending_locks != 0) {
         return -1;
     }
 
@@ -384,24 +384,24 @@ int can_not_decrease_locker_pid() {
     return 0;
 }
 
-int can_check_locker_pid() {
+int can_check_pending_locks() {
     struct gnl_simfs_inode *inode = gnl_simfs_inode_init("test");
 
     if (inode == NULL) {
         return -1;
     }
 
-    int res = gnl_simfs_inode_has_locker_pid(inode);
+    int res = gnl_simfs_inode_has_pending_locks(inode);
     if (res != 0) {
         return -1;
     }
 
-    res = gnl_simfs_inode_increase_locker_pid(inode);
+    res = gnl_simfs_inode_increase_pending_locks(inode);
     if (res == -1) {
         return -1;
     }
 
-    res = gnl_simfs_inode_has_locker_pid(inode);
+    res = gnl_simfs_inode_has_pending_locks(inode);
     if (res != 1) {
         return -1;
     }
@@ -492,7 +492,7 @@ int can_copy() {
         return -1;
     }
 
-    if (inode_copy->waiting_locker_pid != inode->waiting_locker_pid) {
+    if (inode_copy->pending_locks != inode->pending_locks) {
         return -1;
     }
 
@@ -516,7 +516,7 @@ int can_update() {
     time_t mtime = inode->mtime;
     int locked = inode->locked;
     int reference_count = inode->reference_count;
-    int waiting_locker_pid = inode->waiting_locker_pid;
+    int pending_locks = inode->pending_locks;
 
     struct gnl_simfs_inode *new_inode = gnl_simfs_inode_copy(inode);
     if (new_inode == NULL) {
@@ -525,7 +525,7 @@ int can_update() {
 
     new_inode->locked = 4;
     new_inode->reference_count = 1;
-    new_inode->waiting_locker_pid = 3;
+    new_inode->pending_locks = 3;
 
     time_t start_time = time(NULL);
 
@@ -565,7 +565,7 @@ int can_update() {
         return -1;
     }
 
-    if (inode->waiting_locker_pid != waiting_locker_pid) {
+    if (inode->pending_locks != pending_locks) {
         return -1;
     }
 
@@ -673,10 +673,10 @@ int main() {
     gnl_assert(can_not_decrease_refs, "can not decrease an inode reference count if it was not previously increased.");
     gnl_assert(can_check_refs, "can check if an inode has references to it.");
 
-    gnl_assert(can_increase_locker_pid, "can increase an inode locker pid.");
-    gnl_assert(can_decrease_locker_pid, "can decrease an inode locker pid.");
-    gnl_assert(can_not_decrease_locker_pid, "can not decrease an inode locker pid if it was not previously increased.");
-    gnl_assert(can_check_locker_pid, "can check if an inode has locker pid.");
+    gnl_assert(can_increase_pending_locks, "can increase an inode pending locks.");
+    gnl_assert(can_decrease_pending_locks, "can decrease an inode pending locks.");
+    gnl_assert(can_not_decrease_pending_locks, "can not decrease an inode pending locks if it was not previously increased.");
+    gnl_assert(can_check_pending_locks, "can check if an inode has pending locks.");
 
     gnl_assert(can_add_to_file, "can add bytes to the file within an inode.");
 

@@ -55,7 +55,7 @@ struct gnl_simfs_inode {
     unsigned int reference_count;
 
     // the count of pid that want to lock the pointed file
-    unsigned int waiting_locker_pid;
+    unsigned int pending_locks;
 };
 
 /**
@@ -167,34 +167,34 @@ extern int gnl_simfs_inode_file_lock(struct gnl_simfs_inode *inode, unsigned int
 extern int gnl_simfs_inode_file_unlock(struct gnl_simfs_inode *inode, unsigned int pid);
 
 /**
- * Increase the locker pid count of the given inode.
+ * Increase the pending locks count of the given inode.
  *
  * @param inode The inode instance where to increase the
- *              locker pid count.
+ *              pending locks count.
  *
  * @return      Returns 0 on success, -1 otherwise.
  */
-extern int gnl_simfs_inode_increase_locker_pid(struct gnl_simfs_inode *inode);
+extern int gnl_simfs_inode_increase_pending_locks(struct gnl_simfs_inode *inode);
 
 /**
- * Decrease the locker pid count of the given inode.
+ * Decrease the pending locks count of the given inode.
  *
  * @param inode The inode instance where to decrease the
- *              locker pid count.
+ *              pending locks count.
  *
  * @return      Returns 0 on success, -1 otherwise.
  */
-extern int gnl_simfs_inode_decrease_locker_pid(struct gnl_simfs_inode *inode);
+extern int gnl_simfs_inode_decrease_pending_locks(struct gnl_simfs_inode *inode);
 
 /**
- * Check whether the inode has waiting locker pid.
+ * Check whether the inode has pending_locks.
  *
  * @param inode The inode instance to check.
  *
- * @return      Returns 1 if the inode has one or more locker pid,
+ * @return      Returns 1 if the inode has one or more pending locks,
  *              0 otherwise, if an error occurred, returns -1.
  */
-extern int gnl_simfs_inode_has_locker_pid(struct gnl_simfs_inode *inode);
+extern int gnl_simfs_inode_has_pending_locks(struct gnl_simfs_inode *inode);
 
 /**
  * Write up to count bytes from the buffer starting at buf to the

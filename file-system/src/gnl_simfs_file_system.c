@@ -235,9 +235,9 @@ int gnl_simfs_file_system_open(struct gnl_simfs_file_system *file_system, const 
             return -1;
         }
 
-        // increase the locker pid of the inode to inform that a lock
+        // increase the pending locks count of the inode to inform that a lock
         // is pending
-        res = gnl_simfs_inode_increase_locker_pid(inode);
+        res = gnl_simfs_inode_increase_pending_locks(inode);
         GNL_SIMFS_MINUS1_CHECK(res, errno, -1, pid)
 
         // check if the file can be locked: if not, wait for it
@@ -250,8 +250,8 @@ int gnl_simfs_file_system_open(struct gnl_simfs_file_system *file_system, const 
 
         gnl_logger_debug(file_system->logger, "Open: file \"%s\" locked by pid %d", filename, pid);
 
-        // decrease the waiting locker pid
-        res = gnl_simfs_inode_decrease_locker_pid(inode);
+        // decrease the pending_locks count
+        res = gnl_simfs_inode_decrease_pending_locks(inode);
         GNL_SIMFS_MINUS1_CHECK(res, errno, -1, pid)
     }
     // else if we want to access the file without lock
@@ -269,11 +269,11 @@ int gnl_simfs_file_system_open(struct gnl_simfs_file_system *file_system, const 
             return -1;
         }
 
-        // if there are pending locker pid return an error
-        int has_locker_pid = gnl_simfs_inode_has_locker_pid(inode);
-        GNL_SIMFS_MINUS1_CHECK(has_locker_pid, errno, -1, pid)
+        // if there are pending locks return an error
+        int has_pending_locks = gnl_simfs_inode_has_pending_locks(inode);
+        GNL_SIMFS_MINUS1_CHECK(has_pending_locks, errno, -1, pid)
 
-        if (has_locker_pid > 0) {
+        if (has_pending_locks > 0) {
             errno = EBUSY;
 
             gnl_logger_debug(file_system->logger, "Open failed: GNL_SIMFS_O_LOCK flag not provided but file \"%s\" "
@@ -527,9 +527,9 @@ int gnl_simfs_file_system_lock(struct gnl_simfs_file_system *file_system, const 
         }
     }
 
-    // increase the locker pid of the inode to inform that a lock
+    // increase the pending locks count of the inode to inform that a lock
     // is pending
-    int res = gnl_simfs_inode_increase_locker_pid(inode);
+    int res = gnl_simfs_inode_increase_pending_locks(inode);
     GNL_SIMFS_MINUS1_CHECK(res, errno, -1, pid)
 
     // check if the file can be locked: if not, wait for it
@@ -542,8 +542,8 @@ int gnl_simfs_file_system_lock(struct gnl_simfs_file_system *file_system, const 
 
     gnl_logger_debug(file_system->logger, "Lock: file \"%s\" locked by pid %d", filename, pid);
 
-    // decrease the waiting locker pid
-    res = gnl_simfs_inode_decrease_locker_pid(inode);
+    // decrease the pending_locks count
+    res = gnl_simfs_inode_decrease_pending_locks(inode);
     GNL_SIMFS_MINUS1_CHECK(res, errno, -1, pid)
 
     gnl_logger_debug(file_system->logger, "Lock: lock of file \"%s\" succeeded, inode updated", filename);

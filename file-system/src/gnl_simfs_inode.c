@@ -29,7 +29,7 @@ struct gnl_simfs_inode *gnl_simfs_inode_init(const char *name) {
     inode->size = 0;
     inode->locked = 0;
     inode->direct_ptr = NULL;
-    inode->waiting_locker_pid = 0;
+    inode->pending_locks = 0;
     inode->reference_count = 0;
 
     // set the last status change timestamp of the inode
@@ -206,10 +206,10 @@ int gnl_simfs_inode_file_unlock(struct gnl_simfs_inode *inode, unsigned int pid)
 /**
  * {@inheritDoc}
  */
-int gnl_simfs_inode_increase_locker_pid(struct gnl_simfs_inode *inode) {
+int gnl_simfs_inode_increase_pending_locks(struct gnl_simfs_inode *inode) {
     GNL_NULL_CHECK(inode, EINVAL, -1)
 
-    inode->waiting_locker_pid++;
+    inode->pending_locks++;
 
     // set the last status change timestamp of the inode
     inode->ctime = time(NULL);
@@ -220,20 +220,20 @@ int gnl_simfs_inode_increase_locker_pid(struct gnl_simfs_inode *inode) {
 /**
  * {@inheritDoc}
  */
-int gnl_simfs_inode_decrease_locker_pid(struct gnl_simfs_inode *inode) {
+int gnl_simfs_inode_decrease_pending_locks(struct gnl_simfs_inode *inode) {
     GNL_NULL_CHECK(inode, EINVAL, -1)
 
-    if (inode->waiting_locker_pid == 0) {
+    if (inode->pending_locks == 0) {
         errno = EPERM;
         return -1;
     }
 
-    inode->waiting_locker_pid--;
+    inode->pending_locks--;
 
     // set the last status change timestamp of the inode
     inode->ctime = time(NULL);
 
-    if (inode->waiting_locker_pid == 0) {
+    if (inode->pending_locks == 0) {
         return pthread_cond_signal(&(inode->file_access_available));
     }
 
@@ -243,10 +243,10 @@ int gnl_simfs_inode_decrease_locker_pid(struct gnl_simfs_inode *inode) {
 /**
  * {@inheritDoc}
  */
-int gnl_simfs_inode_has_locker_pid(struct gnl_simfs_inode *inode) {
+int gnl_simfs_inode_has_pending_locks(struct gnl_simfs_inode *inode) {
     GNL_NULL_CHECK(inode, EINVAL, -1)
 
-    return inode->waiting_locker_pid > 0;
+    return inode->pending_locks > 0;
 }
 
 /**
@@ -312,7 +312,7 @@ struct gnl_simfs_inode *gnl_simfs_inode_copy(const struct gnl_simfs_inode *inode
     inode_copy->direct_ptr = inode->direct_ptr;
     inode_copy->locked = inode->locked;
     inode_copy->reference_count = inode->reference_count;
-    inode_copy->waiting_locker_pid = inode->waiting_locker_pid;
+    inode_copy->pending_locks = inode->pending_locks;
 
     // initialize condition variables
     int res = pthread_cond_init(&(inode_copy->file_access_available), NULL);
