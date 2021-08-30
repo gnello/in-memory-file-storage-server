@@ -125,7 +125,7 @@ static int gnl_simfs_rts_fflush_inode(struct gnl_simfs_file_system *file_system,
     // if we have nothing to flush, return with an error
     GNL_MINUS1_CHECK(-1 * (inode->buffer_size <= 0), EINVAL, -1)
 
-    gnl_logger_debug(file_system->logger, "Flushing %d bytes of the file entry \"%s\" in the file table",
+    gnl_logger_debug(file_system->logger, "Flushing %d bytes of file entry \"%s\" into the file table",
                      inode->buffer_size, inode->name);
 
     // update the inode with the new entry

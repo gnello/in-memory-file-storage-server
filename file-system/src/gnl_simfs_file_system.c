@@ -342,6 +342,8 @@ int gnl_simfs_file_system_write(struct gnl_simfs_file_system *file_system, int f
     struct gnl_simfs_inode *inode_copy = gnl_simfs_rts_get_inode_by_fd(file_system, fd, pid);
     GNL_SIMFS_NULL_CHECK(inode_copy, errno, -1, pid)
 
+    gnl_logger_debug(file_system->logger, "Write: got file descriptor %d's inode", fd);
+
     // get if the file is locked information
     int file_locked_by_pid = gnl_simfs_inode_is_file_locked(inode_copy);
     GNL_SIMFS_MINUS1_CHECK(file_locked_by_pid, errno, -1, pid)
@@ -363,6 +365,9 @@ int gnl_simfs_file_system_write(struct gnl_simfs_file_system *file_system, int f
     // write the given buf into the inode copy buffer
     int nwrite = gnl_simfs_inode_write(inode_copy, buf, count);
     GNL_SIMFS_MINUS1_CHECK(nwrite, errno, -1, pid)
+
+    gnl_logger_debug(file_system->logger, "Write: %d bites written into file descriptor %d's inode, inode "
+                                          "updated", nwrite, fd);
 
     // update the inode into the file table, this invocation is
     // mandatory because we are working on a copy of the inode,
