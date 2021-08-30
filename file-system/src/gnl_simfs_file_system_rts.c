@@ -43,6 +43,10 @@ struct gnl_simfs_file_system {
  *                      NULL otherwise.
  */
 static struct gnl_simfs_inode *gnl_simfs_rts_get_inode(struct gnl_simfs_file_system *file_system, const char *filename) {
+    // validate the parameters
+    GNL_NULL_CHECK(file_system, EINVAL, NULL)
+    GNL_MINUS1_CHECK(-1 * (strlen(filename) == 0), EINVAL, NULL)
+
     // get the inode of the filename
     struct gnl_simfs_inode *inode = gnl_simfs_file_table_get(file_system->file_table, filename);
 
@@ -72,6 +76,9 @@ static struct gnl_simfs_inode *gnl_simfs_rts_get_inode(struct gnl_simfs_file_sys
  *                      NULL otherwise.
  */
 static struct gnl_simfs_inode *gnl_simfs_rts_create_inode(struct gnl_simfs_file_system *file_system, const char *filename) {
+    // validate the parameters
+    GNL_NULL_CHECK(file_system, EINVAL, NULL)
+    GNL_MINUS1_CHECK(-1 * (strlen(filename) == 0), EINVAL, NULL)
 
     gnl_logger_debug(file_system->logger, "Creating file: \"%s\"", filename);
 
@@ -117,7 +124,7 @@ static int gnl_simfs_rts_fflush_inode(struct gnl_simfs_file_system *file_system,
         const struct gnl_simfs_inode *buffer_entry, size_t count) {
     // validate the parameters
     GNL_NULL_CHECK(file_system, EINVAL, -1)
-    GNL_NULL_CHECK(key, EINVAL, -1)
+    GNL_MINUS1_CHECK(-1 * (strlen(key) == 0), EINVAL, -1)
     GNL_NULL_CHECK(buffer_entry, EINVAL, -1)
 
     gnl_logger_debug(file_system->logger, "Flushing file entry \"%s\" in the file table", key);
@@ -157,7 +164,7 @@ static int gnl_simfs_rts_fflush_inode(struct gnl_simfs_file_system *file_system,
 static int gnl_simfs_rts_remove_inode(struct gnl_simfs_file_system *file_system, const char *key) {
     // validate the parameters
     GNL_NULL_CHECK(file_system, EINVAL, -1)
-    GNL_NULL_CHECK(key, EINVAL, -1)
+    GNL_MINUS1_CHECK(-1 * (strlen(key) == 0), EINVAL, -1)
 
     gnl_logger_debug(file_system->logger, "Removing entry \"%s\" from the file table", key);
 

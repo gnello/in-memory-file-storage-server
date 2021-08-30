@@ -438,6 +438,7 @@ int gnl_simfs_file_system_remove(struct gnl_simfs_file_system *file_system, cons
 
     // validate the parameters
     GNL_SIMFS_NULL_CHECK(file_system, EINVAL, -1, pid)
+    GNL_SIMFS_MINUS1_CHECK(-1 * (strlen(filename) == 0), EINVAL, -1, pid)
 
     gnl_logger_debug(file_system->logger, "Remove: pid %d is trying to remove file %s", pid, filename);
 
@@ -474,9 +475,83 @@ int gnl_simfs_file_system_remove(struct gnl_simfs_file_system *file_system, cons
     return 0;
 }
 
-// TODO: remove file, capire se si può fare (vedi reference count) (fare test per vedere cosa fa linux) -> vedere gnl_simfs_file_system_lock
+/**
+ * {@inheritDoc}
+ */
+int gnl_simfs_file_system_lock(struct gnl_simfs_file_system *file_system, const char *filename, unsigned int pid) {
+    // acquire the lock
+    GNL_SIMFS_LOCK_ACQUIRE(-1, pid)
+
+    // validate the parameters
+    GNL_SIMFS_NULL_CHECK(file_system, EINVAL, -1, pid)
+    GNL_SIMFS_MINUS1_CHECK(-1 * (strlen(filename) == 0), EINVAL, -1, pid)
+
+    gnl_logger_debug(file_system->logger, "Lock: pid %d is trying to lock file %s", pid, filename);
+
+    // search the file in the file table
+    struct gnl_simfs_inode *inode = gnl_simfs_rts_get_inode(file_system, filename);
+    GNL_SIMFS_NULL_CHECK(inode, errno, -1, pid)
+
+    gnl_logger_debug(file_system->logger, "Lock: entry \"%s\" found, locking file", filename);
+
+    // get if the file is locked information
+    int file_locked_by_pid = gnl_simfs_inode_is_file_locked(inode);
+    GNL_SIMFS_MINUS1_CHECK(file_locked_by_pid, errno, -1, pid)
+
+    // if the file is locked
+    if (file_locked_by_pid > 0) {
+
+        // if the file is locked by the given pid return with success
+        if (file_locked_by_pid == pid) {
+            gnl_logger_debug(file_system->logger, "Lock: file \"%s\" already locked by pid %d, returning", filename, pid);
+
+            GNL_SIMFS_LOCK_RELEASE(-1, pid)
+
+            return 0;
+        }
+        // if the file is locked by other pid return an error
+        else {
+            errno = EBUSY;
+
+            gnl_logger_debug(file_system->logger, "Lock failed: file \"%s\" is locked by pid %d and it can "
+                                                  "not be accessed", filename, file_locked_by_pid);
+
+            GNL_SIMFS_LOCK_RELEASE(-1, pid)
+
+            return -1;
+        }
+    }
+
+    // increase the locker pid of the inode to inform that a lock
+    // is pending
+    int res = gnl_simfs_inode_increase_locker_pid(inode);
+    GNL_SIMFS_MINUS1_CHECK(res, errno, -1, pid)
+
+    // check if the file can be locked: if not, wait for it
+    res = gnl_simfs_rts_wait_file_to_be_lockable(file_system, inode);
+    GNL_SIMFS_MINUS1_CHECK(res, errno, -1, pid)
+
+    // lock the file
+    res = gnl_simfs_inode_file_lock(inode, pid);
+    GNL_SIMFS_MINUS1_CHECK(res, errno, -1, pid)
+
+    gnl_logger_debug(file_system->logger, "Lock: file \"%s\" locked by pid %d", filename, pid);
+
+    // decrease the waiting locker pid
+    res = gnl_simfs_inode_decrease_locker_pid(inode);
+    GNL_SIMFS_MINUS1_CHECK(res, errno, -1, pid)
+
+    gnl_logger_debug(file_system->logger, "Lock: lock of file \"%s\" succeeded, inode updated", filename);
+
+    // release the lock
+    GNL_SIMFS_LOCK_RELEASE(-1, pid)
+
+    return 0;
+}
 // TODO: fare buffer s scrivere lì, riportare nell'inode solo alla chiusura (NO, meglio alla write) se il file non è stato rimosso
-// TODO: la lettura può avvenire tranquillamente dalla copia buffer
+// TODO: la lettura può avvenire dal direct pointer, la scrittura farla nella copia buffer (metterci solo i nuovi bytes e fare la free dopo il fflush)
+// TODO: usare solo le reference e togliere gli hippie pid
+// TODO: forza, manca solo la lock/unlock e la read!!!
 
 #undef GNL_SIMFS_MAX_OPEN_FILES
 

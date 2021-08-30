@@ -63,7 +63,7 @@ extern int gnl_simfs_file_system_open(struct gnl_simfs_file_system *file_system,
 
 /**
  * Write up to count bytes from the buffer starting at buf to the file referred to by
- * the file descriptor fd. //TODO: decidere se è atomica o no
+ * the file descriptor fd.//TODO: decidere se è atomica o no
  * //TODO: c'è un limite alla grandezza del file?
  *
  * @param file_system   The file system instance where to write the file.
@@ -92,6 +92,7 @@ extern int gnl_simfs_file_system_close(struct gnl_simfs_file_system *file_system
 /**
  * Remove the file pointed by the given filename. After this invocation the file removed
  * can not be accessed anymore as it will completely destroyed.
+ * To call this method, you must have called gnl_simfs_file_system_lock first.
  *
  * @param file_system   The file system instance where to remove the given file name.
  * @param filename      The filename of the file to remove.
@@ -100,5 +101,17 @@ extern int gnl_simfs_file_system_close(struct gnl_simfs_file_system *file_system
  * @return              Return 0 on success, -1 otherwise.
  */
 extern int gnl_simfs_file_system_remove(struct gnl_simfs_file_system *file_system, const char *filename, unsigned int pid);
+
+/**
+ * Lock the file pointed by the given filename. After this invocation the file locked
+ * can not be accessed by other pid.
+ *
+ * @param file_system   The file system instance where to lock the given file name.
+ * @param filename      The filename of the file to lock.
+ * @param pid           The id of the process who invoked this method.
+ *
+ * @return              Return 0 on success, -1 otherwise.
+ */
+extern int gnl_simfs_file_system_lock(struct gnl_simfs_file_system *file_system, const char *filename, unsigned int pid);
 
 #endif //GNL_SIMFS_FILE_SYSTEM_H

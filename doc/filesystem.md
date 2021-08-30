@@ -78,9 +78,10 @@ will be unlocked.
 ```c 
 extern int gnl_simfs_file_system_remove(struct gnl_simfs_file_system *file_system, const char *filename, unsigned int pid);
 ```
-We can remove a file only if it is locked and we own the lock, thus we can refer to the ["Lock a file" section](#lock-a-file)
-for this method precaution analysis. After that, the file can be removed without additional concerns. If the file is not 
-locked, or if it is and the invoking thread does not own the lock, then the removing will fail.
+We can remove a file only if it is locked and we own the lock, thus we can refer to the ["Lock a file"](#lock-a-file)
+or ["Open with lock flag"](#open-with-lock-flag) sections for this method precaution analysis. After that, the file can be removed 
+without additional concerns. If the file is not locked, or if it is and the invoking thread does not own the lock, 
+then the removing will fail.
 
 ### Lock a file
 
