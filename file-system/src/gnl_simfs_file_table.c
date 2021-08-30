@@ -123,6 +123,12 @@ static struct gnl_simfs_inode *gnl_simfs_file_table_create(struct gnl_simfs_file
     GNL_NULL_CHECK(file_table, EINVAL, NULL)
     GNL_NULL_CHECK(filename, EINVAL, NULL)
 
+    // search the filename key in the file table
+    struct gnl_simfs_inode *tmp = gnl_simfs_file_table_get(file_table, filename);
+
+    // if the key is present return an error
+    GNL_MINUS1_CHECK(-1 * (tmp != NULL), EEXIST, NULL)
+
     // create a new inode
     struct gnl_simfs_inode *inode = gnl_simfs_inode_init(filename);
     GNL_NULL_CHECK(inode, errno, NULL)
@@ -151,6 +157,13 @@ static int gnl_simfs_file_table_fflush(struct gnl_simfs_file_table *file_table,
 
     // if the key is not present return an error
     GNL_NULL_CHECK(inode, errno, -1)
+
+    // check if the buffer_entry is not the original inode
+    if (inode == buffer_entry) {
+        errno = EINVAL;
+
+        return -1;
+    }
 
     // update the inode with the new entry
     int res = gnl_simfs_inode_update(inode, buffer_entry, count);
@@ -185,6 +198,9 @@ static int gnl_simfs_file_table_remove(struct gnl_simfs_file_table *file_table, 
 
     // update the file table size
     file_table->size -= count;
+
+    // update the file table count
+    file_table->count--;
 
     return 0;
 }
