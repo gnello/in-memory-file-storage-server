@@ -33,8 +33,14 @@ struct gnl_simfs_inode {
     // the direct_ptr attribute
     char *name;
 
-    // the direct pointer to the file
+    // the direct pointer to read from the file
     void *direct_ptr;
+
+    // the buffer to write in a file
+    void *buffer; //TODO: implement
+
+    // the buffer size in bytes
+    void *buffer_size; //TODO: implement
 
     // the owner id of the lock, it should be a number > 0:
     // if 0 then the inode is unlocked, if > 0 the inode is locked;
