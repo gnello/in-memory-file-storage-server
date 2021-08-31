@@ -45,6 +45,10 @@ int can_init_an_inode() {
         return -1;
     }
 
+    if (inode->reference_list != NULL) {
+        return -1;
+    }
+
     if (inode->locked != 0) {
         return -1;
     }
@@ -202,7 +206,7 @@ int can_increase_refs() {
 
     int res;
     for (size_t i=0; i<13; i++) {
-        res = gnl_simfs_inode_increase_refs(inode);
+        res = gnl_simfs_inode_increase_refs(inode, 1);
         if (res == -1) {
             return -1;
         }
@@ -226,7 +230,7 @@ int can_decrease_refs() {
 
     int res;
     for (size_t i=0; i<13; i++) {
-        res = gnl_simfs_inode_increase_refs(inode);
+        res = gnl_simfs_inode_increase_refs(inode, i);
         if (res == -1) {
             return -1;
         }
@@ -236,8 +240,12 @@ int can_decrease_refs() {
         return -1;
     }
 
+    if (inode->reference_list == NULL) {
+        return -1;
+    }
+
     for (size_t i=0; i<13; i++) {
-        res = gnl_simfs_inode_decrease_refs(inode);
+        res = gnl_simfs_inode_decrease_refs(inode, i);
         if (res == -1) {
             return -1;
         }
@@ -259,12 +267,30 @@ int can_not_decrease_refs() {
         return -1;
     }
 
-    int res = gnl_simfs_inode_decrease_refs(inode);
+    int res = gnl_simfs_inode_decrease_refs(inode, 1);
     if (res != -1) {
         return -1;
     }
 
     if (inode->reference_count != 0) {
+        return -1;
+    }
+
+    if (errno != EPERM) {
+        return -1;
+    }
+
+    res = gnl_simfs_inode_increase_refs(inode, 1);
+    if (res == -1) {
+        return -1;
+    }
+
+    res = gnl_simfs_inode_decrease_refs(inode, 2);
+    if (res != -1) {
+        return -1;
+    }
+
+    if (inode->reference_count != 1) {
         return -1;
     }
 
@@ -289,13 +315,67 @@ int can_check_refs() {
         return -1;
     }
 
-    res = gnl_simfs_inode_increase_refs(inode);
+    res = gnl_simfs_inode_increase_refs(inode, 1);
     if (res == -1) {
         return -1;
     }
 
     res = gnl_simfs_inode_has_refs(inode);
     if (res != 1) {
+        return -1;
+    }
+
+    gnl_simfs_inode_destroy(inode);
+
+    return 0;
+}
+
+int can_check_pid_refs() {
+    struct gnl_simfs_inode *inode = gnl_simfs_inode_init("test");
+
+    if (inode == NULL) {
+        return -1;
+    }
+
+    int res = gnl_simfs_inode_increase_refs(inode, 1);
+    if (res == -1) {
+        return -1;
+    }
+
+    res = gnl_simfs_inode_has_other_pid_refs(inode, 1);
+    if (res != 0) {
+        return -1;
+    }
+
+    res = gnl_simfs_inode_increase_refs(inode, 2);
+    if (res == -1) {
+        return -1;
+    }
+
+    res = gnl_simfs_inode_has_other_pid_refs(inode, 1);
+    if (res != 1) {
+        return -1;
+    }
+
+    gnl_simfs_inode_destroy(inode);
+
+    return 0;
+}
+
+int can_not_check_pid_refs() {
+    struct gnl_simfs_inode *inode = gnl_simfs_inode_init("test");
+
+    if (inode == NULL) {
+        return -1;
+    }
+
+    int res = gnl_simfs_inode_has_other_pid_refs(inode, 1);
+
+    if (res != -1) {
+        return -1;
+    }
+
+    if (errno != EPERM) {
         return -1;
     }
 
@@ -615,6 +695,9 @@ int main() {
     gnl_assert(can_decrease_refs, "can decrease an inode reference count.");
     gnl_assert(can_not_decrease_refs, "can not decrease an inode reference count if it was not previously increased.");
     gnl_assert(can_check_refs, "can check if an inode has references to it.");
+    gnl_assert(can_check_pid_refs, "can check if an inode has any other pid references besides the given pid.");
+    gnl_assert(can_not_check_pid_refs, "can not check if an inode has any other pid references besides the given "
+                                       "pid if the given pid is not present into the reference list.");
 
     gnl_assert(can_increase_pending_locks, "can increase an inode pending locks.");
     gnl_assert(can_decrease_pending_locks, "can decrease an inode pending locks.");

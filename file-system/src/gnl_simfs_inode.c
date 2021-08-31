@@ -6,38 +6,39 @@
 #include <gnl_macro_beg.h>
 
 /**
- * {@inheritDoc}
+ * Compare function for the gnl_list_search method. It checks
+ * if the pid is equal to the given element.
+ *
+ * @param el    The element of the list.
+ * @param pid   The element to use to compare.
+ *
+ * @return      Returns 0 if the given pid is equal to the given
+ *              element, -1 otherwise.
  */
-struct gnl_simfs_inode *gnl_simfs_inode_init(const char *name) {
-    struct gnl_simfs_inode *inode = (struct gnl_simfs_inode *)malloc(sizeof(struct gnl_simfs_inode));
-    GNL_NULL_CHECK(inode, ENOMEM, NULL)
+static int has_pid(const void *el, const void *pid) {
+    if (*(unsigned int *)el == *(unsigned int *)pid) {
+        return 0;
+    }
 
-    // set the creation time of the file
-    inode->btime = time(NULL);
+    return -1;
+}
 
-    // initialize condition variables
-    int res = pthread_cond_init(&(inode->file_access_available), NULL);
-    GNL_MINUS1_CHECK(res, errno, NULL)
+/**
+ * Compare function for the gnl_list_search method. It checks
+ * if the pid is not equal to the given element.
+ *
+ * @param el    The element of the list.
+ * @param pid   The element to use to compare.
+ *
+ * @return      Returns 0 if the given pid is not equal to the given
+ *              element, -1 otherwise.
+ */
+static int has_different_pid(const void *el, const void *pid) {
+    if (*(unsigned int *)el != *(unsigned int *)pid) {
+        return 0;
+    }
 
-    // set the name
-    GNL_CALLOC(inode->name, strlen(name) + 1, NULL)
-    strncpy(inode->name, name, strlen(name));
-
-    // initialize others attributes
-    inode->mtime = 0;
-    inode->atime = 0;
-    inode->size = 0;
-    inode->locked = 0;
-    inode->direct_ptr = NULL;
-    inode->pending_locks = 0;
-    inode->reference_count = 0;
-    inode->buffer = NULL;
-    inode->buffer_size = 0;
-
-    // set the last status change timestamp of the inode
-    inode->ctime = time(NULL);
-
-    return inode;
+    return -1;
 }
 
 /**
@@ -66,18 +67,58 @@ static void destroy_inode(struct gnl_simfs_inode *inode, int with_pointed_file) 
         inode->direct_ptr = NULL;
     }
 
+    // destroy the reference list
+    gnl_list_destroy(&(inode->reference_list), free);
+    inode->reference_list = NULL;
+
     // destroy the buffer
     free(inode->buffer);
     inode->buffer = NULL;
 
     // clear the waiting queue
-//    pthread_cond_broadcast(&(inode->file_access_available));
+//    pthread_cond_broadcast(&(inode->file_is_lockable));
 
     // destroy the condition variables
-    pthread_cond_destroy(&(inode->file_access_available));
+    pthread_cond_destroy(&(inode->file_is_lockable));
 
     // destroy the inode
     free(inode);
+}
+
+/**
+ * {@inheritDoc}
+ */
+struct gnl_simfs_inode *gnl_simfs_inode_init(const char *name) {
+    struct gnl_simfs_inode *inode = (struct gnl_simfs_inode *)malloc(sizeof(struct gnl_simfs_inode));
+    GNL_NULL_CHECK(inode, ENOMEM, NULL)
+
+    // set the creation time of the file
+    inode->btime = time(NULL);
+
+    // initialize condition variables
+    int res = pthread_cond_init(&(inode->file_is_lockable), NULL);
+    GNL_MINUS1_CHECK(res, errno, NULL)
+
+    // set the name
+    GNL_CALLOC(inode->name, strlen(name) + 1, NULL)
+    strncpy(inode->name, name, strlen(name));
+
+    // initialize others attributes
+    inode->mtime = 0;
+    inode->atime = 0;
+    inode->size = 0;
+    inode->locked = 0;
+    inode->direct_ptr = NULL;
+    inode->pending_locks = 0;
+    inode->reference_count = 0;
+    inode->reference_list = NULL;
+    inode->buffer = NULL;
+    inode->buffer_size = 0;
+
+    // set the last status change timestamp of the inode
+    inode->ctime = time(NULL);
+
+    return inode;
 }
 
 /**
@@ -106,16 +147,27 @@ int gnl_simfs_inode_is_file_locked(struct gnl_simfs_inode *inode) {
 /**
  * {@inheritDoc}
  */
-int gnl_simfs_inode_wait_file_availability(struct gnl_simfs_inode *inode, pthread_mutex_t *mtx) {
-    return pthread_cond_wait(&(inode->file_access_available), mtx);
+int gnl_simfs_inode_wait_file_lockability(struct gnl_simfs_inode *inode, pthread_mutex_t *mtx) {
+    return pthread_cond_wait(&(inode->file_is_lockable), mtx);
 }
 
 /**
  * {@inheritDoc}
  */
-int gnl_simfs_inode_increase_refs(struct gnl_simfs_inode *inode) {
+int gnl_simfs_inode_increase_refs(struct gnl_simfs_inode *inode, unsigned int pid) {
     GNL_NULL_CHECK(inode, EINVAL, -1)
 
+    // copy the pid
+    unsigned int *pid_copy = malloc(sizeof(unsigned int));
+    GNL_NULL_CHECK(pid_copy, ENOMEM, -1)
+
+    *pid_copy = pid;
+
+    // add the pid to the reference list
+    int res = gnl_list_insert(&(inode->reference_list), pid_copy);
+    GNL_MINUS1_CHECK(res, errno, -1);
+
+    // increase the reference count
     inode->reference_count++;
 
     // set the last status change timestamp of the inode
@@ -127,7 +179,7 @@ int gnl_simfs_inode_increase_refs(struct gnl_simfs_inode *inode) {
 /**
  * {@inheritDoc}
  */
-int gnl_simfs_inode_decrease_refs(struct gnl_simfs_inode *inode) {
+int gnl_simfs_inode_decrease_refs(struct gnl_simfs_inode *inode, unsigned int pid) {
     GNL_NULL_CHECK(inode, EINVAL, -1)
 
     if (inode->reference_count == 0) {
@@ -135,10 +187,26 @@ int gnl_simfs_inode_decrease_refs(struct gnl_simfs_inode *inode) {
         return -1;
     }
 
+    // check if the pid is allowed to decrease the refs
+    if (gnl_list_search(inode->reference_list, &pid, has_pid) == 0) {
+        errno = EPERM;
+        return -1;
+    }
+
+    // remove the pid to the reference list
+    int res = gnl_list_delete(&(inode->reference_list), &pid);
+    GNL_MINUS1_CHECK(res, errno, -1);
+
+    // decrease the reference count
     inode->reference_count--;
 
     // set the last status change timestamp of the inode
     inode->ctime = time(NULL);
+
+    // wake up eventually waiting threads
+    if (inode->reference_count == 0 || gnl_list_search(inode->reference_list, &pid, has_different_pid) == 0) {
+        return pthread_cond_signal(&(inode->file_is_lockable));
+    }
 
     return 0;
 }
@@ -150,6 +218,21 @@ int gnl_simfs_inode_has_refs(struct gnl_simfs_inode *inode) {
     GNL_NULL_CHECK(inode, EINVAL, -1)
 
     return inode->reference_count > 0;
+}
+
+/**
+ * {@inheritDoc}
+ */
+int gnl_simfs_inode_has_other_pid_refs(struct gnl_simfs_inode *inode, unsigned int pid) {
+    GNL_NULL_CHECK(inode, EINVAL, -1)
+
+    // check if the pid is allowed to check the refs
+    if (gnl_list_search(inode->reference_list, &pid, has_pid) == 0) {
+        errno = EPERM;
+        return -1;
+    }
+
+    return gnl_list_search(inode->reference_list, &pid, has_different_pid);
 }
 
 /**
@@ -205,8 +288,7 @@ int gnl_simfs_inode_file_unlock(struct gnl_simfs_inode *inode, unsigned int pid)
     // set the last status change timestamp of the inode
     inode->ctime = time(NULL);
 
-    // wake up eventually waiting threads
-    return pthread_cond_signal(&(inode->file_access_available));
+    return 0;
 }
 
 /**
@@ -238,10 +320,6 @@ int gnl_simfs_inode_decrease_pending_locks(struct gnl_simfs_inode *inode) {
 
     // set the last status change timestamp of the inode
     inode->ctime = time(NULL);
-
-    if (inode->pending_locks == 0) {
-        return pthread_cond_signal(&(inode->file_access_available));
-    }
 
     return 0;
 }
@@ -314,6 +392,7 @@ struct gnl_simfs_inode *gnl_simfs_inode_copy(const struct gnl_simfs_inode *inode
     inode_copy->direct_ptr = inode->direct_ptr;
     inode_copy->locked = inode->locked;
     inode_copy->reference_count = inode->reference_count;
+    inode_copy->reference_list = NULL;
     inode_copy->pending_locks = inode->pending_locks;
 
     // do not preserve the buffer
@@ -321,7 +400,7 @@ struct gnl_simfs_inode *gnl_simfs_inode_copy(const struct gnl_simfs_inode *inode
     inode_copy->buffer_size = 0;
 
     // initialize condition variables
-    int res = pthread_cond_init(&(inode_copy->file_access_available), NULL);
+    int res = pthread_cond_init(&(inode_copy->file_is_lockable), NULL);
     GNL_MINUS1_CHECK(res, errno, NULL)
 
     // set the last status change timestamp of the inode
