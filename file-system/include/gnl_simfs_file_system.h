@@ -107,11 +107,11 @@ extern int gnl_simfs_file_system_remove(struct gnl_simfs_file_system *file_syste
  * can not be accessed by other pid.
  *
  * @param file_system   The file system instance where to lock the given file name.
- * @param filename      The filename of the file to lock.
+ * @param fd            The file descriptor to lock.
  * @param pid           The id of the process who invoked this method.
  *
  * @return              Return 0 on success, -1 otherwise.
  */
-extern int gnl_simfs_file_system_lock(struct gnl_simfs_file_system *file_system, const char *filename, unsigned int pid);
+extern int gnl_simfs_file_system_lock(struct gnl_simfs_file_system *file_system, int fd, unsigned int pid);
 
 #endif //GNL_SIMFS_FILE_SYSTEM_H
