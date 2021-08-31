@@ -116,7 +116,7 @@ int can_not_lock_different_pid() {
         return -1;
     }
 
-    if (errno != EPERM) {
+    if (errno != EACCES) {
         return -1;
     }
 
@@ -180,7 +180,7 @@ int can_not_unlock_different_pid() {
         return -1;
     }
 
-    if (errno != EPERM) {
+    if (errno != EACCES) {
         return -1;
     }
 

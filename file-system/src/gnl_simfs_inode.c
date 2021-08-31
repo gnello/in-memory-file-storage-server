@@ -167,7 +167,7 @@ int gnl_simfs_inode_file_lock(struct gnl_simfs_inode *inode, unsigned int pid) {
     // if the file is locked by a different
     // pid return an error
     if (inode->locked != 0) {
-        errno = EPERM;
+        errno = EACCES;
         return -1;
     }
 
@@ -195,7 +195,7 @@ int gnl_simfs_inode_file_unlock(struct gnl_simfs_inode *inode, unsigned int pid)
     // if the file is locked by a different
     // pid return an error
     if (inode->locked != pid) {
-        errno = EPERM;
+        errno = EACCES;
         return -1;
     }
 
