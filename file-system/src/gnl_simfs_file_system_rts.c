@@ -225,7 +225,7 @@ static int gnl_simfs_rts_wait_file_to_be_lockable(struct gnl_simfs_file_system *
         gnl_logger_debug(file_system->logger, "The file \"%s\" is opened (but not locked) by one or more pid, "
                                               "it can not be locked, waiting", inode->name);
 
-        res = gnl_simfs_inode_wait_file_availability(inode, &(file_system->mtx));
+        res = gnl_simfs_inode_wait_file_lockability(inode, &(file_system->mtx));
         GNL_MINUS1_CHECK(res, errno, -1)
     }
 

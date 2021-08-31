@@ -31,17 +31,16 @@ by providing the appropriate flag (`O_CREATE` and `O_LOCK` respectively). We dis
 #### Open with no flag
 In this case, the file must be present in the filesystem and it must not be locked by other threads, that means that his 
 reference count might be greater than zero. After that, it can be accessed without additional concerns. If the file is not 
-present in the filesystem or is locked, then the opening will fail. In addition, there might be a thread waiting to open 
-the file with the `O_LOCK` flag, in this case the opening will fail, treating the file as if it were locked.
+present in the filesystem or is locked, then the opening will fail. In addition, there might be a thread waiting to lock
+the file, or to open it with the `O_LOCK` flag, in this case the opening will fail, treating the file as if it were locked.
 
 #### Open with `O_LOCK` flag
-In this case, the file must be present in the filesystem and it must not be locked by other threads. In addition, it 
-must not be already opened by other threads, including the invoking one, that means that his reference count must be 
-equal to zero. After that, it can be locked without additional concerns. If the file is not present or is locked by other 
-threads, then the opening will fail. If the file is opened by other threads, including the invoking one, the filesystem 
-will wait until each thread closes it and his reference count shrinks to zero, then it will lock the file as soon as possible. 
-Notice that if a thread open a file without lock, and then try to open the same file providing the `O_LOCK` flag, but without 
-closing the previous open, then the opening will fail preventing a deadlock. 
+In this case, the file must be present in the filesystem, and it must not be locked by other threads. In addition, it 
+must not be already opened by other threads, that means that his reference count must be equal to zero, or it may be 
+greater than zero but his reference list must contain only the invoking thread. After that, it can be locked without 
+additional concerns. If the file is not present or is locked by other threads, then the opening will fail. If the file 
+is opened by other threads, the filesystem will wait until each thread closes it and his reference count shrinks to zero, 
+or until his reference list will contain only the invoking thread, then it will lock the file as soon as possible.
 
 #### Open with `O_CREATE` flag
 In this case, the only concern is that the file must not be already present in the filesystem. After that, it can be
@@ -64,8 +63,8 @@ might be greater than one. However, because the filesystem permits only one thre
 can be written without additional concerns. If the file is locked, then the writing will fail.
 
 #### Write a file that is locked, but we own the lock
-In this case, no other threads can write the file because of the lock, that means that his reference count is equal to 
-one, that is only the invoking thread have opened it. Thus, the file can be written without additional concerns.
+In this case, no other threads can write the file because of the lock, that means that his reference list contains only 
+the invoking thread. Thus, the file can be written without additional concerns.
 
 ### Close a file
 ```c 
@@ -78,18 +77,17 @@ will be unlocked.
 ```c 
 extern int gnl_simfs_file_system_remove(struct gnl_simfs_file_system *file_system, const char *filename, unsigned int pid);
 ```
-We can remove a file only if it is locked and we own the lock, thus we can refer to the ["Lock a file"](#lock-a-file)
-or ["Open with lock flag"](#open-with-O_CREATE-flag) sections for this method precaution analysis. After that, the file can be removed 
-without additional concerns. If the file is not locked, or if it is and the invoking thread does not own the lock, 
-then the removing will fail.
+We can remove a file only if it is locked, and we own the lock. Thus, we can refer to the ["Lock a file"](#lock-a-file)
+or ["Open with lock flag"](#open-with-O_CREATE-flag) sections for this method precaution analysis. After that, the file 
+can be removed without additional concerns. If the file is not locked, or if it is and the invoking thread does not own 
+the lock, then the removing will fail.
 
 ### Lock a file
 ```c
-extern int gnl_simfs_file_system_lock(struct gnl_simfs_file_system *file_system, const char *filename, unsigned int pid);
+extern int gnl_simfs_file_system_lock(struct gnl_simfs_file_system *file_system, int fd, unsigned int pid);
 ```
-To lock a file, the file must not be already locked or opened by other threads, that means that his reference count must 
-be equal to one, that is only the invoking thread must be opened it. In addition, the invoking thread must not have previously
-opened it twice without the `O_LOCK` flag. After that, it can be locked without additional concerns. 
-If the file is locked by other threads, then the locking will fail. If the file is opened by other threads, then the 
-filesystem will wait until each thread closes it and his reference count shrinks to one, then it will lock the file as 
-soon as possible. 
+To lock a file, the file must not be already locked or opened by other threads, that means that his reference list must 
+contain only the invoking thread. After that, it can be locked without additional concerns. If the file is locked by 
+other threads, then the locking will fail. If the file is opened by other threads, then the filesystem will wait until 
+each thread closes it and his reference list will contain only the invoking thread, then it will lock the file as soon 
+as possible. 
