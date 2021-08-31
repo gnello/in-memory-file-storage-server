@@ -16,10 +16,10 @@ can operate on the filesystem.
 
 ## The Filesystem Interface
 As already mentioned, only one thread per time can operate on the filesystem. In addition, a thread can lock a file so 
-that other threads can not access it until the lock is released. Finally, the filesystem must ensure data integrity 
+that any other thread can not access it until the lock is released. Finally, the filesystem must ensure data integrity 
 across multiple operations by different threads. To implement these requirements it is necessary to make some considerations 
-on borderline cases as well as on performance. Below we discuss the precautions to be taken for the most critical methods 
-of the public interface.
+on borderline cases as well as on performance. Below we discuss the precautions to be taken for all the methods of the 
+public interface.
 
 ### Open a file
 ```c 
@@ -29,17 +29,17 @@ A successful opening of a file increases his reference count by one. A file can 
 by providing the appropriate flag (`O_CREATE` and `O_LOCK` respectively). We discuss each case.
 
 #### Open with no flag
-In this case, the file must be present in the filesystem and it must not be locked by other threads, that means that his 
+In this case, the file must be present in the filesystem and it must not be locked by any other thread, that means that his 
 reference count might be greater than zero. After that, it can be accessed without additional concerns. If the file is not 
 present in the filesystem or is locked, then the opening will fail. In addition, there might be a thread waiting to lock
 the file, or to open it with the `O_LOCK` flag, in this case the opening will fail, treating the file as if it were locked.
 
 #### Open with `O_LOCK` flag
-In this case, the file must be present in the filesystem, and it must not be locked by other threads. In addition, it 
-must not be already opened by other threads, that means that his reference count must be equal to zero, or it may be 
+In this case, the file must be present in the filesystem, and it must not be locked by any other thread. In addition, it 
+must not be already opened by any other thread, that means that his reference count must be equal to zero, or it may be 
 greater than zero but his reference list must contain only the invoking thread. After that, it can be locked without 
-additional concerns. If the file is not present or is locked by other threads, then the opening will fail. If the file 
-is opened by other threads, the filesystem will wait until each thread closes it and his reference count shrinks to zero, 
+additional concerns. If the file is not present or is locked by any other thread, then the opening will fail. If the file 
+is opened by any other thread, the filesystem will wait until each thread closes it and his reference count shrinks to zero, 
 or until his reference list will contain only the invoking thread, then it will lock the file as soon as possible.
 
 #### Open with `O_CREATE` flag
@@ -71,7 +71,11 @@ the invoking thread. Thus, the file can be written without additional concerns.
 extern int gnl_simfs_file_system_close(struct gnl_simfs_file_system *file_system, int fd, unsigned int pid);
 ```
 A successful closing of a file decreases his reference count by one. If the file is locked by the invoking thread, then it
-will be unlocked.
+will be unlocked. Notice that a thread can hold more than one file descriptor per file, that means that if a thread opened
+the same file twice or more, and then uses one of that file descriptors to lock the file, then the lock will be shared 
+to all the others file descriptors pointing that file. Similarly, closing a file descriptor pointing to a file locked by 
+the invoking thread will result in an unlocking of all the others file descriptors held by the invoking thread pointing 
+that file.
 
 ### Remove a file
 ```c 
@@ -86,8 +90,17 @@ the lock, then the removing will fail.
 ```c
 extern int gnl_simfs_file_system_lock(struct gnl_simfs_file_system *file_system, int fd, unsigned int pid);
 ```
-To lock a file, the file must not be already locked or opened by other threads, that means that his reference list must 
-contain only the invoking thread. After that, it can be locked without additional concerns. If the file is locked by 
-other threads, then the locking will fail. If the file is opened by other threads, then the filesystem will wait until 
-each thread closes it and his reference list will contain only the invoking thread, then it will lock the file as soon 
-as possible. 
+To lock a file, the file must not be already locked or opened by any other thread, that means that his reference list must 
+contain only the invoking thread. After that, it can be locked without additional concerns. If the file is already locked 
+by the invoking thread, then nothing happen. If the file is locked by any other thread, then the locking will fail. If the 
+file is opened by any other thread, then the filesystem will wait until each thread closes it and his reference list will 
+contain only the invoking thread, then it will lock the file as soon as possible. 
+
+### Unlock a file
+```c
+extern int gnl_simfs_file_system_unlock(struct gnl_simfs_file_system *file_system, int fd, unsigned int pid);
+```
+To unlock a file, the file must be previously locked by the invoking thread, that means that his reference list must
+contain only the invoking thread. After that, it can be locked without additional concerns. If the file is already 
+unlocked, or if the file is locked by any other thread, so that the invoking thread does not own the lock, then the 
+locking will fail.

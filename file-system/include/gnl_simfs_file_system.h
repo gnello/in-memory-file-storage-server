@@ -114,4 +114,16 @@ extern int gnl_simfs_file_system_remove(struct gnl_simfs_file_system *file_syste
  */
 extern int gnl_simfs_file_system_lock(struct gnl_simfs_file_system *file_system, int fd, unsigned int pid);
 
+/**
+ * Unlock the file pointed by the given filename. After this invocation the file unlocked
+ * can be accessed by any other pid.
+ *
+ * @param file_system   The file system instance where to unlock the given file name.
+ * @param fd            The file descriptor to unlock.
+ * @param pid           The id of the process who invoked this method.
+ *
+ * @return              Return 0 on success, -1 otherwise.
+ */
+extern int gnl_simfs_file_system_unlock(struct gnl_simfs_file_system *file_system, int fd, unsigned int pid);
+
 #endif //GNL_SIMFS_FILE_SYSTEM_H

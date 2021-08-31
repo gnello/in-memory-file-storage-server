@@ -223,7 +223,7 @@ int gnl_simfs_file_system_open(struct gnl_simfs_file_system *file_system, const 
     // if the file must be locked
     if (GNL_SIMFS_O_LOCK & flags) {
 
-        // if the file is locked by other pid return an error
+        // if the file is locked by any other pid return an error
         if (file_locked_by_pid > 0 && file_locked_by_pid != pid) {
             errno = EBUSY;
 
@@ -522,7 +522,7 @@ int gnl_simfs_file_system_lock(struct gnl_simfs_file_system *file_system, int fd
 
             return 0;
         }
-        // if the file is locked by other pid return an error
+        // if the file is locked by any other pid return an error
         else {
             errno = EBUSY;
 
@@ -561,9 +561,77 @@ int gnl_simfs_file_system_lock(struct gnl_simfs_file_system *file_system, int fd
 
     return 0;
 }
-// TODO: fare buffer s scrivere lì, riportare nell'inode solo alla chiusura (NO, meglio alla write) se il file non è stato rimosso
-// TODO: la lettura può avvenire dal direct pointer, la scrittura farla nella copia buffer (metterci solo i nuovi bytes e fare la free dopo il fflush)
-// TODO: forza, manca solo la unlock e la read!!!
+
+/**
+ * {@inheritDoc}
+ */
+int gnl_simfs_file_system_unlock(struct gnl_simfs_file_system *file_system, int fd, unsigned int pid) {
+    // acquire the lock
+    GNL_SIMFS_LOCK_ACQUIRE(-1, pid)
+
+    // validate the parameters
+    GNL_SIMFS_NULL_CHECK(file_system, EINVAL, -1, pid)
+
+    gnl_logger_debug(file_system->logger, "Unlock: pid %d is trying to unlock file descriptor %d", pid, fd);
+
+    // search the file in the file descriptor table
+    struct gnl_simfs_inode *inode_copy = gnl_simfs_rts_get_inode_by_fd(file_system, fd, pid);
+    GNL_SIMFS_NULL_CHECK(inode_copy, errno, -1, pid)
+
+    // search the key in the file table
+    struct gnl_simfs_inode *inode = gnl_simfs_rts_get_inode(file_system, inode_copy->name);
+    GNL_SIMFS_NULL_CHECK(inode, errno, -1, pid)
+
+    gnl_logger_debug(file_system->logger, "Unlock: entry \"%s\" found, unlocking file", inode_copy->name);
+
+    // get if the file is locked information
+    int file_locked_by_pid = gnl_simfs_inode_is_file_locked(inode);
+    GNL_SIMFS_MINUS1_CHECK(file_locked_by_pid, errno, -1, pid)
+
+    // if the file is already unlocked return an error
+    if (file_locked_by_pid == 0) {
+        errno = EPERM;
+
+        gnl_logger_debug(file_system->logger, "Unlock failed: file \"%s\" is unlocked, it can be unlocked by pid %d",
+                         inode_copy->name, pid);
+
+        GNL_SIMFS_LOCK_RELEASE(-1, pid)
+
+        return -1;
+    }
+
+    // if the file is locked by any other pid
+    if (file_locked_by_pid != pid) {
+        errno = EBUSY;
+
+        gnl_logger_debug(file_system->logger, "Unlock failed: file \"%s\" is locked by pid %d and it can "
+                                              "not be accessed", inode_copy->name, file_locked_by_pid);
+
+        GNL_SIMFS_LOCK_RELEASE(-1, pid)
+
+        return -1;
+    }
+
+    // unlock the file
+    int res = gnl_simfs_inode_file_unlock(inode, pid);
+    GNL_SIMFS_MINUS1_CHECK(res, errno, -1, pid)
+
+    gnl_logger_debug(file_system->logger, "Unlock: file \"%s\" unlocked by pid %d", inode_copy->name, pid);
+
+    gnl_logger_debug(file_system->logger, "Unlock: unlock of file \"%s\" succeeded, inode updated", inode_copy->name);
+
+    // release the lock
+    GNL_SIMFS_LOCK_RELEASE(-1, pid)
+
+    return 0;
+}
+// TODO: gestire bene il buffer e le closing se il file viene rimosso,
+//  aggiungere check che permette di ritornare con successo anche se il file non esiste più. Questa logica si regge sul
+//  fatto che dopo la open si lavora sulle copie, se sono su una copia e il file originale non c'è più allora ritornare
+//  con successo. Unica domanda: come si fa per la lettura? va posticipata l'eliminazione del file quando le reference
+//  vanno a zero, aggiungere flag deleted sull'inode?
+
+// TODO: forza, manca solo la read!!!
 
 #undef GNL_SIMFS_MAX_OPEN_FILES
 
