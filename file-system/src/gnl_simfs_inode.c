@@ -81,6 +81,9 @@ static void destroy_inode(struct gnl_simfs_inode *inode, int with_pointed_file) 
     // destroy the condition variables
     pthread_cond_destroy(&(inode->file_is_lockable));
 
+    // useless, but consistent until the end :)
+    inode->ctime = time(NULL);
+
     // destroy the inode
     free(inode);
 }
