@@ -54,17 +54,34 @@ created and locked as well without additional concerns. If the file is already p
 ```c 
 extern int gnl_simfs_file_system_write(struct gnl_simfs_file_system *file_system, int fd, const void *buf, size_t count, unsigned int pid);
 ```
-A write to a file is guaranteed to be atomic by the filesystem. We can write a file in two cases: the file is not locked 
-or the file is locked and we own the lock. We discuss each case.
+Writing to a file is guaranteed to be atomic by the filesystem. We can write a file in two cases: the file is not locked 
+or the file is locked, and we own the lock. We discuss each case.
 
 #### Write a file that is not locked
-In this case, if the file is not already locked, then any thread can write the file, that means that his reference count 
-might be greater than one. However, because the filesystem permits only one thread per time to operate on it, the file 
-can be written without additional concerns. If the file is locked, then the writing will fail.
+In this case, if the file is not locked, then any thread can write the file, that means that his reference count might 
+be greater than one. However, because the filesystem permits only one thread per time to operate on it, the file can be 
+written without additional concerns. If the file is locked, then the writing will fail.
 
 #### Write a file that is locked, but we own the lock
 In this case, no other threads can write the file because of the lock, that means that his reference list contains only 
 the invoking thread. Thus, the file can be written without additional concerns.
+
+### Read a file
+```c 
+extern int gnl_simfs_file_system_read(struct gnl_simfs_file_system *file_system, int fd, void **buf, size_t *count, unsigned int pid);
+```
+Reading a file requires the same reasoning as writing, so we can read a file in two cases: the file is not locked
+or the file is locked, and we own the lock. We discuss each case.
+
+#### Read a file that is not locked
+In this case, if the file is not locked, then any thread can read the file, that means that his reference count might 
+be greater than one. Be aware that in this case any thread can also write on the file. However, because the filesystem 
+permits only one thread per time to operate on it, the file can be read without additional concerns. If the file is 
+locked, then the reading will fail.
+
+#### Read a file that is locked, but we own the lock
+In this case, no other threads can read the file because of the lock, that means that his reference list contains only
+the invoking thread. Thus, the file can be read without additional concerns.
 
 ### Close a file
 ```c 

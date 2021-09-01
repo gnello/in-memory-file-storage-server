@@ -366,8 +366,7 @@ int gnl_simfs_file_system_write(struct gnl_simfs_file_system *file_system, int f
     int nwrite = gnl_simfs_inode_write(inode_copy, buf, count);
     GNL_SIMFS_MINUS1_CHECK(nwrite, errno, -1, pid)
 
-    gnl_logger_debug(file_system->logger, "Write: %d bites written into file descriptor %d's inode, inode "
-                                          "updated", nwrite, fd);
+    gnl_logger_debug(file_system->logger, "Write: %d bytes written into file descriptor %d's inode", nwrite, fd);
 
     // update the inode into the file table, this invocation is
     // mandatory because we are working on a copy of the inode,
@@ -376,6 +375,62 @@ int gnl_simfs_file_system_write(struct gnl_simfs_file_system *file_system, int f
     GNL_SIMFS_MINUS1_CHECK(res, errno, -1, pid)
 
     gnl_logger_debug(file_system->logger, "Write: write on file descriptor %d succeeded, inode updated", fd);
+
+    // release the lock
+    GNL_SIMFS_LOCK_RELEASE(-1, pid)
+
+    return 0;
+}
+
+/**
+ * {@inheritDoc}
+ */
+int gnl_simfs_file_system_read(struct gnl_simfs_file_system *file_system, int fd, void **buf, size_t *count,unsigned int pid) {
+    // acquire the lock
+    GNL_SIMFS_LOCK_ACQUIRE(-1, pid)
+
+    // validate the parameters
+    GNL_SIMFS_NULL_CHECK(file_system, EINVAL, -1, pid)
+
+    gnl_logger_debug(file_system->logger, "Read: pid %d is trying to read from file descriptor %d", pid, fd);
+
+    // search the file in the file descriptor table
+    struct gnl_simfs_inode *inode_copy = gnl_simfs_rts_get_inode_by_fd(file_system, fd, pid);
+    GNL_SIMFS_NULL_CHECK(inode_copy, errno, -1, pid)
+
+    gnl_logger_debug(file_system->logger, "Read: got file descriptor %d's inode", fd);
+
+    // get if the file is locked information
+    int file_locked_by_pid = gnl_simfs_inode_is_file_locked(inode_copy);
+    GNL_SIMFS_MINUS1_CHECK(file_locked_by_pid, errno, -1, pid)
+
+    // check if the file is not locked or if we own the lock
+    if (file_locked_by_pid > 0 && file_locked_by_pid != pid) {
+        errno = EBUSY;
+
+        gnl_logger_debug(file_system->logger, "Read failed: file \"%s\" is locked by pid %d and it can not be "
+                                              "accessed", inode_copy->name, file_locked_by_pid);
+
+        GNL_SIMFS_LOCK_RELEASE(-1, pid)
+
+        return -1;
+    }
+
+    //TODO: da qui in poi in caso di errore non lasciare lo stato della struct corrotto
+
+    // read the file into the given buf
+    int nread = gnl_simfs_inode_read(inode_copy, buf, count);
+    GNL_SIMFS_MINUS1_CHECK(nread, errno, -1, pid)
+
+    gnl_logger_debug(file_system->logger, "Read: %d bytes read from file descriptor %d's inode", nread, fd);
+
+    // update the inode into the file table, this invocation is
+    // mandatory because we are working on a copy of the inode,
+    // so the original one needs to be updated with the modified copy
+    int res = gnl_simfs_rts_fflush_inode(file_system, inode_copy);
+    GNL_SIMFS_MINUS1_CHECK(res, errno, -1, pid)
+
+    gnl_logger_debug(file_system->logger, "Read: read on file descriptor %d succeeded, inode updated", fd);
 
     // release the lock
     GNL_SIMFS_LOCK_RELEASE(-1, pid)

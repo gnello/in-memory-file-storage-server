@@ -63,8 +63,7 @@ extern int gnl_simfs_file_system_open(struct gnl_simfs_file_system *file_system,
 
 /**
  * Write up to count bytes from the buffer starting at buf to the file referred to by
- * the file descriptor fd.//TODO: decidere se è atomica o no
- * //TODO: c'è un limite alla grandezza del file?
+ * the file descriptor fd.
  *
  * @param file_system   The file system instance where to write the file.
  * @param fd            The file descriptor referring the file where to write.
@@ -75,6 +74,21 @@ extern int gnl_simfs_file_system_open(struct gnl_simfs_file_system *file_system,
  * @return              Return 0 on success, -1 otherwise.
  */
 extern int gnl_simfs_file_system_write(struct gnl_simfs_file_system *file_system, int fd, const void *buf, size_t count,
+        unsigned int pid);
+
+/**
+ * Read the whole file pointed by the given file descriptor fd into buf, and
+ * write the number of bytes read into count.
+ *
+ * @param file_system   The file system instance from where to read the file.
+ * @param fd            The file descriptor referring the file to read.
+ * @param buf           The buffer pointer where to write the read data.
+ * @param count         The count of bytes read.
+ * @param pid           The id of the process who invoked this method.
+ *
+ * @return              Return 0 on success, -1 otherwise.
+ */
+extern int gnl_simfs_file_system_read(struct gnl_simfs_file_system *file_system, int fd, void **buf, size_t *count,
         unsigned int pid);
 
 /**

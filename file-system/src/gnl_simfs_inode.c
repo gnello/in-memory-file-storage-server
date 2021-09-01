@@ -390,6 +390,9 @@ int gnl_simfs_inode_read(struct gnl_simfs_inode *inode, void **buf, size_t *coun
     // set the count
     *count = inode->size;
 
+    // set the access timestamp of the inode
+    inode->atime = time(NULL);
+
     // set the last status change timestamp of the inode
     inode->ctime = time(NULL);
 
