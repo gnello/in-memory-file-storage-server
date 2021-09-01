@@ -223,6 +223,19 @@ extern int gnl_simfs_inode_has_pending_locks(struct gnl_simfs_inode *inode);
 extern int gnl_simfs_inode_write(struct gnl_simfs_inode *inode, const void *buf, size_t count);
 
 /**
+ * Read the whole file within the given inode into the given buffer, and
+ * write the number of bytes read into the given count. This method updates
+ * the given inode atime attribute.
+ *
+ * @param inode The inode instance where to write to the file.
+ * @param buf   The buffer pointer where to write the read data.
+ * @param count The count of bytes read.
+ *
+ * @return      Returns 0 on success, -1 otherwise.
+ */
+extern int gnl_simfs_inode_read(struct gnl_simfs_inode *inode, void **buf, size_t *count);
+
+/**
  * Create and return a copy of the given inode. The copy does not preserve
  * the original inode buffer and the original reference list.
  *

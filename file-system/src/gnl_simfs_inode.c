@@ -376,6 +376,29 @@ int gnl_simfs_inode_write(struct gnl_simfs_inode *inode, const void *buf, size_t
 /**
  * {@inheritDoc}
  */
+int gnl_simfs_inode_read(struct gnl_simfs_inode *inode, void **buf, size_t *count) {
+    //validate the parameters
+    GNL_NULL_CHECK(inode, EINVAL, -1)
+
+    // alloc the memory onto the buffer for the reading
+    *buf = calloc(inode->size, 1);
+    GNL_NULL_CHECK(*buf, ENOMEM, -1)
+
+    // read the data
+    memcpy(*buf, inode->direct_ptr, inode->size);
+
+    // set the count
+    *count = inode->size;
+
+    // set the last status change timestamp of the inode
+    inode->ctime = time(NULL);
+
+    return 0;
+}
+
+/**
+ * {@inheritDoc}
+ */
 struct gnl_simfs_inode *gnl_simfs_inode_copy(const struct gnl_simfs_inode *inode) {
     GNL_NULL_CHECK(inode, EINVAL, NULL)
 

@@ -537,6 +537,51 @@ int can_write() {
     return 0;
 }
 
+int can_read() {
+    struct gnl_simfs_inode *inode = gnl_simfs_inode_init("test");
+
+    long size;
+    char *content = NULL;
+
+    int res = gnl_file_to_pointer("./testfile.txt", &content, &size);
+    if (res == -1) {
+        return -1;
+    }
+
+    res = gnl_simfs_inode_write(inode, content, size);
+    if (res == -1) {
+        return -1;
+    }
+
+    res = gnl_simfs_inode_fflush(inode);
+    if (res == -1) {
+        return -1;
+    }
+
+    void *buf = NULL;
+    size_t count;
+
+    res = gnl_simfs_inode_read(inode, &buf, &count);
+
+    if (res == -1) {
+        return -1;
+    }
+
+    if (size != count) {
+        return -1;
+    }
+
+    if (memcmp(content, buf, size) != 0) {
+        return -1;
+    }
+
+    free(buf);
+    free(content);
+    gnl_simfs_inode_destroy(inode);
+
+    return 0;
+}
+
 int can_copy() {
     struct gnl_simfs_inode *inode = gnl_simfs_inode_init("test");
 
@@ -705,6 +750,7 @@ int main() {
     gnl_assert(can_check_pending_locks, "can check if an inode has pending locks.");
 
     gnl_assert(can_write, "can write bytes into the file within an inode.");
+    gnl_assert(can_read, "can read from the file within an inode.");
 
     gnl_assert(can_copy, "can get a copy of an inode.");
     gnl_assert(can_fflush, "can fflush an inode.");
