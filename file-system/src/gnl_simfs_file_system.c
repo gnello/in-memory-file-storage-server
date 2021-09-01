@@ -680,13 +680,6 @@ int gnl_simfs_file_system_unlock(struct gnl_simfs_file_system *file_system, int 
 
     return 0;
 }
-// TODO: gestire bene il buffer e le closing se il file viene rimosso,
-//  aggiungere check che permette di ritornare con successo anche se il file non esiste più. Questa logica si regge sul
-//  fatto che dopo la open si lavora sulle copie, se sono su una copia e il file originale non c'è più allora ritornare
-//  con successo. Unica domanda: come si fa per la lettura? va posticipata l'eliminazione del file quando le reference
-//  vanno a zero, aggiungere flag deleted sull'inode?
-
-// TODO: forza, manca solo la read!!!
 
 #undef GNL_SIMFS_MAX_OPEN_FILES
 
