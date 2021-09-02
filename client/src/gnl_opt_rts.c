@@ -22,6 +22,7 @@ static int scan_dir(const char *dirname, struct gnl_queue_t *queue, int *count, 
     DIR *dir;
     struct dirent *entry;
     int res;
+    char *filename = NULL;
 
     // open the given dirname
     dir = opendir(dirname);
@@ -34,7 +35,6 @@ static int scan_dir(const char *dirname, struct gnl_queue_t *queue, int *count, 
         }
 
         // generate the filename
-        char *filename;
         unsigned long len = strlen(dirname) + 1 + strlen(entry->d_name);
         GNL_CALLOC(filename, len + 1, -1)
 
@@ -60,9 +60,12 @@ static int scan_dir(const char *dirname, struct gnl_queue_t *queue, int *count, 
                 return -1;
             }
         } else {
-            // get the absolute path of the file
-            char buffer[PATH_MAX];
+            char *buffer;
             char *res_ptr;
+
+            // get the absolute path of the file
+            GNL_CALLOC(buffer, PATH_MAX, -1);
+
             res_ptr = realpath(filename, buffer);
             GNL_NULL_CHECK(res_ptr, errno, -1);
 

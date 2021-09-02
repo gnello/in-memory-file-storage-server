@@ -15,6 +15,8 @@ int can_scan_dir() {
         "./testdir/testdir2/testfile5.txt",
         "./testdir/testfile2.txt"
     };
+    char *buffer;
+    char *res_ptr;
 
     char *actual[6];
 
@@ -32,14 +34,30 @@ int can_scan_dir() {
         actual[i] = gnl_queue_dequeue(queue);
     }
 
+    // for each expected
     for (size_t i=0; i<6; i++) {
+
         int found = 0;
 
+        buffer = (char *)calloc(PATH_MAX, sizeof(char));
+        if (buffer == NULL) {
+            return -1;
+        }
+
+        res_ptr = realpath(expected[i], buffer);
+        if (res_ptr == NULL) {
+            return -1;
+        }
+
+        // search in actual
         for (size_t k=0; k<6; k++) {
-            if (strcmp(actual[k], expected[i]) == 0) {
+
+            if (strcmp(actual[k], buffer) == 0) {
                 found = 1;
             }
         }
+
+        free(buffer);
 
         if (found != 1) {
             return -1;
