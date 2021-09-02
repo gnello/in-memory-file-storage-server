@@ -156,8 +156,13 @@ int gnl_opt_handler_handle(struct gnl_opt_handler *handler) {
     int arg_f;
     int res = 0;
 
+    // check if we have to enable output
+    if (handler->prints) {
+        enable_output();
+    }
+
     // first open the connection to the server
-    arg_f = arg_f_start(handler->socket_filename, handler->prints);
+    arg_f = arg_f_start(handler->socket_filename);
     GNL_MINUS1_CHECK(arg_f, errno, -1);
 
     struct gnl_opt_handler_el *el;
@@ -177,17 +182,17 @@ int gnl_opt_handler_handle(struct gnl_opt_handler *handler) {
 
             case 'w':
                 if (previous_el.opt == 'D') {
-                    res = arg_w(el->arg, previous_el.arg, handler->prints);
+                    res = arg_w(el->arg, previous_el.arg);
                 } else {
-                    res = arg_w(el->arg, NULL, handler->prints);
+                    res = arg_w(el->arg, NULL);
                 }
                 break;
 
             case 'W':
                 if (previous_el.opt == 'D') {
-                    res = arg_W(el->arg, previous_el.arg, handler->prints);
+                    res = arg_W(el->arg, previous_el.arg);
                 } else {
-                    res = arg_W(el->arg, NULL, handler->prints);
+                    res = arg_W(el->arg, NULL);
                 }
                 break;
         }
@@ -205,7 +210,7 @@ int gnl_opt_handler_handle(struct gnl_opt_handler *handler) {
     }
 
     // at the end close the connection to the server
-    arg_f = arg_f_end(handler->socket_filename, handler->prints);
+    arg_f = arg_f_end(handler->socket_filename);
     GNL_MINUS1_CHECK(arg_f, errno, -1);
 
     return res;

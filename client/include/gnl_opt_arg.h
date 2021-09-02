@@ -13,23 +13,19 @@ extern void arg_h(const char* program_name);
  * Connect to the given socket_name.
  *
  * @param socket_name   The socket where to connect to.
- * @param prints        Whether or not enable prints on stdout about the
- *                      execution.
  *
  * @return              Returns 0 on success, -1 otherwise.
  */
-extern int arg_f_start(const char* socket_name, int prints);
+extern int arg_f_start(const char* socket_name);
 
 /**
  * Close connection to the given socket_name.
  *
  * @param socket_name   The socket where to close the connection.
- * @param prints        Whether or not enable prints on stdout about the
- *                      execution.
  *
  * @return              Returns 0 on success, -1 otherwise.
  */
-extern int arg_f_end(const char* socket_name, int prints);
+extern int arg_f_end(const char* socket_name);
 
 /**
  * Recursively send n files present in the given dirname to the server.
@@ -43,12 +39,10 @@ extern int arg_f_end(const char* socket_name, int prints);
  *                      will be sent to the server.
  * @param store_dirname The path where to store the trashed files from
  *                      the server.
- * @param prints        Whether or not enable prints on stdout about the
- *                      execution.
  *
  * @return              Returns 0 on success, -1 otherwise.
  */
-extern int arg_w(const char *arg, const char *store_dirname, int prints);
+extern int arg_w(const char *arg, const char *store_dirname);
 
 /**
  * Send the given files to the server. If the server trashes some files,
@@ -58,11 +52,9 @@ extern int arg_w(const char *arg, const char *store_dirname, int prints);
  *                      list of files that will be sent to the server.
  * @param store_dirname The path where to store the trashed files from
  *                      the server.
- * @param prints        Whether or not enable prints on stdout about the
- *                      execution.
  *
  * @return              Returns 0 on success, -1 otherwise.
  */
-extern int arg_W(const char *arg, const char *store_dirname, int prints);
+extern int arg_W(const char *arg, const char *store_dirname);
 
 #endif //GNL_OPT_ARG_H

@@ -2,11 +2,37 @@
 #include <stdlib.h>
 #include <dirent.h>
 #include <sys/stat.h>
+#include <stdarg.h>
 #include <gnl_queue_t.h>
 #include "../include/gnl_opt_rts.h"
 #include <gnl_macro_beg.h>
 
+#define BUFFER 1000
+
+int output = 0;
+
+static void enable_output() {
+    output = 1;
+}
+
 char *realpath(const char* restrict path, char* restrict resolved_path);
+
+/**
+ * Return the size of the file pointed by the given pathname.
+ *
+ * @param pathname  The absolute or relative path of the target file.
+ *
+ * @return          Returns the size of the file on success,
+ *                  -1 on failure.
+ */
+off_t file_size(const char* pathname){
+    struct stat st;
+
+    int res = stat(pathname, &st);
+    GNL_MINUS1_CHECK(res, errno, -1)
+
+    return st.st_size;
+}
 
 /**
  * Recursive support function of the gnl_opt_rts_scan_dir function.
@@ -145,11 +171,31 @@ int gnl_opt_rts_parse_file_list(const char *file_list, struct gnl_queue_t *queue
 }
 
 static void print_command(const char command, const char *args) {
-    printf("Executing command -%c %s:\n", command, args == NULL ? "-" : args);
+    if (output == 0) {
+        return;
+    }
+
+    printf("Executing command -%c %s:\n", command, args == NULL ? "" : args);
 }
 
-static void print_row(const char *op, const char *target, const char *res, const char *info) {
-    printf("%s, %s, %s, %s\n", op, target, res, info);
+static void print_row(const char *op, const char *target, const char *res, const char *message, ...) {
+    if (output == 0) {
+        return;
+    }
+    
+    char msg[BUFFER];
+
+    // print variables into the message
+    if (message != NULL) {
+        va_list a_list;
+        va_start(a_list, message);
+
+        vsnprintf(msg, sizeof(msg), message, a_list);
+
+        va_end(a_list);
+    }
+
+    printf("%s - %s - %s - %s\n", op, target, res, message == NULL ? "" : msg);
 }
 
 #include <gnl_macro_end.h>

@@ -20,15 +20,13 @@
  *
  * @return              Returns 0 on success, -1 otherwise.
  */
-static int gnl_opt_arg_send_file(const char *filename, const char *store_dirname, int prints) {
+static int gnl_opt_arg_send_file(const char *filename, const char *store_dirname) {
     int res;
 
     // create and open the file on the server (with lock)
     res = gnl_fss_api_open_file(filename, O_CREATE | O_LOCK);
 
-    if (prints) {
-        print_row("Open file", filename, res == 0 ? "OK" : "KO", res == 0 ? "-" : strerror(errno));
-    }
+    print_row("Open file", filename, res == 0 ? "OK" : "KO", res == 0 ? NULL : strerror(errno));
 
     GNL_MINUS1_CHECK(res, errno, -1);
 
@@ -36,9 +34,10 @@ static int gnl_opt_arg_send_file(const char *filename, const char *store_dirname
     int res_write = gnl_fss_api_write_file(filename, store_dirname);
     int errno_write = errno;
 
-    if (prints) {
-        print_row("Write file", filename, res == 0 ? "OK" : "KO", res == 0 ? "-" : strerror(errno));
-    }
+    //get the filename size
+    off_t size = file_size(filename);
+
+    print_row("Write file", filename, res == 0 ? "OK" : "KO", res == 0 ? "%d bytes written" : strerror(errno), size);
 
     // an eventual error during the write_file will be checked later
 
@@ -46,9 +45,7 @@ static int gnl_opt_arg_send_file(const char *filename, const char *store_dirname
     int res_close = gnl_fss_api_close_file(filename);
     int errno_close = errno;
 
-    if (prints) {
-        print_row("Close file", filename, res == 0 ? "OK" : "KO", res == 0 ? "-" : strerror(errno));
-    }
+    print_row("Close file", filename, res == 0 ? "OK" : "KO", res == 0 ? NULL : strerror(errno));
 
     // check if there was an error during the write_file
     if (res_write == -1) {
@@ -115,22 +112,18 @@ void arg_h(const char* program_name) { //7
 /**
  * {@inheritDoc}
  */
-int arg_f_start(const char* socket_name, int prints) { //3
+int arg_f_start(const char* socket_name) { //3
     time_t now = time(NULL);
 
     struct timespec tim;
     tim.tv_sec = now + SOCKET_WAIT_SEC;
     tim.tv_nsec = 0;
 
-    if (prints) {
-        print_command('f', socket_name);
-    }
+    print_command('f', socket_name);
 
     int res = gnl_fss_api_open_connection(socket_name, SOCKET_ATTEMPTS_INTERVAL, tim);
 
-    if (prints) {
-        print_row("Connect to socket", socket_name, res == 0 ? "OK" : "KO", res == 0 ? "-" : strerror(errno));
-    }
+    print_row("Connect to socket", socket_name, res == 0 ? "OK" : "KO", res == 0 ? NULL : strerror(errno));
 
     return res;
 }
@@ -138,7 +131,7 @@ int arg_f_start(const char* socket_name, int prints) { //3
 /**
  * {@inheritDoc}
  */
-int arg_f_end(const char* socket_name, int prints) { //3
+int arg_f_end(const char* socket_name) { //3
     return gnl_fss_api_close_connection(socket_name);
 }
 
@@ -183,7 +176,7 @@ static int arg_w_parse_arg(const char* arg, char **dirname, int *n) {
 /**
  * {@inheritDoc}
  */
-int arg_w(const char *arg, const char *store_dirname, int prints) { //11
+int arg_w(const char *arg, const char *store_dirname) { //11
     int res;
     char *dirname;
     int n;
@@ -200,7 +193,7 @@ int arg_w(const char *arg, const char *store_dirname, int prints) { //11
     while ((filename = (char *)gnl_queue_dequeue(queue)) != NULL) {
 
         // send the file to the server
-        res = gnl_opt_arg_send_file(filename, store_dirname, prints);
+        res = gnl_opt_arg_send_file(filename, store_dirname);
         GNL_MINUS1_CHECK(res, errno, -1);
 
         free(filename);
@@ -217,7 +210,7 @@ int arg_w(const char *arg, const char *store_dirname, int prints) { //11
 /**
  * {@inheritDoc}
  */
-int arg_W(const char *arg, const char *store_dirname, int prints) { //11
+int arg_W(const char *arg, const char *store_dirname) { //11
     int res;
     struct gnl_queue_t *queue;
     char *filename;
@@ -234,7 +227,7 @@ int arg_W(const char *arg, const char *store_dirname, int prints) { //11
     while ((filename = (char *)gnl_queue_dequeue(queue)) != NULL) {
 
         // send the file to the server
-        res = gnl_opt_arg_send_file(filename, store_dirname, prints);
+        res = gnl_opt_arg_send_file(filename, store_dirname);
 
         // if an error happen stop the execution
         if (res == -1) {
