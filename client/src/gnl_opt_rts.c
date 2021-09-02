@@ -182,7 +182,7 @@ static void print_row(const char *op, const char *target, const char *res, const
     if (output == 0) {
         return;
     }
-    
+
     char msg[BUFFER];
 
     // print variables into the message

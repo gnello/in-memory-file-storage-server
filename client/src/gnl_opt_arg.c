@@ -26,7 +26,7 @@ static int gnl_opt_arg_send_file(const char *filename, const char *store_dirname
     // create and open the file on the server (with lock)
     res = gnl_fss_api_open_file(filename, O_CREATE | O_LOCK);
 
-    print_row("Open file", filename, res == 0 ? "OK" : "KO", res == 0 ? NULL : strerror(errno));
+    print_row("Open file with O_CREATE|O_LOCK flags", filename, res == 0 ? "OK" : "KO", res == 0 ? NULL : strerror(errno));
 
     GNL_MINUS1_CHECK(res, errno, -1);
 
@@ -194,17 +194,21 @@ int arg_w(const char *arg, const char *store_dirname) { //11
 
         // send the file to the server
         res = gnl_opt_arg_send_file(filename, store_dirname);
-        GNL_MINUS1_CHECK(res, errno, -1);
 
         free(filename);
+
+        // if an error happen stop the execution
+        if (res == -1) {
+            break;
+        }
     }
 
     free(dirname);
 
     // destroy the queue
-    gnl_queue_destroy(queue, NULL);
+    gnl_queue_destroy(queue, free);
 
-    return 0;
+    return res;
 }
 
 /**
@@ -229,13 +233,12 @@ int arg_W(const char *arg, const char *store_dirname) { //11
         // send the file to the server
         res = gnl_opt_arg_send_file(filename, store_dirname);
 
+        free(filename);
+
         // if an error happen stop the execution
         if (res == -1) {
-            free(filename);
             break;
         }
-
-        free(filename);
     }
 
     // destroy the queue
