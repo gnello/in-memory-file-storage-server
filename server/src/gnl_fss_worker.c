@@ -109,7 +109,12 @@ static struct gnl_socket_response *handle_request(struct gnl_simfs_file_system *
             break;
 
         case GNL_SOCKET_REQUEST_REMOVE:
-            //res = gnl_simfs_file_system_remove(file_system, request->payload.remove->string);
+            res = gnl_simfs_file_system_remove(file_system, request->payload.remove->string, fd_c);
+
+            // if success create an ok response
+            if (res == 0) {
+                response = gnl_socket_response_init(GNL_SOCKET_RESPONSE_OK, 0);
+            }
             break;
 
         default:
