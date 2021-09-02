@@ -1,9 +1,12 @@
-#include <stdio.h>
+#include <limits.h>
+#include <stdlib.h>
 #include <dirent.h>
 #include <sys/stat.h>
 #include <gnl_queue_t.h>
 #include "../include/gnl_opt_rts.h"
 #include <gnl_macro_beg.h>
+
+char *realpath(const char* restrict path, char* restrict resolved_path);
 
 /**
  * Recursive support function of the gnl_opt_rts_scan_dir function.
@@ -56,16 +59,22 @@ static int scan_dir(const char *dirname, struct gnl_queue_t *queue, int *count, 
                 free(filename);
                 return -1;
             }
-
-            // free memory: filename not in a queue and no more useful
-            free(filename);
         } else {
+            // get the absolute path of the file
+            char buffer[PATH_MAX];
+            char *res_ptr;
+            res_ptr = realpath(filename, buffer);
+            GNL_NULL_CHECK(res_ptr, errno, -1);
+
             // enqueue the file
-            res = gnl_queue_enqueue(queue, filename);
+            res = gnl_queue_enqueue(queue, buffer);
             GNL_MINUS1_CHECK(res, errno, -1);
 
             (*count)++;
         }
+
+        // free memory
+        free(filename);
     }
 
     // close the directory
@@ -98,11 +107,12 @@ struct gnl_queue_t *gnl_opt_rts_scan_dir(const char *dirname, int n) {
     return queue;
 }
 
-int gnl_opt_rts_parse_file_list(const char* file_list, struct gnl_queue_t *queue) {
+int gnl_opt_rts_parse_file_list(const char *file_list, struct gnl_queue_t *queue) {
     char *tok;
     char *copy_arg;
     char *token;
-    char *token_copy;
+    char *buffer;
+    char *res_ptr;
     int res;
 
     GNL_CALLOC(copy_arg, (strlen(file_list) + 1) * sizeof(char), -1);
@@ -112,13 +122,14 @@ int gnl_opt_rts_parse_file_list(const char* file_list, struct gnl_queue_t *queue
     token = strtok_r(copy_arg, ",", &tok);
     while (token) {
 
-        // create a copy of the token to prevent
-        // value rewriting
-        GNL_CALLOC(token_copy, (strlen(token) + 1) * sizeof(char), -1);
-        strncpy(token_copy, token, strlen(token));
+        // get the absolute path of the file
+        GNL_CALLOC(buffer, PATH_MAX, -1);
+
+        res_ptr = realpath(token, buffer);
+        GNL_NULL_CHECK(res_ptr, errno, -1);
 
         // enqueue the token (i.e. the filename)
-        res = gnl_queue_enqueue(queue, token_copy);
+        res = gnl_queue_enqueue(queue, buffer);
         GNL_MINUS1_CHECK(res, errno, -1);
 
         // proceed to the next token
@@ -128,6 +139,14 @@ int gnl_opt_rts_parse_file_list(const char* file_list, struct gnl_queue_t *queue
     free(copy_arg);
 
     return 0;
+}
+
+static void print_command(const char command, const char *args) {
+    printf("Executing command -%c %s:\n", command, args == NULL ? "-" : args);
+}
+
+static void print_row(const char *op, const char *target, const char *res, const char *info) {
+    printf("%s, %s, %s, %s\n", op, target, res, info);
 }
 
 #include <gnl_macro_end.h>
