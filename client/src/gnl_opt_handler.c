@@ -25,7 +25,7 @@ extern int errno;
 struct gnl_opt_handler {
     struct gnl_queue_t *command_queue;
     char *socket_filename;
-    int debug;
+    int prints;
 };
 
 struct gnl_opt_handler_el {
@@ -59,7 +59,7 @@ struct gnl_opt_handler *gnl_opt_handler_init() {
     }
 
     // initialize struct
-    handler->debug = 0;
+    handler->prints = 0;
     handler->socket_filename = NULL;
     handler->command_queue = gnl_queue_init();
 
@@ -90,13 +90,13 @@ int gnl_opt_handler_parse_opt(struct gnl_opt_handler *handler, int argc, char* a
         switch (opt) {
             // enable operations log print
             case 'p':
-                if (handler->debug != 0) {
+                if (handler->prints != 0) {
                     optopt = 'p';
 
                     GNL_THROW_OPT_EXCEPTION(opt_err, error, "option repeated")
                 }
 
-                handler->debug = 1;
+                handler->prints = 1;
                 break;
 
             // set the socket filename
@@ -118,19 +118,16 @@ int gnl_opt_handler_parse_opt(struct gnl_opt_handler *handler, int argc, char* a
 
                 exit(EXIT_FAILURE);
                 /* NOT REACHED */
-                break;
 
             // option not valid
             case ':':
                 GNL_THROW_OPT_EXCEPTION(opt_err, error, "argument required")
                 /* NOT REACHED */
-                break;
 
             // option not valid
             case '?':
                 GNL_THROW_OPT_EXCEPTION(opt_err, error, "invalid option")
                 /* NOT REACHED */
-                break;
 
             // put every other valid option into the command queue
             default:
@@ -157,10 +154,10 @@ int gnl_opt_handler_parse_opt(struct gnl_opt_handler *handler, int argc, char* a
 int gnl_opt_handler_handle(struct gnl_opt_handler *handler) {
     int opt_t_value = 0;
     int arg_f;
-    int res;
+    int res = 0;
 
     // first open the connection to the server
-    arg_f = arg_f_start(handler->socket_filename);
+    arg_f = arg_f_start(handler->socket_filename, handler->prints);
     GNL_MINUS1_CHECK(arg_f, errno, -1);
 
     struct gnl_opt_handler_el *el;
@@ -177,21 +174,20 @@ int gnl_opt_handler_handle(struct gnl_opt_handler *handler) {
                 // process next command immediately
                 continue;
                 /* NOT REACHED */
-                break;
 
             case 'w':
                 if (previous_el.opt == 'D') {
-                    res = arg_w(el->arg, previous_el.arg);
+                    res = arg_w(el->arg, previous_el.arg, handler->prints);
                 } else {
-                    res = arg_w(el->arg, NULL);
+                    res = arg_w(el->arg, NULL, handler->prints);
                 }
                 break;
 
             case 'W':
                 if (previous_el.opt == 'D') {
-                    res = arg_W(el->arg, previous_el.arg);
+                    res = arg_W(el->arg, previous_el.arg, handler->prints);
                 } else {
-                    res = arg_W(el->arg, NULL);
+                    res = arg_W(el->arg, NULL, handler->prints);
                 }
                 break;
         }
@@ -209,7 +205,7 @@ int gnl_opt_handler_handle(struct gnl_opt_handler *handler) {
     }
 
     // at the end close the connection to the server
-    arg_f = arg_f_end(handler->socket_filename);
+    arg_f = arg_f_end(handler->socket_filename, handler->prints);
     GNL_MINUS1_CHECK(arg_f, errno, -1);
 
     return res;

@@ -23,6 +23,6 @@ extern struct gnl_queue_t *gnl_opt_rts_scan_dir(const char *dirname, int n);
  *
  * @return          Returns 0 on success, -1 otherwise.
  */
-extern int gnl_opt_rts_parse_file_list(const char* file_list, struct gnl_queue_t *queue);
+extern int gnl_opt_rts_parse_file_list(const char *file_list, struct gnl_queue_t *queue);
 
 #endif //GNL_OPT_RTS_H
