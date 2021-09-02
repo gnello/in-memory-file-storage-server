@@ -21,7 +21,7 @@ static struct gnl_socket_connection *socket_service_connection;
 int socket_service_connection_active = 0;
 
 /**
- * Whether the openFile(pathname, O_CREATE| O_LOCK) api was called.
+ * Whether the openFile(pathname, O_CREATE|O_LOCK) api was called.
  * Is set to 1 by the openFile method if the required flags are met,
  * all other methods set it to 0.
  * It used by the writeFile api to check if she can write a whole file
@@ -62,15 +62,21 @@ int gnl_fss_api_open_connection(const char *sockname, int msec, const struct tim
 
         // max wait time reached, return
         if (now > abstime.tv_sec) {
-            errno = EAGAIN;
+            // let the errno bubble
 
             return -1;
         }
 
         // wait the given amount of time
         struct timespec tim;
-        tim.tv_sec = 0;
-        tim.tv_nsec = 1000 * msec;
+
+        if(msec > 999) {
+            tim.tv_sec = (int)(msec / 1000);
+            tim.tv_nsec = (msec - ((long)tim.tv_sec * 1000)) * 1000000;
+        } else {
+            tim.tv_sec = 0;
+            tim.tv_nsec = msec * 1000000;
+        }
 
         nanosleep(&tim, NULL);
     }
@@ -81,7 +87,7 @@ int gnl_fss_api_open_connection(const char *sockname, int msec, const struct tim
     // set the connection active
     socket_service_connection_active = 1;
 
-    // reset the openFile(pathname, O_CREATE| O_LOCK) check
+    // reset the openFile(pathname, O_CREATE|O_LOCK) check
     open_with_create_lock_flags = 0;
 
     return 0;
@@ -105,7 +111,7 @@ int gnl_fss_api_close_connection(const char *sockname) {
         socket_service_connection_active = 0;
     }
 
-    // reset the openFile(pathname, O_CREATE| O_LOCK) check
+    // reset the openFile(pathname, O_CREATE|O_LOCK) check
     open_with_create_lock_flags = 0;
 
     // destroy the file descriptor table
@@ -188,7 +194,7 @@ int gnl_fss_api_open_file(const char *pathname, int flags) {
  */
 int gnl_fss_api_read_file(const char *pathname, void **buf, size_t *size) {
 
-    // reset the openFile(pathname, O_CREATE| O_LOCK) check
+    // reset the openFile(pathname, O_CREATE|O_LOCK) check
     open_with_create_lock_flags = 0;
 
     return 0;
@@ -199,7 +205,7 @@ int gnl_fss_api_read_file(const char *pathname, void **buf, size_t *size) {
  */
 int gnl_fss_api_read_N_files(int N, const char *dirname) {
 
-    // reset the openFile(pathname, O_CREATE| O_LOCK) check
+    // reset the openFile(pathname, O_CREATE|O_LOCK) check
     open_with_create_lock_flags = 0;
 
     return 0;
@@ -259,7 +265,7 @@ int gnl_fss_api_write_file(const char *pathname, const char *dirname) {
             break;
 
         case GNL_SOCKET_RESPONSE_OK:
-            // success
+            // no need to do something else here
             break;
 
         case GNL_SOCKET_RESPONSE_OK_EVICTED:
@@ -277,7 +283,7 @@ int gnl_fss_api_write_file(const char *pathname, const char *dirname) {
     // free the memory
     gnl_socket_response_destroy(response);
 
-    // if success reset the openFile(pathname, O_CREATE| O_LOCK) check
+    // if success reset the openFile(pathname, O_CREATE|O_LOCK) check
     if (res == 0) {
         open_with_create_lock_flags = 0;
     }
@@ -290,7 +296,7 @@ int gnl_fss_api_write_file(const char *pathname, const char *dirname) {
  */
 int gnl_fss_api_append_to_file(const char *pathname, void *buf, size_t size, const char *dirname) {
 
-    // reset the openFile(pathname, O_CREATE| O_LOCK) check
+    // reset the openFile(pathname, O_CREATE|O_LOCK) check
     open_with_create_lock_flags = 0;
 
     return 0;
@@ -301,7 +307,7 @@ int gnl_fss_api_append_to_file(const char *pathname, void *buf, size_t size, con
  */
 int gnl_fss_api_lock_file(const char *pathname) {
 
-    // reset the openFile(pathname, O_CREATE| O_LOCK) check
+    // reset the openFile(pathname, O_CREATE|O_LOCK) check
     open_with_create_lock_flags = 0;
 
     return 0;
@@ -312,7 +318,7 @@ int gnl_fss_api_lock_file(const char *pathname) {
  */
 int gnl_fss_api_unlock_file(const char *pathname) {
 
-    // reset the openFile(pathname, O_CREATE| O_LOCK) check
+    // reset the openFile(pathname, O_CREATE|O_LOCK) check
     open_with_create_lock_flags = 0;
 
     return 0;
@@ -375,7 +381,7 @@ int gnl_fss_api_close_file(const char *pathname) {
     // free the memory
     gnl_socket_response_destroy(response);
 
-    // reset the openFile(pathname, O_CREATE| O_LOCK) check
+    // reset the openFile(pathname, O_CREATE|O_LOCK) check
     open_with_create_lock_flags = 0;
 
     return res;
@@ -385,11 +391,53 @@ int gnl_fss_api_close_file(const char *pathname) {
  * {@inheritDoc}
  */
 int gnl_fss_api_remove_file(const char *pathname) {
+    // validate the parameters
+    GNL_NULL_CHECK(pathname, EINVAL, -1)
 
-    // reset the openFile(pathname, O_CREATE| O_LOCK) check
+    // create the request to send to the server
+    struct gnl_socket_request *request = gnl_socket_request_init(GNL_SOCKET_REQUEST_REMOVE, 1, pathname);
+    GNL_NULL_CHECK(request, ENOMEM, -1)
+
+    // send the request to the server
+    int bytes_sent = gnl_socket_service_send_request(socket_service_connection, request);
+    GNL_MINUS1_CHECK(bytes_sent, errno, -1)
+
+    // clean memory
+    gnl_socket_request_destroy(request);
+
+    // get the response from the server
+    struct gnl_socket_response *response = gnl_socket_service_get_response(socket_service_connection);
+    GNL_NULL_CHECK(response, errno, -1)
+
+    int res = 0;
+
+    // handle the response
+    switch (response->type) {
+
+        case GNL_SOCKET_RESPONSE_ERROR:
+            // an error happen, get the errno
+            errno = response->payload.error->number;
+            res = -1;
+            break;
+
+        case GNL_SOCKET_RESPONSE_OK:
+            // no need to do something else here
+            break;
+
+        default:
+            // if this point is reached, the response can not be
+            // something different from an ok response
+            errno = EBADMSG;
+            res = -1;
+    }
+
+    // free the memory
+    gnl_socket_response_destroy(response);
+
+    // reset the openFile(pathname, O_CREATE|O_LOCK) check
     open_with_create_lock_flags = 0;
 
-    return 0;
+    return res;
 }
 
 #include <gnl_macro_end.h>
