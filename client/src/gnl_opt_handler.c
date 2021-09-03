@@ -195,6 +195,10 @@ int gnl_opt_handler_handle(struct gnl_opt_handler *handler) {
                     res = arg_W(el->arg, NULL);
                 }
                 break;
+
+            case 'c':
+                res = arg_c(el->arg);
+                break;
         }
 
         previous_el = *el;

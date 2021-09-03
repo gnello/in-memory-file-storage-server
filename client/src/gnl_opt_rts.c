@@ -136,6 +136,9 @@ struct gnl_queue_t *gnl_opt_rts_scan_dir(const char *dirname, int n) {
     return queue;
 }
 
+/**
+ * {@inheritDoc}
+ */
 int gnl_opt_rts_parse_file_list(const char *file_list, struct gnl_queue_t *queue) {
     char *tok;
     char *copy_arg;
@@ -178,7 +181,7 @@ static void print_command(const char command, const char *args) {
     printf("Executing command -%c %s:\n", command, args == NULL ? "" : args);
 }
 
-static void print_row(const char *op, const char *target, const char *res, const char *message, ...) {
+static void print_row(const char *op, const char *target, const char *res, const char *message, va_list a_list) {
     if (output == 0) {
         return;
     }
@@ -187,15 +190,20 @@ static void print_row(const char *op, const char *target, const char *res, const
 
     // print variables into the message
     if (message != NULL) {
-        va_list a_list;
-        va_start(a_list, message);
 
         vsnprintf(msg, sizeof(msg), message, a_list);
-
-        va_end(a_list);
     }
 
     printf("%s - %s - %s - %s\n", op, target, res, message == NULL ? "" : msg);
+}
+
+static void print_log(const char *op, const char *target, int res, const char *message, ...) {
+    va_list a_list;
+    va_start(a_list, message);
+
+    print_row(op, target, res == 0 ? "OK" : "KO", res == 0 ? message : strerror(errno), a_list);
+
+    va_end(a_list);
 }
 
 #include <gnl_macro_end.h>

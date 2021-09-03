@@ -26,7 +26,7 @@ static int gnl_opt_arg_send_file(const char *filename, const char *store_dirname
     // create and open the file on the server (with lock)
     res = gnl_fss_api_open_file(filename, O_CREATE | O_LOCK);
 
-    print_row("Open file with O_CREATE|O_LOCK flags", filename, res == 0 ? "OK" : "KO", res == 0 ? NULL : strerror(errno));
+    print_log("Open file with O_CREATE|O_LOCK flags", filename, res, NULL);
 
     GNL_MINUS1_CHECK(res, errno, -1);
 
@@ -37,19 +37,67 @@ static int gnl_opt_arg_send_file(const char *filename, const char *store_dirname
     //get the filename size
     off_t size = file_size(filename);
 
-    print_row("Write file", filename, res == 0 ? "OK" : "KO", res == 0 ? "%d bytes written" : strerror(errno), size);
+    print_log("Write file", filename, res, "%d bytes written", size);
 
-    // an eventual error during the write_file will be checked later
+    // an eventual error during the writing will be checked later
 
     // close the file
     int res_close = gnl_fss_api_close_file(filename);
     int errno_close = errno;
 
-    print_row("Close file", filename, res == 0 ? "OK" : "KO", res == 0 ? NULL : strerror(errno));
+    print_log("Close file", filename, res, NULL);
 
-    // check if there was an error during the write_file
+    // check if there was an error during the writing
     if (res_write == -1) {
         errno = errno_write;
+
+        return -1;
+    }
+
+    // check if there was an error during the close_file
+    if (res_close == -1) {
+        errno = errno_close;
+
+        return -1;
+    }
+
+    return 0;
+}
+
+/**
+ * Remove the given file from the server using APIs.
+ *
+ * @param filename      The file to remove from the server.
+ *
+ * @return              Returns 0 on success, -1 otherwise.
+ */
+static int gnl_opt_arg_remove_file(const char *filename) {
+    int res;
+
+    // open the file on the server (with lock)
+    res = gnl_fss_api_open_file(filename, O_LOCK);
+
+    print_log("Open file with O_LOCK flags", filename, res, NULL);
+
+    GNL_MINUS1_CHECK(res, errno, -1);
+
+    // remove the file from the server
+    int res_remove = gnl_fss_api_remove_file(filename);
+    int errno_remove = errno;
+
+    print_log("Remove file", filename, res, NULL);
+
+    // an eventual error during the remove will be checked later
+
+    // close the file
+    int res_close = gnl_fss_api_close_file(filename);
+    int errno_close = errno;
+
+    print_log("Close file", filename, res, NULL);
+
+    // check if there was an error during the remove
+    if (res_remove == -1) {
+        errno = errno_remove;
 
         return -1;
     }
@@ -123,7 +171,7 @@ int arg_f_start(const char* socket_name) { //3
 
     int res = gnl_fss_api_open_connection(socket_name, SOCKET_ATTEMPTS_INTERVAL, tim);
 
-    print_row("Connect to socket", socket_name, res == 0 ? "OK" : "KO", res == 0 ? NULL : strerror(errno));
+    print_log("Connect to socket", socket_name, res, NULL);
 
     return res;
 }
@@ -232,6 +280,42 @@ int arg_W(const char *arg, const char *store_dirname) { //11
 
         // send the file to the server
         res = gnl_opt_arg_send_file(filename, store_dirname);
+
+        free(filename);
+
+        // if an error happen stop the execution
+        if (res == -1) {
+            break;
+        }
+    }
+
+    // destroy the queue
+    gnl_queue_destroy(queue, free);
+
+    return res;
+}
+
+/**
+ * {@inheritDoc}
+ */
+int arg_c(const char *arg) {
+    int res;
+    struct gnl_queue_t *queue;
+    char *filename;
+
+    // initialize the queue
+    queue = gnl_queue_init();
+    GNL_NULL_CHECK(queue, errno, -1);
+
+    // parse arg
+    res = gnl_opt_rts_parse_file_list(arg, queue);
+    GNL_MINUS1_CHECK(res, errno, -1);
+
+    // for each given files
+    while ((filename = (char *)gnl_queue_dequeue(queue)) != NULL) {
+
+        // send the file to the server
+        res = gnl_opt_arg_remove_file(filename);
 
         free(filename);
 

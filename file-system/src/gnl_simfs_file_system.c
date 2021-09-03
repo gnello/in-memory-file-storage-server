@@ -212,6 +212,8 @@ int gnl_simfs_file_system_open(struct gnl_simfs_file_system *file_system, const 
                                                   "does not exist, returning with error", filename);
             errno = ENOENT;
 
+            GNL_SIMFS_LOCK_RELEASE(-1, pid)
+
             return -1;
         }
     }
@@ -322,7 +324,7 @@ int gnl_simfs_file_system_write(struct gnl_simfs_file_system *file_system, int f
 
     // check if there is enough space to write the file
     int size = gnl_simfs_file_table_size(file_system->file_table);
-    GNL_MINUS1_CHECK(size, errno, -1);
+    GNL_SIMFS_MINUS1_CHECK(size, errno, -1, pid);
 
     int available_bytes = file_system->memory_limit - size;
     if (count > available_bytes) {
@@ -454,29 +456,55 @@ int gnl_simfs_file_system_close(struct gnl_simfs_file_system *file_system, int f
     struct gnl_simfs_inode *inode_copy = gnl_simfs_rts_get_inode_by_fd(file_system, fd, pid);
     GNL_SIMFS_NULL_CHECK(inode_copy, errno, -1, pid)
 
-    // search the key in the file table
-    struct gnl_simfs_inode *inode = gnl_simfs_rts_get_inode(file_system, inode_copy->name);
-    GNL_SIMFS_NULL_CHECK(inode, errno, -1, pid)
+    // copy the filename
+    char *filename = calloc(sizeof (char), (strlen(inode_copy->name) + 1));
+    GNL_SIMFS_NULL_CHECK(filename, ENOMEM, -1, pid)
 
-    gnl_logger_debug(file_system->logger, "Close: entry \"%s\" found, closing file", inode_copy->name);
+    strncpy(filename, inode_copy->name, strlen(inode_copy->name));
+
+    // remove the file descriptor from the file descriptor table
+    int res = gnl_simfs_file_descriptor_table_remove(file_system->file_descriptor_table, fd, pid);
+    GNL_SIMFS_MINUS1_CHECK(res, errno, -1, pid)
+
+    gnl_logger_debug(file_system->logger, "Close: file descriptor %d removed", fd);
+
+    // search the key in the file table
+    struct gnl_simfs_inode *inode = gnl_simfs_rts_get_inode(file_system, filename);
+
+    // free memory
+    free(filename);
+
+    // check the returning value
+    if (inode == NULL) {
+
+        // if the file is not found it was surely deleted, ignore the
+        // error and return success
+        if (errno == ENOENT) {
+            res = 0;
+        }
+        // else propagate the errno
+        else {
+            res = -1;
+        }
+
+        GNL_SIMFS_LOCK_RELEASE(-1, pid)
+
+        return res;
+    }
+
+    gnl_logger_debug(file_system->logger, "Close: entry \"%s\" found, closing file", inode->name);
 
     // get if the file is locked information
-    int res = gnl_simfs_inode_is_file_locked(inode);
+    res = gnl_simfs_inode_is_file_locked(inode);
     GNL_SIMFS_MINUS1_CHECK(res, errno, -1, pid)
 
     // remove lock if pid owns it
     if (res > 0 && res == pid) {
-        res = gnl_simfs_inode_file_unlock(inode, pid); //TODO: chiamare l'unlock del filesystem?
+        res = gnl_simfs_inode_file_unlock(inode, pid);
         GNL_SIMFS_MINUS1_CHECK(res, errno, -1, pid)
 
         gnl_logger_debug(file_system->logger, "Close: file \"%s\" unlocked by pid %d", inode->name, pid);
     }
-
-    // remove the file descriptor from the file descriptor table
-    res = gnl_simfs_file_descriptor_table_remove(file_system->file_descriptor_table, fd, pid);
-    GNL_SIMFS_MINUS1_CHECK(res, errno, -1, pid)
-
-    gnl_logger_debug(file_system->logger, "Close: file descriptor %d removed", fd);
 
     // decrease the inode reference count
     res = gnl_simfs_inode_decrease_refs(inode, pid);
