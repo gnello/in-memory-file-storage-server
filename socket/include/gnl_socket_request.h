@@ -31,12 +31,12 @@ struct gnl_socket_request {
     enum gnl_socket_request_type type;
     union {
         struct gnl_message_sn *open;
-        struct gnl_message_s *read;
+        struct gnl_message_n *read;
         struct gnl_message_n *read_N;
         struct gnl_message_nnb *write;
         struct gnl_message_snb *append;
-        struct gnl_message_s *lock;
-        struct gnl_message_s *unlock;
+        struct gnl_message_n *lock;
+        struct gnl_message_n *unlock;
         struct gnl_message_n *close;
         struct gnl_message_s *remove;
         //TODO: aggiungere request per fetchare i file espulsi dal server
@@ -50,14 +50,14 @@ struct gnl_socket_request {
  * @param num   The number of the subsequent params.
  * @param ...   The list of params supported by the given request type:
  *              - GNL_SOCKET_REQUEST_OPEN: char *pathname, int flags
- *              - GNL_SOCKET_REQUEST_READ: char *pathname
+ *              - GNL_SOCKET_REQUEST_READ: int fd
  *              - GNL_SOCKET_RESPONSE_READ_N: int number_of_files_to_read
  *              - GNL_SOCKET_RESPONSE_WRITE: int fd, size_t size, char *bytes
  *              - GNL_SOCKET_RESPONSE_APPEND: char *pathname, char *bytes
- *              - GNL_SOCKET_REQUEST_LOCK: char *pathname
- *              - GNL_SOCKET_REQUEST_UNLOCK: char *pathname
- *              - GNL_SOCKET_REQUEST_CLOSE: char *pathname
- *              - GNL_SOCKET_REQUEST_REMOVE: char *pathname
+ *              - GNL_SOCKET_REQUEST_LOCK: int fd
+ *              - GNL_SOCKET_REQUEST_UNLOCK: int fd
+ *              - GNL_SOCKET_REQUEST_CLOSE: int fd
+ *              - GNL_SOCKET_REQUEST_REMOVE: int fd
  *
  * @return      Returns a gnl_socket_request struct on success,
  *              NULL otherwise.

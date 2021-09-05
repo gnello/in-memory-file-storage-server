@@ -626,19 +626,19 @@ int can_to_string_read_N() {
 }
 
 int can_init_empty_read() {
-    GNL_TEST_EMPTY_REQUEST_S(GNL_SOCKET_REQUEST_READ, request->payload.read)
+    GNL_TEST_EMPTY_REQUEST_N(GNL_SOCKET_REQUEST_READ, request->payload.read)
 }
 
 int can_init_args_read() {
-    GNL_TEST_REQUEST_S_ARGS(GNL_SOCKET_REQUEST_READ, request->payload.read)
+    GNL_TEST_REQUEST_N_ARGS(GNL_SOCKET_REQUEST_READ, request->payload.read)
 }
 
 int can_from_string_read() {
-    GNL_TEST_REQUEST_S_FROM_STRING(GNL_SOCKET_REQUEST_READ, request->payload.read)
+    GNL_TEST_REQUEST_N_FROM_STRING(GNL_SOCKET_REQUEST_READ, request->payload.read)
 }
 
 int can_to_string_read() {
-    GNL_TEST_REQUEST_S_TO_STRING(GNL_SOCKET_REQUEST_READ)
+    GNL_TEST_REQUEST_N_TO_STRING(GNL_SOCKET_REQUEST_READ)
 }
 
 int can_init_empty_write() {
@@ -674,35 +674,35 @@ int can_to_string_append() {
 }
 
 int can_init_empty_lock() {
-    GNL_TEST_EMPTY_REQUEST_S(GNL_SOCKET_REQUEST_LOCK, request->payload.lock)
+    GNL_TEST_EMPTY_REQUEST_N(GNL_SOCKET_REQUEST_LOCK, request->payload.lock)
 }
 
 int can_init_args_lock() {
-    GNL_TEST_REQUEST_S_ARGS(GNL_SOCKET_REQUEST_LOCK, request->payload.lock)
+    GNL_TEST_REQUEST_N_ARGS(GNL_SOCKET_REQUEST_LOCK, request->payload.lock)
 }
 
 int can_from_string_lock() {
-    GNL_TEST_REQUEST_S_FROM_STRING(GNL_SOCKET_REQUEST_LOCK, request->payload.lock)
+    GNL_TEST_REQUEST_N_FROM_STRING(GNL_SOCKET_REQUEST_LOCK, request->payload.lock)
 }
 
 int can_to_string_lock() {
-    GNL_TEST_REQUEST_S_TO_STRING(GNL_SOCKET_REQUEST_LOCK)
+    GNL_TEST_REQUEST_N_TO_STRING(GNL_SOCKET_REQUEST_LOCK)
 }
 
 int can_init_empty_unlock() {
-    GNL_TEST_EMPTY_REQUEST_S(GNL_SOCKET_REQUEST_UNLOCK, request->payload.unlock)
+    GNL_TEST_EMPTY_REQUEST_N(GNL_SOCKET_REQUEST_UNLOCK, request->payload.unlock)
 }
 
 int can_init_args_unlock() {
-    GNL_TEST_REQUEST_S_ARGS(GNL_SOCKET_REQUEST_UNLOCK, request->payload.unlock)
+    GNL_TEST_REQUEST_N_ARGS(GNL_SOCKET_REQUEST_UNLOCK, request->payload.unlock)
 }
 
 int can_from_string_unlock() {
-    GNL_TEST_REQUEST_S_FROM_STRING(GNL_SOCKET_REQUEST_UNLOCK, request->payload.unlock)
+    GNL_TEST_REQUEST_N_FROM_STRING(GNL_SOCKET_REQUEST_UNLOCK, request->payload.unlock)
 }
 
 int can_to_string_unlock() {
-    GNL_TEST_REQUEST_S_TO_STRING(GNL_SOCKET_REQUEST_UNLOCK)
+    GNL_TEST_REQUEST_N_TO_STRING(GNL_SOCKET_REQUEST_UNLOCK)
 }
 
 int can_init_empty_close() {

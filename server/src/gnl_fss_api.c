@@ -193,11 +193,67 @@ int gnl_fss_api_open_file(const char *pathname, int flags) {
  * {@inheritDoc}
  */
 int gnl_fss_api_read_file(const char *pathname, void **buf, size_t *size) {
+    // validate the parameters
+    GNL_NULL_CHECK(pathname, EINVAL, -1)
+    GNL_MINUS1_CHECK((-1 * (*buf != NULL)), EINVAL, -1)
+
+    // get the fd bound to the given pathname
+    void *fd_raw = gnl_ternary_search_tree_get(file_descriptor_table, pathname);
+    GNL_NULL_CHECK(fd_raw, EINVAL, -1);
+
+    int fd = *(int *)fd_raw;
+
+    // create the request to send to the server
+    struct gnl_socket_request *request = gnl_socket_request_init(GNL_SOCKET_REQUEST_READ, 1, fd);
+    GNL_NULL_CHECK(request, ENOMEM, -1)
+
+    // send the request to the server
+    int bytes_sent = gnl_socket_service_send_request(socket_service_connection, request);
+    GNL_MINUS1_CHECK(bytes_sent, errno, -1)
+
+    // clean memory
+    gnl_socket_request_destroy(request);
+
+    // get the response from the server
+    struct gnl_socket_response *response = gnl_socket_service_get_response(socket_service_connection);
+    GNL_NULL_CHECK(response, errno, -1)
+
+    int res = 0;
+
+    // handle the response
+    switch (response->type) {
+
+        case GNL_SOCKET_RESPONSE_ERROR:
+            // an error happen, get the errno
+            errno = response->payload.error->number;
+            res = -1;
+            break;
+
+        case GNL_SOCKET_RESPONSE_OK_FILE:
+            // get the size
+            *size = response->payload.ok_file->count;
+
+            // instantiate the buf
+            GNL_CALLOC(*buf, *size, -1)
+
+            // copy the received bytes into buf
+            memcpy(*buf, response->payload.ok_file->bytes, *size);
+            break;
+
+        default:
+            // if this point is reached, the response can not be
+            // something different from an ok_file response
+            errno = EBADMSG;
+            res = -1;
+    }
+
+    // free the memory
+    gnl_socket_response_destroy(response);
 
     // reset the openFile(pathname, O_CREATE|O_LOCK) check
     open_with_create_lock_flags = 0;
 
-    return 0;
+    return res;
 }
 
 /**
@@ -233,7 +289,7 @@ int gnl_fss_api_write_file(const char *pathname, const char *dirname) {
 
     GNL_MINUS1_CHECK(res, errno, -1)
 
-    // get the fd associate with the given pathname
+    // get the fd bound to the given pathname
     void *fd_raw = gnl_ternary_search_tree_get(file_descriptor_table, pathname);
     GNL_NULL_CHECK(fd_raw, EINVAL, -1);
 
@@ -306,22 +362,118 @@ int gnl_fss_api_append_to_file(const char *pathname, void *buf, size_t size, con
  * {@inheritDoc}
  */
 int gnl_fss_api_lock_file(const char *pathname) {
+    // validate the parameters
+    GNL_NULL_CHECK(pathname, EINVAL, -1)
+
+    // get the fd bound to the given pathname
+    void *fd_raw = gnl_ternary_search_tree_get(file_descriptor_table, pathname);
+    GNL_NULL_CHECK(fd_raw, EINVAL, -1);
+
+    int fd = *(int *)fd_raw;
+
+    // create the request to send to the server
+    struct gnl_socket_request *request = gnl_socket_request_init(GNL_SOCKET_REQUEST_LOCK, 1, fd);
+    GNL_NULL_CHECK(request, ENOMEM, -1)
+
+    // send the request to the server
+    int bytes_sent = gnl_socket_service_send_request(socket_service_connection, request);
+    GNL_MINUS1_CHECK(bytes_sent, errno, -1)
+
+    // clean memory
+    gnl_socket_request_destroy(request);
+
+    // get the response from the server
+    struct gnl_socket_response *response = gnl_socket_service_get_response(socket_service_connection);
+    GNL_NULL_CHECK(response, errno, -1)
+
+    int res = 0;
+
+    // handle the response
+    switch (response->type) {
+
+        case GNL_SOCKET_RESPONSE_ERROR:
+            // an error happen, get the errno
+            errno = response->payload.error->number;
+            res = -1;
+            break;
+
+        case GNL_SOCKET_RESPONSE_OK:
+            // no need to do something else here
+            break;
+
+        default:
+            // if this point is reached, the response can not be
+            // something different from an ok response
+            errno = EBADMSG;
+            res = -1;
+    }
+
+    // free the memory
+    gnl_socket_response_destroy(response);
 
     // reset the openFile(pathname, O_CREATE|O_LOCK) check
     open_with_create_lock_flags = 0;
 
-    return 0;
+    return res;
 }
 
 /**
  * {@inheritDoc}
  */
 int gnl_fss_api_unlock_file(const char *pathname) {
+    // validate the parameters
+    GNL_NULL_CHECK(pathname, EINVAL, -1)
+
+    // get the fd bound to the given pathname
+    void *fd_raw = gnl_ternary_search_tree_get(file_descriptor_table, pathname);
+    GNL_NULL_CHECK(fd_raw, EINVAL, -1);
+
+    int fd = *(int *)fd_raw;
+
+    // create the request to send to the server
+    struct gnl_socket_request *request = gnl_socket_request_init(GNL_SOCKET_REQUEST_UNLOCK, 1, fd);
+    GNL_NULL_CHECK(request, ENOMEM, -1)
+
+    // send the request to the server
+    int bytes_sent = gnl_socket_service_send_request(socket_service_connection, request);
+    GNL_MINUS1_CHECK(bytes_sent, errno, -1)
+
+    // clean memory
+    gnl_socket_request_destroy(request);
+
+    // get the response from the server
+    struct gnl_socket_response *response = gnl_socket_service_get_response(socket_service_connection);
+    GNL_NULL_CHECK(response, errno, -1)
+
+    int res = 0;
+
+    // handle the response
+    switch (response->type) {
+
+        case GNL_SOCKET_RESPONSE_ERROR:
+            // an error happen, get the errno
+            errno = response->payload.error->number;
+            res = -1;
+            break;
+
+        case GNL_SOCKET_RESPONSE_OK:
+            // no need to do something else here
+            break;
+
+        default:
+            // if this point is reached, the response can not be
+            // something different from an ok response
+            errno = EBADMSG;
+            res = -1;
+    }
+
+    // free the memory
+    gnl_socket_response_destroy(response);
 
     // reset the openFile(pathname, O_CREATE|O_LOCK) check
     open_with_create_lock_flags = 0;
 
-    return 0;
+    return res;
 }
 
 /**
@@ -331,7 +483,7 @@ int gnl_fss_api_close_file(const char *pathname) {
     // validate the parameters
     GNL_NULL_CHECK(pathname, EINVAL, -1)
 
-    // get the fd associate with the given pathname
+    // get the fd bound to the given pathname
     void *fd_raw = gnl_ternary_search_tree_get(file_descriptor_table, pathname);
     GNL_NULL_CHECK(fd_raw, EINVAL, -1);
 

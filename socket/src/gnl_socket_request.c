@@ -222,7 +222,7 @@ struct gnl_socket_request *gnl_socket_request_init(enum gnl_socket_request_type 
             break;
 
         case GNL_SOCKET_REQUEST_READ:
-            GNL_REQUEST_S_INIT(num, socket_request->payload.read, a_list)
+            GNL_REQUEST_N_INIT(num, socket_request->payload.read, a_list)
             break;
 
         case GNL_SOCKET_REQUEST_WRITE:
@@ -234,11 +234,11 @@ struct gnl_socket_request *gnl_socket_request_init(enum gnl_socket_request_type 
             break;
 
         case GNL_SOCKET_REQUEST_LOCK:
-            GNL_REQUEST_S_INIT(num, socket_request->payload.lock, a_list)
+            GNL_REQUEST_N_INIT(num, socket_request->payload.lock, a_list)
             break;
 
         case GNL_SOCKET_REQUEST_UNLOCK:
-            GNL_REQUEST_S_INIT(num, socket_request->payload.unlock, a_list)
+            GNL_REQUEST_N_INIT(num, socket_request->payload.unlock, a_list)
             break;
 
         case GNL_SOCKET_REQUEST_CLOSE:
@@ -275,7 +275,7 @@ void gnl_socket_request_destroy(struct gnl_socket_request *request) {
             break;
 
         case GNL_SOCKET_REQUEST_READ:
-            gnl_message_s_destroy(request->payload.read);
+            gnl_message_n_destroy(request->payload.read);
             break;
 
         case GNL_SOCKET_REQUEST_WRITE:
@@ -287,11 +287,11 @@ void gnl_socket_request_destroy(struct gnl_socket_request *request) {
             break;
 
         case GNL_SOCKET_REQUEST_LOCK:
-            gnl_message_s_destroy(request->payload.lock);
+            gnl_message_n_destroy(request->payload.lock);
             break;
 
         case GNL_SOCKET_REQUEST_UNLOCK:
-            gnl_message_s_destroy(request->payload.unlock);
+            gnl_message_n_destroy(request->payload.unlock);
             break;
 
         case GNL_SOCKET_REQUEST_CLOSE:
@@ -336,7 +336,7 @@ struct gnl_socket_request *gnl_socket_request_from_string(const char *message, e
             break;
 
         case GNL_SOCKET_REQUEST_READ:
-            GNL_REQUEST_S_READ_MESSAGE(message, request->payload.read, type);
+            GNL_REQUEST_N_READ_MESSAGE(message, request->payload.read, type);
             break;
 
         case GNL_SOCKET_REQUEST_WRITE:
@@ -348,11 +348,11 @@ struct gnl_socket_request *gnl_socket_request_from_string(const char *message, e
             break;
 
         case GNL_SOCKET_REQUEST_LOCK:
-            GNL_REQUEST_S_READ_MESSAGE(message, request->payload.lock, type);
+            GNL_REQUEST_N_READ_MESSAGE(message, request->payload.lock, type);
             break;
 
         case GNL_SOCKET_REQUEST_UNLOCK:
-            GNL_REQUEST_S_READ_MESSAGE(message, request->payload.unlock, type);
+            GNL_REQUEST_N_READ_MESSAGE(message, request->payload.unlock, type);
             break;
 
         case GNL_SOCKET_REQUEST_CLOSE:
@@ -394,7 +394,7 @@ size_t gnl_socket_request_to_string(const struct gnl_socket_request *request, ch
             break;
 
         case GNL_SOCKET_REQUEST_READ:
-            message_len = gnl_message_s_to_string(request->payload.read, dest);
+            message_len = gnl_message_n_to_string(request->payload.read, dest);
             break;
 
         case GNL_SOCKET_REQUEST_WRITE:
@@ -406,11 +406,11 @@ size_t gnl_socket_request_to_string(const struct gnl_socket_request *request, ch
             break;
 
         case GNL_SOCKET_REQUEST_LOCK:
-            message_len = gnl_message_s_to_string(request->payload.lock, dest);
+            message_len = gnl_message_n_to_string(request->payload.lock, dest);
             break;
 
         case GNL_SOCKET_REQUEST_UNLOCK:
-            message_len = gnl_message_s_to_string(request->payload.unlock, dest);
+            message_len = gnl_message_n_to_string(request->payload.unlock, dest);
             break;
 
         case GNL_SOCKET_REQUEST_CLOSE:

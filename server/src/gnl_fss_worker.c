@@ -57,6 +57,8 @@ struct gnl_fss_worker {
 static struct gnl_socket_response *handle_request(struct gnl_simfs_file_system *file_system, struct gnl_socket_request *request, int fd_c) {
     int res;
     struct gnl_socket_response *response = NULL;
+    void *buf = NULL;
+    size_t count = 0;
 
     // handle the request with the correct handler
     //TODO: creare un metodo handler per ogni type che gestisca separatamente gli errori?
@@ -75,7 +77,12 @@ static struct gnl_socket_response *handle_request(struct gnl_simfs_file_system *
             break;
 
         case GNL_SOCKET_REQUEST_READ:
-            //res = gnl_simfs_file_system_read(file_system, request->payload.read->string);
+            res = gnl_simfs_file_system_read(file_system, request->payload.read->number, &buf, &count, fd_c);
+
+            // if success create an ok_file response
+            if (res == 0) {
+                response = gnl_socket_response_init(GNL_SOCKET_RESPONSE_OK_FILE, 3, "unknown", count, buf);
+            }
             break;
 
         case GNL_SOCKET_REQUEST_WRITE:
@@ -92,11 +99,21 @@ static struct gnl_socket_response *handle_request(struct gnl_simfs_file_system *
             break;
 
         case GNL_SOCKET_REQUEST_LOCK:
-            //res = gnl_simfs_file_system_lock(file_system, request->payload.lock->string);
+            res = gnl_simfs_file_system_lock(file_system, request->payload.lock->number, fd_c);
+
+            // if success create an ok response
+            if (res == 0) {
+                response = gnl_socket_response_init(GNL_SOCKET_RESPONSE_OK, 0);
+            }
             break;
 
         case GNL_SOCKET_REQUEST_UNLOCK:
-            //res = gnl_simfs_file_system_unlock(file_system, request->payload.unlock->string);
+            res = gnl_simfs_file_system_unlock(file_system, request->payload.unlock->number, fd_c);
+
+            // if success create an ok response
+            if (res == 0) {
+                response = gnl_socket_response_init(GNL_SOCKET_RESPONSE_OK, 0);
+            }
             break;
 
         case GNL_SOCKET_REQUEST_CLOSE:
@@ -123,12 +140,15 @@ static struct gnl_socket_response *handle_request(struct gnl_simfs_file_system *
             break;
     }
 
+    // free memory
+    free(buf);
+
     if (res == -1) {
         response = gnl_socket_response_init(GNL_SOCKET_RESPONSE_ERROR, 1, errno);
         GNL_NULL_CHECK(response, errno, NULL)
     }
 
-    // TODO: if this point is reached the response it can not be NULL
+    // TODO: if this point is reached the response can not be NULL
     //GNL_NULL_CHECK(response, EINVAL, NULL)
 
     return response;
