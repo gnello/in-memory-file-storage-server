@@ -110,7 +110,7 @@ static struct gnl_simfs_inode *gnl_simfs_rts_create_inode(struct gnl_simfs_file_
 }
 
 /**
- * Update an existing file table entry with the given buffer entry.
+ * Update an existing file table entry with the given, more updated, inode.
  *
  * @param file_system   The file system instance where the file table resides.
  * @param buffer_entry  The inode to use to fflush.
@@ -122,11 +122,7 @@ static int gnl_simfs_rts_fflush_inode(struct gnl_simfs_file_system *file_system,
     GNL_NULL_CHECK(file_system, EINVAL, -1)
     GNL_NULL_CHECK(inode, EINVAL, -1)
 
-    // if we have nothing to flush, return with an error
-    GNL_MINUS1_CHECK(-1 * (inode->buffer_size <= 0), EINVAL, -1)
-
-    gnl_logger_debug(file_system->logger, "Flushing %d bytes of file entry \"%s\" into the file table",
-                     inode->buffer_size, inode->name);
+    gnl_logger_debug(file_system->logger, "Flushing inode of file entry \"%s\" into the file table", inode->name);
 
     // update the inode with the new entry
     int res = gnl_simfs_file_table_fflush(file_system->file_table, inode);
@@ -201,7 +197,7 @@ static int gnl_simfs_rts_remove_inode(struct gnl_simfs_file_system *file_system,
  *
  * @return                  Returns 0 on success, -1 otherwise.
  */
-static int gnl_simfs_rts_wait_file_to_be_lockable(struct gnl_simfs_file_system *file_system, struct gnl_simfs_inode *inode) {
+static int gnl_simfs_rts_wait_file_to_be_lockable(struct gnl_simfs_file_system *file_system, struct gnl_simfs_inode *inode, int pid) {
 
     // validate the parameters
     GNL_NULL_CHECK(file_system, EINVAL, -1)
@@ -219,7 +215,7 @@ static int gnl_simfs_rts_wait_file_to_be_lockable(struct gnl_simfs_file_system *
     }
 
     int test, res;
-    while ((test = gnl_simfs_inode_has_refs(inode)) > 0) {
+    while ((test = (gnl_simfs_inode_has_refs(inode) && gnl_simfs_inode_has_other_pid_refs(inode, pid) == 1)) > 0) {
         GNL_MINUS1_CHECK(test, errno, -1)
 
         gnl_logger_debug(file_system->logger, "The file \"%s\" is opened (but not locked) by one or more pid, "

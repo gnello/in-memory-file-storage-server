@@ -243,7 +243,7 @@ int gnl_simfs_file_system_open(struct gnl_simfs_file_system *file_system, const 
         GNL_SIMFS_MINUS1_CHECK(res, errno, -1, pid)
 
         // check if the file can be locked: if not, wait for it
-        res = gnl_simfs_rts_wait_file_to_be_lockable(file_system, inode);
+        res = gnl_simfs_rts_wait_file_to_be_lockable(file_system, inode, pid);
         GNL_SIMFS_MINUS1_CHECK(res, errno, -1, pid)
 
         // lock the file //TODO: prevent deadlock EDEADLK
@@ -421,15 +421,15 @@ int gnl_simfs_file_system_read(struct gnl_simfs_file_system *file_system, int fd
     //TODO: da qui in poi in caso di errore non lasciare lo stato della struct corrotto
 
     // read the file into the given buf
-    int nread = gnl_simfs_inode_read(inode_copy, buf, count);
-    GNL_SIMFS_MINUS1_CHECK(nread, errno, -1, pid)
+    int res = gnl_simfs_inode_read(inode_copy, buf, count);
+    GNL_SIMFS_MINUS1_CHECK(res, errno, -1, pid)
 
-    gnl_logger_debug(file_system->logger, "Read: %d bytes read from file descriptor %d's inode", nread, fd);
+    gnl_logger_debug(file_system->logger, "Read: %d bytes read from file descriptor %d's inode", *count, fd);
 
     // update the inode into the file table, this invocation is
     // mandatory because we are working on a copy of the inode,
     // so the original one needs to be updated with the modified copy
-    int res = gnl_simfs_rts_fflush_inode(file_system, inode_copy);
+    res = gnl_simfs_rts_fflush_inode(file_system, inode_copy);
     GNL_SIMFS_MINUS1_CHECK(res, errno, -1, pid)
 
     gnl_logger_debug(file_system->logger, "Read: read on file descriptor %d succeeded, inode updated", fd);
@@ -624,7 +624,7 @@ int gnl_simfs_file_system_lock(struct gnl_simfs_file_system *file_system, int fd
     GNL_SIMFS_MINUS1_CHECK(res, errno, -1, pid)
 
     // check if the file can be locked: if not, wait for it
-    res = gnl_simfs_rts_wait_file_to_be_lockable(file_system, inode);
+    res = gnl_simfs_rts_wait_file_to_be_lockable(file_system, inode, pid);
     GNL_SIMFS_MINUS1_CHECK(res, errno, -1, pid)
 
     // lock the file
@@ -675,8 +675,8 @@ int gnl_simfs_file_system_unlock(struct gnl_simfs_file_system *file_system, int 
     if (file_locked_by_pid == 0) {
         errno = EPERM;
 
-        gnl_logger_debug(file_system->logger, "Unlock failed: file \"%s\" is unlocked, it can be unlocked by pid %d",
-                         inode_copy->name, pid);
+        gnl_logger_debug(file_system->logger, "Unlock failed: file \"%s\" is already unlocked, it can not be "
+                                              "unlocked further by pid %d", inode_copy->name, pid);
 
         GNL_SIMFS_LOCK_RELEASE(-1, pid)
 
