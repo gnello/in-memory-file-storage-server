@@ -324,7 +324,7 @@ int gnl_fss_api_write_file(const char *pathname, const char *dirname) {
             // no need to do something else here
             break;
 
-        case GNL_SOCKET_RESPONSE_OK_EVICTED:
+        case GNL_SOCKET_RESPONSE_OK_FILE_LIST:
             // success but one or more files were evicted
             break;
 

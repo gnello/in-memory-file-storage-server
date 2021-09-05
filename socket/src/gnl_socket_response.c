@@ -36,9 +36,9 @@ int gnl_socket_response_get_type(struct gnl_socket_response *response, char **de
     }
 
     switch (response->type) {
-        case GNL_SOCKET_RESPONSE_OK_EVICTED:
+        case GNL_SOCKET_RESPONSE_OK_FILE_LIST:
             GNL_CALLOC(*dest, 11, -1);
-            strcpy(*dest, "OK_EVICTED");
+            strcpy(*dest, "OK_FILE_LIST");
             break;
 
         case GNL_SOCKET_RESPONSE_OK_FILE:
@@ -91,8 +91,8 @@ struct gnl_socket_response *gnl_socket_response_init(enum gnl_socket_response_ty
 
     // assign payload object
     switch (type) {
-        case GNL_SOCKET_RESPONSE_OK_EVICTED:
-            GNL_RESPONSE_N_INIT(num, socket_response->payload.ok_evicted, a_list)
+        case GNL_SOCKET_RESPONSE_OK_FILE_LIST:
+            GNL_RESPONSE_N_INIT(num, socket_response->payload.ok_file_list, a_list)
             break;
 
         case GNL_SOCKET_RESPONSE_OK_FILE:
@@ -150,8 +150,8 @@ struct gnl_socket_response *gnl_socket_response_init(enum gnl_socket_response_ty
  */
 void gnl_socket_response_destroy(struct gnl_socket_response *response) {
     switch (response->type) {
-        case GNL_SOCKET_RESPONSE_OK_EVICTED:
-            gnl_message_n_destroy(response->payload.ok_evicted);
+        case GNL_SOCKET_RESPONSE_OK_FILE_LIST:
+            gnl_message_n_destroy(response->payload.ok_file_list);
             break;
         case GNL_SOCKET_RESPONSE_OK_FILE:
             gnl_message_snb_destroy(response->payload.ok_file);
@@ -176,8 +176,8 @@ void gnl_socket_response_destroy(struct gnl_socket_response *response) {
 int gnl_socket_response_get_evicted(struct gnl_socket_response *response) {
     GNL_NULL_CHECK(response, EINVAL, -1)
 
-    if (response->type == GNL_SOCKET_RESPONSE_OK_EVICTED) {
-        return response->payload.ok_evicted->number;
+    if (response->type == GNL_SOCKET_RESPONSE_OK_FILE_LIST) {
+        return response->payload.ok_file_list->number;
     }
 
     errno = EINVAL;
@@ -232,11 +232,11 @@ struct gnl_socket_response *gnl_socket_response_from_string(const char *message,
     int res;
 
     switch (type) {
-        case GNL_SOCKET_RESPONSE_OK_EVICTED:
-            response = gnl_socket_response_init(GNL_SOCKET_RESPONSE_OK_EVICTED, 0);
+        case GNL_SOCKET_RESPONSE_OK_FILE_LIST:
+            response = gnl_socket_response_init(GNL_SOCKET_RESPONSE_OK_FILE_LIST, 0);
             GNL_NULL_CHECK(response, ENOMEM, NULL)
 
-            res = gnl_message_n_from_string(message, response->payload.ok_evicted);
+            res = gnl_message_n_from_string(message, response->payload.ok_file_list);
             GNL_MINUS1_CHECK(res, errno, NULL)
             break;
 
@@ -289,8 +289,8 @@ size_t gnl_socket_response_to_string(const struct gnl_socket_response *response,
     size_t len;
 
     switch (response->type) {
-        case GNL_SOCKET_RESPONSE_OK_EVICTED:
-            len = gnl_message_n_to_string(response->payload.ok_evicted, dest);
+        case GNL_SOCKET_RESPONSE_OK_FILE_LIST:
+            len = gnl_message_n_to_string(response->payload.ok_file_list, dest);
             break;
 
         case GNL_SOCKET_RESPONSE_OK_FILE:

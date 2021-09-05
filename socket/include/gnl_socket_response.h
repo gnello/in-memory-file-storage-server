@@ -3,6 +3,7 @@
 #define GNL_SOCKET_RESPONSE_H
 
 #include "./gnl_socket_connection.h"
+#include <gnl_queue_t.h>
 
 /**
  * The possibles type of a socket response.
@@ -10,8 +11,8 @@
 enum gnl_socket_response_type {
 
     // the request is successfully processed but
-    // there are evicted files
-    GNL_SOCKET_RESPONSE_OK_EVICTED,
+    // there are a file list sent by the server
+    GNL_SOCKET_RESPONSE_OK_FILE_LIST,
 
     // the request is successfully processed and
     // a file is returned
@@ -35,7 +36,7 @@ enum gnl_socket_response_type {
 struct gnl_socket_response {
     enum gnl_socket_response_type type;
     union {
-        struct gnl_message_n *ok_evicted;
+        struct gnl_message_n *ok_file_list;
         struct gnl_message_snb *ok_file;
         struct gnl_message_n *ok_fd;
         struct gnl_message_n *error;
@@ -48,7 +49,7 @@ struct gnl_socket_response {
  * @param type  The type of the response.
  * @param num   The number of the subsequent params.
  * @param ...   The list of params supported by the given response type:
- *              - GNL_SOCKET_RESPONSE_OK_EVICTED: int number_of_files_evicted
+ *              - GNL_SOCKET_RESPONSE_OK_FILE_LIST: //TODO
  *              - GNL_SOCKET_RESPONSE_OK_FILE: char *filename, char *bytes
  *              - GNL_SOCKET_RESPONSE_OK_FD: int file_descriptor
  *              - GNL_SOCKET_RESPONSE_ERROR: int error_code
@@ -75,16 +76,6 @@ extern void gnl_socket_response_destroy(struct gnl_socket_response *response);
  * @return          Returns 0 on success, -1 otherwise.
  */
 extern int gnl_socket_response_get_type(struct gnl_socket_response *response, char **dest);
-
-/**
- * Read the number of evicted files from the given response.
- *
- * @param response  The socket response.
- *
- * @return          The number of evicted files on success,
- *                  -1 otherwise.
- */
-extern int gnl_socket_response_get_evicted(struct gnl_socket_response *response);
 
 /**
  * Read the file descriptor from the given response.

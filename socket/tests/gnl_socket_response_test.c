@@ -110,20 +110,20 @@
     return res;                                                                                                         \
 }
 
-int can_init_empty_ok_evicted() {
-    GNL_TEST_RESPONSE_INIT(GNL_SOCKET_RESPONSE_OK_EVICTED);
+int can_init_empty_ok_file_list() {
+    GNL_TEST_RESPONSE_INIT(GNL_SOCKET_RESPONSE_OK_FILE_LIST);
 }
 
-int can_init_args_ok_evicted() {
-    GNL_TEST_RESPONSE_N_ARGS(GNL_SOCKET_RESPONSE_OK_EVICTED, response->payload.ok_evicted);
+int can_init_args_ok_file_list() {
+    GNL_TEST_RESPONSE_N_ARGS(GNL_SOCKET_RESPONSE_OK_FILE_LIST, response->payload.ok_file_list);
 }
 
-int can_from_string_ok_evicted() {
-    GNL_TEST_RESPONSE_N_FROM_STRING(GNL_SOCKET_RESPONSE_OK_EVICTED, response->payload.ok_evicted)
+int can_from_string_ok_file_list() {
+    GNL_TEST_RESPONSE_N_FROM_STRING(GNL_SOCKET_RESPONSE_OK_FILE_LIST, response->payload.ok_file_list)
 }
 
-int can_to_string_ok_evicted() {
-    GNL_TEST_RESPONSE_N_TO_STRING(GNL_SOCKET_RESPONSE_OK_EVICTED)
+int can_to_string_ok_file_list() {
+    GNL_TEST_RESPONSE_N_TO_STRING(GNL_SOCKET_RESPONSE_OK_FILE_LIST)
 }
 
 int can_init_empty_ok_file() {
@@ -373,7 +373,7 @@ int can_not_write_empty_response() {
 
 int can_not_write_not_empty_dest() {
     char *dest = "fake_string";
-    struct gnl_socket_response *response = gnl_socket_response_init(GNL_SOCKET_RESPONSE_OK_EVICTED, 0);
+    struct gnl_socket_response *response = gnl_socket_response_init(GNL_SOCKET_RESPONSE_OK_FILE_LIST, 0);
 
     int res = gnl_socket_response_to_string(response, &dest);
 
@@ -390,8 +390,8 @@ int can_not_write_not_empty_dest() {
     return 0;
 }
 
-int can_get_type_ok_evicted() {
-    GNL_TEST_TO_STRING(GNL_SOCKET_RESPONSE_OK_EVICTED, "OK_EVICTED");
+int can_get_type_ok_file_list() {
+    GNL_TEST_TO_STRING(GNL_SOCKET_RESPONSE_OK_FILE_LIST, "OK_FILE_LIST");
 }
 
 int can_get_type_ok_file() {
@@ -413,10 +413,10 @@ int can_get_type_error() {
 int main() {
     gnl_printf_yellow("> gnl_socket_response test:\n\n");
 
-    gnl_assert(can_init_empty_ok_evicted, "can init an empty GNL_SOCKET_RESPONSE_OK_EVICTED response type.");
-    gnl_assert(can_init_args_ok_evicted, "can init a GNL_SOCKET_RESPONSE_OK_EVICTED response type with args.");
-    gnl_assert(can_from_string_ok_evicted, "can create from string a GNL_SOCKET_RESPONSE_OK_EVICTED response type message.");
-    gnl_assert(can_to_string_ok_evicted, "can format to string a GNL_SOCKET_RESPONSE_OK_EVICTED response type.");
+    gnl_assert(can_init_empty_ok_file_list, "can init an empty GNL_SOCKET_RESPONSE_OK_FILE_LIST response type.");
+    gnl_assert(can_init_args_ok_file_list, "can init a GNL_SOCKET_RESPONSE_OK_FILE_LIST response type with args.");
+    gnl_assert(can_from_string_ok_file_list, "can create from string a GNL_SOCKET_RESPONSE_OK_FILE_LIST response type message.");
+    gnl_assert(can_to_string_ok_file_list, "can format to string a GNL_SOCKET_RESPONSE_OK_FILE_LIST response type.");
 
     gnl_assert(can_init_empty_ok_file, "can init an empty GNL_SOCKET_RESPONSE_OK_FILE response type.");
     gnl_assert(can_init_args_ok_file, "can init a GNL_SOCKET_RESPONSE_OK_FILE response type with args.");
@@ -441,7 +441,7 @@ int main() {
     gnl_assert(can_not_write_empty_response, "can not write an empty response");
     gnl_assert(can_not_write_not_empty_dest, "can not write into a not empty destination");
 
-    gnl_assert(can_get_type_ok_evicted, "can get the type string of a GNL_SOCKET_RESPONSE_OK_EVICTED response type");
+    gnl_assert(can_get_type_ok_file_list, "can get the type string of a GNL_SOCKET_RESPONSE_OK_FILE_LIST response type");
     gnl_assert(can_get_type_ok_file, "can get the type string of a GNL_SOCKET_RESPONSE_OK_FILE response type");
     gnl_assert(can_get_type_ok_fd, "can get the type string of a GNL_SOCKET_RESPONSE_OK_FD response type");
     gnl_assert(can_get_type_ok, "can get the type string of a GNL_SOCKET_RESPONSE_OK response type");
