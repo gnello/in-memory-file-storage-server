@@ -43,7 +43,7 @@ struct gnl_message_nnb *gnl_message_nnb_init_with_args(int number, size_t count,
     message_nnb->count = count;
 
     // assign bytes
-    message_nnb->bytes = calloc(count, sizeof(void *));
+    message_nnb->bytes = calloc(count, 1);
     GNL_NULL_CHECK(message_nnb->bytes, ENOMEM, NULL)
 
     memcpy(message_nnb->bytes, bytes, count);
@@ -92,7 +92,7 @@ int gnl_message_nnb_from_string(const char *message, struct gnl_message_nnb *mes
     sscanf(message, "%"MAX_DIGITS_CHAR"d%"MAX_DIGITS_CHAR"lu", &message_nnb->number, &message_nnb->count);
 
     // get the bytes
-    message_nnb->bytes = calloc(message_nnb->count, sizeof(void *));
+    message_nnb->bytes = calloc(message_nnb->count, 1);
     GNL_NULL_CHECK(message_nnb->bytes, ENOMEM, -1)
 
     memcpy(message_nnb->bytes, message + MAX_DIGITS_INT + MAX_DIGITS_INT + 1, message_nnb->count);

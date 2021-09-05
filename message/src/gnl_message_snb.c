@@ -33,6 +33,9 @@ struct gnl_message_snb *gnl_message_snb_init() {
  * {@inheritDoc}
  */
 struct gnl_message_snb *gnl_message_snb_init_with_args(char *string, size_t count, void *bytes) {
+    // validate parameters
+    GNL_NULL_CHECK(string, EINVAL, NULL)
+
     struct gnl_message_snb *message_snb = gnl_message_snb_init();
     GNL_NULL_CHECK(message_snb, ENOMEM, NULL)
 
@@ -46,7 +49,7 @@ struct gnl_message_snb *gnl_message_snb_init_with_args(char *string, size_t coun
     message_snb->count = count;
 
     // assign bytes
-    message_snb->bytes = calloc(strlen(bytes), sizeof(void *));
+    message_snb->bytes = calloc(count, 1);
     GNL_NULL_CHECK(message_snb->bytes, ENOMEM, NULL)
 
     memcpy(message_snb->bytes, bytes, count);
@@ -119,7 +122,7 @@ int gnl_message_snb_from_string(const char *message, struct gnl_message_snb *mes
     }
 
     // get the bytes
-    message_snb->bytes = calloc(message_snb->count, sizeof(void *));
+    message_snb->bytes = calloc(message_snb->count, 1);
     GNL_NULL_CHECK(message_snb->bytes, ENOMEM, -1)
 
     memcpy(message_snb->bytes, message + MAX_DIGITS_INT + string_len + MAX_DIGITS_INT + 1, message_snb->count);
