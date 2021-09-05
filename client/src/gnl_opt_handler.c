@@ -199,6 +199,22 @@ int gnl_opt_handler_handle(struct gnl_opt_handler *handler) {
             case 'c':
                 res = arg_c(el->arg);
                 break;
+
+            case 'l':
+                res = arg_l(el->arg);
+                break;
+
+            case 'r':
+                if (previous_el.opt == 'd') {
+                    res = arg_r(el->arg, previous_el.arg);
+                } else {
+                    res = arg_r(el->arg, NULL);
+                }
+                break;
+
+            case 'u':
+                res = arg_u(el->arg);
+                break;
         }
 
         previous_el = *el;

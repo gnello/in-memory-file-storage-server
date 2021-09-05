@@ -173,6 +173,106 @@ int gnl_opt_rts_parse_file_list(const char *file_list, struct gnl_queue_t *queue
     return 0;
 }
 
+/**
+ * {@inheritDoc}
+ */
+static int filename_arg_walk(const char *arg, int (*callback)(const char *filename)) {
+    int res;
+    struct gnl_queue_t *queue;
+    char *filename;
+
+    // initialize the queue
+    queue = gnl_queue_init();
+    GNL_NULL_CHECK(queue, errno, -1);
+
+    // parse arg
+    res = gnl_opt_rts_parse_file_list(arg, queue);
+    GNL_MINUS1_CHECK(res, errno, -1);
+
+    // for each given files
+    while ((filename = (char *)gnl_queue_dequeue(queue)) != NULL) {
+
+        // apply the given function
+        res = callback(filename);
+
+        free(filename);
+
+        // if an error happen stop the execution
+        if (res == -1) {
+            break;
+        }
+    }
+
+    // destroy the queue
+    gnl_queue_destroy(queue, free);
+
+    return res;
+}
+
+/**
+ * http://nion.modprobe.de/blog/archives/357-Recursive-directory-creation.html
+ *
+ * @param dir   The pathname to create.
+ */
+static void nico_mkdir(const char *dir) {
+    char tmp[256];
+    char *p = NULL;
+    size_t len;
+
+    snprintf(tmp, sizeof(tmp),"%s",dir);
+    len = strlen(tmp);
+
+    if (tmp[len - 1] == '/') {
+        tmp[len - 1] = 0;
+    }
+
+    for (p = tmp + 1; *p; p++) {
+        if (*p == '/') {
+            *p = 0;
+            mkdir(tmp, S_IRWXU);
+            *p = '/';
+        }
+    }
+}
+
+static int save_permanent(const char *filename, const char *dirname, void *buf, size_t count) {
+    // validate parameters
+    GNL_NULL_CHECK(filename, EINVAL, -1);
+    GNL_NULL_CHECK(dirname, EINVAL, -1);
+
+    // check if dirname exists
+    DIR *dir = opendir(dirname);
+    GNL_NULL_CHECK(dir, errno, -1)
+
+    closedir(dir);
+
+    // create the complete path
+    char *complete_path;
+    unsigned long len = strlen(dirname) + strlen(filename) + 1;
+    GNL_CALLOC(complete_path, len, -1)
+
+    snprintf(complete_path, len, "%s%s", dirname, filename);
+
+    // create filename directories if necessary
+    nico_mkdir(complete_path);
+
+    // write the file
+    FILE *fp;
+
+    fp = fopen(complete_path , "w");
+    GNL_NULL_CHECK(fp, errno, -1)
+
+    unsigned long nwrite = fwrite(buf, 1, count, fp);
+    GNL_MINUS1_CHECK(nwrite, errno, -1)
+
+    fclose(fp);
+
+    // free memory
+    free(complete_path);
+
+    return 0;
+}
+
 static void print_command(const char command, const char *args) {
     if (output == 0) {
         return;
@@ -198,6 +298,10 @@ static void print_row(const char *op, const char *target, const char *res, const
 }
 
 static void print_log(const char *op, const char *target, int res, const char *message, ...) {
+    if (output == 0) {
+        return;
+    }
+
     va_list a_list;
     va_start(a_list, message);
 
