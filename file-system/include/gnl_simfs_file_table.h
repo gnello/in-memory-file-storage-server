@@ -1,7 +1,7 @@
 #ifndef GNL_SIMFS_FILE_TABLE_H
 #define GNL_SIMFS_FILE_TABLE_H
 
-#include <gnl_ternary_search_tree_t.h>
+#include <gnl_list_t.h>
 
 /**
  * The file table data structure.
@@ -42,6 +42,16 @@ static unsigned long gnl_simfs_file_table_size(struct gnl_simfs_file_table *file
  *                      -1 otherwise.
  */
 static int gnl_simfs_file_table_count(struct gnl_simfs_file_table *file_table);
+
+/**
+ * Get the file list of the given file table.
+ *
+ * @param file_table    The file table instance from where to get the file list.
+ *
+ * @return              Returns the file list of the given file table on success,
+ *                      NULL otherwise.
+ */
+static struct gnl_list_t *gnl_simfs_file_table_list(struct gnl_simfs_file_table *file_table);
 
 /**
  * Get the inode of the given filename.

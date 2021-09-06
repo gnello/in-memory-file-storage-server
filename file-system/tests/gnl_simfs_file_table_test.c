@@ -16,6 +16,10 @@ int can_init_a_ft() {
         return -1;
     }
 
+    if (table->list != NULL) {
+        return -1;
+    }
+
     if (table->size != 0) {
         return -1;
     }
@@ -417,6 +421,41 @@ int can_get_count() {
     return 0;
 }
 
+int can_get_list() {
+    struct gnl_simfs_file_table *table = gnl_simfs_file_table_init();
+    if (table == NULL || table->list != NULL) {
+        return -1;
+    }
+
+    gnl_simfs_file_table_create(table, "test1");
+    gnl_simfs_file_table_create(table, "test2");
+    gnl_simfs_file_table_create(table, "test3");
+    gnl_simfs_file_table_create(table, "test4");
+    gnl_simfs_file_table_create(table, "test5");
+
+    struct gnl_list_t *list = gnl_simfs_file_table_list(table);
+
+    char *expected = malloc(6 * sizeof(char));
+    if (expected == NULL) {
+        return -1;
+    }
+
+    int i=1;
+    while (list->next != NULL) {
+        sprintf(expected, "%s%d", "test", i++);
+
+        if (strcmp(expected, list->el) != 0) {
+            return -1;
+        }
+
+        list = list->next;
+    }
+
+    gnl_simfs_file_table_destroy(table);
+
+    return 0;
+}
+
 int main() {
     gnl_printf_yellow("> gnl_simfs_file_table test:\n\n");
 
@@ -436,6 +475,7 @@ int main() {
 
     gnl_assert(can_get_size, "can get the size in bytes of a file table.");
     gnl_assert(can_get_count, "can get the number of files present into a file table.");
+    gnl_assert(can_get_list, "can get the list of files present into a file table.");
 
     // the gnl_simfs_file_table_destroy method is implicitly tested in every
     // assert, if you don't believe it, run this tests with

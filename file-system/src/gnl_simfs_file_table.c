@@ -1,5 +1,6 @@
 #include <errno.h>
 #include <string.h>
+#include <gnl_ternary_search_tree_t.h>
 #include "../include/gnl_simfs_file_table.h"
 #include "./gnl_simfs_inode.c"
 #include <gnl_macro_beg.h>
@@ -12,6 +13,10 @@ struct gnl_simfs_file_table {
     // the file table data structure, contains all the
     // inodes of the files present into it
     struct gnl_ternary_search_tree_t *table;
+
+    // the list of the filename present into the
+    // file table
+    struct gnl_list_t *list;
 
     // the memory in bytes allocated by the file table
     unsigned long size;
@@ -48,6 +53,7 @@ struct gnl_simfs_file_table *gnl_simfs_file_table_init() {
     // instantiate the table to NULL, the table
     // space will be allocated on demand
     t->table = NULL;
+    t->list = NULL;
 
     // initialize the size
     t->size = 0;
@@ -65,6 +71,9 @@ void gnl_simfs_file_table_destroy(struct gnl_simfs_file_table *table) {
     if (table == NULL) {
         return;
     }
+
+    // destroy the list
+    gnl_list_destroy(&(table->list), free);
 
     // destroy the ternary search tree
     gnl_ternary_search_tree_destroy(&(table->table), destroy_file_table_inode);
@@ -91,6 +100,16 @@ static int gnl_simfs_file_table_count(struct gnl_simfs_file_table *file_table) {
     GNL_NULL_CHECK(file_table, EINVAL, -1)
 
     return file_table->count;
+}
+
+/**
+ * {@inheritDoc}
+ */
+static struct gnl_list_t *gnl_simfs_file_table_list(struct gnl_simfs_file_table *file_table) {
+    // validate the parameters
+    GNL_NULL_CHECK(file_table, EINVAL, NULL)
+
+    return file_table->list;
 }
 
 /**
@@ -133,8 +152,17 @@ static struct gnl_simfs_inode *gnl_simfs_file_table_create(struct gnl_simfs_file
     struct gnl_simfs_inode *inode = gnl_simfs_inode_init(filename);
     GNL_NULL_CHECK(inode, errno, NULL)
 
+    // put the filename into the list
+    char *filename_list = calloc(sizeof(char), (strlen(filename) + 1));
+    GNL_NULL_CHECK(filename_list, ENOMEM, NULL)
+
+    strncpy(filename_list, filename, strlen(filename));
+
+    int res = gnl_list_append(&(file_table->list), filename_list);
+    GNL_MINUS1_CHECK(res, errno, NULL)
+
     // put the inode into the file table
-    int res = gnl_ternary_search_tree_put(&(file_table->table), filename, inode);
+    res = gnl_ternary_search_tree_put(&(file_table->table), filename, inode);
     GNL_MINUS1_CHECK(res, errno, NULL)
 
     // increment the files counter
@@ -212,8 +240,12 @@ static int gnl_simfs_file_table_remove(struct gnl_simfs_file_table *file_table, 
     // get the size of the inode
     int count = inode->size;
 
+    // remove the filename
+    int res = gnl_list_delete(&(file_table->list), key);
+    GNL_MINUS1_CHECK(res, errno, -1)
+
     // remove the file
-    int res = gnl_ternary_search_tree_remove(file_table->table, key, destroy_file_table_inode);
+    res = gnl_ternary_search_tree_remove(file_table->table, key, destroy_file_table_inode);
     GNL_MINUS1_CHECK(res, errno, -1)
 
     // update the file table size

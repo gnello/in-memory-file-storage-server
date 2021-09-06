@@ -56,7 +56,7 @@ struct gnl_simfs_inode {
     unsigned int reference_count;
 
     // the list containing the reference owners of the inode
-    gnl_list_t *reference_list;
+    struct gnl_list_t *reference_list;
 
     // the count of pid that want to lock the pointed file
     unsigned int pending_locks;
