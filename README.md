@@ -72,13 +72,13 @@ The -f option must be always specified.
                               to the Server.
   -W FILE1[,FILE2...]         Send any given FILE/s to the Server.
   -D DIRNAME                  Store the files trashed by the Server into DIRNAME.
-                              It must be followed by a -w or -W option.
+                              It must following a -w or -W option.
   -r FILE1[,FILE2...]         Read FILE/s from the Server.
   -R [N=0]                    Read all files stored on the Server.
                               If N is specified, read N random files from
                               the Server.
   -d DIRNAME                  Store the files read from the Server into DIRNAME.
-                              It must be followed by a -r or -R option.
+                              It must following a -r or -R option.
   -t TIME                     Wait TIME milliseconds between sequential requests
                               to the Server.
   -l FILE1[,FILE2...]         Acquire the lock on FILE/s.

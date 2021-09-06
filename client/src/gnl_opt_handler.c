@@ -11,17 +11,23 @@
 
 #define GNL_SHORT_OPTS ":hf:w:W:D:r:R::d:t:l:u:c:p"
 
-#define GNL_THROW_OPT_EXCEPTION(opt, error, message) {  \
-    errno = EINVAL;                                     \
-    if ((opt) != NULL) {                                  \
-        *(opt) = optopt;                                  \
-        *(error) = message;                               \
-    }                                                   \
-    return -1;                                          \
+#define GNL_THROW_OPT_EXCEPTION(opt, error, message) {                                                                  \
+    errno = EINVAL;                                                                                                     \
+    if ((opt) != NULL) {                                                                                                \
+        *(opt) = optopt;                                                                                                \
+        *(error) = message;                                                                                             \
+    }                                                                                                                   \
+    return -1;                                                                                                          \
 }
 
+/**
+ * {@inheritDoc}
+ */
 extern int errno;
 
+/**
+ * {@inheritDoc}
+ */
 struct gnl_opt_handler {
     struct gnl_queue_t *command_queue;
     char *socket_filename;
@@ -49,6 +55,9 @@ static int wait_microseconds(int time) {
     return nanosleep(&ts, NULL);
 }
 
+/**
+ * {@inheritDoc}
+ */
 struct gnl_opt_handler *gnl_opt_handler_init() {
     struct gnl_opt_handler *handler = (struct gnl_opt_handler *)malloc(sizeof(struct gnl_opt_handler));
 
@@ -73,11 +82,17 @@ struct gnl_opt_handler *gnl_opt_handler_init() {
     return handler;
 }
 
+/**
+ * {@inheritDoc}
+ */
 void gnl_opt_handler_destroy(struct gnl_opt_handler *handler) {
     gnl_queue_destroy(handler->command_queue, free);
     free(handler);
 }
 
+/**
+ * {@inheritDoc}
+ */
 int gnl_opt_handler_parse_opt(struct gnl_opt_handler *handler, int argc, char* argv[], char *opt_err, char **error) {
     int opt;
     struct gnl_opt_handler_el *opt_el;
@@ -171,6 +186,9 @@ int gnl_opt_handler_parse_opt(struct gnl_opt_handler *handler, int argc, char* a
     return 0;
 }
 
+/**
+ * {@inheritDoc}
+ */
 int gnl_opt_handler_handle(struct gnl_opt_handler *handler) {
     int opt_t_value = 0;
     int arg_f;

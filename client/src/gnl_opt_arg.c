@@ -254,7 +254,7 @@ void arg_h(const char* program_name) { //7
     gnl_print_table("-W FILE1[,FILE2...]", "Send any given FILE/s to the Server.\n");
 
     gnl_print_table("-D DIRNAME", "Store the files trashed by the Server into DIRNAME.\n");
-    gnl_print_table("", "It must be followed by a -w or -W option.\n");
+    gnl_print_table("", "It must following a -w or -W option.\n");
 
     gnl_print_table("-r FILE1[,FILE2...]", "Read FILE/s from the Server.\n");
 
@@ -263,7 +263,7 @@ void arg_h(const char* program_name) { //7
     gnl_print_table("", "the Server.\n");
 
     gnl_print_table("-d DIRNAME", "Store the files read from the Server into DIRNAME.\n");
-    gnl_print_table("", "It must be followed by a -r or -R option.\n");
+    gnl_print_table("", "It must following a -r or -R option.\n");
 
     gnl_print_table("-t TIME", "Wait TIME milliseconds between sequential requests\n");
     gnl_print_table("", "to the Server.\n");
