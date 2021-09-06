@@ -16,6 +16,10 @@ INCLUDE += -I$(HELPERS_PATH_INCLUDE)
 LIBS += -Wl,-rpath,$(ROOT)$(MESSAGE_LIB) -L$(ROOT)$(MESSAGE_LIB) -lgnl_message_n -lgnl_message_s -lgnl_message_snb -lgnl_message_sn -lgnl_message_nnb -lgnl_message_nq
 INCLUDE += -I$(ROOT)$(MESSAGE_INCLUDE)
 
+# data-structures library
+LIBS += -Wl,-rpath,$(ROOT)$(DATA_STRUCTURES_LIB) -L$(ROOT)$(DATA_STRUCTURES_LIB) -lgnl_queue_t
+INCLUDE += -I$(ROOT)$(DATA_STRUCTURES_INCLUDE)
+
 TARGETS =	gnl_socket_request_test \
 			gnl_socket_response_test \
 			gnl_socket_service_test

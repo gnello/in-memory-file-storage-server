@@ -30,10 +30,10 @@ client: data-structures server
 server: data-structures helpers socket file-system
 	cd ./server && $(MAKE)
 
-message:
+message: data-structures
 	cd ./message && $(MAKE)
 
-socket: message
+socket: data-structures message
 	cd ./socket && $(MAKE)
 
 file-system: data-structures

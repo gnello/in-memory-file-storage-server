@@ -18,14 +18,9 @@ SERVER_PATH_INCLUDE = $(ROOT)/$(SERVER_INCLUDE)
 SOCKET_PATH_LIB = $(ROOT)/$(SOCKET_LIB)
 SOCKET_PATH_INCLUDE = $(ROOT)/$(SOCKET_INCLUDE)
 
-# socket library
-LIBS += -Wl,-rpath,$(SOCKET_PATH_LIB) -L$(SOCKET_PATH_LIB)
-LIBS += -lgnl_socket_request -lgnl_socket_response
-INCLUDE += -I$(SOCKET_PATH_INCLUDE)
-
-# data-structures library
-LIBS += -Wl,-rpath,$(DATA_STRUCTURES_PATH_LIB) -L$(DATA_STRUCTURES_PATH_LIB) -lgnl_list_t -lgnl_ternary_search_tree_t
-INCLUDE += -I$(DATA_STRUCTURES_PATH_INCLUDE)
+# file-system library
+LIBS += -Wl,-rpath,$(ROOT)$(FILE_SYSTEM_LIB) -L$(ROOT)$(FILE_SYSTEM_LIB) -lgnl_simfs_file_system
+INCLUDE += -I$(ROOT)$(FILE_SYSTEM_INCLUDE)
 
 # helpers library
 LIBS += -Wl,-rpath,$(HELPERS_PATH_LIB) -L$(HELPERS_PATH_LIB) -lgnl_colorshell -lgnl_assert -lgnl_txtenv -lgnl_file_to_pointer
@@ -35,13 +30,19 @@ INCLUDE += -I$(HELPERS_PATH_INCLUDE)
 LIBS += -Wl,-rpath,./mocks -L./mocks
 LIBS += -lgnl_socket_service
 
+# socket library
+LIBS += -Wl,-rpath,$(SOCKET_PATH_LIB) -L$(SOCKET_PATH_LIB)
+LIBS += -lgnl_socket_request -lgnl_socket_response
+INCLUDE += -I$(SOCKET_PATH_INCLUDE)
+
 # message library
 LIBS += -Wl,-rpath,$(ROOT)$(MESSAGE_LIB) -L$(ROOT)$(MESSAGE_LIB) -lgnl_message_n -lgnl_message_s -lgnl_message_snb -lgnl_message_sn -lgnl_message_nnb -lgnl_message_nq
 INCLUDE += -I$(ROOT)$(MESSAGE_INCLUDE)
 
-# file-system library
-LIBS += -Wl,-rpath,$(ROOT)$(FILE_SYSTEM_LIB) -L$(ROOT)$(FILE_SYSTEM_LIB) -lgnl_simfs_file_system
-INCLUDE += -I$(ROOT)$(FILE_SYSTEM_INCLUDE)
+# data-structures library
+LIBS += -Wl,-rpath,$(ROOT)$(DATA_STRUCTURES_LIB) -L$(ROOT)$(DATA_STRUCTURES_LIB) -lgnl_list_t -lgnl_ternary_search_tree_t -lgnl_queue_t
+LIBS += -lgnl_ts_bb_queue_t -lgnl_min_heap_t -lgnl_ternary_search_tree_t
+INCLUDE += -I$(ROOT)$(DATA_STRUCTURES_INCLUDE)
 
 TARGETS =	gnl_fss_config_test \
 			gnl_fss_api_test

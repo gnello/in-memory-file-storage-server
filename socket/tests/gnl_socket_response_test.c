@@ -131,9 +131,9 @@ int can_from_string_ok_file_list() {
         return -1;
     }
 
-    sprintf(message, "0000000014./testfile.txt%0*ld", 10, size);
+    sprintf(message, "00000000010000000014./testfile.txt%0*ld", 10, size);
 
-    memcpy(message + 35, content, size);
+    memcpy(message + 45, content, size);
 
     response = gnl_socket_response_from_string(message, GNL_SOCKET_RESPONSE_OK_FILE_LIST);
     if (response == NULL) {
@@ -202,64 +202,64 @@ int can_to_string_ok_file_list() {
         return -1;
     }
 
-    char *message1 = "0000000005test10000000005";
+    char *message1 = "00000000060000000005test10000000005";
 
     if (strcmp(message1, actual) != 0) {
         return -1;
     }
 
-    if (memcmp(actual + 26, test1, 5) != 0) {
+    if (memcmp(actual + 36, test1, 5) != 0) {
         return -1;
     }
 
     char *message2 = "0000000005test20000000005";
 
-    if (strcmp(message2, actual + 31) != 0) {
+    if (strcmp(message2, actual + 41) != 0) {
         return -1;
     }
 
-    if (memcmp(actual + 57, test2, 5) != 0) {
+    if (memcmp(actual + 67, test2, 5) != 0) {
         return -1;
     }
 
     char message_testfile[35];
     sprintf(message_testfile, "0000000014./testfile.txt%0*ld", 10, size);
 
-    if (strcmp(message_testfile, actual + 62) != 0) {
+    if (strcmp(message_testfile, actual + 72) != 0) {
         return -1;
     }
 
-    if (memcmp(actual + 62 + 35, content, size) != 0) {
+    if (memcmp(actual + 72 + 35, content, size) != 0) {
         return -1;
     }
 
     char *message3 = "0000000005test30000000005";
 
-    if (strcmp(message3, actual + 97 + size) != 0) {
+    if (strcmp(message3, actual + 107 + size) != 0) {
         return -1;
     }
 
-    if (memcmp(actual + 123 + size, test3, 5) != 0) {
+    if (memcmp(actual + 133 + size, test3, 5) != 0) {
         return -1;
     }
 
     char *message4 = "0000000005test40000000005";
 
-    if (strcmp(message4, actual + 128 + size) != 0) {
+    if (strcmp(message4, actual + 138 + size) != 0) {
         return -1;
     }
 
-    if (memcmp(actual + 154 + size, test4, 5) != 0) {
+    if (memcmp(actual + 164 + size, test4, 5) != 0) {
         return -1;
     }
 
     char *message5 = "0000000005test50000000005";
 
-    if (strcmp(message5, actual + 159 + size) != 0) {
+    if (strcmp(message5, actual + 169 + size) != 0) {
         return -1;
     }
 
-    if (memcmp(actual + 185 + size, test5, 5) != 0) {
+    if (memcmp(actual + 195 + size, test5, 5) != 0) {
         return -1;
     }
 

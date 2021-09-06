@@ -3,6 +3,7 @@
 #include <stdarg.h>
 #include <gnl_message_n.h>
 #include <gnl_message_snb.h>
+#include <gnl_message_nq.h>
 #include "../include/gnl_socket_response.h"
 #include <gnl_macro_beg.h>
 
@@ -93,7 +94,7 @@ struct gnl_socket_response *gnl_socket_response_init(enum gnl_socket_response_ty
     switch (type) {
         case GNL_SOCKET_RESPONSE_OK_FILE_LIST:
             if (num == 0) {
-                socket_response->payload.ok_file_list = gnl_queue_init();
+                socket_response->payload.ok_file_list = gnl_message_nq_init();
             } else {
                 errno = EINVAL;
                 return NULL;
@@ -158,7 +159,7 @@ struct gnl_socket_response *gnl_socket_response_init(enum gnl_socket_response_ty
 void gnl_socket_response_destroy(struct gnl_socket_response *response) {
     switch (response->type) {
         case GNL_SOCKET_RESPONSE_OK_FILE_LIST:
-            gnl_queue_destroy(response->payload.ok_file_list, ok_file_destroy);
+            gnl_message_nq_destroy(response->payload.ok_file_list);
             break;
         case GNL_SOCKET_RESPONSE_OK_FILE:
             gnl_message_snb_destroy(response->payload.ok_file);
@@ -227,7 +228,7 @@ struct gnl_socket_response *gnl_socket_response_from_string(const char *message,
             response = gnl_socket_response_init(GNL_SOCKET_RESPONSE_OK_FILE_LIST, 0);
             GNL_NULL_CHECK(response, ENOMEM, NULL)
 
-            res = ok_file_list_from_string(message, response->payload.ok_file_list);
+            res = gnl_message_nq_from_string(message, response->payload.ok_file_list);
             GNL_MINUS1_CHECK(res, errno, NULL)
             break;
 
@@ -281,7 +282,7 @@ size_t gnl_socket_response_to_string(struct gnl_socket_response *response, char 
 
     switch (response->type) {
         case GNL_SOCKET_RESPONSE_OK_FILE_LIST:
-            len = ok_file_list_to_string(&(response->payload.ok_file_list), dest);
+            len = gnl_message_nq_to_string(response->payload.ok_file_list, dest);
             break;
 
         case GNL_SOCKET_RESPONSE_OK_FILE:
@@ -325,7 +326,7 @@ int gnl_socket_response_add_file(struct gnl_socket_response *response, const cha
     struct gnl_message_snb *message = gnl_message_snb_init_with_args(name, count, bytes);
     GNL_NULL_CHECK(message, errno, -1);
 
-    int res = gnl_queue_enqueue(response->payload.ok_file_list, message);
+    int res = gnl_message_nq_enqueue(response->payload.ok_file_list, message);
     GNL_MINUS1_CHECK(res, errno, -1)
 
     return -1;
@@ -343,7 +344,7 @@ struct gnl_message_snb *gnl_socket_response_get_file(struct gnl_socket_response 
         return NULL;
     }
 
-    return gnl_queue_dequeue(response->payload.ok_file_list);
+    return gnl_message_nq_dequeue(response->payload.ok_file_list);
 }
 
 #undef MAX_DIGITS_CHAR

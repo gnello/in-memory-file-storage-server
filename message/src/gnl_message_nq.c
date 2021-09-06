@@ -37,6 +37,8 @@ struct gnl_message_nq *gnl_message_nq_init() {
     struct gnl_message_nq *message_nq = (struct gnl_message_nq *)calloc(1, sizeof(struct gnl_message_nq));
     GNL_NULL_CHECK(message_nq, ENOMEM, NULL)
 
+    message_nq->number = 0;
+
     message_nq->queue = gnl_queue_init();
     GNL_NULL_CHECK(message_nq->queue, errno, NULL)
 
