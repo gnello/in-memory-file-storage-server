@@ -200,6 +200,7 @@ int can_from_string_message() {
 
     free(message);
     free(content);
+    free(file);
     gnl_message_nq_destroy(message_nq);
 
     return 0;
