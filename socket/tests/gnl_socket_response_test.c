@@ -111,19 +111,163 @@
 }
 
 int can_init_empty_ok_file_list() {
-    GNL_TEST_RESPONSE_INIT(GNL_SOCKET_RESPONSE_OK_FILE_LIST);
-}
-
-int can_init_args_ok_file_list() {
-    GNL_TEST_RESPONSE_N_ARGS(GNL_SOCKET_RESPONSE_OK_FILE_LIST, response->payload.ok_file_list);
+    GNL_TEST_RESPONSE_INIT(GNL_SOCKET_RESPONSE_OK_FILE_LIST)
 }
 
 int can_from_string_ok_file_list() {
-    GNL_TEST_RESPONSE_N_FROM_STRING(GNL_SOCKET_RESPONSE_OK_FILE_LIST, response->payload.ok_file_list)
+    int res;
+    long size;
+    char *content = NULL;
+
+    res = gnl_file_to_pointer("./testfile.txt", &content, &size);
+    if (res == -1) {
+        return -1;
+    }
+
+    struct gnl_socket_response *response;
+
+    char *message = calloc(35 + size, sizeof(char *));
+    if (message == NULL) {
+        return -1;
+    }
+
+    sprintf(message, "0000000014./testfile.txt%0*ld", 10, size);
+
+    memcpy(message + 35, content, size);
+
+    response = gnl_socket_response_from_string(message, GNL_SOCKET_RESPONSE_OK_FILE_LIST);
+    if (response == NULL) {
+        return -1;
+    }
+
+    if (response->type != GNL_SOCKET_RESPONSE_OK_FILE_LIST) {
+        return -1;
+    }
+
+    struct gnl_message_snb *file = gnl_socket_response_get_file(response);
+    if (file == NULL) {
+        return -1;
+    }
+
+    if (strcmp(file->string, "./testfile.txt") != 0) {
+        return -1;
+    }
+
+    if (file->count != size) {
+        return -1;
+    }
+
+    if (memcmp(file->bytes, content, size) != 0) {
+        return -1;
+    }
+
+    free(message);
+    gnl_socket_response_destroy(response);
+    free(content);
+
+    return 0;
 }
 
 int can_to_string_ok_file_list() {
-    GNL_TEST_RESPONSE_N_TO_STRING(GNL_SOCKET_RESPONSE_OK_FILE_LIST)
+    int res;
+    long size;
+    char *content = NULL;
+
+    res = gnl_file_to_pointer("./testfile.txt", &content, &size);
+    if (res == -1) {
+        return -1;
+    }
+
+    struct gnl_socket_response *response = gnl_socket_response_init(GNL_SOCKET_RESPONSE_OK_FILE_LIST, 0);
+    if (response == NULL) {
+        return -1;
+    }
+
+    void *test1 = "test1";
+    void *test2 = "test2";
+    void *test3 = "test3";
+    void *test4 = "test4";
+    void *test5 = "test5";
+
+    gnl_socket_response_add_file(response, "test1", 5, test1);
+    gnl_socket_response_add_file(response, "test2", 5, test2);
+    gnl_socket_response_add_file(response, "./testfile.txt", size, content);
+    gnl_socket_response_add_file(response, "test3", 5, test3);
+    gnl_socket_response_add_file(response, "test4", 5, test4);
+    gnl_socket_response_add_file(response, "test5", 5, test5);
+
+    char *actual = NULL;
+    res = gnl_socket_response_to_string(response, &actual);
+    if (res == -1) {
+        return -1;
+    }
+
+    char *message1 = "0000000005test10000000005";
+
+    if (strcmp(message1, actual) != 0) {
+        return -1;
+    }
+
+    if (memcmp(actual + 26, test1, 5) != 0) {
+        return -1;
+    }
+
+    char *message2 = "0000000005test20000000005";
+
+    if (strcmp(message2, actual + 31) != 0) {
+        return -1;
+    }
+
+    if (memcmp(actual + 57, test2, 5) != 0) {
+        return -1;
+    }
+
+    char message_testfile[35];
+    sprintf(message_testfile, "0000000014./testfile.txt%0*ld", 10, size);
+
+    if (strcmp(message_testfile, actual + 62) != 0) {
+        return -1;
+    }
+
+    if (memcmp(actual + 62 + 35, content, size) != 0) {
+        return -1;
+    }
+
+    char *message3 = "0000000005test30000000005";
+
+    if (strcmp(message3, actual + 97 + size) != 0) {
+        return -1;
+    }
+
+    if (memcmp(actual + 123 + size, test3, 5) != 0) {
+        return -1;
+    }
+
+    char *message4 = "0000000005test40000000005";
+
+    if (strcmp(message4, actual + 128 + size) != 0) {
+        return -1;
+    }
+
+    if (memcmp(actual + 154 + size, test4, 5) != 0) {
+        return -1;
+    }
+
+    char *message5 = "0000000005test50000000005";
+
+    if (strcmp(message5, actual + 159 + size) != 0) {
+        return -1;
+    }
+
+    if (memcmp(actual + 185 + size, test5, 5) != 0) {
+        return -1;
+    }
+
+    free(content);
+    free(actual);
+    gnl_socket_response_destroy(response);
+
+    return 0;
 }
 
 int can_init_empty_ok_file() {
@@ -414,7 +558,6 @@ int main() {
     gnl_printf_yellow("> gnl_socket_response test:\n\n");
 
     gnl_assert(can_init_empty_ok_file_list, "can init an empty GNL_SOCKET_RESPONSE_OK_FILE_LIST response type.");
-    gnl_assert(can_init_args_ok_file_list, "can init a GNL_SOCKET_RESPONSE_OK_FILE_LIST response type with args.");
     gnl_assert(can_from_string_ok_file_list, "can create from string a GNL_SOCKET_RESPONSE_OK_FILE_LIST response type message.");
     gnl_assert(can_to_string_ok_file_list, "can format to string a GNL_SOCKET_RESPONSE_OK_FILE_LIST response type.");
 

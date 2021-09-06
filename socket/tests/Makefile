@@ -9,15 +9,11 @@ CFLAGS += -std=c99 -Wall -pedantic -g
 HELPERS_PATH_LIB = $(ROOT)/$(HELPERS_LIB)
 HELPERS_PATH_INCLUDE = $(ROOT)/$(HELPERS_INCLUDE)
 
-# data-structures library
-LIBS = -Wl,-rpath,$(ROOT)$(DATA_STRUCTURES_LIB) -L$(ROOT)$(DATA_STRUCTURES_LIB) -lgnl_queue_t
-INCLUDE = -I$(ROOT)$(DATA_STRUCTURES_INCLUDE)
-
 LIBS += -Wl,-rpath,$(HELPERS_PATH_LIB) -L$(HELPERS_PATH_LIB) -lgnl_colorshell -lgnl_assert -lgnl_txtenv -lgnl_file_to_pointer
 INCLUDE += -I$(HELPERS_PATH_INCLUDE)
 
 # message library
-LIBS += -Wl,-rpath,$(ROOT)$(MESSAGE_LIB) -L$(ROOT)$(MESSAGE_LIB) -lgnl_message_n -lgnl_message_s -lgnl_message_snb -lgnl_message_sn -lgnl_message_nnb
+LIBS += -Wl,-rpath,$(ROOT)$(MESSAGE_LIB) -L$(ROOT)$(MESSAGE_LIB) -lgnl_message_n -lgnl_message_s -lgnl_message_snb -lgnl_message_sn -lgnl_message_nnb -lgnl_message_nq
 INCLUDE += -I$(ROOT)$(MESSAGE_INCLUDE)
 
 TARGETS =	gnl_socket_request_test \

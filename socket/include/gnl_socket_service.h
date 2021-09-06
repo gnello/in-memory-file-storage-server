@@ -99,7 +99,7 @@ extern struct gnl_socket_request *gnl_socket_service_get_request(int fd);
  *
  * @return          Returns 0 on success, -1 otherwise.
  */
-extern int gnl_socket_service_send_response(int fd, const struct gnl_socket_response *response);
+extern int gnl_socket_service_send_response(int fd, struct gnl_socket_response *response);
 
 /**
  * Get a response from the given connection.

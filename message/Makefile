@@ -9,11 +9,16 @@ CFLAGS = -std=c99 -Wall -g -pedantic
 # helpers library
 INCLUDE += -I$(ROOT)$(HELPERS_INCLUDE)
 
-TARGETS =	gnl_message_n.so \
-			gnl_message_s.so \
+# data-structures library
+LIBS += -Wl,-rpath,$(ROOT)$(DATA_STRUCTURES_LIB) -L$(ROOT)$(DATA_STRUCTURES_LIB) -lgnl_queue_t
+INCLUDE += -I$(ROOT)$(DATA_STRUCTURES_INCLUDE)
+
+TARGETS =	gnl_message_s.so \
+			gnl_message_n.so \
+			gnl_message_sn.so \
+			gnl_message_nq.so \
 			gnl_message_snb.so \
-			gnl_message_nnb.so \
-			gnl_message_sn.so
+			gnl_message_nnb.so
 
 TARGETS_PATH = ./lib
 

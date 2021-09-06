@@ -12,9 +12,14 @@ HELPERS_PATH_INCLUDE = $(ROOT)/$(HELPERS_INCLUDE)
 LIBS = -Wl,-rpath,$(HELPERS_PATH_LIB) -L$(HELPERS_PATH_LIB) -lgnl_colorshell -lgnl_assert -lgnl_file_to_pointer
 INCLUDE = -I$(HELPERS_PATH_INCLUDE)
 
+# data-structures library
+LIBS += -Wl,-rpath,$(ROOT)$(DATA_STRUCTURES_LIB) -L$(ROOT)$(DATA_STRUCTURES_LIB) -lgnl_queue_t
+INCLUDE += -I$(ROOT)$(DATA_STRUCTURES_INCLUDE)
+
 TARGETS =	gnl_message_s_test \
 			gnl_message_n_test \
 			gnl_message_sn_test \
+			gnl_message_nq_test \
 			gnl_message_snb_test \
 			gnl_message_nnb_test
 

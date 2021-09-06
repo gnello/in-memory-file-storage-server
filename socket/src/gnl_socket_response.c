@@ -37,7 +37,7 @@ int gnl_socket_response_get_type(struct gnl_socket_response *response, char **de
 
     switch (response->type) {
         case GNL_SOCKET_RESPONSE_OK_FILE_LIST:
-            GNL_CALLOC(*dest, 11, -1);
+            GNL_CALLOC(*dest, 13, -1);
             strcpy(*dest, "OK_FILE_LIST");
             break;
 
@@ -92,7 +92,14 @@ struct gnl_socket_response *gnl_socket_response_init(enum gnl_socket_response_ty
     // assign payload object
     switch (type) {
         case GNL_SOCKET_RESPONSE_OK_FILE_LIST:
-            GNL_RESPONSE_N_INIT(num, socket_response->payload.ok_file_list, a_list)
+            if (num == 0) {
+                socket_response->payload.ok_file_list = gnl_queue_init();
+            } else {
+                errno = EINVAL;
+                return NULL;
+            }
+
+            GNL_NULL_CHECK(socket_response->payload.ok_file_list, ENOMEM, NULL)
             break;
 
         case GNL_SOCKET_RESPONSE_OK_FILE:
@@ -151,7 +158,7 @@ struct gnl_socket_response *gnl_socket_response_init(enum gnl_socket_response_ty
 void gnl_socket_response_destroy(struct gnl_socket_response *response) {
     switch (response->type) {
         case GNL_SOCKET_RESPONSE_OK_FILE_LIST:
-            gnl_message_n_destroy(response->payload.ok_file_list);
+            gnl_queue_destroy(response->payload.ok_file_list, ok_file_destroy);
             break;
         case GNL_SOCKET_RESPONSE_OK_FILE:
             gnl_message_snb_destroy(response->payload.ok_file);
@@ -167,22 +174,6 @@ void gnl_socket_response_destroy(struct gnl_socket_response *response) {
     }
 
     free(response);
-}
-
-/**
- * {@inheritDoc}
- */
-//TODO: scrivere test
-int gnl_socket_response_get_evicted(struct gnl_socket_response *response) {
-    GNL_NULL_CHECK(response, EINVAL, -1)
-
-    if (response->type == GNL_SOCKET_RESPONSE_OK_FILE_LIST) {
-        return response->payload.ok_file_list->number;
-    }
-
-    errno = EINVAL;
-
-    return -1;
 }
 
 /**
@@ -236,7 +227,7 @@ struct gnl_socket_response *gnl_socket_response_from_string(const char *message,
             response = gnl_socket_response_init(GNL_SOCKET_RESPONSE_OK_FILE_LIST, 0);
             GNL_NULL_CHECK(response, ENOMEM, NULL)
 
-            res = gnl_message_n_from_string(message, response->payload.ok_file_list);
+            res = ok_file_list_from_string(message, response->payload.ok_file_list);
             GNL_MINUS1_CHECK(res, errno, NULL)
             break;
 
@@ -281,7 +272,7 @@ struct gnl_socket_response *gnl_socket_response_from_string(const char *message,
 /**
  * {@inheritDoc}
  */
-size_t gnl_socket_response_to_string(const struct gnl_socket_response *response, char **dest) {
+size_t gnl_socket_response_to_string(struct gnl_socket_response *response, char **dest) {
     // validate the parameters
     GNL_NULL_CHECK(response, EINVAL, -1)
     GNL_MINUS1_CHECK(-1 * (*dest != NULL), EINVAL, -1)
@@ -290,7 +281,7 @@ size_t gnl_socket_response_to_string(const struct gnl_socket_response *response,
 
     switch (response->type) {
         case GNL_SOCKET_RESPONSE_OK_FILE_LIST:
-            len = gnl_message_n_to_string(response->payload.ok_file_list, dest);
+            len = ok_file_list_to_string(&(response->payload.ok_file_list), dest);
             break;
 
         case GNL_SOCKET_RESPONSE_OK_FILE:
@@ -316,6 +307,43 @@ size_t gnl_socket_response_to_string(const struct gnl_socket_response *response,
     }
 
     return len;
+}
+
+/**
+ * {@inheritDoc}
+ */
+int gnl_socket_response_add_file(struct gnl_socket_response *response, const char *name, size_t count, const void *bytes) {
+    GNL_NULL_CHECK(response, EINVAL, -1)
+    GNL_NULL_CHECK(name, EINVAL, -1)
+
+    if (response->type != GNL_SOCKET_RESPONSE_OK_FILE_LIST) {
+        errno = EINVAL;
+
+        return -1;
+    }
+
+    struct gnl_message_snb *message = gnl_message_snb_init_with_args(name, count, bytes);
+    GNL_NULL_CHECK(message, errno, -1);
+
+    int res = gnl_queue_enqueue(response->payload.ok_file_list, message);
+    GNL_MINUS1_CHECK(res, errno, -1)
+
+    return -1;
+}
+
+/**
+ * {@inheritDoc}
+ */
+struct gnl_message_snb *gnl_socket_response_get_file(struct gnl_socket_response *response) {
+    GNL_NULL_CHECK(response, EINVAL, NULL)
+
+    if (response->type != GNL_SOCKET_RESPONSE_OK_FILE_LIST) {
+        errno = EINVAL;
+
+        return NULL;
+    }
+
+    return gnl_queue_dequeue(response->payload.ok_file_list);
 }
 
 #undef MAX_DIGITS_CHAR

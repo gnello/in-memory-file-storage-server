@@ -11,7 +11,7 @@ LIBS += -Wl,-rpath,$(ROOT)$(FILE_SYSTEM_LIB) -L$(ROOT)$(FILE_SYSTEM_LIB) -lgnl_s
 INCLUDE += -I$(ROOT)$(FILE_SYSTEM_INCLUDE)
 
 # data-structures library
-LIBS += -Wl,-rpath,$(ROOT)$(DATA_STRUCTURES_LIB) -L$(ROOT)$(DATA_STRUCTURES_LIB) -lgnl_list_t -lgnl_queue_t -lgnl_ternary_search_tree_t
+LIBS += -Wl,-rpath,$(ROOT)$(DATA_STRUCTURES_LIB) -L$(ROOT)$(DATA_STRUCTURES_LIB) -lgnl_list_t -lgnl_ternary_search_tree_t
 LIBS += -lgnl_ts_bb_queue_t -lgnl_min_heap_t -lgnl_ternary_search_tree_t
 INCLUDE += -I$(ROOT)$(DATA_STRUCTURES_INCLUDE)
 
@@ -24,7 +24,7 @@ LIBS += -Wl,-rpath,$(ROOT)$(SOCKET_LIB) -L$(ROOT)$(SOCKET_LIB) -lgnl_socket_requ
 INCLUDE += -I$(ROOT)$(SOCKET_INCLUDE)
 
 # message library
-LIBS += -Wl,-rpath,$(ROOT)$(MESSAGE_LIB) -L$(ROOT)$(MESSAGE_LIB) -lgnl_message_n -lgnl_message_s -lgnl_message_snb -lgnl_message_sn -lgnl_message_nnb
+LIBS += -Wl,-rpath,$(ROOT)$(MESSAGE_LIB) -L$(ROOT)$(MESSAGE_LIB) -lgnl_message_n -lgnl_message_s -lgnl_message_snb -lgnl_message_sn -lgnl_message_nnb -lgnl_message_nq
 INCLUDE += -I$(ROOT)$(MESSAGE_INCLUDE)
 
 # add thread support

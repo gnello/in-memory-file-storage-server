@@ -32,7 +32,7 @@ struct gnl_message_snb *gnl_message_snb_init() {
 /**
  * {@inheritDoc}
  */
-struct gnl_message_snb *gnl_message_snb_init_with_args(char *string, size_t count, void *bytes) {
+struct gnl_message_snb *gnl_message_snb_init_with_args(const char *string, size_t count, const void *bytes) {
     // validate parameters
     GNL_NULL_CHECK(string, EINVAL, NULL)
 

@@ -367,7 +367,7 @@ struct gnl_socket_request *gnl_socket_service_get_request(int fd) {
 /**
  * {@inheritDoc}
  */
-int gnl_socket_service_send_response(int fd, const struct gnl_socket_response *response) {
+int gnl_socket_service_send_response(int fd, struct gnl_socket_response *response) {
     //validate parameters
     GNL_NULL_CHECK(response, EINVAL, -1);
 

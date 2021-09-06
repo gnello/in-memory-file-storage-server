@@ -18,6 +18,11 @@ SERVER_PATH_INCLUDE = $(ROOT)/$(SERVER_INCLUDE)
 SOCKET_PATH_LIB = $(ROOT)/$(SOCKET_LIB)
 SOCKET_PATH_INCLUDE = $(ROOT)/$(SOCKET_INCLUDE)
 
+# socket library
+LIBS += -Wl,-rpath,$(SOCKET_PATH_LIB) -L$(SOCKET_PATH_LIB)
+LIBS += -lgnl_socket_request -lgnl_socket_response
+INCLUDE += -I$(SOCKET_PATH_INCLUDE)
+
 # data-structures library
 LIBS += -Wl,-rpath,$(DATA_STRUCTURES_PATH_LIB) -L$(DATA_STRUCTURES_PATH_LIB) -lgnl_list_t -lgnl_ternary_search_tree_t
 INCLUDE += -I$(DATA_STRUCTURES_PATH_INCLUDE)
@@ -30,13 +35,8 @@ INCLUDE += -I$(HELPERS_PATH_INCLUDE)
 LIBS += -Wl,-rpath,./mocks -L./mocks
 LIBS += -lgnl_socket_service
 
-# socket library
-LIBS += -Wl,-rpath,$(SOCKET_PATH_LIB) -L$(SOCKET_PATH_LIB)
-LIBS += -lgnl_socket_request -lgnl_socket_response
-INCLUDE += -I$(SOCKET_PATH_INCLUDE)
-
 # message library
-LIBS += -Wl,-rpath,$(ROOT)$(MESSAGE_LIB) -L$(ROOT)$(MESSAGE_LIB) -lgnl_message_n -lgnl_message_s -lgnl_message_snb -lgnl_message_sn -lgnl_message_nnb
+LIBS += -Wl,-rpath,$(ROOT)$(MESSAGE_LIB) -L$(ROOT)$(MESSAGE_LIB) -lgnl_message_n -lgnl_message_s -lgnl_message_snb -lgnl_message_sn -lgnl_message_nnb -lgnl_message_nq
 INCLUDE += -I$(ROOT)$(MESSAGE_INCLUDE)
 
 # file-system library

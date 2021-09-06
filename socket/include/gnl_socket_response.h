@@ -3,7 +3,6 @@
 #define GNL_SOCKET_RESPONSE_H
 
 #include "./gnl_socket_connection.h"
-#include <gnl_queue_t.h>
 
 /**
  * The possibles type of a socket response.
@@ -36,7 +35,7 @@ enum gnl_socket_response_type {
 struct gnl_socket_response {
     enum gnl_socket_response_type type;
     union {
-        struct gnl_message_n *ok_file_list;
+        struct gnl_message_nq *ok_file_list;
         struct gnl_message_snb *ok_file;
         struct gnl_message_n *ok_fd;
         struct gnl_message_n *error;
@@ -49,10 +48,11 @@ struct gnl_socket_response {
  * @param type  The type of the response.
  * @param num   The number of the subsequent params.
  * @param ...   The list of params supported by the given response type:
- *              - GNL_SOCKET_RESPONSE_OK_FILE_LIST: //TODO
  *              - GNL_SOCKET_RESPONSE_OK_FILE: char *filename, char *bytes
  *              - GNL_SOCKET_RESPONSE_OK_FD: int file_descriptor
  *              - GNL_SOCKET_RESPONSE_ERROR: int error_code
+ *              The GNL_SOCKET_RESPONSE_OK_FILE_LIST response can not be initialized
+ *              with args.
  *
  * @return      Returns a gnl_socket_response struct on success,
  *              NULL otherwise.
@@ -106,7 +106,7 @@ extern int gnl_socket_response_get_error(struct gnl_socket_response *response);
  * @return          Returns the length of the response string on success,
  *                  -1 otherwise.
  */
-extern size_t gnl_socket_response_to_string(const struct gnl_socket_response *response, char **dest);
+extern size_t gnl_socket_response_to_string(struct gnl_socket_response *response, char **dest);
 
 /**
  * Build a response from the given string.
@@ -118,5 +118,31 @@ extern size_t gnl_socket_response_to_string(const struct gnl_socket_response *re
  *                  NULL otherwise.
  */
 extern struct gnl_socket_response *gnl_socket_response_from_string(const char *message, enum gnl_socket_response_type type);
+
+/**
+ * Add a file to the given GNL_SOCKET_RESPONSE_OK_FILE_LIST response.
+ * If the response is not a GNL_SOCKET_RESPONSE_OK_FILE_LIST response,
+ * this invocation will fail.
+ *
+ * @param response  The response where to add a file.
+ * @param name      The name of the file.
+ * @param count     The number of bytes of the file.
+ * @param bytes     The content of the file.
+ *
+ * @return          Returns 0 on success, -1 otherwise.
+ */
+extern int gnl_socket_response_add_file(struct gnl_socket_response *response, const char *name, size_t count, const void *bytes);
+
+/**
+ * Get a file from the given GNL_SOCKET_RESPONSE_OK_FILE_LIST response.
+ * If the response is not a GNL_SOCKET_RESPONSE_OK_FILE_LIST response,
+ * this invocation will fail.
+ *
+ * @param response  The response from where to get a file.
+ *
+ * @return          Returns a gnl_message_snb containing the file
+ *                  information on success, NULL otherwise.
+ */
+extern struct gnl_message_snb *gnl_socket_response_get_file(struct gnl_socket_response *response);
 
 #endif //GNL_SOCKET_RESPONSE_H
