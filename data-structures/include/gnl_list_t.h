@@ -5,15 +5,13 @@
 /**
  * Holds the list information.
  *
- * struct gnl_list_t {
- *     void *el;
- *     struct gnl_list_t *next;
- * };
- *
  * el   The element of the list node.
  * next The pointer to the next element of the list.
  */
-typedef struct gnl_list_t gnl_list_t;
+struct gnl_list_t {
+    void *el;
+    struct gnl_list_t *next;
+};
 
 /**
  * Insert the element "el" onto the back of a linked list "list".
@@ -23,7 +21,7 @@ typedef struct gnl_list_t gnl_list_t;
  *
  * @return int Returns 0 on success, -1 otherwise.
  */
-extern int gnl_list_insert(gnl_list_t **list, void *el);
+extern int gnl_list_insert(struct gnl_list_t **list, void *el);
 
 /**
  * Insert an element "el" onto the back of a linked list "list".
@@ -33,7 +31,7 @@ extern int gnl_list_insert(gnl_list_t **list, void *el);
  *
  * @return int Returns 0 on success, -1 otherwise.
  */
-extern int gnl_list_append(gnl_list_t **list, void *el);
+extern int gnl_list_append(struct gnl_list_t **list, void *el);
 
 /**
  * Check whether the element "el" is present into the list.
@@ -45,7 +43,7 @@ extern int gnl_list_append(gnl_list_t **list, void *el);
  *
  * @return int      Returns 1 if the element is present, 0 otherwise.
  */
-extern int gnl_list_search(gnl_list_t *list, const void *el, int (*compare)(const void *a, const void *b));
+extern int gnl_list_search(struct gnl_list_t *list, const void *el, int (*compare)(const void *a, const void *b));
 
 /**
  * Remove an element "el" from a linked list "list".
@@ -55,7 +53,7 @@ extern int gnl_list_search(gnl_list_t *list, const void *el, int (*compare)(cons
  *
  * @return int Returns always 0 (for now...).
  */
-extern int gnl_list_delete(gnl_list_t **list, const void *el);
+extern int gnl_list_delete(struct gnl_list_t **list, const void *el);
 
 /**
  * Destroy the entire list.
@@ -66,6 +64,6 @@ extern int gnl_list_delete(gnl_list_t **list, const void *el);
  *
  * @return          Returns always 0 (for now...).
  */
-extern int gnl_list_destroy(gnl_list_t **list, void (*destroy)(void *data));
+extern int gnl_list_destroy(struct gnl_list_t **list, void (*destroy)(void *data));
 
 #endif //GNL_LIST_H

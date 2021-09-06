@@ -29,7 +29,7 @@ int test_cmp(const void *actual, const void *expected) {
 }
 
 int can_insert_int() {
-    gnl_list_t *list = NULL;
+    struct gnl_list_t *list = NULL;
 
     gnl_list_insert(&list, &test_int_el1);
     gnl_list_insert(&list, &test_int_el2);
@@ -48,7 +48,7 @@ int can_insert_int() {
 }
 
 int can_append_int() {
-    gnl_list_t *list = NULL;
+    struct gnl_list_t *list = NULL;
 
     gnl_list_insert(&list, &test_int_el1);
     gnl_list_insert(&list, &test_int_el2);
@@ -57,7 +57,7 @@ int can_append_int() {
 
     gnl_list_append(&list, &test_int_el5);
 
-    gnl_list_t *current = list;
+    struct gnl_list_t *current = list;
     while (current->next != NULL) {
         current = current->next;
     }
@@ -73,7 +73,7 @@ int can_append_int() {
 }
 
 int can_find_an_int() {
-    gnl_list_t *list = NULL;
+    struct gnl_list_t *list = NULL;
 
     if (gnl_list_search(list, &test_int_el2, NULL) != 0) {
         return -1;
@@ -91,7 +91,7 @@ int can_find_an_int() {
 }
 
 int can_delete_an_int() {
-    gnl_list_t *list = NULL;
+    struct gnl_list_t *list = NULL;
 
     gnl_list_insert(&list, &test_int_el1);
     gnl_list_insert(&list, &test_int_el2);
@@ -113,7 +113,7 @@ int can_delete_an_int() {
 }
 
 int can_insert_string() {
-    gnl_list_t *list = NULL;
+    struct gnl_list_t *list = NULL;
 
     gnl_list_insert(&list, test_string_el1);
     gnl_list_insert(&list, test_string_el2);
@@ -132,7 +132,7 @@ int can_insert_string() {
 }
 
 int can_append_string() {
-    gnl_list_t *list = NULL;
+    struct gnl_list_t *list = NULL;
 
     gnl_list_insert(&list, test_string_el1);
     gnl_list_insert(&list, test_string_el2);
@@ -141,7 +141,7 @@ int can_append_string() {
 
     gnl_list_append(&list, test_string_el5);
 
-    gnl_list_t *current = list;
+    struct gnl_list_t *current = list;
     while (current->next != NULL) {
         current = current->next;
     }
@@ -157,7 +157,7 @@ int can_append_string() {
 }
 
 int can_find_a_string() {
-    gnl_list_t *list = NULL;
+    struct gnl_list_t *list = NULL;
 
     if (gnl_list_search(list, test_string_el2, NULL) != 0) {
         return -1;
@@ -175,7 +175,7 @@ int can_find_a_string() {
 }
 
 int can_delete_a_string() {
-    gnl_list_t *list = NULL;
+    struct gnl_list_t *list = NULL;
 
     gnl_list_insert(&list, test_string_el1);
     gnl_list_insert(&list, test_string_el2);
@@ -197,7 +197,7 @@ int can_delete_a_string() {
 }
 
 int can_insert_struct() {
-    gnl_list_t *list = NULL;
+    struct gnl_list_t *list = NULL;
 
     gnl_list_insert(&list, &test_struct_el1);
     gnl_list_insert(&list, &test_struct_el2);
@@ -216,7 +216,7 @@ int can_insert_struct() {
 }
 
 int can_append_struct() {
-    gnl_list_t *list = NULL;
+    struct gnl_list_t *list = NULL;
 
     gnl_list_insert(&list, &test_struct_el1);
     gnl_list_insert(&list, &test_struct_el2);
@@ -225,7 +225,7 @@ int can_append_struct() {
 
     gnl_list_append(&list, &test_struct_el5);
 
-    gnl_list_t *current = list;
+    struct gnl_list_t *current = list;
     while (current->next != NULL) {
         current = current->next;
     }
@@ -241,7 +241,7 @@ int can_append_struct() {
 }
 
 int can_find_struct() {
-    gnl_list_t *list = NULL;
+    struct gnl_list_t *list = NULL;
 
     if (gnl_list_search((void *)list, (void *)&test_struct_el2, test_cmp) != 0) {
         return -1;
@@ -259,7 +259,7 @@ int can_find_struct() {
 }
 
 int can_delete_a_struct() {
-    gnl_list_t *list = NULL;
+    struct gnl_list_t *list = NULL;
 
     gnl_list_insert(&list, &test_struct_el1);
     gnl_list_insert(&list, &test_struct_el2);
@@ -281,7 +281,7 @@ int can_delete_a_struct() {
 }
 
 int can_destroy_list_complex_struct() {
-    gnl_list_t *list = NULL;
+    struct gnl_list_t *list = NULL;
 
     gnl_list_insert(&list, (void *)test_complex_struct_init());
     gnl_list_insert(&list, (void *)test_complex_struct_init());
@@ -295,7 +295,7 @@ int can_destroy_list_complex_struct() {
 }
 
 int can_pass_null_list() {
-    gnl_list_t *list = NULL;
+    struct gnl_list_t *list = NULL;
 
     gnl_list_append(&list, &test_int_el1);
     gnl_list_insert(&list, &test_int_el1);

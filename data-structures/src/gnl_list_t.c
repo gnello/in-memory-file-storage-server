@@ -12,16 +12,8 @@
 /**
  * {@inheritDoc}
  */
-struct gnl_list_t {
-    void *el;
-    struct gnl_list_t *next;
-};
-
-/**
- * {@inheritDoc}
- */
-int gnl_list_insert(gnl_list_t **list, void *el) {
-    gnl_list_t *new_node = (struct gnl_list_t *)malloc(sizeof(struct gnl_list_t));
+int gnl_list_insert(struct gnl_list_t **list, void *el) {
+    struct gnl_list_t *new_node = (struct gnl_list_t *)malloc(sizeof(struct gnl_list_t));
 
     GNL_NULL_CHECK(new_node, ENOMEM, -1)
 
@@ -36,9 +28,9 @@ int gnl_list_insert(gnl_list_t **list, void *el) {
 /**
  * {@inheritDoc}
  */
-int gnl_list_append(gnl_list_t **list, void *el) {
-    gnl_list_t *new_node = (struct gnl_list_t *)malloc(sizeof(struct gnl_list_t));
-    gnl_list_t *current = NULL;
+int gnl_list_append(struct gnl_list_t **list, void *el) {
+    struct gnl_list_t *new_node = (struct gnl_list_t *)malloc(sizeof(struct gnl_list_t));
+    struct gnl_list_t *current = NULL;
 
     GNL_NULL_CHECK(new_node, ENOMEM, -1)
 
@@ -64,8 +56,8 @@ int gnl_list_append(gnl_list_t **list, void *el) {
 /**
  * {@inheritDoc}
  */
-int gnl_list_search(gnl_list_t *list, const void *el, int (*compare)(const void *a, const void *b)) {
-    gnl_list_t *current = list;
+int gnl_list_search(struct gnl_list_t *list, const void *el, int (*compare)(const void *a, const void *b)) {
+    struct gnl_list_t *current = list;
 
     while (current != NULL) {
         if (compare == NULL) {
@@ -86,11 +78,11 @@ int gnl_list_search(gnl_list_t *list, const void *el, int (*compare)(const void 
 /**
  * {@inheritDoc}
  */
-int gnl_list_delete(gnl_list_t **list, const void *el) {
+int gnl_list_delete(struct gnl_list_t **list, const void *el) {
     GNL_NULL_CHECK(list, EINVAL, -1)
 
-    gnl_list_t *temp = *list;
-    gnl_list_t *prev;
+    struct gnl_list_t *temp = *list;
+    struct gnl_list_t *prev;
 
     if (temp != NULL && temp->el == el) {
         *list = temp->next;
@@ -117,11 +109,11 @@ int gnl_list_delete(gnl_list_t **list, const void *el) {
 /**
  * {@inheritDoc}
  */
-int gnl_list_destroy(gnl_list_t **list, void (*destroy)(void *data)) {
+int gnl_list_destroy(struct gnl_list_t **list, void (*destroy)(void *data)) {
     GNL_NULL_CHECK(list, EINVAL, -1)
 
-    gnl_list_t *current = *list;
-    gnl_list_t *next;
+    struct gnl_list_t *current = *list;
+    struct gnl_list_t *next;
 
     while (current != NULL) {
         next = current->next;
