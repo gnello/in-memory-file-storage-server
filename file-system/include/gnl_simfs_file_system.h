@@ -1,6 +1,8 @@
 #ifndef GNL_SIMFS_FILE_SYSTEM_H
 #define GNL_SIMFS_FILE_SYSTEM_H
 
+#include <gnl_list_t.h>
+
 /**
  * Passed to the gnl_simfs_file_system_open method
  * in order to create a file.
@@ -139,5 +141,15 @@ extern int gnl_simfs_file_system_lock(struct gnl_simfs_file_system *file_system,
  * @return              Return 0 on success, -1 otherwise.
  */
 extern int gnl_simfs_file_system_unlock(struct gnl_simfs_file_system *file_system, int fd, unsigned int pid);
+
+/**
+ * Get the list of all files present into the file system.
+ *
+ * @param file_system   The file system instance where to get a list of files.
+ * @param pid           The id of the process who invoked this method.
+ *
+ * @return              Return 0 on success, -1 otherwise.
+ */
+extern struct gnl_list_t *gnl_simfs_file_system_ls(struct gnl_simfs_file_system *file_system, unsigned int pid);
 
 #endif //GNL_SIMFS_FILE_SYSTEM_H

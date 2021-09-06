@@ -441,16 +441,19 @@ int can_get_list() {
     }
 
     int i=1;
-    while (list->next != NULL) {
+    struct gnl_list_t *current = list;
+    while (current != NULL) {
         sprintf(expected, "%s%d", "test", i++);
 
-        if (strcmp(expected, list->el) != 0) {
+        if (strcmp(expected, current->el) != 0) {
             return -1;
         }
 
-        list = list->next;
+        current = current->next;
     }
 
+    free(expected);
+    gnl_list_destroy(&list, free);
     gnl_simfs_file_table_destroy(table);
 
     return 0;

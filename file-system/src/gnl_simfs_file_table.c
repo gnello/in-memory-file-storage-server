@@ -109,7 +109,35 @@ static struct gnl_list_t *gnl_simfs_file_table_list(struct gnl_simfs_file_table 
     // validate the parameters
     GNL_NULL_CHECK(file_table, EINVAL, NULL)
 
-    return file_table->list;
+    // create a deep copy of the file list
+    if (file_table->list == NULL) {
+        return NULL;
+    }
+
+    struct gnl_list_t *current = file_table->list;
+    struct gnl_list_t *copy = NULL;
+    char *filename_list;
+    int res;
+
+    // for each element of the list...
+    while (current != NULL) {
+        filename_list = (char *)current->el;
+
+        // copy the filename
+        char *filename = calloc((strlen(filename_list) + 1), sizeof(char));
+        GNL_NULL_CHECK(filename, ENOMEM, NULL)
+
+        strncpy(filename, filename_list, strlen(filename_list));
+
+        // insert the deep copy of the filename into the new list
+        res = gnl_list_append(&copy, filename);
+        GNL_MINUS1_CHECK(res, errno, NULL)
+
+        // move on to the next element
+        current = current->next;
+    }
+
+    return copy;
 }
 
 /**

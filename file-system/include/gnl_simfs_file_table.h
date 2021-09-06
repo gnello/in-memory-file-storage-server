@@ -44,11 +44,11 @@ static unsigned long gnl_simfs_file_table_size(struct gnl_simfs_file_table *file
 static int gnl_simfs_file_table_count(struct gnl_simfs_file_table *file_table);
 
 /**
- * Get the file list of the given file table.
+ * Get a copy of the file list of the given file table.
  *
  * @param file_table    The file table instance from where to get the file list.
  *
- * @return              Returns the file list of the given file table on success,
+ * @return              Returns a copy of the file list of the given file table on success,
  *                      NULL otherwise.
  */
 static struct gnl_list_t *gnl_simfs_file_table_list(struct gnl_simfs_file_table *file_table);
