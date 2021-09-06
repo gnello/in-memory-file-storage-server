@@ -207,7 +207,7 @@ int gnl_opt_handler_handle(struct gnl_opt_handler *handler) {
     struct gnl_opt_handler_el command = {0, NULL};
 
     // the next command
-    struct gnl_opt_handler_el *next_command;
+    struct gnl_opt_handler_el *next_command = NULL;
 
     char *D_arg;
     char *d_arg;
@@ -216,6 +216,11 @@ int gnl_opt_handler_handle(struct gnl_opt_handler *handler) {
     // will have no effect since the initial command is not already
     // assigned.
     do {
+
+        // free memory
+        if (next_command != NULL) {
+            free(next_command);
+        }
 
         // get the next command
         next_command = (struct gnl_opt_handler_el *)gnl_queue_dequeue(handler->command_queue);
@@ -275,8 +280,6 @@ int gnl_opt_handler_handle(struct gnl_opt_handler *handler) {
         if (next_command != NULL) {
             command = *next_command;
         }
-
-        free(next_command);
 
         // if an error happen stop the execution
         if (res == -1) {
