@@ -161,7 +161,7 @@ int can_from_string_ok_file_list() {
         return -1;
     }
 
-    free(file);
+    gnl_message_snb_destroy(file);
     free(message);
     gnl_socket_response_destroy(response);
     free(content);
