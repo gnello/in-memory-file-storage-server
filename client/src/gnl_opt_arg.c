@@ -482,6 +482,13 @@ int arg_r(const char *arg, const char *store_dirname) {
     return res;
 }
 
+/**
+ * {@inheritDoc}
+ */
+int arg_R(const char *arg, const char *store_dirname) {
+    return 0;
+}
+
 //
 //static int arg_D(const char* param) { //0
 //    return 0;

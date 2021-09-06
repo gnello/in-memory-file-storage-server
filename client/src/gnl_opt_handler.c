@@ -34,11 +34,11 @@ struct gnl_opt_handler_el {
 };
 
 /**
- * Wait time milliseconds.
+ * Wait for the given milliseconds.
  *
-  * @param time The seconds to wait.
+ * @param time The microseconds to wait.
  *
- * @return  Returns the nanosleep result.
+ * @return  Returns 0 on success, -1 otherwise.
  */
 static int wait_microseconds(int time) {
     struct timespec ts;
@@ -158,7 +158,8 @@ int gnl_opt_handler_parse_opt(struct gnl_opt_handler *handler, int argc, char* a
                 res = gnl_queue_enqueue(handler->command_queue, (void *)opt_el);
 
                 if (res == -1) {
-                    errno = ENOMEM;
+                    // let the errno bubble
+
                     gnl_opt_handler_destroy(handler);
 
                     return -1;
@@ -184,61 +185,80 @@ int gnl_opt_handler_handle(struct gnl_opt_handler *handler) {
     arg_f = arg_f_start(handler->socket_filename);
     GNL_MINUS1_CHECK(arg_f, errno, -1);
 
-    struct gnl_opt_handler_el *el;
-    struct gnl_opt_handler_el previous_el = {0, NULL};
+    // the command to execute
+    struct gnl_opt_handler_el command = {0, NULL};
 
-    while ((el = (struct gnl_opt_handler_el *)gnl_queue_dequeue(handler->command_queue)) != NULL) {
+    // the next command
+    struct gnl_opt_handler_el *next_command;
 
-        switch (el->opt) {
+    char *D_arg;
+    char *d_arg;
+
+    // run the command and fetch the next one. The first iteration
+    // will have no effect since the initial command is not already
+    // assigned.
+    do {
+
+        // get the next command
+        next_command = (struct gnl_opt_handler_el *)gnl_queue_dequeue(handler->command_queue);
+
+        // store the -D argument to use within -w or -W options
+        D_arg = NULL;
+        if (next_command != NULL && next_command->opt == 'D') {
+            D_arg = next_command->arg;
+        }
+
+        // store the -d argument to use within -r or -R options
+        d_arg = NULL;
+        if (next_command != NULL && next_command->opt == 'd') {
+            d_arg = next_command->arg;
+        }
+
+        // execute the command
+        switch (command.opt) {
             // update the requests delay
             case 't':
-                GNL_TO_INT(opt_t_value, el->arg, -1)
+                GNL_TO_INT(opt_t_value, command.arg, -1)
 
-                free(el);
+                free(next_command);
                 // process next command immediately
                 continue;
                 /* NOT REACHED */
 
             case 'w':
-                if (previous_el.opt == 'D') {
-                    res = arg_w(el->arg, previous_el.arg);
-                } else {
-                    res = arg_w(el->arg, NULL);
-                }
+                res = arg_w(command.arg, D_arg);
                 break;
 
             case 'W':
-                if (previous_el.opt == 'D') {
-                    res = arg_W(el->arg, previous_el.arg);
-                } else {
-                    res = arg_W(el->arg, NULL);
-                }
+                res = arg_W(command.arg, D_arg);
                 break;
 
             case 'c':
-                res = arg_c(el->arg);
+                res = arg_c(command.arg);
                 break;
 
             case 'l':
-                res = arg_l(el->arg);
+                res = arg_l(command.arg);
                 break;
 
             case 'r':
-                if (previous_el.opt == 'd') {
-                    res = arg_r(el->arg, previous_el.arg);
-                } else {
-                    res = arg_r(el->arg, NULL);
-                }
+                res = arg_r(command.arg, d_arg);
+                break;
+
+            case 'R':
+                res = arg_R(command.arg, d_arg);
                 break;
 
             case 'u':
-                res = arg_u(el->arg);
+                res = arg_u(command.arg);
                 break;
         }
 
-        previous_el = *el;
+        if (next_command != NULL) {
+            command = *next_command;
+        }
 
-        free(el);
+        free(next_command);
 
         // if an error happen stop the execution
         if (res == -1) {
@@ -246,7 +266,8 @@ int gnl_opt_handler_handle(struct gnl_opt_handler *handler) {
         }
 
         wait_microseconds(opt_t_value);
-    }
+
+    } while (next_command != NULL);
 
     // at the end close the connection to the server
     arg_f = arg_f_end(handler->socket_filename);
