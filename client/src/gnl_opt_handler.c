@@ -84,7 +84,6 @@ int gnl_opt_handler_parse_opt(struct gnl_opt_handler *handler, int argc, char* a
     int res;
 
     // start arguments parse
-    int i = 0;
     while ((opt = getopt(argc, argv, GNL_SHORT_OPTS)) != -1) {
         // the -f, -h, -p options can not be specified more than once
         switch (opt) {
@@ -134,6 +133,28 @@ int gnl_opt_handler_parse_opt(struct gnl_opt_handler *handler, int argc, char* a
                 opt_el = (struct gnl_opt_handler_el *)malloc(sizeof(struct gnl_opt_handler_el));
                 opt_el->opt = opt;
                 opt_el->arg = optarg;
+
+                // if the -R option argument is apparently NULL...
+                // this case is normal due to the optional argument definition,
+                // see "man 3 getopt" for details
+                if (opt_el->opt == 'R' && optarg == NULL) {
+
+                    // if the argv[optind] contains the -R argument...
+                    if (optind < argc && argv[optind] != NULL && argv[optind][0] != '\0' && argv[optind][0] != '-') {
+
+                        // get the argument
+                        opt_el->arg = argv[optind];
+
+                        // increase the opt index
+                        optind++;
+                    }
+                    // if the argv[optind] is not a valid argument for the -R option...
+                    else {
+                        // set the argument to default (0)
+                        opt_el->arg = "0";
+                    }
+                }
+
                 res = gnl_queue_enqueue(handler->command_queue, (void *)opt_el);
 
                 if (res == -1) {
@@ -142,8 +163,6 @@ int gnl_opt_handler_parse_opt(struct gnl_opt_handler *handler, int argc, char* a
 
                     return -1;
                 }
-
-                i++;
                 break;
         }
     }
