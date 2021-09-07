@@ -709,6 +709,30 @@ int gnl_simfs_file_system_unlock(struct gnl_simfs_file_system *file_system, int 
     return 0;
 }
 
+/**
+ * {@inheritDoc}
+ */
+struct gnl_list_t *gnl_simfs_file_system_ls(struct gnl_simfs_file_system *file_system, unsigned int pid) {
+    // acquire the lock
+    GNL_SIMFS_LOCK_ACQUIRE(NULL, pid)
+
+    // validate the parameters
+    GNL_SIMFS_NULL_CHECK(file_system, EINVAL, NULL, pid)
+
+    gnl_logger_debug(file_system->logger, "ls: pid %d is trying to list the files of the file system", pid);
+
+    // get a list of all the files present into the file system
+    struct gnl_list_t *res = gnl_simfs_file_table_list(file_system->file_table);
+    GNL_SIMFS_NULL_CHECK(res, errno, NULL, pid)
+
+    gnl_logger_debug(file_system->logger, "ls: list of files succeeded");
+
+    // release the lock
+    GNL_SIMFS_LOCK_RELEASE(NULL, pid)
+
+    return res;
+}
+
 #undef GNL_SIMFS_MAX_OPEN_FILES
 
 #undef GNL_SIMFS_LOCK_ACQUIRE
