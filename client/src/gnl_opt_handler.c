@@ -36,7 +36,7 @@ struct gnl_opt_handler {
 
 struct gnl_opt_handler_el {
     int opt;
-    void *arg;
+    char *arg;
 };
 
 /**
@@ -97,6 +97,7 @@ int gnl_opt_handler_parse_opt(struct gnl_opt_handler *handler, int argc, char* a
     int opt;
     struct gnl_opt_handler_el *opt_el;
     int res;
+    char *arg;
 
     // start arguments parse
     while ((opt = getopt(argc, argv, GNL_SHORT_OPTS)) != -1) {
@@ -128,18 +129,20 @@ int gnl_opt_handler_parse_opt(struct gnl_opt_handler *handler, int argc, char* a
                 // basename removes path information
                 // POSIX version, can modify the argument.
                 arg_h(basename(argv[0]));
-                gnl_opt_handler_destroy(handler);
 
+                gnl_opt_handler_destroy(handler);
                 exit(EXIT_FAILURE);
                 /* NOT REACHED */
 
             // option not valid
             case ':':
+                gnl_opt_handler_destroy(handler);
                 GNL_THROW_OPT_EXCEPTION(opt_err, error, "argument required")
                 /* NOT REACHED */
 
             // option not valid
             case '?':
+                gnl_opt_handler_destroy(handler);
                 GNL_THROW_OPT_EXCEPTION(opt_err, error, "invalid option")
                 /* NOT REACHED */
 
@@ -147,7 +150,7 @@ int gnl_opt_handler_parse_opt(struct gnl_opt_handler *handler, int argc, char* a
             default:
                 opt_el = (struct gnl_opt_handler_el *)malloc(sizeof(struct gnl_opt_handler_el));
                 opt_el->opt = opt;
-                opt_el->arg = optarg;
+                arg = optarg;
 
                 // if the -R option argument is apparently NULL...
                 // this case is normal due to the optional argument definition,
@@ -158,7 +161,7 @@ int gnl_opt_handler_parse_opt(struct gnl_opt_handler *handler, int argc, char* a
                     if (optind < argc && argv[optind] != NULL && argv[optind][0] != '\0' && argv[optind][0] != '-') {
 
                         // get the argument
-                        opt_el->arg = argv[optind];
+                        arg = argv[optind];
 
                         // increase the opt index
                         optind++;
@@ -166,10 +169,14 @@ int gnl_opt_handler_parse_opt(struct gnl_opt_handler *handler, int argc, char* a
                     // if the argv[optind] is not a valid argument for the -R option...
                     else {
                         // set the argument to default (0)
-                        opt_el->arg = "0";
+                        arg = "0";
                     }
                 }
 
+                // set the arg
+                opt_el->arg = arg;
+
+                // enqueue the command
                 res = gnl_queue_enqueue(handler->command_queue, (void *)opt_el);
 
                 if (res == -1) {
