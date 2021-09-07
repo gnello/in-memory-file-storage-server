@@ -277,6 +277,9 @@ int gnl_fss_api_read_N_files(int N, const char *dirname) {
     int res = 0;
     struct gnl_message_snb *file = NULL;
 
+    // counter of the read files
+    int file_read_count = 0;
+
     // handle the response
     switch (response->type) {
 
@@ -294,6 +297,11 @@ int gnl_fss_api_read_N_files(int N, const char *dirname) {
 
             // for each received file
             while ((file = (struct gnl_message_snb *)gnl_queue_dequeue(response->payload.ok_file_list->queue)) != NULL) {
+
+                // increase the counter
+                file_read_count++;
+
+                // start reading the file
                 char *filename = file->string;
 
                 // open the file on the server (with lock)
@@ -335,6 +343,14 @@ int gnl_fss_api_read_N_files(int N, const char *dirname) {
                 //free memory
                 free(buf);
                 gnl_message_snb_destroy(file);
+
+                // check if we have to stop; we do the check here
+                // since at least 1 file must be read (N > 0) or
+                // all the files must be read (N <= 0), in addition
+                // at this point all the memory was freed
+                if (N > 0 && file_read_count == N) {
+                    break;
+                }
             }
             break;
 
