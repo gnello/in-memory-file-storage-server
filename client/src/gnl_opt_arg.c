@@ -354,10 +354,17 @@ int arg_w(const char *arg, const char *store_dirname) { //11
     print_command('w', arg);
 
     // parse arg
-    arg_w_parse_arg(arg, &dirname, &n);
+    res = arg_w_parse_arg(arg, &dirname, &n);
+    GNL_MINUS1_CHECK(res, errno, -1);
 
     // send n files
     queue = gnl_opt_rts_scan_dir(dirname, n);
+    if (queue == NULL) {
+        free(dirname);
+        // let the errno bubble
+
+        return -1;
+    }
 
     // for each dir files
     while ((filename = (char *)gnl_queue_dequeue(queue)) != NULL) {

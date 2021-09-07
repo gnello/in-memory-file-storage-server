@@ -11,12 +11,11 @@
 
 #define GNL_SHORT_OPTS ":hf:w:W:D:r:R::d:t:l:u:c:p"
 
-#define GNL_THROW_OPT_EXCEPTION(opt, error, message) {                                                                  \
+#define GNL_THROW_OPT_EXCEPTION(opt, message) {                                                                         \
     errno = EINVAL;                                                                                                     \
-    if ((opt) != NULL) {                                                                                                \
-        *(opt) = optopt;                                                                                                \
-        *(error) = message;                                                                                             \
-    }                                                                                                                   \
+    *(opt_err) = opt;                                                                                                   \
+    *(error) = message;                                                                                                 \
+    gnl_opt_handler_destroy(handler);                                                                                   \
     return -1;                                                                                                          \
 }
 
@@ -95,20 +94,20 @@ void gnl_opt_handler_destroy(struct gnl_opt_handler *handler) {
  */
 int gnl_opt_handler_parse_opt(struct gnl_opt_handler *handler, int argc, char* argv[], char *opt_err, char **error) {
     int opt;
+    int previous_opt;
     struct gnl_opt_handler_el *opt_el;
     int res;
     char *arg;
 
     // start arguments parse
     while ((opt = getopt(argc, argv, GNL_SHORT_OPTS)) != -1) {
+
         // the -f, -h, -p options can not be specified more than once
         switch (opt) {
             // enable operations log print
             case 'p':
                 if (handler->prints != 0) {
-                    optopt = 'p';
-
-                    GNL_THROW_OPT_EXCEPTION(opt_err, error, "option repeated")
+                    GNL_THROW_OPT_EXCEPTION('p', "option repeated")
                 }
 
                 handler->prints = 1;
@@ -117,8 +116,7 @@ int gnl_opt_handler_parse_opt(struct gnl_opt_handler *handler, int argc, char* a
             // set the socket filename
             case 'f':
                 if (handler->socket_filename != NULL) {
-                    optopt = 'f';
-                    GNL_THROW_OPT_EXCEPTION(opt_err, error, "option repeated")
+                    GNL_THROW_OPT_EXCEPTION('f', "option repeated")
                 }
 
                 handler->socket_filename = optarg;
@@ -136,14 +134,12 @@ int gnl_opt_handler_parse_opt(struct gnl_opt_handler *handler, int argc, char* a
 
             // option not valid
             case ':':
-                gnl_opt_handler_destroy(handler);
-                GNL_THROW_OPT_EXCEPTION(opt_err, error, "argument required")
+                GNL_THROW_OPT_EXCEPTION(optopt, "missing required argument")
                 /* NOT REACHED */
 
             // option not valid
             case '?':
-                gnl_opt_handler_destroy(handler);
-                GNL_THROW_OPT_EXCEPTION(opt_err, error, "invalid option")
+                GNL_THROW_OPT_EXCEPTION(optopt, "invalid option")
                 /* NOT REACHED */
 
             // put every other valid option into the command queue
@@ -163,7 +159,7 @@ int gnl_opt_handler_parse_opt(struct gnl_opt_handler *handler, int argc, char* a
                         // get the argument
                         arg = argv[optind];
 
-                        // increase the opt index
+                        // increase opt index
                         optind++;
                     }
                     // if the argv[optind] is not a valid argument for the -R option...
@@ -171,6 +167,16 @@ int gnl_opt_handler_parse_opt(struct gnl_opt_handler *handler, int argc, char* a
                         // set the argument to default (0)
                         arg = "0";
                     }
+                }
+
+                // if opt == 'D' check if it follows a -w/-W option
+                if (opt_el->opt == 'D' && previous_opt != 'w' && previous_opt != 'W') {
+                    GNL_THROW_OPT_EXCEPTION('D', "not preceded by a -w/-W option")
+                }
+
+                // if opt == 'd' check if it follows a -r/-R option
+                if (opt_el->opt == 'd' && previous_opt != 'r' && previous_opt != 'R') {
+                    GNL_THROW_OPT_EXCEPTION('d', "not preceded by a -r/-R option")
                 }
 
                 // set the arg
@@ -188,6 +194,8 @@ int gnl_opt_handler_parse_opt(struct gnl_opt_handler *handler, int argc, char* a
                 }
                 break;
         }
+
+        previous_opt = opt;
     }
 
     return 0;
@@ -220,8 +228,7 @@ int gnl_opt_handler_handle(struct gnl_opt_handler *handler) {
     char *d_arg;
 
     // run the command and fetch the next one. The first iteration
-    // will have no effect since the initial command is not already
-    // assigned.
+    // will have no effect since the initial command is not assigned yet.
     do {
 
         // free memory
@@ -236,7 +243,7 @@ int gnl_opt_handler_handle(struct gnl_opt_handler *handler) {
         D_arg = NULL;
         if (next_command != NULL && next_command->opt == 'D') {
             D_arg = next_command->arg;
-        }//TODO: generare errore se non usato congiuntamente a -r -R -w -W (option -D is specified but do not follow any -w/-W option)
+        }
 
         // store the -d argument to use within -r or -R options
         d_arg = NULL;
@@ -290,6 +297,7 @@ int gnl_opt_handler_handle(struct gnl_opt_handler *handler) {
 
         // if an error happen stop the execution
         if (res == -1) {
+            free(next_command);
             break;
         }
 

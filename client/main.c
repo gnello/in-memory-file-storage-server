@@ -11,13 +11,13 @@ int main(int argc, char * argv[]) {
         exit(EXIT_FAILURE);
     }
 
-    char opt_err = '\0';
-    char *error = "";
+    char opt_err = 0;
+    char *error = NULL;
 
     // parse the options
     if (gnl_opt_handler_parse_opt(handler, argc, argv, &opt_err, &error) != 0) {
-        if (opt_err != '\0') {
-            printf("%s: %s -- '%c'\n", argv[0], error, opt_err);
+        if (opt_err > 0) {
+            printf("Error while parsing the option '-%c': %s\n", opt_err, error);
         } else {
             perror("Error while parsing the options");
         }
