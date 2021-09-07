@@ -57,4 +57,6 @@ extern int arg_w(const char *arg, const char *store_dirname);
  */
 extern int arg_W(const char *arg, const char *store_dirname);
 
+//TODO: completare doc
+
 #endif //GNL_OPT_ARG_H
