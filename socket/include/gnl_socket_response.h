@@ -3,6 +3,9 @@
 #define GNL_SOCKET_RESPONSE_H
 
 #include "./gnl_socket_connection.h"
+#include <gnl_message_nq.h>
+#include <gnl_message_n.h>
+#include <gnl_message_snb.h>
 
 /**
  * The possibles type of a socket response.

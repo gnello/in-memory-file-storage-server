@@ -213,7 +213,7 @@ int gnl_socket_response_get_error(struct gnl_socket_response *response) {
  * {@inheritDoc}
  */
 struct gnl_socket_response *gnl_socket_response_from_string(const char *message, enum gnl_socket_response_type type) {
-    //validate the parameters
+    // validate the parameters
     // if the type is not GNL_SOCKET_RESPONSE_OK then the message
     // must not be NULL
     if (type != GNL_SOCKET_RESPONSE_OK) {
@@ -329,7 +329,7 @@ int gnl_socket_response_add_file(struct gnl_socket_response *response, const cha
     int res = gnl_message_nq_enqueue(response->payload.ok_file_list, message);
     GNL_MINUS1_CHECK(res, errno, -1)
 
-    return -1;
+    return 0;
 }
 
 /**

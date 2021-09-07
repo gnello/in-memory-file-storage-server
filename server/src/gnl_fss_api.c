@@ -2,6 +2,7 @@
 #include <time.h>
 #include <errno.h>
 #include <string.h>
+#include <gnl_queue_t.h>
 #include <gnl_socket_request.h>
 #include <gnl_socket_response.h>
 #include <gnl_socket_service.h>
@@ -260,11 +261,57 @@ int gnl_fss_api_read_file(const char *pathname, void **buf, size_t *size) {
  * {@inheritDoc}
  */
 int gnl_fss_api_read_N_files(int N, const char *dirname) {
+    // create the request to send to the server
+    struct gnl_socket_request *request = gnl_socket_request_init(GNL_SOCKET_REQUEST_READ_N, 1, N);
+    GNL_NULL_CHECK(request, ENOMEM, -1)
+
+    // send the request to the server
+    int bytes_sent = gnl_socket_service_send_request(socket_service_connection, request);
+    GNL_MINUS1_CHECK(bytes_sent, errno, -1)
+
+    // clean memory
+    gnl_socket_request_destroy(request);
+
+    // get the response from the server
+    struct gnl_socket_response *response = gnl_socket_service_get_response(socket_service_connection);
+    GNL_NULL_CHECK(response, errno, -1)
+
+    int res = 0;
+    struct gnl_message_snb *file = NULL;
+
+    // handle the response
+    switch (response->type) {
+
+        case GNL_SOCKET_RESPONSE_ERROR:
+            // an error happen, get the errno
+            errno = response->payload.error->number;
+            res = -1;
+            break;
+
+        case GNL_SOCKET_RESPONSE_OK_FILE_LIST:
+            while ((file = (struct gnl_message_snb *)gnl_queue_dequeue(response->payload.ok_file_list->queue)) != NULL) {
+                printf("READ_N: %s\n", file->string);
+
+                //TODO: implementare read
+
+                gnl_message_snb_destroy(file);
+            }
+            break;
+
+        default:
+            // if this point is reached, the response can not be
+            // something different from an ok_file response
+            errno = EBADMSG;
+            res = -1;
+    }
+
+    // free the memory
+    gnl_socket_response_destroy(response);
 
     // reset the openFile(pathname, O_CREATE|O_LOCK) check
     open_with_create_lock_flags = 0;
 
-    return 0;
+    return res;
 }
 
 /**
@@ -288,6 +335,8 @@ int gnl_fss_api_write_file(const char *pathname, const char *dirname) {
     int res = gnl_file_to_pointer(pathname, &file, &size);
 
     GNL_MINUS1_CHECK(res, errno, -1)
+
+    //TODO: spostare il codice successivo nella append_to_file
 
     // get the fd bound to the given pathname
     void *fd_raw = gnl_ternary_search_tree_get(file_descriptor_table, pathname);

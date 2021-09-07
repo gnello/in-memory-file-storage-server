@@ -486,25 +486,21 @@ int arg_r(const char *arg, const char *store_dirname) {
  * {@inheritDoc}
  */
 int arg_R(const char *arg, const char *store_dirname) {
+    int res;
+    int n;
+
+    GNL_TO_INT(n, arg, -1)
+
+    // open the file on the server (with lock)
+    res = gnl_fss_api_read_N_files(n, store_dirname);
+
+    print_log("Read N files", "", res, "N=%d", n);
+
+    GNL_MINUS1_CHECK(res, errno, -1);
+
     return 0;
 }
 
-//
-//static int arg_D(const char* param) { //0
-//    return 0;
-//}
-//
-//static int arg_r(const char* param) { //6
-//    return 0;
-//}
-//
-//static int arg_R(const char* param) { //5
-//    return 0;
-//}
-//
-//static int arg_d(const char* param) { //1
-//    return 0;
-//}
 //
 //static int arg_t(const char* param) { //8
 //    return 0;

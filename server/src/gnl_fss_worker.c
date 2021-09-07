@@ -5,6 +5,7 @@
 #include <gnl_socket_service.h>
 #include <string.h>
 #include <gnl_message_n.h>
+#include <gnl_list_t.h>
 #include <gnl_fss_errno.h>
 #include "../include/gnl_fss_worker.h"
 #include <gnl_macro_beg.h>
@@ -59,6 +60,9 @@ static struct gnl_socket_response *handle_request(struct gnl_simfs_file_system *
     struct gnl_socket_response *response = NULL;
     void *buf = NULL;
     size_t count = 0;
+    struct gnl_list_t *list = NULL;
+    struct gnl_list_t *current = NULL;
+    char *tmp;
 
     // handle the request with the correct handler
     //TODO: creare un metodo handler per ogni type che gestisca separatamente gli errori?
@@ -73,7 +77,30 @@ static struct gnl_socket_response *handle_request(struct gnl_simfs_file_system *
             break; //TODO: se "muore" un client chiudere tutti i suoi files aperti (occhio ai lock)
 
         case GNL_SOCKET_REQUEST_READ_N:
-            //res = gnl_simfs_file_system_read_n(file_system, request->payload.read_N->number);
+            list = gnl_simfs_file_system_ls(file_system, fd_c);
+
+            res = -1;
+            if (list != NULL) {
+                response = gnl_socket_response_init(GNL_SOCKET_RESPONSE_OK_FILE_LIST, 0);
+                current = list;
+
+                while (current != NULL) {
+                    // add the filename to the response
+                    tmp = (char *)current->el;
+                    res = gnl_socket_response_add_file(response, tmp, (strlen(tmp) + 1), tmp);
+
+                    // if an error occurred, then stop
+                    if (res == -1) {
+                        gnl_socket_response_destroy(response);
+                        break;
+                    }
+
+                    // move on to the next element
+                    current = current->next;
+                }
+
+                gnl_list_destroy(&list, free);
+            }
             break;
 
         case GNL_SOCKET_REQUEST_READ:
