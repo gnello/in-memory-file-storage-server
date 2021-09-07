@@ -244,7 +244,7 @@ static int gnl_opt_arg_read_file(const char *filename, const char *store_dirname
     int res_read = gnl_fss_api_read_file(filename, &buf, &size);
     int errno_read = errno;
 
-    print_log("Read file", filename, res_read, NULL);
+    print_log("Read file", filename, res_read, "%d bytes read", size);
 
     // an eventual error during the read will be checked later
 
