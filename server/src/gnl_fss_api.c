@@ -178,8 +178,7 @@ int gnl_fss_api_open_file(const char *pathname, int flags) {
             break;
 
         default:
-            // if this point is reached, the response can not be
-            // something different from an ok response
+            // if this point is reached, the response is not valid
             errno = EBADMSG;
             res = -1;
     }
@@ -242,8 +241,7 @@ int gnl_fss_api_read_file(const char *pathname, void **buf, size_t *size) {
             break;
 
         default:
-            // if this point is reached, the response can not be
-            // something different from an ok_file response
+            // if this point is reached, the response is not valid
             errno = EBADMSG;
             res = -1;
     }
@@ -288,6 +286,10 @@ int gnl_fss_api_read_N_files(int N, const char *dirname) {
             res = -1;
             break;
 
+        case GNL_SOCKET_RESPONSE_OK:
+            // no need to do something else here
+            break;
+
         case GNL_SOCKET_RESPONSE_OK_FILE_LIST:
             while ((file = (struct gnl_message_snb *)gnl_queue_dequeue(response->payload.ok_file_list->queue)) != NULL) {
                 printf("READ_N: %s\n", file->string);
@@ -299,8 +301,7 @@ int gnl_fss_api_read_N_files(int N, const char *dirname) {
             break;
 
         default:
-            // if this point is reached, the response can not be
-            // something different from an ok_file response
+            // if this point is reached, the response is not valid
             errno = EBADMSG;
             res = -1;
     }
@@ -378,8 +379,7 @@ int gnl_fss_api_write_file(const char *pathname, const char *dirname) {
             break;
 
         default:
-            // if this point is reached, the response can not be
-            // something different from an ok response
+            // if this point is reached, the response is not valid
             errno = EBADMSG;
             res = -1;
             break;
@@ -451,8 +451,7 @@ int gnl_fss_api_lock_file(const char *pathname) {
             break;
 
         default:
-            // if this point is reached, the response can not be
-            // something different from an ok response
+            // if this point is reached, the response is not valid
             errno = EBADMSG;
             res = -1;
     }
@@ -510,8 +509,7 @@ int gnl_fss_api_unlock_file(const char *pathname) {
             break;
 
         default:
-            // if this point is reached, the response can not be
-            // something different from an ok response
+            // if this point is reached, the response is not valid
             errno = EBADMSG;
             res = -1;
     }
@@ -573,8 +571,7 @@ int gnl_fss_api_close_file(const char *pathname) {
             break;
 
         default:
-            // if this point is reached, the response can not be
-            // something different from an ok response
+            // if this point is reached, the response is not valid
             errno = EBADMSG;
             res = -1;
     }
@@ -626,8 +623,7 @@ int gnl_fss_api_remove_file(const char *pathname) {
             break;
 
         default:
-            // if this point is reached, the response can not be
-            // something different from an ok response
+            // if this point is reached, the response is not valid
             errno = EBADMSG;
             res = -1;
     }

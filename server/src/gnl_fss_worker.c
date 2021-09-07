@@ -77,9 +77,12 @@ static struct gnl_socket_response *handle_request(struct gnl_simfs_file_system *
             break; //TODO: se "muore" un client chiudere tutti i suoi files aperti (occhio ai lock)
 
         case GNL_SOCKET_REQUEST_READ_N:
+            errno = 0;
             list = gnl_simfs_file_system_ls(file_system, fd_c);
 
             res = -1;
+
+            // if at least one file is present
             if (list != NULL) {
                 response = gnl_socket_response_init(GNL_SOCKET_RESPONSE_OK_FILE_LIST, 0);
                 current = list;
@@ -100,6 +103,12 @@ static struct gnl_socket_response *handle_request(struct gnl_simfs_file_system *
                 }
 
                 gnl_list_destroy(&list, free);
+            }
+            // else if no file are present (the function returned NULL
+            // but no errors occurred, i.e. errno == 0)
+            else if (errno == 0) {
+                response = gnl_socket_response_init(GNL_SOCKET_RESPONSE_OK, 0);
+                res = 0;
             }
             break;
 
