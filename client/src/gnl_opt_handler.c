@@ -229,7 +229,7 @@ int gnl_opt_handler_handle(struct gnl_opt_handler *handler) {
         D_arg = NULL;
         if (next_command != NULL && next_command->opt == 'D') {
             D_arg = next_command->arg;
-        }
+        }//TODO: generare errore se non usato congiuntamente a -r -R -w -W (option -D is specified but do not follow any -w/-W option)
 
         // store the -d argument to use within -r or -R options
         d_arg = NULL;

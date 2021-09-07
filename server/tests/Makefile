@@ -23,7 +23,7 @@ LIBS += -Wl,-rpath,$(ROOT)$(FILE_SYSTEM_LIB) -L$(ROOT)$(FILE_SYSTEM_LIB) -lgnl_s
 INCLUDE += -I$(ROOT)$(FILE_SYSTEM_INCLUDE)
 
 # helpers library
-LIBS += -Wl,-rpath,$(HELPERS_PATH_LIB) -L$(HELPERS_PATH_LIB) -lgnl_colorshell -lgnl_assert -lgnl_txtenv -lgnl_file_to_pointer
+LIBS += -Wl,-rpath,$(HELPERS_PATH_LIB) -L$(HELPERS_PATH_LIB) -lgnl_colorshell -lgnl_assert -lgnl_txtenv -lgnl_file_to_pointer -lgnl_file_saver
 INCLUDE += -I$(HELPERS_PATH_INCLUDE)
 
 # mocks library

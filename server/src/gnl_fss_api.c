@@ -1,8 +1,8 @@
-
 #include <time.h>
 #include <errno.h>
 #include <string.h>
 #include <gnl_queue_t.h>
+#include <gnl_file_saver.h>
 #include <gnl_socket_request.h>
 #include <gnl_socket_response.h>
 #include <gnl_socket_service.h>
@@ -291,11 +291,49 @@ int gnl_fss_api_read_N_files(int N, const char *dirname) {
             break;
 
         case GNL_SOCKET_RESPONSE_OK_FILE_LIST:
+
+            // for each received file
             while ((file = (struct gnl_message_snb *)gnl_queue_dequeue(response->payload.ok_file_list->queue)) != NULL) {
-                printf("READ_N: %s\n", file->string);
+                char *filename = file->string;
 
-                //TODO: implementare read
+                // open the file on the server (with lock)
+                res = gnl_fss_api_open_file(filename, 0);
+                if (res == -1) {
+                    break;
+                }
 
+                // read the file
+                void *buf = NULL;
+                size_t size;
+
+                int res_read = gnl_fss_api_read_file(filename, &buf, &size);
+                int errno_read = errno;
+
+                // an eventual error during the read will be checked later
+
+                // close the file
+                int res_close = gnl_fss_api_close_file(filename);
+                int errno_close = errno;
+
+                // check if there was an error during the read
+                if (res_read == -1) {
+                    errno = errno_read;
+                    break;
+                }
+
+                // check if there was an error during the close
+                if (res_close == -1) {
+                    errno = errno_close;
+                    break;
+                }
+
+                // store the read file on disk
+                if (dirname != NULL) {
+                    res = gnl_file_saver_save(filename, dirname, buf, size);
+                }
+
+                //free memory
+                free(buf);
                 gnl_message_snb_destroy(file);
             }
             break;

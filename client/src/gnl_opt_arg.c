@@ -3,6 +3,7 @@
 #include <time.h>
 #include <gnl_fss_api.h>
 #include <gnl_queue_t.h>
+#include <gnl_file_saver.h>
 #include <gnl_print_table.h>
 #include "./gnl_opt_rts.c"
 #include "../include/gnl_opt_arg.h"
@@ -211,17 +212,18 @@ static int gnl_opt_arg_read_file(const char *filename, const char *store_dirname
 
     print_log("Close file", filename, res_close, NULL);
 
-    // check if there was an error during the read
+    // check first if there was an error during the read
     GNL_MINUS1_CHECK(res_read, errno_read, -1);
 
     // store the read file on disk
     if (store_dirname != NULL) {
-        res = save_permanent(filename, store_dirname, buf, size);
+        res = gnl_file_saver_save(filename, store_dirname, buf, size);
     }
 
     //free memory
     free(buf);
 
+    // check first if there was an error during the save
     GNL_MINUS1_CHECK(res, errno, -1);
 
     // check if there was an error during the close_file

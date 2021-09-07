@@ -16,7 +16,7 @@ LIBS += -lgnl_ts_bb_queue_t -lgnl_min_heap_t -lgnl_ternary_search_tree_t
 INCLUDE += -I$(ROOT)$(DATA_STRUCTURES_INCLUDE)
 
 # helpers library
-LIBS += -Wl,-rpath,$(ROOT)$(HELPERS_LIB) -L$(ROOT)$(HELPERS_LIB) -lgnl_txtenv -lgnl_print_table -lgnl_logger -lgnl_file_to_pointer
+LIBS += -Wl,-rpath,$(ROOT)$(HELPERS_LIB) -L$(ROOT)$(HELPERS_LIB) -lgnl_txtenv -lgnl_print_table -lgnl_logger -lgnl_file_to_pointer -lgnl_file_saver
 INCLUDE += -I$(ROOT)$(HELPERS_INCLUDE)
 
 # socket library

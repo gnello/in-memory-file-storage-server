@@ -11,7 +11,7 @@ LIBS += -Wl,-rpath,$(ROOT)$(DATA_STRUCTURES_LIB) -L$(ROOT)$(DATA_STRUCTURES_LIB)
 INCLUDE += -I$(ROOT)$(DATA_STRUCTURES_INCLUDE)
 
 # helpers library
-LIBS += -Wl,-rpath,$(ROOT)$(HELPERS_LIB) -L$(ROOT)$(HELPERS_LIB) -lgnl_print_table
+LIBS += -Wl,-rpath,$(ROOT)$(HELPERS_LIB) -L$(ROOT)$(HELPERS_LIB) -lgnl_print_table -lgnl_file_saver
 INCLUDE += -I$(ROOT)$(HELPERS_INCLUDE)
 
 # server library
