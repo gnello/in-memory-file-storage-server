@@ -27,7 +27,7 @@ int main(int argc, char * argv[]) {
 
     // handle the parsed options
     if (gnl_opt_handler_handle(handler) != 0) {
-        perror("Error while processing an option command");
+        perror("Error while processing a command");
     }
 
     gnl_opt_handler_destroy(handler);

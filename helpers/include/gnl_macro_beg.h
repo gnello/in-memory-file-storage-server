@@ -30,6 +30,7 @@
 }
 
 #define GNL_TO_INT(value, string, return_code) {    \
+    errno = 0;                                      \
     char *ptr = NULL;                               \
     (value) = (int)strtol(string, &ptr, 10);        \
                                                     \

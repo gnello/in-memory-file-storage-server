@@ -1,4 +1,5 @@
 #include <limits.h>
+#include <time.h>
 #include <stdlib.h>
 #include <dirent.h>
 #include <sys/stat.h>
@@ -9,10 +10,30 @@
 
 #define BUFFER 1000
 
+/**
+ * Whether or not the operations output is enabled.
+ */
 int output = 0;
 
+/**
+ * The time to wait between sequential calls to the server.
+ */
+int wait_milliseconds_value = 0;
+
+/**
+ * Enable the operations output.
+ */
 static void enable_output() {
     output = 1;
+}
+
+/**
+ * Set the time to wait between sequential calls to the server.
+ *
+ * @param milliseconds  The time to wait in milliseconds.
+ */
+static void set_wait_milliseconds(int milliseconds) {
+    wait_milliseconds_value = milliseconds;
 }
 
 char *realpath(const char* restrict path, char* restrict resolved_path);
@@ -244,6 +265,20 @@ static void print_log(const char *op, const char *target, int res, const char *m
     print_row(op, target, res == 0 ? "OK" : "KO", res == 0 ? message : strerror(errno), a_list);
 
     va_end(a_list);
+}
+
+/**
+ * Wait the current wait_milliseconds_value milliseconds.
+ */
+static void wait_milliseconds() {
+    struct timespec ts;
+
+    ts.tv_sec = wait_milliseconds_value / 1000;
+    ts.tv_nsec = (wait_milliseconds_value % 1000) * 1000000;
+
+    print_log("Wait", "", 0, "milliseconds=%d", wait_milliseconds_value);
+
+    nanosleep(&ts, NULL);
 }
 
 #include <gnl_macro_end.h>

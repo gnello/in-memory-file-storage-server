@@ -39,22 +39,6 @@ struct gnl_opt_handler_el {
 };
 
 /**
- * Wait for the given milliseconds.
- *
- * @param time The microseconds to wait.
- *
- * @return  Returns 0 on success, -1 otherwise.
- */
-static int wait_microseconds(int time) {
-    struct timespec ts;
-
-    ts.tv_sec = time / 1000;
-    ts.tv_nsec = (time % 1000) * 1000000;
-
-    return nanosleep(&ts, NULL);
-}
-
-/**
  * {@inheritDoc}
  */
 struct gnl_opt_handler *gnl_opt_handler_init() {
@@ -253,14 +237,12 @@ int gnl_opt_handler_handle(struct gnl_opt_handler *handler) {
 
         // execute the command
         switch (command.opt) {
-            // update the requests delay
             case 't':
                 GNL_TO_INT(opt_t_value, command.arg, -1)
 
-                free(next_command);
-                // process next command immediately
-                continue;
-                /* NOT REACHED */
+                // update the requests delay
+                set_wait_milliseconds(opt_t_value);
+                break;
 
             case 'w':
                 res = arg_w(command.arg, D_arg);
@@ -300,8 +282,6 @@ int gnl_opt_handler_handle(struct gnl_opt_handler *handler) {
             free(next_command);
             break;
         }
-
-        wait_microseconds(opt_t_value);
 
     } while (next_command != NULL);
 
