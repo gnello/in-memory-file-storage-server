@@ -16,7 +16,7 @@
  * @return              The size of the message_snb.
  */
 static int gnl_message_snb_size(const struct gnl_message_snb *message_snb) {
-    return MAX_DIGITS_INT + strlen(message_snb->string) + MAX_DIGITS_INT + message_snb->count;
+    return MAX_DIGITS_INT + strlen(message_snb->string) + MAX_DIGITS_INT + message_snb->count + 1; // count also the '\0' char
 }
 
 /**
@@ -74,16 +74,16 @@ void gnl_message_snb_destroy(struct gnl_message_snb *message_snb) {
 int gnl_message_snb_to_string(const struct gnl_message_snb *message_snb, char **dest) {
     int message_snb_size = gnl_message_snb_size(message_snb);
 
-    GNL_CALLOC(*dest, message_snb_size + 1, -1)
+    GNL_CALLOC(*dest, message_snb_size, -1)
 
-    int maxlen = (message_snb_size - message_snb->count) + 1; // count also the '\0' char
+    int maxlen = message_snb_size - message_snb->count;
 
     snprintf(*dest, maxlen, "%0*lu%s%0*lu", MAX_DIGITS_INT, strlen(message_snb->string), message_snb->string,
              MAX_DIGITS_INT, message_snb->count);
 
     memcpy(*dest + maxlen, message_snb->bytes, message_snb->count);
 
-    return message_snb_size + 1;
+    return message_snb_size;
 }
 
 /**
