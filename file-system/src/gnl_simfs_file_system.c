@@ -222,54 +222,47 @@ int gnl_simfs_file_system_open(struct gnl_simfs_file_system *file_system, const 
     int file_locked_by_pid = gnl_simfs_inode_is_file_locked(inode);
     GNL_SIMFS_MINUS1_CHECK(file_locked_by_pid, errno, -1, pid)
 
+    // if the file is locked by any other pid return an error
+    if (file_locked_by_pid > 0 && file_locked_by_pid != pid) {
+        errno = EBUSY;
+
+        gnl_logger_debug(file_system->logger, "Open failed: file \"%s\" is locked by pid %d and it can "
+                                              "not be accessed", filename, file_locked_by_pid);
+
+        GNL_SIMFS_LOCK_RELEASE(-1, pid)
+
+        return -1;
+    }
+
     // if the file must be locked
     if (GNL_SIMFS_O_LOCK & flags) {
 
-        // if the file is locked by any other pid return an error
-        if (file_locked_by_pid > 0 && file_locked_by_pid != pid) {
-            errno = EBUSY;
+        // if the file is already locked by the given pid
+        if (file_locked_by_pid == pid) {
+            gnl_logger_debug(file_system->logger, "Open: file \"%s\" already locked by pid %d", filename, pid);
+        } else {
+            // increase the pending locks count of the inode to inform that a lock
+            // is pending
+            res = gnl_simfs_inode_increase_pending_locks(inode);
+            GNL_SIMFS_MINUS1_CHECK(res, errno, -1, pid)
 
-            gnl_logger_debug(file_system->logger, "Open failed: file \"%s\" is locked by pid %d and it can "
-                                                  "not be accessed", filename, file_locked_by_pid);
+            // check if the file can be locked: if not, wait for it
+            res = gnl_simfs_rts_wait_file_to_be_lockable(file_system, inode, pid);
+            GNL_SIMFS_MINUS1_CHECK(res, errno, -1, pid)
 
-            GNL_SIMFS_LOCK_RELEASE(-1, pid)
+            // lock the file //TODO: prevent deadlock EDEADLK
+            res = gnl_simfs_inode_file_lock(inode, pid);
+            GNL_SIMFS_MINUS1_CHECK(res, errno, -1, pid)
 
-            return -1;
+            gnl_logger_debug(file_system->logger, "Open: file \"%s\" locked by pid %d", filename, pid);
+
+            // decrease the pending_locks count
+            res = gnl_simfs_inode_decrease_pending_locks(inode);
+            GNL_SIMFS_MINUS1_CHECK(res, errno, -1, pid)
         }
-
-        // increase the pending locks count of the inode to inform that a lock
-        // is pending
-        res = gnl_simfs_inode_increase_pending_locks(inode);
-        GNL_SIMFS_MINUS1_CHECK(res, errno, -1, pid)
-
-        // check if the file can be locked: if not, wait for it
-        res = gnl_simfs_rts_wait_file_to_be_lockable(file_system, inode, pid);
-        GNL_SIMFS_MINUS1_CHECK(res, errno, -1, pid)
-
-        // lock the file //TODO: prevent deadlock EDEADLK
-        res = gnl_simfs_inode_file_lock(inode, pid);
-        GNL_SIMFS_MINUS1_CHECK(res, errno, -1, pid)
-
-        gnl_logger_debug(file_system->logger, "Open: file \"%s\" locked by pid %d", filename, pid);
-
-        // decrease the pending_locks count
-        res = gnl_simfs_inode_decrease_pending_locks(inode);
-        GNL_SIMFS_MINUS1_CHECK(res, errno, -1, pid)
     }
     // else if we want to access the file without lock
     else {
-
-        // if the file is locked return an error
-        if (file_locked_by_pid > 0) {
-            errno = EBUSY;
-
-            gnl_logger_debug(file_system->logger, "Open failed: file \"%s\" is locked by pid %d and it can "
-                                                  "not be accessed", filename, file_locked_by_pid);
-
-            GNL_SIMFS_LOCK_RELEASE(-1, pid)
-
-            return -1;
-        }
 
         // if there are pending locks return an error
         int has_pending_locks = gnl_simfs_inode_has_pending_locks(inode);
@@ -499,12 +492,12 @@ int gnl_simfs_file_system_close(struct gnl_simfs_file_system *file_system, int f
     GNL_SIMFS_MINUS1_CHECK(res, errno, -1, pid)
 
     // remove lock if pid owns it
-    if (res > 0 && res == pid) {
-        res = gnl_simfs_inode_file_unlock(inode, pid);
-        GNL_SIMFS_MINUS1_CHECK(res, errno, -1, pid)
-
-        gnl_logger_debug(file_system->logger, "Close: file \"%s\" unlocked by pid %d", inode->name, pid);
-    }
+//    if (res > 0 && res == pid) {
+//        res = gnl_simfs_inode_file_unlock(inode, pid);
+//        GNL_SIMFS_MINUS1_CHECK(res, errno, -1, pid)
+//
+//        gnl_logger_debug(file_system->logger, "Close: file \"%s\" unlocked by pid %d", inode->name, pid);
+//    }
 
     // decrease the inode reference count
     res = gnl_simfs_inode_decrease_refs(inode, pid);
