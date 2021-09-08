@@ -1,6 +1,5 @@
 /*
- * This is a simple ternary search tree implementation, it does not intend to be exhaustive
- * but it's nice :)
+ * This is a simple ternary search tree implementation, it does not intend to be exhaustive.
  */
 
 #include <stdlib.h>

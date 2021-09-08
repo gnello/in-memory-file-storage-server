@@ -1,6 +1,6 @@
 /*
  * This is a simple concurrent thead safe blocking bounded stack implementation, it does not intend
- * to be exhaustive but it's nice :)
+ * to be exhaustive.
  */
 
 #include <stdlib.h>

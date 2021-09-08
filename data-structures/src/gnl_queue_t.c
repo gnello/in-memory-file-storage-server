@@ -1,6 +1,5 @@
 /*
- * This is a simple queue implementation, it does not intend to be exhaustive
- * but it's nice :)
+ * This is a simple queue implementation, it does not intend to be exhaustive.
  */
 
 #include <stdio.h>

@@ -1,6 +1,6 @@
 /*
  * This is a simple linked list implementation, it does not intend to be
- * exhaustive but it's nice :)
+ * exhaustive.
  */
 
 #include <stdio.h>

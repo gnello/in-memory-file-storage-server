@@ -1,6 +1,5 @@
 /*
- * This is a simple min heap implementation, it does not intend to be exhaustive
- * but it's nice :)
+ * This is a simple min heap implementation, it does not intend to be exhaustive.
  */
 
 #include <stdio.h>

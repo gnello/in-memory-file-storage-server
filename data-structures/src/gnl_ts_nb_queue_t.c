@@ -1,6 +1,6 @@
 /*
  * This is a simple concurrent thead-safe non-blocking queue implementation, it does not intend
- * to be exhaustive but it's nice :)
+ * to be exhaustive.
  */
 
 #include <stdlib.h>
