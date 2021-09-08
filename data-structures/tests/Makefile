@@ -16,6 +16,7 @@ INCLUDE = -I$(HELPERS_PATH_INCLUDE)
 TARGETS =	gnl_list_test \
 			gnl_queue_test \
 			gnl_ts_bb_queue_test \
+			gnl_ts_nb_queue_test \
 			gnl_stack_test \
 			gnl_ts_bb_stack_test \
 			gnl_min_heap_test \
