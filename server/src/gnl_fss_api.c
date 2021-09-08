@@ -28,13 +28,36 @@ int socket_service_connection_active = 0;
  * It used by the writeFile api to check if she can write a whole file
  * from scratch.
  */
- int open_with_create_lock_flags = 0;
+int open_with_create_lock_flags = 0;
 
- /**
-  * The file descriptor table that holds all the open file descriptors
-  * returned by the openFile api.
-  */
- struct gnl_ternary_search_tree_t *file_descriptor_table;
+/**
+ * The file descriptor table that holds all the open file descriptors
+ * returned by the openFile api.
+ */
+struct gnl_ternary_search_tree_t *file_descriptor_table;
+
+/**
+ * Send the given request to the server and get the response.
+ * A call to this invocation will destroy the given request.
+ *
+ * @param request   The request to send.
+ *
+ * @return          Returns the response from the server on success,
+ *                  NULL otherwise.
+ */
+static struct gnl_socket_response *send_and_destroy_request(struct gnl_socket_request *request) {
+    GNL_NULL_CHECK(request, errno, NULL)
+
+    // send the request to the server
+    int bytes_sent = gnl_socket_service_send_request(socket_service_connection, request);
+    GNL_MINUS1_CHECK(bytes_sent, errno, NULL)
+
+    // clean memory
+    gnl_socket_request_destroy(request);
+
+    // get the response from the server
+    return gnl_socket_service_get_response(socket_service_connection);
+}
 
 /**
  * {@inheritDoc}
@@ -98,6 +121,7 @@ int gnl_fss_api_open_connection(const char *sockname, int msec, const struct tim
  * {@inheritDoc}
  */
 int gnl_fss_api_close_connection(const char *sockname) {
+    // validate the state
     if (!socket_service_connection_active
     || !gnl_socket_service_is_active(socket_service_connection)
     || socket_service_connection->socket_name == NULL
@@ -135,15 +159,8 @@ int gnl_fss_api_open_file(const char *pathname, int flags) {
     struct gnl_socket_request *request = gnl_socket_request_init(GNL_SOCKET_REQUEST_OPEN, 2, pathname, flags);
     GNL_NULL_CHECK(request, ENOMEM, -1)
 
-    // send the request to the server
-    int bytes_sent = gnl_socket_service_send_request(socket_service_connection, request);
-    GNL_MINUS1_CHECK(bytes_sent, errno, -1)
-
-    // clean memory
-    gnl_socket_request_destroy(request);
-
-    // get the response from the server
-    struct gnl_socket_response *response = gnl_socket_service_get_response(socket_service_connection);
+    // send the request and get the response from the server
+    struct gnl_socket_response *response = send_and_destroy_request(request);
     GNL_NULL_CHECK(response, errno, -1)
 
     int res = 0;
@@ -156,6 +173,11 @@ int gnl_fss_api_open_file(const char *pathname, int flags) {
         case GNL_SOCKET_RESPONSE_ERROR:
             // an error happen, get the errno
             errno = response->payload.error->number;
+
+            // if the file is locked, wait for it
+            if (errno == EBUSY) {
+
+            }
             res = -1;
             break;
 
@@ -207,15 +229,8 @@ int gnl_fss_api_read_file(const char *pathname, void **buf, size_t *size) {
     struct gnl_socket_request *request = gnl_socket_request_init(GNL_SOCKET_REQUEST_READ, 1, fd);
     GNL_NULL_CHECK(request, ENOMEM, -1)
 
-    // send the request to the server
-    int bytes_sent = gnl_socket_service_send_request(socket_service_connection, request);
-    GNL_MINUS1_CHECK(bytes_sent, errno, -1)
-
-    // clean memory
-    gnl_socket_request_destroy(request);
-
-    // get the response from the server
-    struct gnl_socket_response *response = gnl_socket_service_get_response(socket_service_connection);
+    // send the request and get the response from the server
+    struct gnl_socket_response *response = send_and_destroy_request(request);
     GNL_NULL_CHECK(response, errno, -1)
 
     int res = 0;
@@ -263,15 +278,8 @@ int gnl_fss_api_read_N_files(int N, const char *dirname) {
     struct gnl_socket_request *request = gnl_socket_request_init(GNL_SOCKET_REQUEST_READ_N, 1, N);
     GNL_NULL_CHECK(request, ENOMEM, -1)
 
-    // send the request to the server
-    int bytes_sent = gnl_socket_service_send_request(socket_service_connection, request);
-    GNL_MINUS1_CHECK(bytes_sent, errno, -1)
-
-    // clean memory
-    gnl_socket_request_destroy(request);
-
-    // get the response from the server
-    struct gnl_socket_response *response = gnl_socket_service_get_response(socket_service_connection);
+    // send the request and get the response from the server
+    struct gnl_socket_response *response = send_and_destroy_request(request);
     GNL_NULL_CHECK(response, errno, -1)
 
     int res = 0;
@@ -403,16 +411,13 @@ int gnl_fss_api_write_file(const char *pathname, const char *dirname) {
     struct gnl_socket_request *request = gnl_socket_request_init(GNL_SOCKET_REQUEST_WRITE, 3, fd, size, file);
     GNL_NULL_CHECK(request, errno, -1)
 
-    // send the request to the server
-    int bytes_sent = gnl_socket_service_send_request(socket_service_connection, request);
-    GNL_MINUS1_CHECK(bytes_sent, errno, -1)
+    // send the request and get the response from the server
+    struct gnl_socket_response *response = send_and_destroy_request(request);
 
-    // clean memory
-    gnl_socket_request_destroy(request);
+    // free memory
     free(file);
 
-    // get the response from the server
-    struct gnl_socket_response *response = gnl_socket_service_get_response(socket_service_connection);
+    // check the response
     GNL_NULL_CHECK(response, errno, -1)
 
     res = 0;
@@ -478,15 +483,8 @@ int gnl_fss_api_lock_file(const char *pathname) {
     struct gnl_socket_request *request = gnl_socket_request_init(GNL_SOCKET_REQUEST_LOCK, 1, fd);
     GNL_NULL_CHECK(request, ENOMEM, -1)
 
-    // send the request to the server
-    int bytes_sent = gnl_socket_service_send_request(socket_service_connection, request);
-    GNL_MINUS1_CHECK(bytes_sent, errno, -1)
-
-    // clean memory
-    gnl_socket_request_destroy(request);
-
-    // get the response from the server
-    struct gnl_socket_response *response = gnl_socket_service_get_response(socket_service_connection);
+    // send the request and get the response from the server
+    struct gnl_socket_response *response = send_and_destroy_request(request);
     GNL_NULL_CHECK(response, errno, -1)
 
     int res = 0;
@@ -536,15 +534,8 @@ int gnl_fss_api_unlock_file(const char *pathname) {
     struct gnl_socket_request *request = gnl_socket_request_init(GNL_SOCKET_REQUEST_UNLOCK, 1, fd);
     GNL_NULL_CHECK(request, ENOMEM, -1)
 
-    // send the request to the server
-    int bytes_sent = gnl_socket_service_send_request(socket_service_connection, request);
-    GNL_MINUS1_CHECK(bytes_sent, errno, -1)
-
-    // clean memory
-    gnl_socket_request_destroy(request);
-
-    // get the response from the server
-    struct gnl_socket_response *response = gnl_socket_service_get_response(socket_service_connection);
+    // send the request and get the response from the server
+    struct gnl_socket_response *response = send_and_destroy_request(request);
     GNL_NULL_CHECK(response, errno, -1)
 
     int res = 0;
@@ -594,15 +585,8 @@ int gnl_fss_api_close_file(const char *pathname) {
     struct gnl_socket_request *request = gnl_socket_request_init(GNL_SOCKET_REQUEST_CLOSE, 1, fd);
     GNL_NULL_CHECK(request, ENOMEM, -1)
 
-    // send the request to the server
-    int bytes_sent = gnl_socket_service_send_request(socket_service_connection, request);
-    GNL_MINUS1_CHECK(bytes_sent, errno, -1)
-
-    // clean memory
-    gnl_socket_request_destroy(request);
-
-    // get the response from the server
-    struct gnl_socket_response *response = gnl_socket_service_get_response(socket_service_connection);
+    // send the request and get the response from the server
+    struct gnl_socket_response *response = send_and_destroy_request(request);
     GNL_NULL_CHECK(response, errno, -1)
 
     int res = 0;
@@ -650,15 +634,8 @@ int gnl_fss_api_remove_file(const char *pathname) {
     struct gnl_socket_request *request = gnl_socket_request_init(GNL_SOCKET_REQUEST_REMOVE, 1, pathname);
     GNL_NULL_CHECK(request, ENOMEM, -1)
 
-    // send the request to the server
-    int bytes_sent = gnl_socket_service_send_request(socket_service_connection, request);
-    GNL_MINUS1_CHECK(bytes_sent, errno, -1)
-
-    // clean memory
-    gnl_socket_request_destroy(request);
-
-    // get the response from the server
-    struct gnl_socket_response *response = gnl_socket_service_get_response(socket_service_connection);
+    // send the request and get the response from the server
+    struct gnl_socket_response *response = send_and_destroy_request(request);
     GNL_NULL_CHECK(response, errno, -1)
 
     int res = 0;
