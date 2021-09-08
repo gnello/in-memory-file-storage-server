@@ -631,9 +631,7 @@ int main() {
     gnl_assert(can_put_after_remove, "can put an element into a file descriptor table after a remove.");
     gnl_assert(can_remove_all, "can remove all the elements from a file descriptor table.");
 
-    // the gnl_simfs_file_descriptor_table_destroy method is implicitly tested in every
-    // assert, if you don't believe it, run this tests with
-    // valgrind and look for memory leaks, good luck!
+    // the gnl_simfs_file_descriptor_table_destroy method is implicitly tested in every assertion
 
     printf("\n");
 }

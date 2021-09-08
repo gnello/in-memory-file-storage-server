@@ -480,9 +480,7 @@ int main() {
     gnl_assert(can_get_count, "can get the number of files present into a file table.");
     gnl_assert(can_get_list, "can get the list of files present into a file table.");
 
-    // the gnl_simfs_file_table_destroy method is implicitly tested in every
-    // assert, if you don't believe it, run this tests with
-    // valgrind and look for memory leaks, good luck!
+    // the gnl_simfs_file_table_destroy method is implicitly tested in every assertion
 
     printf("\n");
 }

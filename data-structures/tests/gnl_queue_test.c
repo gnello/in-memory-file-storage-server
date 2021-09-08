@@ -314,9 +314,7 @@ int main() {
 
     gnl_assert(can_pass_null_queue, "can give a null queue safely to the queue interface.");
 
-    // the gnl_queue_destroy method is implicitly tested in every
-    // assert, if you don't believe it, run this tests with
-    // valgrind and look for memory leaks, good luck!
+    // the gnl_queue_destroy method is implicitly tested in every assertion
 
     printf("\n");
 }

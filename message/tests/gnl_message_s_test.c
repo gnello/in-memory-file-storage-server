@@ -81,9 +81,7 @@ int main() {
     gnl_assert(can_to_string_message, "can get a message string from a gnl_message_s struct.");
     gnl_assert(can_from_string_message, "can get a message from a string into a gnl_message_s struct.");
 
-    // the gnl_message_s_destroy method is implicitly tested in every
-    // assert, if you don't believe it, run this tests with
-    // valgrind and look for memory leaks, good luck!
+    // the gnl_message_s_destroy method is implicitly tested in every assertion
 
     printf("\n");
 }

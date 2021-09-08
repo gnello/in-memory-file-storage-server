@@ -120,9 +120,7 @@ int main() {
     gnl_assert(can_load_env, "can load the configuration from the env.");
     gnl_assert(can_not_load_with_error, "can not load an incorrect configuration from the env.");
 
-    // the gnl_fss_config_destroy method is implicitly tested in every
-    // assert, if you don't believe it, run this tests with
-    // valgrind and look for memory leaks, good luck!
+    // the gnl_fss_config_destroy method is implicitly tested in every assertion
 
     printf("\n");
 }

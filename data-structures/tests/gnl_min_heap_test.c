@@ -206,9 +206,7 @@ int main() {
 
     gnl_assert(can_pass_null_min_heap, "can give a null min heap safely to the min heap interface.");
 
-    // the gnl_min_heap_destroy method is implicitly tested in every
-    // assert, if you don't believe it, run this tests with
-    // valgrind and look for memory leaks, good luck!
+    // the gnl_min_heap_destroy method is implicitly tested in every assertion
 
     printf("\n");
 }

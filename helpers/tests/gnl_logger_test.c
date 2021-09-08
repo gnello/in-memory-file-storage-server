@@ -251,7 +251,7 @@ int main() {
     gnl_assert(can_not_error_warn, "can report a warn message with log level \"error\".");
     gnl_assert(can_error_error, "can report a error message with log level \"error\".");
 
-    // the gnl_logger_destroy method is implicitly tested in every assert.
+    // the gnl_logger_destroy method is implicitly tested in every assertion.
 
     printf("\n");
 }

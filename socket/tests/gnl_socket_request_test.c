@@ -865,9 +865,7 @@ int main() {
     gnl_assert(can_get_type_close, "can get the type string of a GNL_SOCKET_REQUEST_CLOSE request type");
     gnl_assert(can_get_type_remove, "can get the type string of a GNL_SOCKET_REQUEST_REMOVE request type");
 
-    // the gnl_socket_request_destroy method is implicitly tested in every
-    // assert, if you don't believe it, run this tests with
-    // valgrind and look for memory leaks, good luck!
+    // the gnl_socket_request_destroy method is implicitly tested in every assertion
 
     printf("\n");
 }

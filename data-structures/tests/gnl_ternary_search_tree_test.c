@@ -315,9 +315,8 @@ int main() {
 
     // the gnl_ternary_search_tree_get method is implicitly tested by the other tests
 
-    // the gnl_ternary_search_tree_destroy method is implicitly tested in every
-    // assert, if you don't believe it, run this tests with
-    // valgrind and look for memory leaks, good luck!
+    // the gnl_ternary_search_tree_destroy method is implicitly tested in every assertion
+
 
     printf("\n");
 }

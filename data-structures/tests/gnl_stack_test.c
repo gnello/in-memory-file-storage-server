@@ -255,9 +255,7 @@ int main() {
 
     gnl_assert(can_pass_null_stack, "can give a null stack safely to the stack interface.");
 
-    // the gnl_stack_destroy method is implicitly tested in every
-    // assert, if you don't believe it, run this tests with
-    // valgrind and look for memory leaks, good luck!
+    // the gnl_stack_destroy method is implicitly tested in every assertion
 
     printf("\n");
 }

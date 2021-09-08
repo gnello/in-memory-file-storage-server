@@ -755,9 +755,7 @@ int main() {
     gnl_assert(can_copy, "can get a copy of an inode.");
     gnl_assert(can_fflush, "can fflush an inode.");
 
-    // the gnl_simfs_inode_destroy method is implicitly tested in every
-    // assert, if you don't believe it, run this tests with
-    // valgrind and look for memory leaks, good luck!
+    // the gnl_simfs_inode_destroy method is implicitly tested in every assertion
 
     printf("\n");
 }

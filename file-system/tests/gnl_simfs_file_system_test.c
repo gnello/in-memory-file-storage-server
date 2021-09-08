@@ -170,9 +170,7 @@ int main() {
     gnl_assert(can_not_open_file, "can not open a file that does not exists.");
     //gnl_assert(can_open_file, "can open a file that exists.");
 
-    // the gnl_simfs_file_system_destroy method is implicitly tested in every
-    // assert, if you don't believe it, run this tests with
-    // valgrind and look for memory leaks, good luck!
+    // the gnl_simfs_file_system_destroy method is implicitly tested in every assertion
 
     printf("\n");
 }
