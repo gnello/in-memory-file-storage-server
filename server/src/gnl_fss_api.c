@@ -173,11 +173,6 @@ int gnl_fss_api_open_file(const char *pathname, int flags) {
         case GNL_SOCKET_RESPONSE_ERROR:
             // an error happen, get the errno
             errno = response->payload.error->number;
-
-            // if the file is locked, wait for it
-            if (errno == EBUSY) {
-
-            }
             res = -1;
             break;
 
