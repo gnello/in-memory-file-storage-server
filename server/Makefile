@@ -12,7 +12,7 @@ INCLUDE += -I$(ROOT)$(FILE_SYSTEM_INCLUDE)
 
 # data-structures library
 LIBS += -Wl,-rpath,$(ROOT)$(DATA_STRUCTURES_LIB) -L$(ROOT)$(DATA_STRUCTURES_LIB) -lgnl_list_t -lgnl_ternary_search_tree_t -lgnl_queue_t
-LIBS += -lgnl_ts_bb_queue_t -lgnl_min_heap_t -lgnl_ternary_search_tree_t
+LIBS += -lgnl_ts_bb_queue_t -lgnl_ts_nb_queue_t -lgnl_min_heap_t -lgnl_ternary_search_tree_t
 INCLUDE += -I$(ROOT)$(DATA_STRUCTURES_INCLUDE)
 
 # helpers library
