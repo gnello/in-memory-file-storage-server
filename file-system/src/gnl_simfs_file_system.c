@@ -23,7 +23,7 @@
  * Macro to release the lock.
  */
 #define GNL_SIMFS_LOCK_RELEASE(return_value, pid) {                         \
-int lock_release_res = pthread_mutex_unlock(&(file_system->mtx));           \
+    int lock_release_res = pthread_mutex_unlock(&(file_system->mtx));       \
     GNL_MINUS1_CHECK(lock_release_res, errno, return_value)                 \
     gnl_logger_debug(file_system->logger, "Pid %d released the lock", pid); \
 }

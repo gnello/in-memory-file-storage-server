@@ -2,7 +2,6 @@
 #ifndef GNL_FSS_WORKER_H
 #define GNL_FSS_WORKER_H
 
-#include <gnl_ts_bb_queue_t.h>
 #include <gnl_simfs_file_system.h>
 #include <gnl_logger.h>
 
@@ -19,6 +18,8 @@ struct gnl_fss_worker;
  * @param id            The id of the worker.
  * @param worker_queue  The queue where to receive a ready file descriptor
  *                      from a main thread.
+ * @param waiting_queue The queue to store the clients waiting for a
+ *                      file unlocking.
  * @param pipe_channel  The pipe channel where to send the result to a
  *                      main thread.
  * @param file_system   The file system instance to use to store the files.
@@ -28,7 +29,8 @@ struct gnl_fss_worker;
  *                      NULL otherwise.
  */
 extern struct gnl_fss_worker *gnl_fss_worker_init(pthread_t id, struct gnl_ts_bb_queue_t *worker_queue,
-        int pipe_channel, struct gnl_simfs_file_system *file_system, const struct gnl_fss_config *config);
+        struct gnl_fss_waiting_list *waiting_queue, int pipe_channel, struct gnl_simfs_file_system *file_system,
+                const struct gnl_fss_config *config);
 
 /**
  * Destroy a worker config. Attention: this method only deletes the

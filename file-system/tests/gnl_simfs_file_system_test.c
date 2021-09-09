@@ -158,7 +158,7 @@ int can_not_open_file() {
 }
 
 int main() {
-    gnl_printf_yellow("> gnl_simfs_file_system_test test:\n\n");
+    gnl_printf_yellow("> gnl_simfs_file_system test:\n\n");
 
     gnl_assert(can_init_a_filesystem, "can init a file system.");
 

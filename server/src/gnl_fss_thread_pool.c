@@ -1,38 +1,57 @@
-
 #include <stdlib.h>
 #include <errno.h>
 #include <pthread.h>
 #include <gnl_ts_bb_queue_t.h>
+#include "../include/gnl_fss_waiting_list_test.h"
+#include "./gnl_fss_waiting_list.c"
 #include "./gnl_fss_worker.c"
 #include "../include/gnl_fss_thread_pool.h"
 #include <gnl_macro_beg.h>
 
 /**
- * worker_ids           The array of the thread pool workers identifiers.
- * worker               The array of workers instances.
- * worker_queue         The queue to use to receive a ready file descriptor
- *                      from a main thread.
- * file_system          The file system instance to use to store the files.
- * pipe_master_channel  The pipe channel where to read a result from a
- *                      worker thread.
- * pipe_worker_channel  The pipe channel where to send the result to a
- *                      master thread.
- * size                 The size of the thread pool.
- * logger               The logger instance to use for logging.
+ * {@inheritDoc}
  */
 struct gnl_fss_thread_pool {
+
+    // the array of the thread pool workers identifiers
     pthread_t *worker_ids;
+
+    // the array of workers instances
     struct gnl_fss_worker **workers;
+
+    // the thread-safe blocking bounded queue to use to
+    // receive a ready file descriptor from a main thread
     struct gnl_ts_bb_queue_t *worker_queue;
+
+    // the waiting list to store the clients waiting for 
+    // a file unlocking
+    struct gnl_fss_waiting_list *waiting_list;
+
+    // the file system instance to use to store the files
     struct gnl_simfs_file_system *file_system;
+
+    // the pipe channel where to read a result from a
+    // worker thread
     int pipe_master_channel;
+
+    // the pipe channel where to send the result to a
+    // master thread
     int pipe_worker_channel;
+
+    // the size of the thread pool
     int size;
+
+    // the logger instance to use for logging
     struct gnl_logger *logger;
 };
 
+/**
+ * {@inheritDoc}
+ */
 struct gnl_fss_thread_pool *gnl_fss_thread_pool_init(int size, struct gnl_simfs_file_system *file_system,
         const struct gnl_fss_config *config) {
+
+    // validate parameters
     if (file_system == NULL || config == NULL) {
         errno = EINVAL;
 
@@ -65,7 +84,13 @@ struct gnl_fss_thread_pool *gnl_fss_thread_pool_init(int size, struct gnl_simfs_
     thread_pool->worker_queue = gnl_ts_bb_queue_init(size);
     GNL_NULL_CHECK(thread_pool->worker_queue, errno, NULL)
 
-    gnl_logger_debug(thread_pool->logger, "workers blocking bounded queue created");
+    gnl_logger_debug(thread_pool->logger, "worker blocking bounded queue created");
+
+    // instantiate the non-blocking queue for the waiting list
+    thread_pool->waiting_list = gnl_fss_waiting_list_init();
+    GNL_NULL_CHECK(thread_pool->waiting_list, errno, NULL)
+
+    gnl_logger_debug(thread_pool->logger, "waiting non-blocking queue created");
 
     // create the pipe channels
     int pipe_channels[2];
@@ -85,8 +110,8 @@ struct gnl_fss_thread_pool *gnl_fss_thread_pool_init(int size, struct gnl_simfs_
     gnl_logger_debug(thread_pool->logger, "starting %d threads", size);
 
     for (size_t i=0; i<size; i++) {
-        thread_pool->workers[i] = gnl_fss_worker_init(i, thread_pool->worker_queue, thread_pool->pipe_worker_channel,
-                                                      thread_pool->file_system, config);
+        thread_pool->workers[i] = gnl_fss_worker_init(i, thread_pool->worker_queue, thread_pool->waiting_list,
+                                                      thread_pool->pipe_worker_channel, thread_pool->file_system, config);
         GNL_NULL_CHECK(thread_pool->workers[i], errno, NULL)
 
         res = pthread_create(&(thread_pool->worker_ids[i]), NULL, &gnl_fss_worker_handle, (void *)thread_pool->workers[i]);
@@ -107,6 +132,9 @@ struct gnl_fss_thread_pool *gnl_fss_thread_pool_init(int size, struct gnl_simfs_
     return thread_pool;
 }
 
+/**
+ * {@inheritDoc}
+ */
 void gnl_fss_thread_pool_destroy(struct gnl_fss_thread_pool *thread_pool) {
     if (thread_pool == NULL) {
         return;
@@ -153,6 +181,9 @@ void gnl_fss_thread_pool_destroy(struct gnl_fss_thread_pool *thread_pool) {
     // destroy the worker queue
     gnl_ts_bb_queue_destroy(thread_pool->worker_queue, NULL);
 
+    // destroy the waiting list
+    gnl_fss_waiting_list_destroy(thread_pool->waiting_list);
+
     gnl_logger_debug(thread_pool->logger, "destroy almost finished, this is the last message you will see in this channel");
 
     // destroy the logger
@@ -162,6 +193,9 @@ void gnl_fss_thread_pool_destroy(struct gnl_fss_thread_pool *thread_pool) {
     free(thread_pool);
 }
 
+/**
+ * {@inheritDoc}
+ */
 int gnl_fss_thread_pool_dispatch(struct gnl_fss_thread_pool *thread_pool, void *message) {
     GNL_NULL_CHECK(thread_pool, EINVAL, -1)
 
@@ -170,6 +204,9 @@ int gnl_fss_thread_pool_dispatch(struct gnl_fss_thread_pool *thread_pool, void *
     return gnl_ts_bb_queue_enqueue(thread_pool->worker_queue, message);
 }
 
+/**
+ * {@inheritDoc}
+ */
 int gnl_fss_thread_pool_master_channel(struct gnl_fss_thread_pool *thread_pool) {
     GNL_NULL_CHECK(thread_pool, EINVAL, -1)
 

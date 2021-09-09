@@ -6,23 +6,34 @@
 #include <string.h>
 #include <gnl_message_n.h>
 #include <gnl_list_t.h>
-#include <gnl_fss_errno.h>
+#include <gnl_fss_errno.h> //TODO: eliminare?
 #include "../include/gnl_fss_worker.h"
 #include <gnl_macro_beg.h>
 
 /**
- * id               The id of the worker.
- * worker_queue     The queue to use to receive a ready file descriptor
- *                  from the main thread.
- * pipe_channel     The pipe channel where to send the result to the
- *                  main thread.
- * @param logger    The logger instance to use for logging.
+ * {@inheritDoc}
  */
 struct gnl_fss_worker {
+
+    // the id of the worker
     pthread_t id;
+
+    // the thread-safe blocking bounded queue to use to
+    // receive a ready file descriptor from a main thread
     struct gnl_ts_bb_queue_t *worker_queue;
+
+    // the waiting list to store the clients waiting for 
+    // a file unlocking
+    struct gnl_fss_waiting_list *waiting_list;
+
+    // the pipe channel where to send the result to the
+    // main thread
     int pipe_channel;
+
+    // the logger instance to use for logging
     struct gnl_logger *logger;
+
+    // the file system instance to use to store the files
     struct gnl_simfs_file_system *file_system;
 };
 
@@ -55,7 +66,17 @@ struct gnl_fss_worker {
 //    return 0;
 //}
 
-static struct gnl_socket_response *handle_request(struct gnl_simfs_file_system *file_system, struct gnl_socket_request *request, int fd_c) {
+/**
+ * TODO: doc
+ * @param file_system
+ * @param request
+ * @param fd_c
+ * @param waiting_list
+ * @return
+ */
+static struct gnl_socket_response *handle_request(struct gnl_simfs_file_system *file_system,
+        struct gnl_socket_request *request, int fd_c) {
+
     int res;
     struct gnl_socket_response *response = NULL;
     void *buf = NULL;
@@ -82,7 +103,7 @@ static struct gnl_socket_response *handle_request(struct gnl_simfs_file_system *
 
             res = -1;
 
-            // if at least one file is present
+            // if at least one file is present into the file system
             if (list != NULL) {
                 response = gnl_socket_response_init(GNL_SOCKET_RESPONSE_OK_FILE_LIST, 0);
                 current = list;
@@ -193,9 +214,12 @@ static struct gnl_socket_response *handle_request(struct gnl_simfs_file_system *
 /**
  * {@inheritDoc}
  */
-struct gnl_fss_worker *gnl_fss_worker_init(pthread_t id, struct gnl_ts_bb_queue_t *worker_queue, int pipe_channel,
-        struct gnl_simfs_file_system *file_system, const struct gnl_fss_config *config) {
-    if (worker_queue == NULL || file_system == NULL || config == NULL) {
+struct gnl_fss_worker *gnl_fss_worker_init(pthread_t id, struct gnl_ts_bb_queue_t *worker_queue,
+        struct gnl_fss_waiting_list *waiting_list, int pipe_channel, struct gnl_simfs_file_system *file_system,
+                const struct gnl_fss_config *config) {
+
+    // validate parameters
+    if (worker_queue == NULL || waiting_list == NULL || file_system == NULL || config == NULL) {
         errno = EINVAL;
 
         return NULL;
@@ -221,6 +245,7 @@ struct gnl_fss_worker *gnl_fss_worker_init(pthread_t id, struct gnl_ts_bb_queue_
     worker->id = id;
 
     worker->worker_queue = worker_queue;
+    worker->waiting_list = waiting_list;
     worker->pipe_channel = pipe_channel;
 
     // assign the file_system
@@ -266,6 +291,10 @@ void *gnl_fss_worker_handle(void* args) {
 
     // the message struct to send to the master
     struct gnl_message_n *message_to_master;
+
+    int file_unlock;
+    //TODO: la queue non va bene, fare una struttura dati complessa che permetta
+    // di fare broadcast sui fd_c di un solo fd
 
     gnl_logger_debug(logger, "ready, waiting for requests");
 
@@ -350,24 +379,35 @@ void *gnl_fss_worker_handle(void* args) {
                 continue;
             }
 
-            gnl_logger_debug(logger, "client %d request handled", fd_c);
+            // if the target file of the request is locked
+            if (response->type == GNL_SOCKET_RESPONSE_ERROR && response->payload.error->number == EBUSY) {
+                gnl_logger_debug(logger, "EBUSY response received, client %d will be put into the waiting list", fd_c);
 
-            // encode the response
-            char *response_type;
-            res = gnl_socket_response_get_type(response, &response_type);
-            GNL_MINUS1_CHECK(res, errno, NULL)
+                // TODO: put the client into the waiting list
+//                res = gnl_fss_waiting_list_push(worker->waiting_list, fd, fd_c);
+//                GNL_MINUS1_CHECK(res, errno, NULL)
+            }
+            // else send the response to the client
+            else {
+                gnl_logger_debug(logger, "client %d request handled", fd_c);
 
-            gnl_logger_debug(logger, "building a %s response for client %d", response_type, fd_c);
+                // encode the response
+                char *response_type;
+                res = gnl_socket_response_get_type(response, &response_type);
+                GNL_MINUS1_CHECK(res, errno, NULL)
 
-            free(response_type);
+                gnl_logger_debug(logger, "building a %s response for client %d", response_type, fd_c);
 
-            // send the response message to the client
-            gnl_logger_debug(logger, "send the response to client %d", fd_c);
+                free(response_type);
 
-            res = gnl_socket_service_send_response(fd_c, response);
-            GNL_MINUS1_CHECK(res, errno, NULL)
+                // send the response message to the client
+                gnl_logger_debug(logger, "send the response to client %d", fd_c);
 
-            gnl_logger_debug(logger, "response sent to client %d", fd_c);
+                res = gnl_socket_service_send_response(fd_c, response);
+                GNL_MINUS1_CHECK(res, errno, NULL)
+
+                gnl_logger_debug(logger, "response sent to client %d", fd_c);
+            }
 
             // free memory
             gnl_socket_response_destroy(response);
