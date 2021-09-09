@@ -1,6 +1,6 @@
 #include <stdlib.h>
 #include <pthread.h>
-#include "../include/gnl_fss_waiting_list_test.h"
+#include "../include/gnl_fss_waiting_list.h"
 #include <gnl_list_t.h>
 #include <gnl_queue_t.h>
 #include <gnl_macro_beg.h>

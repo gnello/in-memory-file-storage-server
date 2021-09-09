@@ -2,7 +2,6 @@
 #include <errno.h>
 #include <pthread.h>
 #include <gnl_ts_bb_queue_t.h>
-#include "../include/gnl_fss_waiting_list_test.h"
 #include "./gnl_fss_waiting_list.c"
 #include "./gnl_fss_worker.c"
 #include "../include/gnl_fss_thread_pool.h"
