@@ -83,7 +83,7 @@ int main() {
 
     gnl_assert(can_init_a_waiting_list, "can init a waiting list.");
     
-    gnl_assert(can_push_new, "can push a new waiter to a target waiting list.");
+    gnl_assert(can_push_new, "can push a new waiting pid to a target waiting list.");
 
     // the gnl_fss_waiting_list_destroy method is implicitly tested in every assertion
 
