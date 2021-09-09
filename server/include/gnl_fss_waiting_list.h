@@ -34,7 +34,7 @@ extern void gnl_fss_waiting_list_destroy(struct gnl_fss_waiting_list *waiting_li
 extern int gnl_fss_waiting_list_push(struct gnl_fss_waiting_list *waiting_list, int target, int pid);
 
 /**
- * Push a pid from the given target waiting list.
+ * Pop a pid from the given target waiting list.
  *
  * @param waiting_list  The waiting_list instance.
  * @param target        The target from where to pop a pid.

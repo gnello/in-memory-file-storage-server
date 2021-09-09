@@ -103,7 +103,7 @@ int can_delete_an_int() {
         return -1;
     }
 
-    gnl_list_delete(&list, &test_int_el4);
+    gnl_list_delete(&list, &test_int_el4, NULL, NULL);
 
     int res = gnl_list_search(list, &test_int_el4, NULL);
 
@@ -187,7 +187,7 @@ int can_delete_a_string() {
         return -1;
     }
 
-    gnl_list_delete(&list, test_string_el4);
+    gnl_list_delete(&list, test_string_el4, NULL, NULL);
 
     int res = gnl_list_search(list, test_string_el4, NULL);
 
@@ -271,7 +271,7 @@ int can_delete_a_struct() {
         return -1;
     }
 
-    gnl_list_delete(&list, &test_struct_el4);
+    gnl_list_delete(&list, &test_struct_el4, NULL, NULL);
 
     int res = gnl_list_search((void *)list, (void *)&test_struct_el4, test_cmp);
 
@@ -300,7 +300,7 @@ int can_pass_null_list() {
     gnl_list_append(&list, &test_int_el1);
     gnl_list_insert(&list, &test_int_el1);
     gnl_list_search(list, NULL, NULL);
-    gnl_list_delete(&list, NULL);
+    gnl_list_delete(&list, NULL, NULL, NULL);
     gnl_list_destroy(&list, NULL);
 
     return 0;

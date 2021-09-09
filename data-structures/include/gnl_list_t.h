@@ -48,12 +48,18 @@ extern int gnl_list_search(struct gnl_list_t *list, const void *el, int (*compar
 /**
  * Remove an element "el" from a linked list "list".
  *
- * @param list The list from where delete the element "el".
- * @param el   The element to be deleted.
+ * @param list      The list from where delete the element "el".
+ * @param el        The element to be deleted.
+ * @param compare   The eventual function to use to make the comparison to find
+ *                  the element to delete. If NULL is passed a standard comparison
+ *                  will be performed.
+ * @param destroy   The destroy function to free complex data,
+ *                  if NULL is passed a standard free will be performed.
  *
  * @return int Returns always 0 (for now...).
  */
-extern int gnl_list_delete(struct gnl_list_t **list, const void *el);
+extern int gnl_list_delete(struct gnl_list_t **list, const void *el, int (*compare)(const void *a, const void *b),
+        void (*destroy)(void *data));
 
 /**
  * Destroy the entire list.

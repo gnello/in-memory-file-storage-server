@@ -78,20 +78,25 @@ int gnl_list_search(struct gnl_list_t *list, const void *el, int (*compare)(cons
 /**
  * {@inheritDoc}
  */
-int gnl_list_delete(struct gnl_list_t **list, const void *el) {
+int gnl_list_delete(struct gnl_list_t **list, const void *el, int (*compare)(const void *a, const void *b), void (*destroy)(void *data)) {
     GNL_NULL_CHECK(list, EINVAL, -1)
 
     struct gnl_list_t *temp = *list;
     struct gnl_list_t *prev;
 
-    if (temp != NULL && temp->el == el) {
+    if (temp != NULL && ((compare == NULL && temp->el == el) || (compare != NULL && compare(temp->el, el) == 0))) {
         *list = temp->next;
+
+        if (destroy != NULL) {
+            destroy(temp->el);
+        }
+
         free(temp);
 
         return 0;
     }
 
-    while (temp != NULL && temp->el != el) {
+    while (temp != NULL && ((compare == NULL && temp->el != el) || (compare != NULL && compare(temp->el, el) != 0))) {
         prev = temp;
         temp = temp->next;
     }
@@ -101,6 +106,11 @@ int gnl_list_delete(struct gnl_list_t **list, const void *el) {
     }
 
     prev->next = temp->next;
+
+    if (destroy != NULL) {
+        destroy(temp->el);
+    }
+
     free(temp);
 
     return 0;

@@ -93,6 +93,15 @@ static void destroy_el(void *ptr) {
 }
 
 /**
+ * Destroy a given pointer.
+ *
+ * @param ptr   The pointer to destroy.
+ */
+static void destroy_pointer(void *ptr) {
+    free(ptr);
+}
+
+/**
  * Compare two waiting_list elements.
  *
  * @param a The actual waiting_list element.
@@ -110,6 +119,20 @@ static int compare_el(const void *a, const void *b) {
     b_el = *(struct gnl_fss_waiting_list_el *)b;
 
     return a_el.target - b_el.target;
+}
+
+/**
+ * Compare two int elements.
+ *
+ * @param a The actual int element.
+ * @param b The expected int element.
+ *
+ * @return  Returns 0 if a==b, if a > b returns a value
+ *          greater than zero, if a < b returns a value
+ *          less than 0.
+ */
+static int compare_int(const void *a, const void *b) {
+    return *(int *)a - *(int *)b;
 }
 
 /**
@@ -211,18 +234,24 @@ int gnl_fss_waiting_list_push(struct gnl_fss_waiting_list *waiting_list, int tar
                 // stop searching
                 break;
             }
+
+            // move to the next element
+            current = current->next;
         }
     }
 
-    // copy the pid for the presence list
-    unsigned int *pid_copy_presence = malloc(sizeof(unsigned int));
-    GNL_FSS_NULL_CHECK(pid_copy_presence, ENOMEM, -1)
+    // if the given pid is not yet into the presence list
+    if (gnl_list_search(waiting_list->presence_list, &pid, compare_int) == 0) {
+        // copy the pid for the presence list
+        unsigned int *pid_copy_presence = malloc(sizeof(unsigned int));
+        GNL_FSS_NULL_CHECK(pid_copy_presence, ENOMEM, -1)
 
-    *pid_copy_presence = pid;
+        *pid_copy_presence = pid;
 
-    // add the pid to the presence list
-    res = gnl_list_append(&(waiting_list->presence_list), (void *)pid_copy_presence);
-    GNL_FSS_MINUS1_CHECK(res, errno, -1)
+        // add the pid to the presence list
+        res = gnl_list_append(&(waiting_list->presence_list), (void *)pid_copy_presence);
+        GNL_FSS_MINUS1_CHECK(res, errno, -1)
+    }
 
     // release the lock
     GNL_FSS_LOCK_RELEASE(-1)
@@ -233,12 +262,94 @@ int gnl_fss_waiting_list_push(struct gnl_fss_waiting_list *waiting_list, int tar
 /**
  * {@inheritDoc}
  */
-int gnl_fss_waiting_list_pop(struct gnl_fss_waiting_list *waiting_list, int target);
+int gnl_fss_waiting_list_pop(struct gnl_fss_waiting_list *waiting_list, int target) {
+    // acquire the lock
+    GNL_FSS_LOCK_ACQUIRE(-1)
+
+    // check the parameters
+    GNL_FSS_NULL_CHECK(waiting_list, EINVAL, -1)
+
+    int res;
+    int popped_pid;
+
+    // create a mock waiting_list element
+    struct gnl_fss_waiting_list_el el = { target, 0 };
+
+    // if the target is not in the waiting_list
+    if (gnl_list_search(waiting_list->target_list, &el, compare_el) == 0) {
+        // this is not an error, simply
+        // the target has no waiting pid
+        errno = 0;
+
+        // release the lock
+        GNL_FSS_LOCK_RELEASE(-1)
+
+        return -1;
+    }
+
+    // get the existent target element
+    struct gnl_list_t *current = waiting_list->target_list;
+
+    while (current != NULL) {
+        // if target is found
+        if (compare_el(current->el, &el) == 0) {
+
+            // iterate until we find a valid waiting pid or until the target queue is empty
+            int valid_pid_found = 0;
+
+            while (valid_pid_found == 0) {
+
+                // get the pid from the target queue
+                void *popped_pid_raw = gnl_queue_dequeue(((struct gnl_fss_waiting_list_el *) (current->el))->queue);
+                GNL_FSS_NULL_CHECK(popped_pid_raw, errno, -1)
+
+                popped_pid = *(int *) popped_pid_raw;
+
+                // free memory
+                free(popped_pid_raw);
+
+                // check if the pid is still present
+                if (gnl_list_search(waiting_list->presence_list, &popped_pid, compare_int) == 1) {
+                    // the pid is present, congratulations
+                    valid_pid_found = 1;
+
+                    // update the presence list
+                    res = gnl_list_delete(&(waiting_list->presence_list), &popped_pid, compare_int, destroy_pointer);
+                    GNL_FSS_MINUS1_CHECK(res, errno, -1);
+                }
+            };
+
+            // stop searching
+            break;
+        }
+
+        // move to the next element
+        current = current->next;
+    }
+
+    // release the lock
+    GNL_FSS_LOCK_RELEASE(-1)
+
+    return popped_pid;
+}
 
 /**
  * {@inheritDoc}
  */
-int gnl_fss_waiting_list_remove(struct gnl_fss_waiting_list *waiting_list, int pid);
+int gnl_fss_waiting_list_remove(struct gnl_fss_waiting_list *waiting_list, int pid) {
+    // acquire the lock
+    GNL_FSS_LOCK_ACQUIRE(-1)
+
+    // check the parameters
+    GNL_FSS_NULL_CHECK(waiting_list, EINVAL, -1)
+
+    int res;
+
+    // release the lock
+    GNL_FSS_LOCK_RELEASE(-1)
+
+    return 0;
+}
 
 #undef GNL_FSS_LOCK_ACQUIRE
 #undef GNL_FSS_LOCK_RELEASE

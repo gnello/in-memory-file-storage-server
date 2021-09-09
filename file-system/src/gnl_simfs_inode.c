@@ -197,7 +197,7 @@ int gnl_simfs_inode_decrease_refs(struct gnl_simfs_inode *inode, unsigned int pi
     }
 
     // remove the pid to the reference list
-    int res = gnl_list_delete(&(inode->reference_list), &pid);
+    int res = gnl_list_delete(&(inode->reference_list), &pid, NULL, NULL);
     GNL_MINUS1_CHECK(res, errno, -1);
 
     // decrease the reference count

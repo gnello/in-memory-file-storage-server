@@ -269,7 +269,7 @@ static int gnl_simfs_file_table_remove(struct gnl_simfs_file_table *file_table, 
     int count = inode->size;
 
     // remove the filename
-    int res = gnl_list_delete(&(file_table->list), key);
+    int res = gnl_list_delete(&(file_table->list), key, NULL, NULL);
     GNL_MINUS1_CHECK(res, errno, -1)
 
     // remove the file
