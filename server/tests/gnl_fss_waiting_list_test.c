@@ -225,7 +225,7 @@ int can_push_new_two_different() {
     return 0;
 }
 
-int can_not_twice_presence() {
+int can_twice_presence() {
     struct gnl_fss_waiting_list *wl = gnl_fss_waiting_list_init();
 
     int pid = 6;
@@ -273,7 +273,7 @@ int can_not_twice_presence() {
         current = current->next;
     }
 
-    if (found != 1) {
+    if (found != 5) {
         return -1;
     }
 
@@ -364,6 +364,48 @@ int can_remove_pop() {
     return 0;
 }
 
+int can_remove_two_pop() {
+    struct gnl_fss_waiting_list *wl = gnl_fss_waiting_list_init();
+
+    int target1 = 1;
+    int target2 = 2;
+    int pid = 6;
+
+    int res = gnl_fss_waiting_list_push(wl, target1, pid);
+    if (res == -1) {
+        return -1;
+    }
+
+    res = gnl_fss_waiting_list_push(wl, target2, pid);
+    if (res == -1) {
+        return -1;
+    }
+
+    int popped_pid = gnl_fss_waiting_list_pop(wl, target1);
+
+    if (popped_pid != pid) {
+        return -1;
+    }
+
+    if (gnl_list_search(wl->presence_list, &pid, compare_int) == 0) {
+        return -1;
+    }
+
+    popped_pid = gnl_fss_waiting_list_pop(wl, target2);
+
+    if (popped_pid != pid) { printf("%d", popped_pid);
+        return -1;
+    }
+
+    if (gnl_list_search(wl->presence_list, &pid, compare_int) == 1) {
+        return -1;
+    }
+
+    gnl_fss_waiting_list_destroy(wl);
+
+    return 0;
+}
+
 int main() {
     gnl_printf_yellow("> gnl_fss_waiting_list test:\n\n");
 
@@ -372,11 +414,12 @@ int main() {
     gnl_assert(can_push_new, "can push a new waiting pid to a target waiting list.");
     gnl_assert(can_push_new_two, "can push two new waiting pid to the same target waiting list.");
     gnl_assert(can_push_new_two_different, "can push two new waiting pid to different target waiting list.");
-    gnl_assert(can_not_twice_presence, "can not be twice elements for the same pid into the presence channel.");
+    gnl_assert(can_twice_presence, "can be twice elements for the same pid into the presence channel.");
 
     gnl_assert(can_pop, "can pop any waiting pid from a target waiting list.");
     gnl_assert(can_pop_empty, "can pop from an empty target waiting list.");
     gnl_assert(can_remove_pop, "can remove a popped pid from a target waiting list.");
+    gnl_assert(can_remove_two_pop, "can remove a popped pid from two different target waiting list.");
     // the gnl_fss_waiting_list_destroy method is implicitly tested in every assertion
 
     printf("\n");

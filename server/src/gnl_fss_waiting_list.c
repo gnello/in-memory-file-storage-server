@@ -240,18 +240,15 @@ int gnl_fss_waiting_list_push(struct gnl_fss_waiting_list *waiting_list, int tar
         }
     }
 
-    // if the given pid is not yet into the presence list
-    if (gnl_list_search(waiting_list->presence_list, &pid, compare_int) == 0) {
-        // copy the pid for the presence list
-        unsigned int *pid_copy_presence = malloc(sizeof(unsigned int));
-        GNL_FSS_NULL_CHECK(pid_copy_presence, ENOMEM, -1)
+    // copy the pid for the presence list
+    unsigned int *pid_copy_presence = malloc(sizeof(unsigned int));
+    GNL_FSS_NULL_CHECK(pid_copy_presence, ENOMEM, -1)
 
-        *pid_copy_presence = pid;
+    *pid_copy_presence = pid;
 
-        // add the pid to the presence list
-        res = gnl_list_append(&(waiting_list->presence_list), (void *)pid_copy_presence);
-        GNL_FSS_MINUS1_CHECK(res, errno, -1)
-    }
+    // add the pid to the presence list
+    res = gnl_list_append(&(waiting_list->presence_list), (void *)pid_copy_presence);
+    GNL_FSS_MINUS1_CHECK(res, errno, -1)
 
     // release the lock
     GNL_FSS_LOCK_RELEASE(-1)
@@ -344,7 +341,7 @@ int gnl_fss_waiting_list_remove(struct gnl_fss_waiting_list *waiting_list, int p
     GNL_FSS_NULL_CHECK(waiting_list, EINVAL, -1)
 
     int res;
-
+//TODO. svuotare tutta la presence list
     // release the lock
     GNL_FSS_LOCK_RELEASE(-1)
 
