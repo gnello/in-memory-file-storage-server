@@ -23,7 +23,7 @@ int can_init_a_waiting_list() {
 int can_push_new() {
     struct gnl_fss_waiting_list *wl = gnl_fss_waiting_list_init();
 
-    int target = 1;
+    char *target = "test";
     int pid = 6;
 
     int res = gnl_fss_waiting_list_push(wl, target, pid);
@@ -43,7 +43,7 @@ int can_push_new() {
 
     while (current != NULL) {
         // if target is found
-        if (((struct gnl_fss_waiting_list_el *)(current->el))->target == target) {
+        if (strcmp(((struct gnl_fss_waiting_list_el *)(current->el))->target, target) == 0) {
             void *enqueued_pid_raw = gnl_queue_dequeue(((struct gnl_fss_waiting_list_el *)(current->el))->queue);
 
             if (enqueued_pid_raw == NULL) {
@@ -77,7 +77,7 @@ int can_push_new() {
 int can_push_new_two() {
     struct gnl_fss_waiting_list *wl = gnl_fss_waiting_list_init();
 
-    int target = 1;
+    char *target = "test";
     int pid1 = 6;
     int pid2 = 5;
 
@@ -108,7 +108,7 @@ int can_push_new_two() {
 
     while (current != NULL) {
         // if target is found
-        if (((struct gnl_fss_waiting_list_el *)(current->el))->target == target) {
+        if (strcmp(((struct gnl_fss_waiting_list_el *)(current->el))->target, target) == 0) {
             void *enqueued_pid_raw1 = gnl_queue_dequeue(((struct gnl_fss_waiting_list_el *)(current->el))->queue);
 
             if (enqueued_pid_raw1 == NULL) {
@@ -157,8 +157,8 @@ int can_push_new_two() {
 int can_push_new_two_different() {
     struct gnl_fss_waiting_list *wl = gnl_fss_waiting_list_init();
 
-    int target1 = 1;
-    int target2 = 2;
+    char *target1 = "test1";
+    char *target2 = "test2";
     int pid1 = 6;
     int pid2 = 5;
 
@@ -191,7 +191,7 @@ int can_push_new_two_different() {
         struct gnl_fss_waiting_list_el * el = current->el;
 
         // if target is found
-        if (el->target == target1 || el->target == target2) {
+        if (strcmp(el->target, target1) == 0 || strcmp(el->target, target2) == 0) {
             void *enqueued_pid_raw = gnl_queue_dequeue(((struct gnl_fss_waiting_list_el *)(current->el))->queue);
 
             if (enqueued_pid_raw == NULL) {
@@ -202,11 +202,11 @@ int can_push_new_two_different() {
 
             free(enqueued_pid_raw);
 
-            if (el->target == target1 && enqueued_pid != pid1) {
+            if (strcmp(el->target, target1) == 0 && enqueued_pid != pid1) {
                 return -1;
-            } else if (el->target == target2 && enqueued_pid != pid2) {
+            } else if (strcmp(el->target, target2) == 0 && enqueued_pid != pid2) {
                 return -1;
-            } else if (el->target != target1 && el->target != target2) {
+            } else if (strcmp(el->target, target1) != 0 && strcmp(el->target, target2) != 0) {
                 return -1;
             }
 
@@ -216,7 +216,7 @@ int can_push_new_two_different() {
         current = current->next;
     }
 
-    if (found != 2) { printf("%d", found);
+    if (found != 2) {
         return -1;
     }
 
@@ -230,27 +230,27 @@ int can_twice_presence() {
 
     int pid = 6;
 
-    int res = gnl_fss_waiting_list_push(wl, 1, pid);
+    int res = gnl_fss_waiting_list_push(wl, "test1", pid);
     if (res == -1) {
         return -1;
     }
 
-    res = gnl_fss_waiting_list_push(wl, 1, pid);
+    res = gnl_fss_waiting_list_push(wl, "test1", pid);
     if (res == -1) {
         return -1;
     }
 
-    res = gnl_fss_waiting_list_push(wl, 1, pid);
+    res = gnl_fss_waiting_list_push(wl, "test1", pid);
     if (res == -1) {
         return -1;
     }
 
-    res = gnl_fss_waiting_list_push(wl, 2, pid);
+    res = gnl_fss_waiting_list_push(wl, "test2", pid);
     if (res == -1) {
         return -1;
     }
 
-    res = gnl_fss_waiting_list_push(wl, 3, pid);
+    res = gnl_fss_waiting_list_push(wl, "test3", pid);
     if (res == -1) {
         return -1;
     }
@@ -285,15 +285,15 @@ int can_twice_presence() {
 int can_pop() {
     struct gnl_fss_waiting_list *wl = gnl_fss_waiting_list_init();
 
-    int target = 1;
+    char *target = "test1";
     int pid = 6;
 
-    int res = gnl_fss_waiting_list_push(wl, 0, 0);
+    int res = gnl_fss_waiting_list_push(wl, "test0", 0);
     if (res == -1) {
         return -1;
     }
 
-    res = gnl_fss_waiting_list_push(wl, 4, 3);
+    res = gnl_fss_waiting_list_push(wl, "test4", 3);
     if (res == -1) {
         return -1;
     }
@@ -317,12 +317,12 @@ int can_pop() {
 int can_pop_empty() {
     struct gnl_fss_waiting_list *wl = gnl_fss_waiting_list_init();
 
-    int res = gnl_fss_waiting_list_push(wl, 4, 2);
+    int res = gnl_fss_waiting_list_push(wl, "test4", 2);
     if (res == -1) {
         return -1;
     }
 
-    int popped_pid = gnl_fss_waiting_list_pop(wl, 4);
+    int popped_pid = gnl_fss_waiting_list_pop(wl, "test4");
 
     if (popped_pid != 2) {
         return -1;
@@ -330,7 +330,7 @@ int can_pop_empty() {
 
     errno = EINVAL;
 
-    popped_pid = gnl_fss_waiting_list_pop(wl, 4);
+    popped_pid = gnl_fss_waiting_list_pop(wl, "test4");
 
     if (popped_pid != -1) {
         return -1;
@@ -348,7 +348,7 @@ int can_pop_empty() {
 int can_remove_pop() {
     struct gnl_fss_waiting_list *wl = gnl_fss_waiting_list_init();
 
-    int target = 1;
+    char *target = "test";
     int pid = 6;
 
     int res = gnl_fss_waiting_list_push(wl, target, pid);
@@ -380,8 +380,8 @@ int can_remove_pop() {
 int can_remove_two_pop() {
     struct gnl_fss_waiting_list *wl = gnl_fss_waiting_list_init();
 
-    int target1 = 1;
-    int target2 = 2;
+    char *target1 = "test1";
+    char *target2 = "test2";
     int pid = 6;
 
     int res = gnl_fss_waiting_list_push(wl, target1, pid);
@@ -406,7 +406,7 @@ int can_remove_two_pop() {
 
     popped_pid = gnl_fss_waiting_list_pop(wl, target2);
 
-    if (popped_pid != pid) { printf("%d", popped_pid);
+    if (popped_pid != pid) {
         return -1;
     }
 
@@ -424,22 +424,22 @@ int can_remove() {
 
     int pid = 6;
 
-    int res = gnl_fss_waiting_list_push(wl, 1, pid);
+    int res = gnl_fss_waiting_list_push(wl, "test1", pid);
     if (res == -1) {
         return -1;
     }
 
-    res = gnl_fss_waiting_list_push(wl, 2, pid);
+    res = gnl_fss_waiting_list_push(wl, "test2", pid);
     if (res == -1) {
         return -1;
     }
 
-    res = gnl_fss_waiting_list_push(wl, 1, pid);
+    res = gnl_fss_waiting_list_push(wl, "test1", pid);
     if (res == -1) {
         return -1;
     }
 
-    res = gnl_fss_waiting_list_push(wl, 4, pid);
+    res = gnl_fss_waiting_list_push(wl, "test4", pid);
     if (res == -1) {
         return -1;
     }
@@ -468,7 +468,7 @@ int can_not_pop_remove() {
 
     int pid = 6;
 
-    int res = gnl_fss_waiting_list_push(wl, 1, pid);
+    int res = gnl_fss_waiting_list_push(wl, "test", pid);
     if (res == -1) {
         return -1;
     }
@@ -478,7 +478,7 @@ int can_not_pop_remove() {
         return -1;
     }
 
-    res = gnl_fss_waiting_list_pop(wl, 1);
+    res = gnl_fss_waiting_list_pop(wl, "test");
 
     if (res != -1) {
         return -1;

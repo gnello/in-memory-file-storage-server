@@ -31,7 +31,7 @@ extern void gnl_fss_waiting_list_destroy(struct gnl_fss_waiting_list *waiting_li
  *
  * @return              Returns 0 on success, null otherwise.
  */
-extern int gnl_fss_waiting_list_push(struct gnl_fss_waiting_list *waiting_list, int target, int pid);
+extern int gnl_fss_waiting_list_push(struct gnl_fss_waiting_list *waiting_list, const char *target, int pid);
 
 /**
  * Pop a pid from the given target waiting list.
@@ -42,7 +42,7 @@ extern int gnl_fss_waiting_list_push(struct gnl_fss_waiting_list *waiting_list, 
  * @return              Returns the pid popped on success,
  *                      -1 otherwise.
  */
-extern int gnl_fss_waiting_list_pop(struct gnl_fss_waiting_list *waiting_list, int target);
+extern int gnl_fss_waiting_list_pop(struct gnl_fss_waiting_list *waiting_list, const char *target);
 
 /**
  * Remove the given pid from the every waiting list.

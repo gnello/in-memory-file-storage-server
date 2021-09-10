@@ -1,5 +1,6 @@
 #include <stdlib.h>
 #include <pthread.h>
+#include <string.h>
 #include "../include/gnl_fss_waiting_list.h"
 #include <gnl_list_t.h>
 #include <gnl_queue_t.h>
@@ -72,7 +73,7 @@ struct gnl_fss_waiting_list {
 struct gnl_fss_waiting_list_el {
 
     // the target
-    int target;
+    char *target;
 
     // the thread-safe non-blocking queue, it
     // used to store the waiting pid
@@ -85,6 +86,9 @@ struct gnl_fss_waiting_list_el {
  * @param ptr   The gnl_fss_waiting_list_el structure to destroy.
  */
 static void destroy_el(void *ptr) {
+    // destroy the target
+    free(((struct gnl_fss_waiting_list_el *)ptr)->target);
+
     // destroy the queue
     gnl_queue_destroy(((struct gnl_fss_waiting_list_el *)ptr)->queue, free);
 
@@ -118,7 +122,7 @@ static int compare_el(const void *a, const void *b) {
     a_el = *(struct gnl_fss_waiting_list_el *)a;
     b_el = *(struct gnl_fss_waiting_list_el *)b;
 
-    return a_el.target - b_el.target;
+    return strcmp(a_el.target, b_el.target);
 }
 
 /**
@@ -179,7 +183,7 @@ void gnl_fss_waiting_list_destroy(struct gnl_fss_waiting_list *waiting_list) {
 /**
  * {@inheritDoc}
  */
-int gnl_fss_waiting_list_push(struct gnl_fss_waiting_list *waiting_list, int target, int pid) {
+int gnl_fss_waiting_list_push(struct gnl_fss_waiting_list *waiting_list, const char *target, int pid) {
     // acquire the lock
     GNL_FSS_LOCK_ACQUIRE(-1)
 
@@ -188,6 +192,12 @@ int gnl_fss_waiting_list_push(struct gnl_fss_waiting_list *waiting_list, int tar
 
     int res;
 
+    // copy the target
+    char *target_copy = calloc((strlen(target) + 1), sizeof(char));
+    GNL_FSS_NULL_CHECK(target_copy, ENOMEM, -1)
+
+    strncpy(target_copy, target, strlen(target));
+
     // copy the pid for the target list
     unsigned int *pid_copy_target = malloc(sizeof(unsigned int));
     GNL_FSS_NULL_CHECK(pid_copy_target, ENOMEM, -1)
@@ -195,7 +205,7 @@ int gnl_fss_waiting_list_push(struct gnl_fss_waiting_list *waiting_list, int tar
     *pid_copy_target = pid;
 
     // create a mock waiting_list element
-    struct gnl_fss_waiting_list_el el = { target, 0 };
+    struct gnl_fss_waiting_list_el el = { target_copy, 0 };
 
     // if the target is not in the waiting_list create a new
     // waiting_list element and put it into the target list
@@ -204,7 +214,7 @@ int gnl_fss_waiting_list_push(struct gnl_fss_waiting_list *waiting_list, int tar
         struct gnl_fss_waiting_list_el *new_el = (struct gnl_fss_waiting_list_el *)malloc(sizeof(struct gnl_fss_waiting_list_el));
         GNL_FSS_NULL_CHECK(new_el, ENOMEM, -1)
 
-        new_el->target = target;
+        new_el->target = target_copy;
 
         // init the queue
         new_el->queue = gnl_queue_init();
@@ -238,6 +248,9 @@ int gnl_fss_waiting_list_push(struct gnl_fss_waiting_list *waiting_list, int tar
             // move to the next element
             current = current->next;
         }
+        
+        // free memory
+        free(target_copy);
     }
 
     // copy the pid for the presence list
@@ -259,7 +272,7 @@ int gnl_fss_waiting_list_push(struct gnl_fss_waiting_list *waiting_list, int tar
 /**
  * {@inheritDoc}
  */
-int gnl_fss_waiting_list_pop(struct gnl_fss_waiting_list *waiting_list, int target) {
+int gnl_fss_waiting_list_pop(struct gnl_fss_waiting_list *waiting_list, const char *target) {
     // acquire the lock
     GNL_FSS_LOCK_ACQUIRE(-1)
 
@@ -269,14 +282,23 @@ int gnl_fss_waiting_list_pop(struct gnl_fss_waiting_list *waiting_list, int targ
     int res;
     int popped_pid;
 
+    // copy the target
+    char *target_copy = calloc((strlen(target) + 1), sizeof(char));
+    GNL_FSS_NULL_CHECK(target_copy, ENOMEM, -1)
+
+    strncpy(target_copy, target, strlen(target));
+
     // create a mock waiting_list element
-    struct gnl_fss_waiting_list_el el = { target, 0 };
+    struct gnl_fss_waiting_list_el el = { target_copy, 0 };
 
     // if the target is not in the waiting_list
     if (gnl_list_search(waiting_list->target_list, &el, compare_el) == 0) {
         // this is not an error, simply
         // the target has no waiting pid
         errno = 0;
+
+        // free memory
+        free(target_copy);
 
         // release the lock
         GNL_FSS_LOCK_RELEASE(-1)
@@ -300,7 +322,17 @@ int gnl_fss_waiting_list_pop(struct gnl_fss_waiting_list *waiting_list, int targ
 
                 // get the pid from the target queue
                 void *popped_pid_raw = gnl_queue_dequeue(((struct gnl_fss_waiting_list_el *) (current->el))->queue);
-                GNL_FSS_NULL_CHECK(popped_pid_raw, errno, -1)
+
+                if (popped_pid_raw == NULL) {
+                    // free memory
+                    free(target_copy);
+
+                    GNL_FSS_LOCK_RELEASE(-1)
+
+                    // let the errno bubble
+
+                    return -1;
+                }
 
                 popped_pid = *(int *) popped_pid_raw;
 
@@ -314,7 +346,17 @@ int gnl_fss_waiting_list_pop(struct gnl_fss_waiting_list *waiting_list, int targ
 
                     // remove the pid occurrence from the presence list
                     res = gnl_list_delete(&(waiting_list->presence_list), &popped_pid, compare_int, destroy_pointer);
-                    GNL_FSS_MINUS1_CHECK(res, errno, -1);
+
+                    if (res == -1) {
+                        // free memory
+                        free(target_copy);
+
+                        GNL_FSS_LOCK_RELEASE(-1)
+
+                        // let the errno bubble
+
+                        return -1;
+                    }
                 }
 
                 // else continue iterating
@@ -327,6 +369,9 @@ int gnl_fss_waiting_list_pop(struct gnl_fss_waiting_list *waiting_list, int targ
         // move to the next element
         current = current->next;
     }
+
+    // free memory
+    free(target_copy);
 
     // release the lock
     GNL_FSS_LOCK_RELEASE(-1)
