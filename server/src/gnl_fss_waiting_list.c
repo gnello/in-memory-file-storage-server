@@ -295,6 +295,8 @@ int gnl_fss_waiting_list_pop(struct gnl_fss_waiting_list *waiting_list, int targ
             int valid_pid_found = 0;
 
             while (valid_pid_found == 0) {
+                // reset the errno
+                errno = 0;
 
                 // get the pid from the target queue
                 void *popped_pid_raw = gnl_queue_dequeue(((struct gnl_fss_waiting_list_el *) (current->el))->queue);
@@ -310,10 +312,12 @@ int gnl_fss_waiting_list_pop(struct gnl_fss_waiting_list *waiting_list, int targ
                     // the pid is present, congratulations
                     valid_pid_found = 1;
 
-                    // update the presence list
+                    // remove the pid occurrence from the presence list
                     res = gnl_list_delete(&(waiting_list->presence_list), &popped_pid, compare_int, destroy_pointer);
                     GNL_FSS_MINUS1_CHECK(res, errno, -1);
                 }
+
+                // else continue iterating
             };
 
             // stop searching
@@ -341,7 +345,13 @@ int gnl_fss_waiting_list_remove(struct gnl_fss_waiting_list *waiting_list, int p
     GNL_FSS_NULL_CHECK(waiting_list, EINVAL, -1)
 
     int res;
-//TODO. svuotare tutta la presence list
+
+    // delete all the pid occurrences from the presence list
+    while (gnl_list_search(waiting_list->presence_list, &pid, compare_int) == 1) {
+        res = gnl_list_delete(&(waiting_list->presence_list), &pid, compare_int, destroy_pointer);
+        GNL_FSS_MINUS1_CHECK(res, errno, -1);
+    }
+
     // release the lock
     GNL_FSS_LOCK_RELEASE(-1)
 

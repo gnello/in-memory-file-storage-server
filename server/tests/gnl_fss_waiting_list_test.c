@@ -317,7 +317,20 @@ int can_pop() {
 int can_pop_empty() {
     struct gnl_fss_waiting_list *wl = gnl_fss_waiting_list_init();
 
+    int res = gnl_fss_waiting_list_push(wl, 4, 2);
+    if (res == -1) {
+        return -1;
+    }
+
     int popped_pid = gnl_fss_waiting_list_pop(wl, 4);
+
+    if (popped_pid != 2) {
+        return -1;
+    }
+
+    errno = EINVAL;
+
+    popped_pid = gnl_fss_waiting_list_pop(wl, 4);
 
     if (popped_pid != -1) {
         return -1;
@@ -406,6 +419,80 @@ int can_remove_two_pop() {
     return 0;
 }
 
+int can_remove() {
+    struct gnl_fss_waiting_list *wl = gnl_fss_waiting_list_init();
+
+    int pid = 6;
+
+    int res = gnl_fss_waiting_list_push(wl, 1, pid);
+    if (res == -1) {
+        return -1;
+    }
+
+    res = gnl_fss_waiting_list_push(wl, 2, pid);
+    if (res == -1) {
+        return -1;
+    }
+
+    res = gnl_fss_waiting_list_push(wl, 1, pid);
+    if (res == -1) {
+        return -1;
+    }
+
+    res = gnl_fss_waiting_list_push(wl, 4, pid);
+    if (res == -1) {
+        return -1;
+    }
+
+    if (gnl_list_search(wl->presence_list, &pid, compare_int) == 0) {
+        return -1;
+    }
+
+    res = gnl_fss_waiting_list_remove(wl, pid);
+
+    if (res != 0) {
+        return -1;
+    }
+
+    if (gnl_list_search(wl->presence_list, &pid, compare_int) == 1) {
+        return -1;
+    }
+
+    gnl_fss_waiting_list_destroy(wl);
+
+    return 0;
+}
+
+int can_not_pop_remove() {
+    struct gnl_fss_waiting_list *wl = gnl_fss_waiting_list_init();
+
+    int pid = 6;
+
+    int res = gnl_fss_waiting_list_push(wl, 1, pid);
+    if (res == -1) {
+        return -1;
+    }
+
+    res = gnl_fss_waiting_list_remove(wl, pid);
+    if (res != 0) {
+        return -1;
+    }
+
+    res = gnl_fss_waiting_list_pop(wl, 1);
+
+    if (res != -1) {
+        return -1;
+    }
+
+    if (errno != 0) {
+        return -1;
+    }
+
+    gnl_fss_waiting_list_destroy(wl);
+
+    return 0;
+}
+
 int main() {
     gnl_printf_yellow("> gnl_fss_waiting_list test:\n\n");
 
@@ -420,6 +507,10 @@ int main() {
     gnl_assert(can_pop_empty, "can pop from an empty target waiting list.");
     gnl_assert(can_remove_pop, "can remove a popped pid from a target waiting list.");
     gnl_assert(can_remove_two_pop, "can remove a popped pid from two different target waiting list.");
+
+    gnl_assert(can_remove, "can remove any waiting pid from a target waiting list.");
+    gnl_assert(can_not_pop_remove, "can not pop a removed waiting pid from a target waiting list.");
+
     // the gnl_fss_waiting_list_destroy method is implicitly tested in every assertion
 
     printf("\n");
