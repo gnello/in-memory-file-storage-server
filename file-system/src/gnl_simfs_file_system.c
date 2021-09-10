@@ -735,6 +735,32 @@ struct gnl_list_t *gnl_simfs_file_system_ls(struct gnl_simfs_file_system *file_s
     return res;
 }
 
+/**
+ * {@inheritDoc}
+ */
+int gnl_simfs_file_system_fstat(struct gnl_simfs_file_system *file_system, int fd, struct gnl_simfs_inode *buf,
+        unsigned int pid) {
+    // acquire the lock
+    GNL_SIMFS_LOCK_ACQUIRE(-1, pid)
+
+    // validate the parameters
+    GNL_SIMFS_NULL_CHECK(file_system, EINVAL, -1, pid)
+
+    // get the inode of the fd
+    // search the file in the file descriptor table
+    struct gnl_simfs_inode *inode = gnl_simfs_rts_get_inode_by_fd(file_system, fd, pid);
+    GNL_SIMFS_NULL_CHECK(inode, EINVAL, -1, pid)
+
+    // copy the inode
+    buf = gnl_simfs_inode_copy(inode);
+    GNL_SIMFS_NULL_CHECK(buf, EINVAL, -1, pid)
+
+    // release the lock
+    GNL_SIMFS_LOCK_RELEASE(-1, pid)
+
+    return 0;
+}
+
 #undef GNL_SIMFS_MAX_OPEN_FILES
 
 #undef GNL_SIMFS_LOCK_ACQUIRE

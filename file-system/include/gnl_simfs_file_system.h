@@ -1,6 +1,7 @@
 #ifndef GNL_SIMFS_FILE_SYSTEM_H
 #define GNL_SIMFS_FILE_SYSTEM_H
 
+#include "./gnl_simfs_inode_struct.h"
 #include <gnl_list_t.h>
 
 /**
@@ -151,5 +152,19 @@ extern int gnl_simfs_file_system_unlock(struct gnl_simfs_file_system *file_syste
  * @return              Return 0 on success, -1 otherwise.
  */
 extern struct gnl_list_t *gnl_simfs_file_system_ls(struct gnl_simfs_file_system *file_system, unsigned int pid);
+
+/**
+ * Get a copy of the inode of the given fd. The inode returned is put
+ * into the given buf.
+ *
+ * @param file_system   The file system instance where to get the inode.
+ * @param fd            The file descriptor of which get the inode.
+ * @param buf           The pointer to use to get the inode.
+ * @param pid           The id of the process who invoked this method.
+ *
+ * @return              Return 0 on success, -1 otherwise.
+ */
+extern int gnl_simfs_file_system_fstat(struct gnl_simfs_file_system *file_system, int fd, struct gnl_simfs_inode *buf,
+        unsigned int pid);
 
 #endif //GNL_SIMFS_FILE_SYSTEM_H
