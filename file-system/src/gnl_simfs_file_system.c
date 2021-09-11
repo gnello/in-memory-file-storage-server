@@ -752,8 +752,15 @@ int gnl_simfs_file_system_fstat(struct gnl_simfs_file_system *file_system, int f
     GNL_SIMFS_NULL_CHECK(inode, EINVAL, -1, pid)
 
     // copy the inode
-    buf = gnl_simfs_inode_copy(inode);
-    GNL_SIMFS_NULL_CHECK(buf, EINVAL, -1, pid)
+    buf->btime = inode->btime;
+    buf->mtime = inode->mtime;
+    buf->atime = inode->atime;
+    buf->ctime = inode->ctime;
+    buf->size = inode->size;
+    buf->reference_count = inode->reference_count;
+
+    GNL_CALLOC(buf->name, strlen(inode->name) + 1, -1)
+    strcpy(buf->name, inode->name);
 
     // release the lock
     GNL_SIMFS_LOCK_RELEASE(-1, pid)
