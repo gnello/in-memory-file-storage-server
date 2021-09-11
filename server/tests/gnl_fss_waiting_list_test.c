@@ -70,7 +70,7 @@ int can_push_new() {
 
             found = 1;
 
-            destroy_el(enqueued_el);
+            gnl_fss_waiting_list_destroy_el(enqueued_el);
 
             // stop searching
             break;
@@ -172,8 +172,8 @@ int can_push_new_two() {
 
             found = 1;
 
-            destroy_el(enqueued_el1);
-            destroy_el(enqueued_el2);
+            gnl_fss_waiting_list_destroy_el(enqueued_el1);
+            gnl_fss_waiting_list_destroy_el(enqueued_el2);
 
             // stop searching
             break;
@@ -274,7 +274,7 @@ int can_push_new_two_different() {
                 }
             }
 
-            destroy_el(enqueued_el);
+            gnl_fss_waiting_list_destroy_el(enqueued_el);
 
             found++;
         }
@@ -415,7 +415,7 @@ int can_pop() {
         return -1;
     }
 
-    destroy_el(popped_el);
+    gnl_fss_waiting_list_destroy_el(popped_el);
 
     gnl_fss_waiting_list_destroy(wl);
 
@@ -450,7 +450,7 @@ int can_pop_empty() {
 
     errno = EINVAL;
 
-    destroy_el(popped_el);
+    gnl_fss_waiting_list_destroy_el(popped_el);
 
     popped_el = gnl_fss_waiting_list_pop(wl, "test4");
 
@@ -496,7 +496,7 @@ int can_remove_pop() {
         return -1;
     }
 
-    destroy_el(popped_el);
+    gnl_fss_waiting_list_destroy_el(popped_el);
 
     popped_el = gnl_fss_waiting_list_pop(wl, target);
 
@@ -552,7 +552,7 @@ int can_remove_two_pop() {
         return -1;
     }
 
-    destroy_el(popped_el);
+    gnl_fss_waiting_list_destroy_el(popped_el);
 
     if (gnl_list_search(wl->presence_list, &pid, compare_int) == 0) {
         return -1;
@@ -572,7 +572,7 @@ int can_remove_two_pop() {
         return -1;
     }
 
-    destroy_el(popped_el);
+    gnl_fss_waiting_list_destroy_el(popped_el);
 
     if (gnl_list_search(wl->presence_list, &pid, compare_int) == 1) {
         return -1;

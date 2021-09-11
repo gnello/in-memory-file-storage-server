@@ -86,11 +86,7 @@ struct gnl_fss_waiting_list_internal_el {
  * @param ptr   The gnl_fss_waiting_list_el structure to destroy.
  */
 static void destroy_el(void *ptr) {
-    // destroy the queue
-    gnl_socket_request_destroy(((struct gnl_fss_waiting_list_el *)ptr)->request);
-
-    // destroy the element
-    free(ptr);
+    gnl_fss_waiting_list_destroy_el(((struct gnl_fss_waiting_list_el *)ptr));
 }
 
 /**
@@ -191,6 +187,22 @@ void gnl_fss_waiting_list_destroy(struct gnl_fss_waiting_list *waiting_list) {
 
     // destroy the waiting list
     free(waiting_list);
+}
+
+/**
+ * {@inheritDoc}
+ */
+void gnl_fss_waiting_list_destroy_el(struct gnl_fss_waiting_list_el *waiting_list_el) {
+    // check the parameters
+    if (waiting_list_el == NULL) {
+        return;
+    }
+
+    // destroy the request
+    gnl_socket_request_destroy(waiting_list_el->request);
+
+    // free memory
+    free(waiting_list_el);
 }
 
 /**

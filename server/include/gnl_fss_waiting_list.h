@@ -34,6 +34,13 @@ extern struct gnl_fss_waiting_list *gnl_fss_waiting_list_init();
  *
  * @param waiting_list  The waiting_list to be destroyed.
  */
+extern void gnl_fss_waiting_list_destroy_el(struct gnl_fss_waiting_list_el *waiting_list_el);
+
+/**
+ * Destroy a waiting_list config.
+ *
+ * @param waiting_list  The waiting_list to be destroyed.
+ */
 extern void gnl_fss_waiting_list_destroy(struct gnl_fss_waiting_list *waiting_list);
 
 /**
