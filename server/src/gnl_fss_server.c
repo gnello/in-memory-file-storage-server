@@ -336,7 +336,7 @@ static int run_server(int fd_skt, struct gnl_fss_thread_pool *thread_pool, const
                     int locked_fd = fd;
 
                     // pass the file descriptor to the thread pool
-                    res = gnl_fss_thread_pool_dispatch(thread_pool, (void *)&locked_fd);
+                    res = gnl_fss_thread_pool_dispatch(thread_pool, &locked_fd);
                     GNL_MINUS1_CHECK(res, errno, -1)
 
                     gnl_logger_debug(logger, "I/O request sent to the thread pool");
