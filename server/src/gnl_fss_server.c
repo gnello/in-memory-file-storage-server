@@ -293,7 +293,7 @@ static int run_server(int fd_skt, struct gnl_fss_thread_pool *thread_pool, const
                     res = gnl_message_n_from_string(buf, message_from_worker);
                     GNL_MINUS1_CHECK(res, errno, -1)
 
-                    // finally get the file descriptor
+                    // finally, get the file descriptor
                     fd_c = message_from_worker->number;
 
                     // the message_from_worker is not necessary anymore, destroy it
