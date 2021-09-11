@@ -120,7 +120,7 @@ static int wait_unlock(struct gnl_simfs_file_system *file_system, struct gnl_fss
     }
 
     // put the target and the pid into the waiting list
-    return gnl_fss_waiting_list_push(waiting_list, target, fd_c);
+    return gnl_fss_waiting_list_push(waiting_list, target, fd_c, request);
 }
 
 static int get_waiting_fd_c(struct gnl_simfs_file_system *file_system, struct gnl_fss_waiting_list *waiting_list,
