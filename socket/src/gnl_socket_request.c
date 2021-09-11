@@ -265,6 +265,10 @@ struct gnl_socket_request *gnl_socket_request_init(enum gnl_socket_request_type 
  * {@inheritDoc}
  */
 void gnl_socket_request_destroy(struct gnl_socket_request *request) {
+    if (request == NULL) {
+        return;
+    }
+
     switch (request->type) {
         case GNL_SOCKET_REQUEST_OPEN:
             gnl_message_sn_destroy(request->payload.open);

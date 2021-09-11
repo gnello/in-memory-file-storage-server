@@ -6,7 +6,6 @@
 #include <string.h>
 #include <gnl_message_n.h>
 #include <gnl_list_t.h>
-#include <gnl_fss_errno.h> //TODO: eliminare?
 #include "../include/gnl_fss_worker.h"
 #include <gnl_macro_beg.h>
 
@@ -37,35 +36,6 @@ struct gnl_fss_worker {
     struct gnl_simfs_file_system *file_system;
 };
 
-//static struct gnl_socket_response *get_internal_error_response() {
-//    struct gnl_socket_response *response;
-//
-//    response = gnl_socket_response_init(GNL_SOCKET_RESPONSE_ERROR, 1, GNL_FSS_ERRNO_INTERNAL);
-//    GNL_NULL_CHECK(response, errno, NULL)
-//
-//    return response;
-//}
-//
-//static int throw_internal_error(int fd_c) {
-//    int res;
-//    struct gnl_socket_response *response;
-//
-//    // get the internal error response
-//    response = get_internal_error_response();
-//    GNL_NULL_CHECK(response, errno, -1)
-//
-//    // encode the response
-//    char *response_message;
-//    res = gnl_socket_response_write(response, &response_message);
-//    GNL_MINUS1_CHECK(res, errno, -1)
-//
-//    // send the response message to the client //TODO: writen invece di write?
-//    res = write(fd_c, response_message, strlen(response_message));
-//    GNL_MINUS1_CHECK(res, errno, -1)
-//
-//    return 0;
-//}
-
 static int wait_unlock(struct gnl_simfs_file_system *file_system, struct gnl_fss_waiting_list *waiting_list,
         struct gnl_socket_request *request, int fd_c) {
 
@@ -75,7 +45,6 @@ static int wait_unlock(struct gnl_simfs_file_system *file_system, struct gnl_fss
     GNL_NULL_CHECK(request, EINVAL, -1)
 
     char *target;
-    int res = 0;
     int fd = -1;
 
     // get the target
@@ -102,8 +71,7 @@ static int wait_unlock(struct gnl_simfs_file_system *file_system, struct gnl_fss
 
         default:
             errno = EINVAL;
-            res = -1;
-            break;
+            return -1;
     }
 
     // if we have only the fd, get the inode to get the "target"
@@ -111,7 +79,7 @@ static int wait_unlock(struct gnl_simfs_file_system *file_system, struct gnl_fss
         struct gnl_simfs_inode *inode = NULL;
 
         // get the inode of the fd
-        res = gnl_simfs_file_system_fstat(file_system, fd, inode, fd_c);
+        int res = gnl_simfs_file_system_fstat(file_system, fd, inode, fd_c);
         GNL_MINUS1_CHECK(res, errno, -1)
         GNL_NULL_CHECK(inode, errno, -1)
 
@@ -176,6 +144,10 @@ static struct gnl_fss_waiting_list_el *get_waiting_unlock(struct gnl_simfs_file_
  */
 static struct gnl_socket_response *handle_request(struct gnl_simfs_file_system *file_system,
         struct gnl_socket_request *request, int fd_c) {
+
+    // validate the parameters
+    GNL_NULL_CHECK(file_system, EINVAL, NULL)
+    GNL_NULL_CHECK(request, EINVAL, NULL)
 
     int res;
     struct gnl_socket_response *response = NULL;
@@ -305,14 +277,18 @@ static struct gnl_socket_response *handle_request(struct gnl_simfs_file_system *
         GNL_NULL_CHECK(response, errno, NULL)
     }
 
-
-
-    // TODO: if this point is reached the response can not be NULL
-    //GNL_NULL_CHECK(response, EINVAL, NULL)
-
     return response;
 }
 
+/**
+ * Send the given fd_c to the master.
+ *
+ * @param pipe_channel  The channel to use to communicate with the master.
+ * @param fd_c          The client fd to send to the master, if 0, then the
+ *                      master will consider a client gone.
+ *
+ * @return              Returns 0 on success, -1 otherwise.
+ */
 static int send_message_to_master(int pipe_channel, int fd_c) {
     // the message struct to send to the master
     struct gnl_message_n *message_to_master;
@@ -339,6 +315,10 @@ static int send_message_to_master(int pipe_channel, int fd_c) {
 static struct gnl_socket_response *handle_fd_c_request(struct gnl_fss_worker *worker, int fd_c, struct gnl_socket_request *request) {
     int res;
 
+    // validate the parameters
+    GNL_NULL_CHECK(worker, EINVAL, NULL)
+    GNL_NULL_CHECK(request, EINVAL, NULL)
+
     // get the logger
     struct gnl_logger *logger = worker->logger;
     
@@ -359,10 +339,7 @@ static struct gnl_socket_response *handle_fd_c_request(struct gnl_fss_worker *wo
     response = handle_request(worker->file_system, request, fd_c);
 
     if (response == NULL) {
-        //TODO: creare risposta di errore standard/generica
         gnl_logger_error(logger, "invalid response received from the request handler, stop");
-
-        //TODO: qui c'era la "continue" capire come procedere, magari usando errno per distinguere i casi
 
         return NULL;
     }
@@ -405,6 +382,74 @@ static struct gnl_socket_response *handle_fd_c_request(struct gnl_fss_worker *wo
     }
 
     return response;
+}
+
+static int handle_fd_c_response(struct gnl_fss_worker *worker, int fd_c,
+        struct gnl_socket_request *request, struct gnl_socket_response *response) {
+
+    // validate the parameters
+    GNL_NULL_CHECK(worker, EINVAL, -1)
+    GNL_NULL_CHECK(request, EINVAL, -1)
+    GNL_NULL_CHECK(response, EINVAL, -1)
+
+    // get the logger
+    struct gnl_logger *logger = worker->logger;
+
+    // check if there is any waiting pid
+    if (request->type == GNL_SOCKET_REQUEST_UNLOCK && response->type == GNL_SOCKET_RESPONSE_OK) {
+
+        gnl_logger_debug(logger, "broadcast to waiting pid");
+
+        struct gnl_fss_waiting_list_el *popped_waiting_list_el;
+        int broadcast = 0;
+
+        // reset the errno
+        errno = 0;
+
+        // for each waiting pid
+        while ((popped_waiting_list_el = get_waiting_unlock(worker->file_system, worker->waiting_list, request, fd_c)) != NULL) {
+            broadcast++;
+
+            gnl_logger_debug(logger, "broadcast to pid %d", fd_c);
+
+            struct gnl_socket_response *tmp_response = handle_fd_c_request(worker, popped_waiting_list_el->pid,
+                                                                           popped_waiting_list_el->request);
+
+            // recursive call, this is necessary if a broadcast waiting pid
+            // is blocking another waiting pid. Without this call, if the first
+            // waiting pid unlock the file on where another waiting pid is waiting,
+            // then the another waiting pid will wait forever
+            handle_fd_c_response(worker, fd_c, popped_waiting_list_el->request, tmp_response);
+
+            // free memory
+            free(popped_waiting_list_el);
+        }
+
+        // customize the log based on if we have broadcast
+        // something or not
+        if (broadcast == 0) {
+
+            // if errno==0, then no errors occurred, there simply not
+            // waiting pid to broadcast to
+            if (errno == 0) {
+                gnl_logger_debug(logger, "no waiting pid to broadcast to");
+            } else {
+                gnl_logger_debug(logger, "error during the broadcasting: %s", strerror(errno));
+            }
+        }
+    }
+
+    // if this check is false, then the request was stored
+    // into the waiting list, and we can not destroy it, if it
+    // is true we can destroy it
+    if (response->type != GNL_SOCKET_RESPONSE_ERROR || errno != EBUSY) {
+        gnl_socket_request_destroy(request);
+    }
+
+    // free memory
+    gnl_socket_response_destroy(response);
+
+    return 0;
 }
 
 /**
@@ -495,7 +540,16 @@ void *gnl_fss_worker_handle(void* args) {
 
         // waiting for a ready file descriptor from the main thread
         raw_fd_c = gnl_ts_bb_queue_dequeue(worker->worker_queue);
-        GNL_NULL_CHECK(raw_fd_c, EINVAL, NULL); //TODO: return o si continua il ciclo?
+
+        // check if there was an error
+        if (raw_fd_c == NULL) {
+            gnl_logger_error(logger, "error during the reading of the worker queue: %s, message ignored",
+                             strerror(errno));
+
+            // do not stop the server: the show must go on
+            continue;
+
+        }
 
         gnl_logger_debug(logger, "new message received");
 
@@ -505,6 +559,8 @@ void *gnl_fss_worker_handle(void* args) {
         // if terminate message, put down the worker
         if (fd_c == GNL_FSS_WORKER_TERMINATE) {
             gnl_logger_debug(logger, "termination message, the thread will be ended");
+
+            // exit the loop
             break;
         }
 
@@ -523,13 +579,21 @@ void *gnl_fss_worker_handle(void* args) {
 
                 // remove the fd_c from the waiting list (if it was put there)
                 res = gnl_fss_waiting_list_remove(worker->waiting_list, fd_c);
-                GNL_MINUS1_CHECK(res, errno, NULL)
+
+                // check if there was an error
+                if (res == -1) {
+                    gnl_logger_error(logger, "error during the removing of pid %d from the waiting list: %s, "
+                                             "error ignored", strerror(errno));
+                }
 
                 //TODO: chiudere tutti i file aperti e unlockarli
 
                 // close the client file descriptor
                 res = close(fd_c);
-                GNL_MINUS1_CHECK(res, errno, NULL)
+                if (res == -1) {
+                    gnl_logger_error(logger, "error during the closing of the client fd %d: %s, error ignored",
+                                     strerror(errno));
+                }
 
                 gnl_logger_debug(logger, "closed the connection with client %d", fd_c);
 
@@ -538,7 +602,8 @@ void *gnl_fss_worker_handle(void* args) {
 
             } else {
 
-                gnl_logger_error(logger, "error reading the message: %s, request ignored", strerror(errno));
+                gnl_logger_error(logger, "error during the reading of the message: %s, request ignored",
+                                 strerror(errno));
 
                 // do not stop the server: the show must go on
 
@@ -554,60 +619,23 @@ void *gnl_fss_worker_handle(void* args) {
             gnl_logger_debug(logger, "the message is a request");
 
             response = handle_fd_c_request(worker, fd_c, request);
-            GNL_NULL_CHECK(response, errno, NULL) //TODO: gestire
+            if (response == NULL) {
+                gnl_logger_error(logger, "error during the handling of the client fd %d request: %s, "
+                                         "request ignored", strerror(errno));
 
-            // check for waiting pid
-            if (request->type == GNL_SOCKET_REQUEST_UNLOCK && response->type == GNL_SOCKET_RESPONSE_OK) {
-
-                gnl_logger_debug(logger, "broadcast waiting pid");
-
-                struct gnl_fss_waiting_list_el *popped_waiting_list_el;
-                int broadcast = 0;
-
-                // reset the errno
-                errno = 0;
-
-                // for each waiting pid
-                while ((popped_waiting_list_el = get_waiting_unlock(worker->file_system, worker->waiting_list, request, fd_c)) != NULL) {
-                    broadcast++;
-
-                    gnl_logger_debug(logger, "broadcast to pid %d", fd_c);
-
-                    struct gnl_socket_response *tmp_response = handle_fd_c_request(worker, popped_waiting_list_el->pid,
-                            popped_waiting_list_el->request);
-                    GNL_NULL_CHECK(tmp_response, errno, NULL)
-
-                    // free memory
-                    gnl_fss_waiting_list_destroy_el(popped_waiting_list_el);
-                    gnl_socket_response_destroy(tmp_response); //TODO: e se c'era un ulteriore unlock?
-                }
-
-                // customize the log based on if we have broadcast
-                // something or not
-                if (broadcast == 0) {
-
-                    // if errno==0, then no errors occurred, there simply not
-                    // waiting pid to broadcast to
-                    if (errno == 0) {
-                        gnl_logger_debug(logger, "no waiting pid to broadcast to");
-                    } else {
-                        gnl_logger_debug(logger, "error during the broadcasting: %s", strerror(errno));
-                    }
-                }
+                // TODO: inviare al client messaggio di errore oppure dire al master che abbiamo finito
+                // resume loop
+                continue;
             }
 
-            // if this check is false, then the request was stored
-            // into the waiting list, and we can not destroy it, if it
-            // is true we can destroy it
-            if (response->type != GNL_SOCKET_RESPONSE_ERROR || errno != EBUSY) {
-                gnl_socket_request_destroy(request);
-            }
+            res = handle_fd_c_response(worker, fd_c, request, response);
+            if (res == -1) {
+                gnl_logger_error(logger, "error during the handling of the response for the client fd %d: %s, "
+                                         "response ignored", strerror(errno));
 
-            // free memory
-            gnl_socket_response_destroy(response);
+                // TODO: inviare al client messaggio di errore oppure dire al master che abbiamo finito
+            }
         }
-
-
     }
 
     return NULL;
