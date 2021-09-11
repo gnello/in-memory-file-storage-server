@@ -25,8 +25,12 @@ int can_push_new() {
 
     char *target = "test";
     int pid = 6;
+    struct gnl_socket_request *req = gnl_socket_request_init(GNL_SOCKET_REQUEST_READ, 1, 99);
+    if (req == NULL) {
+        return -1;
+    }
 
-    int res = gnl_fss_waiting_list_push(wl, target, pid);
+    int res = gnl_fss_waiting_list_push(wl, target, pid, req);
 
     if (res == -1) {
         return -1;
@@ -43,22 +47,30 @@ int can_push_new() {
 
     while (current != NULL) {
         // if target is found
-        if (strcmp(((struct gnl_fss_waiting_list_el *)(current->el))->target, target) == 0) {
-            void *enqueued_pid_raw = gnl_queue_dequeue(((struct gnl_fss_waiting_list_el *)(current->el))->queue);
+        if (strcmp(((struct gnl_fss_waiting_list_internal_el *)(current->el))->target, target) == 0) {
+            void *enqueued_el_raw = gnl_queue_dequeue(((struct gnl_fss_waiting_list_internal_el *)(current->el))->queue);
 
-            if (enqueued_pid_raw == NULL) {
+            if (enqueued_el_raw == NULL) {
                 return -1;
             }
 
-            int enqueued_pid = *(int *)enqueued_pid_raw;
+            struct gnl_fss_waiting_list_el *enqueued_el = enqueued_el_raw;
 
-            free(enqueued_pid_raw);
+            if (enqueued_el->pid != pid) {
+                return -1;
+            }
 
-            if (enqueued_pid != pid) {
+            if (enqueued_el->request->type != GNL_SOCKET_REQUEST_READ) {
+                return -1;
+            }
+
+            if (enqueued_el->request->payload.write->number != 99) {
                 return -1;
             }
 
             found = 1;
+
+            destroy_el(enqueued_el);
 
             // stop searching
             break;
@@ -79,15 +91,24 @@ int can_push_new_two() {
 
     char *target = "test";
     int pid1 = 6;
-    int pid2 = 5;
+    struct gnl_socket_request *req1 = gnl_socket_request_init(GNL_SOCKET_REQUEST_READ, 1, 99);
+    if (req1 == NULL) {
+        return -1;
+    }
 
-    int res = gnl_fss_waiting_list_push(wl, target, pid1);
+    int pid2 = 5;
+    struct gnl_socket_request *req2 = gnl_socket_request_init(GNL_SOCKET_REQUEST_LOCK, 1, 55);
+    if (req2 == NULL) {
+        return -1;
+    }
+
+    int res = gnl_fss_waiting_list_push(wl, target, pid1, req1);
 
     if (res == -1) {
         return -1;
     }
 
-    res = gnl_fss_waiting_list_push(wl, target, pid2);
+    res = gnl_fss_waiting_list_push(wl, target, pid2, req2);
 
     if (res == -1) {
         return -1;
@@ -108,35 +129,51 @@ int can_push_new_two() {
 
     while (current != NULL) {
         // if target is found
-        if (strcmp(((struct gnl_fss_waiting_list_el *)(current->el))->target, target) == 0) {
-            void *enqueued_pid_raw1 = gnl_queue_dequeue(((struct gnl_fss_waiting_list_el *)(current->el))->queue);
+        if (strcmp(((struct gnl_fss_waiting_list_internal_el *)(current->el))->target, target) == 0) {
+            void *enqueued_el_raw1 = gnl_queue_dequeue(((struct gnl_fss_waiting_list_internal_el *)(current->el))->queue);
 
-            if (enqueued_pid_raw1 == NULL) {
+            if (enqueued_el_raw1 == NULL) {
                 return -1;
             }
 
 
-            void *enqueued_pid_raw2 = gnl_queue_dequeue(((struct gnl_fss_waiting_list_el *)(current->el))->queue);
+            void *enqueued_el_raw2 = gnl_queue_dequeue(((struct gnl_fss_waiting_list_internal_el *)(current->el))->queue);
 
-            if (enqueued_pid_raw2 == NULL) {
+            if (enqueued_el_raw2 == NULL) {
                 return -1;
             }
 
-            int enqueued_pid1 = *(int *)enqueued_pid_raw1;
-            int enqueued_pid2 = *(int *)enqueued_pid_raw2;
+            struct gnl_fss_waiting_list_el *enqueued_el1 = enqueued_el_raw1;
+            struct gnl_fss_waiting_list_el *enqueued_el2 = enqueued_el_raw2;
 
-            free(enqueued_pid_raw1);
-            free(enqueued_pid_raw2);
-
-            if (enqueued_pid1 != pid1) {
+            if (enqueued_el1->pid != pid1) {
                 return -1;
             }
 
-            if (enqueued_pid2 != pid2) {
+            if (enqueued_el1->request->type != GNL_SOCKET_REQUEST_READ) {
+                return -1;
+            }
+
+            if (enqueued_el1->request->payload.write->number != 99) {
+                return -1;
+            }
+
+            if (enqueued_el2->pid != pid2) {
+                return -1;
+            }
+
+            if (enqueued_el2->request->type != GNL_SOCKET_REQUEST_LOCK) {
+                return -1;
+            }
+
+            if (enqueued_el2->request->payload.write->number != 55) {
                 return -1;
             }
 
             found = 1;
+
+            destroy_el(enqueued_el1);
+            destroy_el(enqueued_el2);
 
             // stop searching
             break;
@@ -158,17 +195,26 @@ int can_push_new_two_different() {
     struct gnl_fss_waiting_list *wl = gnl_fss_waiting_list_init();
 
     char *target1 = "test1";
-    char *target2 = "test2";
     int pid1 = 6;
+    struct gnl_socket_request *req1 = gnl_socket_request_init(GNL_SOCKET_REQUEST_READ, 1, 99);
+    if (req1 == NULL) {
+        return -1;
+    }
+    
+    char *target2 = "test2";
     int pid2 = 5;
+    struct gnl_socket_request *req2 = gnl_socket_request_init(GNL_SOCKET_REQUEST_LOCK, 1, 55);
+    if (req2 == NULL) {
+        return -1;
+    }
 
-    int res = gnl_fss_waiting_list_push(wl, target1, pid1);
+    int res = gnl_fss_waiting_list_push(wl, target1, pid1, req1);
 
     if (res == -1) {
         return -1;
     }
 
-    res = gnl_fss_waiting_list_push(wl, target2, pid2);
+    res = gnl_fss_waiting_list_push(wl, target2, pid2, req2);
 
     if (res == -1) {
         return -1;
@@ -188,27 +234,47 @@ int can_push_new_two_different() {
     int found = 0;
 
     while (current != NULL) {
-        struct gnl_fss_waiting_list_el * el = current->el;
+        struct gnl_fss_waiting_list_internal_el * el = current->el;
 
         // if target is found
         if (strcmp(el->target, target1) == 0 || strcmp(el->target, target2) == 0) {
-            void *enqueued_pid_raw = gnl_queue_dequeue(((struct gnl_fss_waiting_list_el *)(current->el))->queue);
+            void *enqueued_el_raw = gnl_queue_dequeue(((struct gnl_fss_waiting_list_internal_el *)(current->el))->queue);
 
-            if (enqueued_pid_raw == NULL) {
+            if (enqueued_el_raw == NULL) {
                 return -1;
             }
 
-            int enqueued_pid = *(int *)enqueued_pid_raw;
+            struct gnl_fss_waiting_list_el *enqueued_el = enqueued_el_raw;
 
-            free(enqueued_pid_raw);
-
-            if (strcmp(el->target, target1) == 0 && enqueued_pid != pid1) {
+            if (strcmp(el->target, target1) == 0 && enqueued_el->pid != pid1) {
                 return -1;
-            } else if (strcmp(el->target, target2) == 0 && enqueued_pid != pid2) {
+            } else if (strcmp(el->target, target2) == 0 && enqueued_el->pid != pid2) {
                 return -1;
             } else if (strcmp(el->target, target1) != 0 && strcmp(el->target, target2) != 0) {
                 return -1;
             }
+
+            if (enqueued_el->pid == pid1) {
+                if (enqueued_el->request->type != GNL_SOCKET_REQUEST_READ) {
+                    return -1;
+                }
+
+                if (enqueued_el->request->payload.write->number != 99) {
+                    return -1;
+                }
+            }
+
+            if (enqueued_el->pid == pid2) {
+                if (enqueued_el->request->type != GNL_SOCKET_REQUEST_LOCK) {
+                    return -1;
+                }
+
+                if (enqueued_el->request->payload.write->number != 55) {
+                    return -1;
+                }
+            }
+
+            destroy_el(enqueued_el);
 
             found++;
         }
@@ -229,28 +295,48 @@ int can_twice_presence() {
     struct gnl_fss_waiting_list *wl = gnl_fss_waiting_list_init();
 
     int pid = 6;
+    struct gnl_socket_request *req1 = gnl_socket_request_init(GNL_SOCKET_REQUEST_READ, 1, 99);
+    if (req1 == NULL) {
+        return -1;
+    }
+    struct gnl_socket_request *req2 = gnl_socket_request_init(GNL_SOCKET_REQUEST_READ, 1, 99);
+    if (req2 == NULL) {
+        return -1;
+    }
+    struct gnl_socket_request *req3 = gnl_socket_request_init(GNL_SOCKET_REQUEST_READ, 1, 99);
+    if (req3 == NULL) {
+        return -1;
+    }
+    struct gnl_socket_request *req4 = gnl_socket_request_init(GNL_SOCKET_REQUEST_READ, 1, 99);
+    if (req4 == NULL) {
+        return -1;
+    }
+    struct gnl_socket_request *req5 = gnl_socket_request_init(GNL_SOCKET_REQUEST_READ, 1, 99);
+    if (req5 == NULL) {
+        return -1;
+    }
 
-    int res = gnl_fss_waiting_list_push(wl, "test1", pid);
+    int res = gnl_fss_waiting_list_push(wl, "test1", pid, req1);
     if (res == -1) {
         return -1;
     }
 
-    res = gnl_fss_waiting_list_push(wl, "test1", pid);
+    res = gnl_fss_waiting_list_push(wl, "test1", pid, req2);
     if (res == -1) {
         return -1;
     }
 
-    res = gnl_fss_waiting_list_push(wl, "test1", pid);
+    res = gnl_fss_waiting_list_push(wl, "test1", pid, req3);
     if (res == -1) {
         return -1;
     }
 
-    res = gnl_fss_waiting_list_push(wl, "test2", pid);
+    res = gnl_fss_waiting_list_push(wl, "test2", pid, req4);
     if (res == -1) {
         return -1;
     }
 
-    res = gnl_fss_waiting_list_push(wl, "test3", pid);
+    res = gnl_fss_waiting_list_push(wl, "test3", pid, req5);
     if (res == -1) {
         return -1;
     }
@@ -287,27 +373,49 @@ int can_pop() {
 
     char *target = "test1";
     int pid = 6;
+    struct gnl_socket_request *req1 = gnl_socket_request_init(GNL_SOCKET_REQUEST_READ, 1, 99);
+    if (req1 == NULL) {
+        return -1;
+    }
+    struct gnl_socket_request *req2 = gnl_socket_request_init(GNL_SOCKET_REQUEST_READ, 1, 99);
+    if (req2 == NULL) {
+        return -1;
+    }
+    struct gnl_socket_request *req3 = gnl_socket_request_init(GNL_SOCKET_REQUEST_LOCK, 1, 55);
+    if (req3 == NULL) {
+        return -1;
+    }
 
-    int res = gnl_fss_waiting_list_push(wl, "test0", 0);
+    int res = gnl_fss_waiting_list_push(wl, "test0", 0, req1);
     if (res == -1) {
         return -1;
     }
 
-    res = gnl_fss_waiting_list_push(wl, "test4", 3);
+    res = gnl_fss_waiting_list_push(wl, "test4", 3, req2);
     if (res == -1) {
         return -1;
     }
 
-    res = gnl_fss_waiting_list_push(wl, target, pid);
+    res = gnl_fss_waiting_list_push(wl, target, pid, req3);
     if (res == -1) {
         return -1;
     }
 
-    int popped_pid = gnl_fss_waiting_list_pop(wl, target);
+    struct gnl_fss_waiting_list_el *popped_el = gnl_fss_waiting_list_pop(wl, target);
 
-    if (popped_pid != pid) {
+    if (popped_el->pid != pid) {
         return -1;
     }
+
+    if (popped_el->request->type != GNL_SOCKET_REQUEST_LOCK) {
+        return -1;
+    }
+
+    if (popped_el->request->payload.lock->number != 55) {
+        return -1;
+    }
+
+    destroy_el(popped_el);
 
     gnl_fss_waiting_list_destroy(wl);
 
@@ -316,23 +424,37 @@ int can_pop() {
 
 int can_pop_empty() {
     struct gnl_fss_waiting_list *wl = gnl_fss_waiting_list_init();
+    struct gnl_socket_request *req = gnl_socket_request_init(GNL_SOCKET_REQUEST_READ, 1, 99);
+    if (req == NULL) {
+        return -1;
+    }
 
-    int res = gnl_fss_waiting_list_push(wl, "test4", 2);
+    int res = gnl_fss_waiting_list_push(wl, "test4", 2, req);
     if (res == -1) {
         return -1;
     }
 
-    int popped_pid = gnl_fss_waiting_list_pop(wl, "test4");
+    struct gnl_fss_waiting_list_el *popped_el = gnl_fss_waiting_list_pop(wl, "test4");
 
-    if (popped_pid != 2) {
+    if (popped_el->pid != 2) {
+        return -1;
+    }
+
+    if (popped_el->request->type != GNL_SOCKET_REQUEST_READ) {
+        return -1;
+    }
+
+    if (popped_el->request->payload.read->number != 99) {
         return -1;
     }
 
     errno = EINVAL;
 
-    popped_pid = gnl_fss_waiting_list_pop(wl, "test4");
+    destroy_el(popped_el);
 
-    if (popped_pid != -1) {
+    popped_el = gnl_fss_waiting_list_pop(wl, "test4");
+
+    if (popped_el != NULL) {
         return -1;
     }
 
@@ -350,21 +472,35 @@ int can_remove_pop() {
 
     char *target = "test";
     int pid = 6;
+    struct gnl_socket_request *req = gnl_socket_request_init(GNL_SOCKET_REQUEST_READ, 1, 99);
+    if (req == NULL) {
+        return -1;
+    }
 
-    int res = gnl_fss_waiting_list_push(wl, target, pid);
+    int res = gnl_fss_waiting_list_push(wl, target, pid, req);
     if (res == -1) {
         return -1;
     }
 
-    int popped_pid = gnl_fss_waiting_list_pop(wl, target);
+    struct gnl_fss_waiting_list_el *popped_el = gnl_fss_waiting_list_pop(wl, target);
 
-    if (popped_pid != pid) {
+    if (popped_el->pid != pid) {
         return -1;
     }
 
-    popped_pid = gnl_fss_waiting_list_pop(wl, target);
+    if (popped_el->request->type != GNL_SOCKET_REQUEST_READ) {
+        return -1;
+    }
 
-    if (popped_pid == pid) {
+    if (popped_el->request->payload.read->number != 99) {
+        return -1;
+    }
+
+    destroy_el(popped_el);
+
+    popped_el = gnl_fss_waiting_list_pop(wl, target);
+
+    if (popped_el != NULL) {
         return -1;
     }
 
@@ -383,32 +519,60 @@ int can_remove_two_pop() {
     char *target1 = "test1";
     char *target2 = "test2";
     int pid = 6;
+    struct gnl_socket_request *req1 = gnl_socket_request_init(GNL_SOCKET_REQUEST_READ, 1, 99);
+    if (req1 == NULL) {
+        return -1;
+    }
+    struct gnl_socket_request *req2 = gnl_socket_request_init(GNL_SOCKET_REQUEST_LOCK, 1, 55);
+    if (req2 == NULL) {
+        return -1;
+    }
 
-    int res = gnl_fss_waiting_list_push(wl, target1, pid);
+    int res = gnl_fss_waiting_list_push(wl, target1, pid, req1);
     if (res == -1) {
         return -1;
     }
 
-    res = gnl_fss_waiting_list_push(wl, target2, pid);
+    res = gnl_fss_waiting_list_push(wl, target2, pid, req2);
     if (res == -1) {
         return -1;
     }
 
-    int popped_pid = gnl_fss_waiting_list_pop(wl, target1);
+    struct gnl_fss_waiting_list_el *popped_el = gnl_fss_waiting_list_pop(wl, target1);
 
-    if (popped_pid != pid) {
+    if (popped_el->pid != pid) {
         return -1;
     }
+
+    if (popped_el->request->type != GNL_SOCKET_REQUEST_READ) {
+        return -1;
+    }
+
+    if (popped_el->request->payload.read->number != 99) {
+        return -1;
+    }
+
+    destroy_el(popped_el);
 
     if (gnl_list_search(wl->presence_list, &pid, compare_int) == 0) {
         return -1;
     }
 
-    popped_pid = gnl_fss_waiting_list_pop(wl, target2);
+    popped_el = gnl_fss_waiting_list_pop(wl, target2);
 
-    if (popped_pid != pid) {
+    if (popped_el->pid != pid) {
         return -1;
     }
+
+    if (popped_el->request->type != GNL_SOCKET_REQUEST_LOCK) {
+        return -1;
+    }
+
+    if (popped_el->request->payload.read->number != 55) {
+        return -1;
+    }
+
+    destroy_el(popped_el);
 
     if (gnl_list_search(wl->presence_list, &pid, compare_int) == 1) {
         return -1;
@@ -423,23 +587,39 @@ int can_remove() {
     struct gnl_fss_waiting_list *wl = gnl_fss_waiting_list_init();
 
     int pid = 6;
+    struct gnl_socket_request *req1 = gnl_socket_request_init(GNL_SOCKET_REQUEST_READ, 1, 99);
+    if (req1 == NULL) {
+        return -1;
+    }
+    struct gnl_socket_request *req2 = gnl_socket_request_init(GNL_SOCKET_REQUEST_READ, 1, 99);
+    if (req2 == NULL) {
+        return -1;
+    }
+    struct gnl_socket_request *req3 = gnl_socket_request_init(GNL_SOCKET_REQUEST_READ, 1, 99);
+    if (req3 == NULL) {
+        return -1;
+    }
+    struct gnl_socket_request *req4 = gnl_socket_request_init(GNL_SOCKET_REQUEST_READ, 1, 99);
+    if (req4 == NULL) {
+        return -1;
+    }
 
-    int res = gnl_fss_waiting_list_push(wl, "test1", pid);
+    int res = gnl_fss_waiting_list_push(wl, "test1", pid, req1);
     if (res == -1) {
         return -1;
     }
 
-    res = gnl_fss_waiting_list_push(wl, "test2", pid);
+    res = gnl_fss_waiting_list_push(wl, "test2", pid, req2);
     if (res == -1) {
         return -1;
     }
 
-    res = gnl_fss_waiting_list_push(wl, "test1", pid);
+    res = gnl_fss_waiting_list_push(wl, "test1", pid, req3);
     if (res == -1) {
         return -1;
     }
 
-    res = gnl_fss_waiting_list_push(wl, "test4", pid);
+    res = gnl_fss_waiting_list_push(wl, "test4", pid, req4);
     if (res == -1) {
         return -1;
     }
@@ -467,8 +647,12 @@ int can_not_pop_remove() {
     struct gnl_fss_waiting_list *wl = gnl_fss_waiting_list_init();
 
     int pid = 6;
+    struct gnl_socket_request *req = gnl_socket_request_init(GNL_SOCKET_REQUEST_READ, 1, 99);
+    if (req == NULL) {
+        return -1;
+    }
 
-    int res = gnl_fss_waiting_list_push(wl, "test", pid);
+    int res = gnl_fss_waiting_list_push(wl, "test", pid ,req);
     if (res == -1) {
         return -1;
     }
@@ -478,9 +662,9 @@ int can_not_pop_remove() {
         return -1;
     }
 
-    res = gnl_fss_waiting_list_pop(wl, "test");
+    struct gnl_fss_waiting_list_el *popped_el = gnl_fss_waiting_list_pop(wl, "test");
 
-    if (res != -1) {
+    if (popped_el != NULL) {
         return -1;
     }
 
