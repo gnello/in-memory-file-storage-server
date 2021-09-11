@@ -327,6 +327,100 @@ static struct gnl_socket_response *handle_request(struct gnl_simfs_file_system *
     return response;
 }
 
+static int send_message_to_master(int pipe_channel, int fd_c) {
+    // the message struct to send to the master
+    struct gnl_message_n *message_to_master;
+
+    message_to_master = gnl_message_n_init_with_args(fd_c);
+    GNL_NULL_CHECK(message_to_master, errno, -1)
+
+    // encode the message
+    char *message;
+    size_t nwrite = gnl_message_n_to_string(message_to_master, &message);
+    GNL_MINUS1_CHECK(nwrite, errno, -1)
+
+    // send the message to the master
+    size_t writen = gnl_socket_service_writen(pipe_channel, message, nwrite);
+    GNL_MINUS1_CHECK(writen, errno, -1)
+
+    // free memory
+    free(message_to_master);
+    free(message);
+
+    return 0;
+}
+
+static struct gnl_socket_response *handle_fd_c_request(struct gnl_fss_worker *worker, int fd_c, struct gnl_socket_request *request) {
+    int res;
+
+    // get the logger
+    struct gnl_logger *logger = worker->logger;
+    
+    // get the request type
+    char *request_type;
+    res = gnl_socket_request_get_type(request, &request_type);
+    GNL_MINUS1_CHECK(res, errno, NULL)
+
+    gnl_logger_debug(logger, "the request has type %s", request_type);
+
+    gnl_logger_debug(logger, "handle the %s request", request_type);
+
+    // the request_type is not necessary anymore, free memory
+    free(request_type);
+
+    // handle the request
+    struct gnl_socket_response *response;
+    response = handle_request(worker->file_system, request, fd_c);
+
+    if (response == NULL) {
+        //TODO: creare risposta di errore standard/generica
+        gnl_logger_error(logger, "invalid response received from the request handler, stop");
+
+        //TODO: qui c'era la "continue" capire come procedere, magari usando errno per distinguere i casi
+
+        return NULL;
+    }
+
+    // if the target file of the request is locked
+    if (response->type == GNL_SOCKET_RESPONSE_ERROR && response->payload.error->number == EBUSY) {
+        gnl_logger_debug(logger, "EBUSY response received, client %d will be put into the waiting list", fd_c);
+
+        // put the client into the waiting list
+        res = wait_unlock(worker->file_system, worker->waiting_list, request, fd_c);
+        GNL_MINUS1_CHECK(res, errno, NULL)
+
+        gnl_logger_debug(logger, "client %d successfully put into the waiting list", fd_c);
+
+        // do not send anything to the master
+    }
+    // else send the response to the client
+    else {
+        gnl_logger_debug(logger, "client %d request handled", fd_c);
+
+        // encode the response
+        char *response_type;
+        res = gnl_socket_response_get_type(response, &response_type);
+        GNL_MINUS1_CHECK(res, errno, NULL)
+
+        gnl_logger_debug(logger, "building a %s response for client %d", response_type, fd_c);
+
+        free(response_type);
+
+        // send the response message to the client
+        gnl_logger_debug(logger, "send the response to client %d", fd_c);
+
+        res = gnl_socket_service_send_response(fd_c, response);
+        GNL_MINUS1_CHECK(res, errno, NULL)
+
+        gnl_logger_debug(logger, "response sent to client %d", fd_c);
+
+        // send the message to the master
+        send_message_to_master(worker->pipe_channel, fd_c);
+    }
+
+    return response;
+}
+
 /**
  * {@inheritDoc}
  */
@@ -405,12 +499,8 @@ void *gnl_fss_worker_handle(void* args) {
     // generic result var
     int res;
 
-    // the message struct to send to the master
-    struct gnl_message_n *message_to_master;
-
-    int file_unlock;
-    //TODO: la queue non va bene, fare una struttura dati complessa che permetta
-    // di fare broadcast sui fd_c di un solo fd
+    // the response sent to a client
+    struct gnl_socket_response *response;
 
     gnl_logger_debug(logger, "ready, waiting for requests");
 
@@ -444,7 +534,12 @@ void *gnl_fss_worker_handle(void* args) {
 
                 // close the current file descriptor
                 gnl_logger_debug(logger, "the message says that client %d has gone away", fd_c);
-                //TODO: chiudere tutti i file aperti
+
+                // remove the fd_c from the waiting list (if it was put there)
+                res = gnl_fss_waiting_list_remove(worker->waiting_list, fd_c);
+                GNL_MINUS1_CHECK(res, errno, NULL)
+
+                //TODO: chiudere tutti i file aperti e unlockarli
 
                 // close the client file descriptor
                 res = close(fd_c);
@@ -452,9 +547,8 @@ void *gnl_fss_worker_handle(void* args) {
 
                 gnl_logger_debug(logger, "closed the connection with client %d", fd_c);
 
-                // create the message for the master, 0 means that a client has gone away
-                message_to_master = gnl_message_n_init_with_args(0);
-                GNL_NULL_CHECK(message_to_master, errno, NULL)
+                // send the message to the master, 0 means that a client has gone away
+                send_message_to_master(worker->pipe_channel, 0);
 
             } else {
 
@@ -472,96 +566,40 @@ void *gnl_fss_worker_handle(void* args) {
 
             gnl_logger_debug(logger, "the message is a request");
 
-            // get the request type
-            char *request_type;
-            res = gnl_socket_request_get_type(request, &request_type);
-            GNL_MINUS1_CHECK(res, errno, NULL)
+            response = handle_fd_c_request(worker, fd_c, request);
+            GNL_NULL_CHECK(response, errno, NULL) //TODO: gestire
 
-            gnl_logger_debug(logger, "the request has type %s", request_type);
+            // check for waiting pid
+            if (request->type == GNL_SOCKET_REQUEST_UNLOCK && response->type == GNL_SOCKET_RESPONSE_OK) {
 
-            gnl_logger_debug(logger, "handle the %s request", request_type);
+                gnl_logger_debug(logger, "broadcast waiting pid");
 
-            // the request_type is not necessary anymore, free memory
-            free(request_type);
+                int popped_fd_c;
+                int broadcast = 0;
+                while ((popped_fd_c = get_waiting_fd_c(worker->file_system, worker->waiting_list, request, fd_c)) >= 0) {
+                    broadcast++;
 
-            // handle the request
-            struct gnl_socket_response *response;
-            response = handle_request(worker->file_system, request, fd_c);
+                    gnl_logger_debug(logger, "broadcast to pid %d", fd_c);
 
-            if (response == NULL) {
-                //TODO: creare risposta di errore standard/generica
-                gnl_logger_error(logger, "invalid response received from the request handler, stop");
-
-                continue;
-            }
-
-            // if the target file of the request is locked
-            if (response->type == GNL_SOCKET_RESPONSE_ERROR && response->payload.error->number == EBUSY) {
-                gnl_logger_debug(logger, "EBUSY response received, client %d will be put into the waiting list", fd_c);
-
-                // put the client into the waiting list
-                res = wait_unlock(worker->file_system, worker->waiting_list, request, fd_c);
-                GNL_MINUS1_CHECK(res, errno, NULL)
-
-                gnl_logger_debug(logger, "client %d successfully put into the waiting list", fd_c);
-            }
-            // else send the response to the client
-            else {
-                gnl_logger_debug(logger, "client %d request handled", fd_c);
-
-                // encode the response
-                char *response_type;
-                res = gnl_socket_response_get_type(response, &response_type);
-                GNL_MINUS1_CHECK(res, errno, NULL)
-
-                gnl_logger_debug(logger, "building a %s response for client %d", response_type, fd_c);
-
-                free(response_type);
-
-                // send the response message to the client
-                gnl_logger_debug(logger, "send the response to client %d", fd_c);
-
-                res = gnl_socket_service_send_response(fd_c, response);
-                GNL_MINUS1_CHECK(res, errno, NULL)
-
-                gnl_logger_debug(logger, "response sent to client %d", fd_c);
-
-                // check for waiting pid
-                if (request->type == GNL_SOCKET_REQUEST_UNLOCK && response->type == GNL_SOCKET_RESPONSE_OK) {
-
-                    gnl_logger_debug(logger, "broadcast eventual waiting pid");
-
-                    int popped_fd_c;
-                    while ((popped_fd_c = get_waiting_fd_c(worker->file_system, worker->waiting_list, request, fd_c)) >= 0) {
-                        //TODO: qui mi serve la request originale in modo da poterla ripetere,
-                        
-                    }
+                    //TODO: qui mi serve la request originale in modo da poterla ripetere,
+                    res = handle_fd_c_request(worker, popped_fd_c, request);
+                    GNL_MINUS1_CHECK(res, errno, NULL)
                 }
-            }
+
+                if (broadcast == 0) {
+                    gnl_logger_debug(logger, "no waiting pid where present");
+                }
+             }
+
 
             // free memory
             gnl_socket_response_destroy(response);
 
             // the request is not necessary anymore, destroy it
             gnl_socket_request_destroy(request);
-
-            // create the message for the master
-            message_to_master = gnl_message_n_init_with_args(fd_c);
-            GNL_NULL_CHECK(message_to_master, errno, NULL)
         }
 
-        // encode the message
-        char *message;
-        size_t nwrite = gnl_message_n_to_string(message_to_master, &message);
-        GNL_MINUS1_CHECK(nwrite, errno, NULL)
 
-        // send the message to the master
-        size_t writen = gnl_socket_service_writen(worker->pipe_channel, message, nwrite);
-        GNL_MINUS1_CHECK(writen, errno, NULL)
-
-        // free memory
-        free(message_to_master);
-        free(message);
     }
 
     return NULL;
