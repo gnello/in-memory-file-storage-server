@@ -248,7 +248,7 @@ int gnl_fss_waiting_list_push(struct gnl_fss_waiting_list *waiting_list, const c
             // move to the next element
             current = current->next;
         }
-        
+
         // free memory
         free(target_copy);
     }

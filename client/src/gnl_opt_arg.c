@@ -51,6 +51,17 @@ static int gnl_opt_arg_send_file(const char *filename, const char *store_dirname
     // wait if we have to
     wait_milliseconds();
 
+    // unlock the file
+    int res_unlock = gnl_fss_api_unlock_file(filename);
+    int errno_unlock = errno;
+
+    print_log("Unlock file", filename, res_unlock, NULL);
+
+    // an eventual error during the unlocking will be checked later
+
+    // wait if we have to
+    wait_milliseconds();
+
     // close the file
     int res_close = gnl_fss_api_close_file(filename);
     int errno_close = errno;
@@ -59,6 +70,9 @@ static int gnl_opt_arg_send_file(const char *filename, const char *store_dirname
 
     // check if there was an error during the writing
     GNL_MINUS1_CHECK(res_write, errno_write, -1);
+
+    // check if there was an error during the unlocking
+    GNL_MINUS1_CHECK(res_unlock, errno_unlock, -1);
 
     // check if there was an error during the close_file
     GNL_MINUS1_CHECK(res_close, errno_close, -1);
@@ -187,7 +201,7 @@ static int gnl_opt_arg_unlock_file(const char *filename) {
     // wait if we have to
     wait_milliseconds();
 
-    // lock the file
+    // unlock the file
     int res_unlock = gnl_fss_api_unlock_file(filename);
     int errno_unlock = errno;
 
@@ -227,7 +241,7 @@ static int gnl_opt_arg_read_file(const char *filename, const char *store_dirname
     // wait if we have to
     wait_milliseconds();
 
-    // open the file on the server (with lock)
+    // open the file on the server
     res = gnl_fss_api_open_file(filename, 0);
 
     print_log("Open file with no flags", filename, res, NULL);

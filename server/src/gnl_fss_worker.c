@@ -66,6 +66,63 @@ struct gnl_fss_worker {
 //    return 0;
 //}
 
+static int wait_unlock(struct gnl_simfs_file_system *file_system, struct gnl_fss_waiting_list *waiting_list,
+        struct gnl_socket_request *request, int fd_c) {
+
+    // validate the parameters
+    GNL_NULL_CHECK(file_system, EINVAL, -1)
+    GNL_NULL_CHECK(waiting_list, EINVAL, -1)
+    GNL_NULL_CHECK(request, EINVAL, -1)
+
+    char *target;
+    int res = 0;
+    int fd = -1;
+
+    // get the target
+    switch (request->type) {
+        case GNL_SOCKET_REQUEST_OPEN:
+            target = request->payload.open->string;
+            break;
+
+        case GNL_SOCKET_REQUEST_READ:
+            fd = request->payload.read->number;
+            break;
+
+        case GNL_SOCKET_REQUEST_WRITE:
+            fd = request->payload.write->number;
+            break;
+
+        case GNL_SOCKET_REQUEST_APPEND:
+            //fd = request->payload.append->number;
+            break;
+
+        case GNL_SOCKET_REQUEST_LOCK:
+            fd = request->payload.lock->number;
+            break;
+
+        default:
+            errno = EINVAL;
+            res = -1;
+            break;
+    }
+
+    // if we have only the fd, get the inode to get the "target"
+    if (fd >= 0) {
+        struct gnl_simfs_inode *inode = NULL;
+
+        // get the inode of the fd
+        res = gnl_simfs_file_system_fstat(file_system, fd, inode, fd_c);
+        GNL_MINUS1_CHECK(res, errno, -1)
+        GNL_NULL_CHECK(inode, errno, -1)
+
+        // get the target
+        target = inode->name;
+    }
+
+    // put the target and the pid into the waiting list
+    return gnl_fss_waiting_list_push(waiting_list, target, fd_c);
+}
+
 /**
  * TODO: doc
  * @param file_system
@@ -384,8 +441,10 @@ void *gnl_fss_worker_handle(void* args) {
                 gnl_logger_debug(logger, "EBUSY response received, client %d will be put into the waiting list", fd_c);
 
                 // TODO: put the client into the waiting list
-//                res = gnl_fss_waiting_list_push(worker->waiting_list, fd, fd_c);
-//                GNL_MINUS1_CHECK(res, errno, NULL)
+                res = wait_unlock(worker->file_system, worker->waiting_list, request, fd_c);
+                GNL_MINUS1_CHECK(res, errno, NULL)
+
+                gnl_logger_debug(logger, "client %d successfully put into the waiting list", fd_c);
             }
             // else send the response to the client
             else {

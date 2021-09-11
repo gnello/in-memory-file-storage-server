@@ -196,8 +196,8 @@ int gnl_simfs_inode_decrease_refs(struct gnl_simfs_inode *inode, unsigned int pi
         return -1;
     }
 
-    // remove the pid to the reference list
-    int res = gnl_list_delete(&(inode->reference_list), &pid, NULL, NULL);
+    // remove the pid from the reference list
+    int res = gnl_list_delete(&(inode->reference_list), &pid, has_pid, free);
     GNL_MINUS1_CHECK(res, errno, -1);
 
     // decrease the reference count
@@ -207,7 +207,7 @@ int gnl_simfs_inode_decrease_refs(struct gnl_simfs_inode *inode, unsigned int pi
     inode->ctime = time(NULL);
 
     // wake up eventually waiting threads
-    if (inode->reference_count == 0 || gnl_list_search(inode->reference_list, &pid, has_different_pid) == 0) {
+    if (inode->reference_count == 0 || gnl_list_search(inode->reference_list, &pid, has_different_pid) == 1) {
         return pthread_cond_signal(&(inode->file_is_lockable));
     }
 

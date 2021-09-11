@@ -199,7 +199,7 @@ int gnl_simfs_file_descriptor_table_put(struct gnl_simfs_file_descriptor_table *
     //                                  because it has reached its border
     // - case 3 (none of the above):    there is a "hole" left by a previous remove,
     //                                  so the table already has the necessary space
-    if (fd == 0 || fd > table->max_fd) {
+    if (table->max_fd == 0 || fd > table->max_fd) {
         struct gnl_simfs_file_descriptor_table_el **temp = realloc(table->table, (fd + 1) * sizeof(struct gnl_simfs_file_descriptor_table_el *));
         GNL_NULL_CHECK(temp, errno, -1)
 
@@ -252,12 +252,12 @@ int gnl_simfs_file_descriptor_table_remove(struct gnl_simfs_file_descriptor_tabl
     free(table->table[fd]);
     table->table[fd] = NULL;
 
-    // if the fd is the maximum active file descriptor decrease it by one
-    if (fd == table->max_fd) {
-        table->max_fd--;
-    }
-    // else add the removed file descriptor into the free index map
-    else {
+    // if the fd is the maximum active file descriptor decrease it by one TODO: valutare se rimuovere
+//    if (fd == table->max_fd) {
+//        table->max_fd--;
+//    }
+//    // else add the removed file descriptor into the free index map
+//    else {
         // make a deep copy of the fd
         unsigned int *fd_copy = malloc(sizeof(int));
         GNL_NULL_CHECK(fd_copy, ENOMEM, -1)
@@ -267,7 +267,7 @@ int gnl_simfs_file_descriptor_table_remove(struct gnl_simfs_file_descriptor_tabl
         // add the deep copy into the free index map
         int res = gnl_min_heap_insert(table->free_index_map, fd_copy, fd);
         GNL_MINUS1_CHECK(res, errno, -1)
-    }
+    //}
 
     // decrease the table size
     table->size--;
