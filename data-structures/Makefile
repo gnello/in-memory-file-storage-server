@@ -16,7 +16,8 @@ TARGETS = 	gnl_list_t.so \
 			gnl_stack_t.so \
 			gnl_ts_bb_stack_t.so \
 			gnl_min_heap_t.so \
-			gnl_ternary_search_tree_t.so
+			gnl_ternary_search_tree_t.so \
+			gnl_huffman_tree.so
 
 TARGETS_PATH = ./lib
 

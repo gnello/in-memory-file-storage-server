@@ -20,7 +20,8 @@ TARGETS =	gnl_list_test \
 			gnl_stack_test \
 			gnl_ts_bb_stack_test \
 			gnl_min_heap_test \
-			gnl_ternary_search_tree_test
+			gnl_ternary_search_tree_test \
+			gnl_huffman_tree_test
 
 .PHONY: all clean tests tests-valgrind
 .SUFFIXES: .c .h
