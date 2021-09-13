@@ -55,27 +55,41 @@ int can_decode_encoded() {
     const char *str = "One Late Night is a short immersive horror-game experience, starring an unnamed graphic designer "
                       "employee, working late one night at the";
 
-    struct gnl_huffman_tree_t *tree = gnl_huffman_tree_init(str, strlen(str));
-
     char *dest;
-    int res = gnl_huffman_encode(tree, &dest, str, strlen(str));
+    struct gnl_huffman_tree_cipher *cipher = gnl_huffman_encode(str, strlen(str) + 1, &dest);
+
+    if (cipher == NULL) {
+        return -1;
+    }
+
+    if (dest == NULL) {
+        return -1;
+    }
+
+    char *decoded_string;
+    int res = gnl_huffman_decode(dest, cipher, &decoded_string);
 
     if (res == -1) {
         return -1;
     }
 
-    printf("sciaooo: %s\n", dest);
+    if (strcmp(str, decoded_string) != 0) {
+        return -1;
+    }
 
-    gnl_huffman_tree_destroy(tree);
+    free(dest);
+    free(decoded_string);
 
     return 0;
 }
 
 int main() {
-    gnl_printf_yellow("> gnl_huffman test:\n\n");
+    gnl_printf_yellow("> gnl_huffman_tree test:\n\n");
 
     gnl_assert(can_calculate_frequencies, "can calculate the frequencies of a string.");
     gnl_assert(can_decode_encoded, "can decode an encoded string.");
+
+    // the gnl_huffman_tree_destroy method is implicitly tested in every assertion
 
     printf("\n");
 }

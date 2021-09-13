@@ -1,5 +1,7 @@
 #include <stdlib.h>
 #include <string.h>
+#include "../include/gnl_huffman_tree.h"
+#include "./gnl_min_heap_t.c"
 #include <gnl_macro_beg.h>
 
 struct gnl_huffman_tree_node_t {
@@ -11,128 +13,27 @@ struct gnl_huffman_tree_node_t {
 
 struct gnl_huffman_tree_t {
 
-    // the bytes code
+    // the bytes dictionary
     char **dictionary;
 
-    // the number of nodes of the tree
-    int nodes_count;
+    // the min heap of the tree
+    struct gnl_min_heap_t *min_heap;
 
-    // the tail index
-    int tail;
-
-    // the array of nodes of the tree
-    struct gnl_huffman_tree_node_t **nodes;
+    // the root node of the tree
+    struct gnl_huffman_tree_node_t *node;
 };
 
-/**
- * Insert the given node into the given huffman tree.
- *
- * @param tree  The huffman tree where to insert the node.
- * @param node  The node to insert.
- *
- * @return      Returns 0 on success, -1 otherwise.
- */
-static int tree_insert(struct gnl_huffman_tree_t *tree, struct gnl_huffman_tree_node_t *node) {
-    // validate parameters
-    GNL_NULL_CHECK(tree, EINVAL, -1)
-    GNL_NULL_CHECK(node, EINVAL, -1)
+struct gnl_huffman_tree_cipher {
 
-    // the parent node index
-    int j;
+    // the root node of the tree
+    struct gnl_huffman_tree_node_t *node;
 
-    // the current node index, this is the candidate
-    // index where to insert the given node
-    int i = tree->tail;
+    // the number of bytes in the encoded series
+    size_t count;
 
-    // re-allocate memory
-    struct gnl_huffman_tree_node_t **temp = realloc(tree->nodes, (tree->nodes_count + 1) * sizeof(struct gnl_huffman_tree_node_t *));
-    GNL_NULL_CHECK(temp, errno, -1)
-
-    tree->nodes = temp;
-
-    // starting from the tail, climb the tree
-    // (i/2 is the parent of the i node)
-    while ((j = (i-1) / 2)) {
-        // if the frequency of the parent node is less or equal
-        // than the frequency of the node to insert, stop
-        if (tree->nodes[j]->freq <= node->freq) {
-            break;
-        }
-
-        // downgrade the parent node
-        tree->nodes[i] = tree->nodes[j];
-
-        // update the candidate index
-        i = j;
-    }
-
-    // at this point, we have to cases:
-    // - case 1: the tree was empty, so we insert the node
-    // at the root (in this case i = 1)
-    // - case 2; the tree was not empty, so we insert the node
-    // before the smallest and after the grater (in this case
-    // tree->nodes[i] >= tree->nodes[i-1] && tree->nodes[i] < tree->nodes[i+1])
-    tree->nodes[i] = node;
-
-    // increase the tail index
-    tree->tail++;
-
-    return 0;
-}
-
-/**
- * Remove the min node from the given huffman tree.
- *
- * @param tree  The huffman tree from where remove the min node.
- *
- * @return      Returns the node removed on success, -1 otherwise.
- */
-static struct gnl_huffman_tree_node_t *tree_remove(struct gnl_huffman_tree_t *tree) {
-    // validate parameters
-    GNL_NULL_CHECK(tree, EINVAL, NULL)
-    GNL_NULL_CHECK(tree, EINVAL, NULL)
-
-    // the current node index, if i=0, than
-    // this is the min node
-    int i = 0;
-
-    // the left index
-    int l;
-
-    // get the min node
-    struct gnl_huffman_tree_node_t *node = tree->nodes[i];
-
-    // if the tail count is <1 do not
-    // remove anything
-    if (tree->tail < 1) {
-        return NULL;
-    }
-
-    // decrease the tail count
-    tree->tail--;
-
-    // while the left node index is less than the tail count
-    while ((l = (i*2) + 1) < tree->tail) {
-
-        // if the right node index frequency is less than
-        // the left node frequency
-        if (l+1 < tree->tail && tree->nodes[l+1]->freq < tree->nodes[l]->freq) {
-            // increase the left index
-            l++;
-        }
-
-        // downgrade the i node
-        tree->nodes[i] = tree->nodes[l];
-
-        // update the min node index
-        i = l;
-    }
-
-    // assign the node
-    tree->nodes[i] = tree->nodes[tree->tail];
-
-    return node;
-}
+    // the encoded series
+    char *code;
+};
 
 /**
  * Create a new huffman tree node.
@@ -185,19 +86,6 @@ static int *calculate_frequencies(const void *bytes, size_t count) {
     return freq;
 }
 
-void tmp(struct gnl_huffman_tree_node_t *node) {
-    printf("%c %d\n", node->byte, node->freq);
-
-    if (node->left != NULL) {
-        printf("left: ");
-        tmp(node->left);
-    }
-    if (node->right != NULL) {
-        printf("right: ");
-        tmp(node->right);
-    }
-}
-
 static int create_min_heap(struct gnl_huffman_tree_t *tree, int *freq) {
     int res;
 
@@ -208,10 +96,8 @@ static int create_min_heap(struct gnl_huffman_tree_t *tree, int *freq) {
             struct gnl_huffman_tree_node_t *node = create_node(freq[i], i);
             GNL_NULL_CHECK(node, errno, -1)
 
-            res = tree_insert(tree, node);
+            res = gnl_min_heap_insert(tree->min_heap, node, node->freq);
             GNL_MINUS1_CHECK(res, errno, -1)
-
-            tree->nodes_count++;
         }
     }
 
@@ -225,11 +111,11 @@ static int tree_build(struct gnl_huffman_tree_t *tree) {
 
     int res;
 
-    while (tree->tail > 1) {
-        left = tree_remove(tree);
+    while (tree->min_heap->size > 1) {
+        left = gnl_min_heap_extract_min(tree->min_heap);
         GNL_NULL_CHECK(left, errno, -1)
 
-        right = tree_remove(tree);
+        right = gnl_min_heap_extract_min(tree->min_heap);
         GNL_NULL_CHECK(right, errno, -1)
 
         node = create_node(left->freq + right->freq, 0);
@@ -238,11 +124,13 @@ static int tree_build(struct gnl_huffman_tree_t *tree) {
         node->left = left;
         node->right = right;
 
-        res = tree_insert(tree, node);
+        res = gnl_min_heap_insert(tree->min_heap, node, node->freq);
         GNL_MINUS1_CHECK(res, errno, -1)
     }
-    tmp(tree->nodes[0]);
-    printf("-------------\n");
+
+    tree->node = gnl_min_heap_extract_min(tree->min_heap);
+    GNL_NULL_CHECK(tree->node, errno, -1)
+
     return 0;
 }
 
@@ -262,32 +150,60 @@ static int create_dictionary_recursive(struct gnl_huffman_tree_node_t *node, cha
     }
 
     if (is_leaf(node)) {
-        dictionary[(int)node->byte] = malloc(index * (sizeof(char)));
+        dictionary[(int)node->byte] = calloc(index+1, (sizeof(char)));
         GNL_NULL_CHECK(dictionary[(int)node->byte], ENOMEM, -1)
 
-printf("%c:", node->byte);
         for (size_t i=0; i<index; i++) {
             dictionary[(int)node->byte][i] = code_path[i];
+        }
 
-            printf("%c", code_path[i]);
-        } printf("\n");
+        dictionary[(int)node->byte][index] = '\0';
     }
 
     return 0;
+}
+
+static int tree_depth(struct gnl_huffman_tree_node_t *node) {
+    if (node == NULL) {
+        return 0;
+    }
+
+    int ldepth = tree_depth(node->left);
+    int rdepth = tree_depth(node->right);
+
+    if (ldepth > rdepth) {
+        return ldepth + 1;
+    } else {
+        return rdepth + 1;
+    }
 }
 
 static int create_dictionary(struct gnl_huffman_tree_t *tree) {
     tree->dictionary = (char **)calloc(256, sizeof(char *));
     GNL_NULL_CHECK(tree->dictionary, ENOMEM, -1)
 
-    char *code_path = malloc(tree->nodes_count * sizeof(char));
+    int depth = tree_depth(tree->node);
+
+    char *code_path = malloc(depth * sizeof(char));
     GNL_NULL_CHECK(code_path, ENOMEM, -1)
 
-    create_dictionary_recursive(tree->nodes[0], tree->dictionary, code_path, 0);
+    create_dictionary_recursive(tree->node, tree->dictionary, code_path, 0);
 
     free(code_path);
 
     return 0;
+}
+
+static void destroy_tree_metadata(struct gnl_huffman_tree_t *tree) {
+    for (size_t i=0; i<256; i++) {
+        free(tree->dictionary[i]);
+    }
+
+    free(tree->dictionary);
+
+    gnl_min_heap_destroy(tree->min_heap, NULL);
+
+    free(tree);
 }
 
 /**
@@ -299,9 +215,8 @@ struct gnl_huffman_tree_t *gnl_huffman_tree_init(const void *bytes, size_t count
     GNL_NULL_CHECK(tree, ENOMEM, NULL)
 
     // initialize values
-    tree->nodes_count = 0;
-    tree->tail = 0;
-    tree->nodes = NULL;
+    tree->min_heap = gnl_min_heap_init();
+    GNL_NULL_CHECK(tree->min_heap, errno, NULL)
 
     // calculate the frequencies
     int *freq = calculate_frequencies(bytes, count);
@@ -328,24 +243,24 @@ struct gnl_huffman_tree_t *gnl_huffman_tree_init(const void *bytes, size_t count
  * {@inheritDoc}
  */
 void gnl_huffman_tree_destroy(struct gnl_huffman_tree_t *tree) {
-    destroy_node(tree->nodes[0]);
+    destroy_node(tree->node);
 
-    for (size_t i=0; i<256; i++) {
-        free(tree->dictionary[i]);
-    }
-
-    free(tree->dictionary);
-
-    free(tree->nodes);
-
-    free(tree);
+    destroy_tree_metadata(tree);
 }
 
-int gnl_huffman_encode(const struct gnl_huffman_tree_t *tree, char **dest, const void *bytes, size_t count) {
+struct gnl_huffman_tree_cipher *gnl_huffman_encode(const void *bytes, size_t count, char **dest) {
+    // allocate memory
+    struct gnl_huffman_tree_cipher *cipher = (struct gnl_huffman_tree_cipher *)malloc(sizeof(struct gnl_huffman_tree_cipher));
+    GNL_NULL_CHECK(cipher, errno, NULL)
+
+    struct gnl_huffman_tree_t *tree = gnl_huffman_tree_init(bytes, count);
+    GNL_NULL_CHECK(tree, errno, NULL)
+
     *dest = NULL;
 
-    size_t dest_index = 0;
+    int dest_index = 0;
 
+    // for each byte to encode
     for (size_t i=0; i<count; i++) {
         // get the single byte
         char byte = *((char *)bytes + i);
@@ -355,21 +270,75 @@ int gnl_huffman_encode(const struct gnl_huffman_tree_t *tree, char **dest, const
 
         // re-allocate memory
         char *temp = realloc(*dest, (dest_index + code_size) * sizeof(char));
-        GNL_NULL_CHECK(temp, ENOMEM, -1)
+        GNL_NULL_CHECK(temp, ENOMEM, NULL)
 
         *dest = temp;
 
+        // put the code of the byte into dest
         for (size_t j=0; j<code_size; j++) {
             (*dest)[dest_index++] = tree->dictionary[(int)byte][j];
         }
     }
 
-    return 0;
+    // build the cipher
+    cipher->node = tree->node;
+    cipher->count = dest_index;
+
+    cipher->code = calloc(cipher->count, sizeof(char));
+    GNL_NULL_CHECK(cipher->code, errno, NULL)
+
+    for (size_t i=0; i<cipher->count; i++) {
+        cipher->code[i] = (*dest)[i];
+    }
+
+    destroy_tree_metadata(tree);
+
+    return cipher;
 }
-//
-//void gnl_huffman_decode(const char *s, node t, char **dest)
-//{
-//
-//}
+
+int gnl_huffman_decode(const char *code, struct gnl_huffman_tree_cipher *cipher, char **dest) {
+    *dest = NULL;
+
+    struct gnl_huffman_tree_node_t *node = cipher->node;
+
+    int dest_index = 0;
+
+    for (size_t i=0; i<cipher->count; i++) {
+        if (code[i] == '0') {
+            node = node->left;
+        } else {
+            node = node->right;
+        }
+
+        if (is_leaf(node)) {
+            // re-allocate memory
+            char *temp = realloc(*dest, (dest_index + 1) * sizeof(char));
+            GNL_NULL_CHECK(temp, ENOMEM, -1)
+
+            *dest = temp;
+
+            (*dest)[dest_index++] = node->byte;
+
+            // reset the node
+            node = cipher->node;
+
+            printf("%c", node->byte);
+        }
+    }
+
+    int res = 0;
+    if (cipher->node != node) {
+        errno = EINVAL;
+        free(*dest);
+
+        res = -1;
+    }
+
+    free(cipher->code);
+    destroy_node(cipher->node);
+    free(cipher);
+
+    return res;
+}
 
 #include <gnl_macro_end.h>
