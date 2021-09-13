@@ -55,7 +55,16 @@ int can_decode_encoded() {
     const char *str = "One Late Night is a short immersive horror-game experience, starring an unnamed graphic designer "
                       "employee, working late one night at the";
 
-    struct gnl_huffman_tree_t *tree = gnl_huffman_tree_init(str, strlen(str) + 1);
+    struct gnl_huffman_tree_t *tree = gnl_huffman_tree_init(str, strlen(str));
+
+    char *dest;
+    int res = gnl_huffman_encode(tree, &dest, str, strlen(str));
+
+    if (res == -1) {
+        return -1;
+    }
+
+    printf("sciaooo: %s\n", dest);
 
     gnl_huffman_tree_destroy(tree);
 
