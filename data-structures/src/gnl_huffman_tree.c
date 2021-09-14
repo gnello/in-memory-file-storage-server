@@ -331,8 +331,8 @@ struct gnl_huffman_tree_t *gnl_huffman_tree_init(const void *bytes, size_t count
  * {@inheritDoc}
  */
 void gnl_huffman_tree_destroy(struct gnl_huffman_tree_t *tree) {
-    destroy_tree_safe(tree);
     destroy_node(tree->root);
+    destroy_tree_safe(tree);
 }
 
 /**

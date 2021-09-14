@@ -51,6 +51,61 @@ int can_calculate_frequencies() {
     return 0;
 }
 
+int can_get_tree() {
+    const char *str = "One Late Night is a short immersive horror-game experience, starring an unnamed graphic designer "
+                      "employee, working late one night at the";
+
+    struct gnl_huffman_tree_t *tree = gnl_huffman_tree_init(str, strlen(str) + 1);
+
+    if (tree == NULL) {
+        return -1;
+    }
+
+    if (tree_depth(tree->root) != 8) {
+        return -1;
+    }
+
+    char expected[255][40] = {0};
+    strcpy(expected['\0'], "0000110");
+    strcpy(expected[' '], "110");
+    strcpy(expected[','], "010100");
+    strcpy(expected['-'], "0000111");
+    strcpy(expected['L'], "0101101");
+    strcpy(expected['N'], "0101010");
+    strcpy(expected['O'], "0100110");
+    strcpy(expected['a'], "0111");
+    strcpy(expected['c'], "010000");
+    strcpy(expected['d'], "010010");
+    strcpy(expected['e'], "100");
+    strcpy(expected['g'], "0011");
+    strcpy(expected['h'], "0010");
+    strcpy(expected['i'], "1011");
+    strcpy(expected['k'], "000010");
+    strcpy(expected['l'], "010001");
+    strcpy(expected['m'], "11100");
+    strcpy(expected['n'], "1010");
+    strcpy(expected['o'], "0001");
+    strcpy(expected['p'], "00000");
+    strcpy(expected['r'], "1111");
+    strcpy(expected['s'], "11101");
+    strcpy(expected['t'], "0110");
+    strcpy(expected['u'], "0101011");
+    strcpy(expected['v'], "0101110");
+    strcpy(expected['w'], "0101111");
+    strcpy(expected['x'], "0101100");
+    strcpy(expected['y'], "0100111");
+
+    for (size_t i=0; i<256; i++) {
+        if (strcmp(expected[i], "") != 0 && strcmp(expected[i], tree->dictionary[i]) != 0) {
+            return -1;
+        }
+    }
+
+    gnl_huffman_tree_destroy(tree);
+
+    return 0;
+}
+
 int can_decode_encoded() {
     const char *str = "One Late Night is a short immersive horror-game experience, starring an unnamed graphic designer "
                       "employee, working late one night at the";
@@ -87,9 +142,10 @@ int main() {
     gnl_printf_yellow("> gnl_huffman_tree test:\n\n");
 
     gnl_assert(can_calculate_frequencies, "can calculate the frequencies of a string.");
+    gnl_assert(can_get_tree, "can build an huffman tree.");
     gnl_assert(can_decode_encoded, "can decode an encoded string.");
 
-    // the gnl_huffman_tree_destroy method is implicitly tested in every assertion
+    // the gnl_huffman_tree_destroy method is implicitly tested
 
     printf("\n");
 }
