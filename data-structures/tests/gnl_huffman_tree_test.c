@@ -110,29 +110,32 @@ int can_decode_encoded() {
     const char *str = "One Late Night is a short immersive horror-game experience, starring an unnamed graphic designer "
                       "employee, working late one night at the";
 
-    char *dest;
-    struct gnl_huffman_tree_cipher *cipher = gnl_huffman_encode(str, strlen(str) + 1, &dest);
+    struct gnl_huffman_tree_artifact *artifact = gnl_huffman_tree_encode(str, strlen(str) + 1);
 
-    if (cipher == NULL) {
+    if (artifact == NULL) {
         return -1;
     }
 
-    if (dest == NULL) {
+    if (artifact->code == NULL) {
         return -1;
     }
 
-    char *decoded_string;
-    int res = gnl_huffman_decode(dest, cipher, &decoded_string);
+    void *decoded_string;
+    size_t count;
+    int res = gnl_huffman_tree_decode(artifact, &decoded_string, &count);
 
-    if (res == -1) {
+    if (res == -1) { perror("aaa");
         return -1;
     }
 
-    if (strcmp(str, decoded_string) != 0) {
+    if (strcmp(str, decoded_string) != 0) { printf("ciao");
         return -1;
     }
 
-    free(dest);
+    if (count != strlen(str) + 1) {printf("ciao b");
+        return -1;
+    }
+
     free(decoded_string);
 
     return 0;

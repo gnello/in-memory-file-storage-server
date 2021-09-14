@@ -25,7 +25,7 @@ struct gnl_huffman_tree_node_t {
 /**
  * {@inheritDoc}
  */
-struct gnl_huffman_tree_cipher {
+struct gnl_huffman_tree_artifact {
 
     // the root node of the tree
     struct gnl_huffman_tree_node_t *root;
@@ -65,6 +65,10 @@ static struct gnl_huffman_tree_node_t *create_node(int freq, char byte) {
  * @param node  The node to destroy.
  */
 static void destroy_node(struct gnl_huffman_tree_node_t *node) {
+    if (node == NULL) {
+        return;
+    }
+
     if (node->left != NULL) {
         destroy_node(node->left);
     }
@@ -85,6 +89,9 @@ static void destroy_node(struct gnl_huffman_tree_node_t *node) {
  *              0 otherwise.
  */
 static int is_leaf(struct gnl_huffman_tree_node_t *node) {
+    // validate parameters
+    GNL_NULL_CHECK(node, EINVAL, -1)
+
     return node->left == NULL && node->right == NULL;
 }
 
@@ -98,6 +105,9 @@ static int is_leaf(struct gnl_huffman_tree_node_t *node) {
  *              on success, -1 otherwise.
  */
 static int *calculate_frequencies(const void *bytes, size_t count) {
+    // validate parameters
+    GNL_NULL_CHECK(bytes, EINVAL, NULL)
+
     // 1 byte = 2^8 bits
     int *freq = calloc(256, sizeof(int));
     GNL_NULL_CHECK(freq, ENOMEM, NULL)
@@ -149,6 +159,10 @@ static struct gnl_min_heap_t *create_min_heap(int *freq) {
  *                  NULL otherwise.
  */
 static struct gnl_huffman_tree_t *create_tree(struct gnl_min_heap_t *min_heap) {
+    // validate parameters
+    GNL_NULL_CHECK(min_heap, EINVAL, NULL)
+
+    // instantiate the tree
     struct gnl_huffman_tree_t *tree = (struct gnl_huffman_tree_t *)malloc(sizeof(struct gnl_huffman_tree_t));
     GNL_NULL_CHECK(tree, ENOMEM, NULL)
 
@@ -219,6 +233,11 @@ static int tree_depth(struct gnl_huffman_tree_node_t *node) {
  * @return              Returns 0 on success, -1 otherwise.
  */
 static int create_dictionary_recursive(struct gnl_huffman_tree_node_t *node, char **dictionary, char *code, int index) {
+    // validate parameters
+    GNL_NULL_CHECK(node, EINVAL, -1)
+    GNL_NULL_CHECK(dictionary, EINVAL, -1)
+    GNL_NULL_CHECK(code, EINVAL, -1)
+
     int res;
 
     // check the left node
@@ -265,6 +284,9 @@ static int create_dictionary_recursive(struct gnl_huffman_tree_node_t *node, cha
  * @return      Returns 0 on success, -1 otherwise.
  */
 static int create_dictionary(struct gnl_huffman_tree_t *tree) {
+    // validate parameters
+    GNL_NULL_CHECK(tree, EINVAL, -1)
+
     // allocate memory
     tree->dictionary = (char **)calloc(256, sizeof(char *));
     GNL_NULL_CHECK(tree->dictionary, ENOMEM, -1)
@@ -290,6 +312,10 @@ static int create_dictionary(struct gnl_huffman_tree_t *tree) {
  * @param tree  The tree to destroy.
  */
 static void destroy_tree_safe(struct gnl_huffman_tree_t *tree) {
+    if (tree == NULL) {
+        return;
+    }
+
     for (size_t i=0; i<256; i++) {
         free(tree->dictionary[i]);
     }
@@ -302,6 +328,8 @@ static void destroy_tree_safe(struct gnl_huffman_tree_t *tree) {
  * {@inheritDoc}
  */
 struct gnl_huffman_tree_t *gnl_huffman_tree_init(const void *bytes, size_t count) {
+    // validate parameters
+    GNL_NULL_CHECK(bytes, EINVAL, NULL)
 
     // calculate the frequencies
     int *freq = calculate_frequencies(bytes, count);
@@ -331,6 +359,10 @@ struct gnl_huffman_tree_t *gnl_huffman_tree_init(const void *bytes, size_t count
  * {@inheritDoc}
  */
 void gnl_huffman_tree_destroy(struct gnl_huffman_tree_t *tree) {
+    if (tree == NULL) {
+        return;
+    }
+
     destroy_node(tree->root);
     destroy_tree_safe(tree);
 }
@@ -338,16 +370,19 @@ void gnl_huffman_tree_destroy(struct gnl_huffman_tree_t *tree) {
 /**
  * {@inheritDoc}
  */
-struct gnl_huffman_tree_cipher *gnl_huffman_encode(const void *bytes, size_t count, char **dest) {
+struct gnl_huffman_tree_artifact *gnl_huffman_tree_encode(const void *bytes, size_t count) {
+    // validate parameters
+    GNL_NULL_CHECK(bytes, EINVAL, NULL)
+
     // allocate memory
-    struct gnl_huffman_tree_cipher *cipher = (struct gnl_huffman_tree_cipher *)malloc(sizeof(struct gnl_huffman_tree_cipher));
-    GNL_NULL_CHECK(cipher, errno, NULL)
+    struct gnl_huffman_tree_artifact *artifact = (struct gnl_huffman_tree_artifact *)malloc(sizeof(struct gnl_huffman_tree_artifact));
+    GNL_NULL_CHECK(artifact, errno, NULL)
 
     struct gnl_huffman_tree_t *tree = gnl_huffman_tree_init(bytes, count);
     GNL_NULL_CHECK(tree, errno, NULL)
 
     // initialize the destination
-    *dest = NULL;
+    artifact->code = NULL;
 
     // the current offset of the destination
     int offset = 0;
@@ -361,56 +396,48 @@ struct gnl_huffman_tree_cipher *gnl_huffman_encode(const void *bytes, size_t cou
         int code_size = strlen(tree->dictionary[(int)byte]);
 
         // re-allocate memory
-        char *temp = realloc(*dest, (offset + code_size) * sizeof(char));
+        char *temp = realloc(artifact->code, (offset + code_size) * sizeof(char));
         GNL_NULL_CHECK(temp, ENOMEM, NULL)
 
-        *dest = temp;
+        artifact->code = temp;
 
-        // put the code of the byte into dest
+        // put the code of the byte into artifact->code
         for (size_t j=0; j<code_size; j++) {
-            (*dest)[offset++] = tree->dictionary[(int)byte][j];
+            artifact->code[offset++] = tree->dictionary[(int)byte][j];
         }
     }
 
-    // build the cipher
-    cipher->root = tree->root;
-    cipher->count = offset;
-
-    // allocate memory
-    cipher->code = calloc(cipher->count, sizeof(char));
-    GNL_NULL_CHECK(cipher->code, errno, NULL)
-
-    // copy the code
-    for (size_t i=0; i<cipher->count; i++) {
-        cipher->code[i] = (*dest)[i];
-    }
+    // build the artifact
+    artifact->root = tree->root;
+    artifact->count = offset;
 
     // destroy the tree but preserve his nodes
-    // for the cipher
+    // for the artifact
     destroy_tree_safe(tree);
 
-    return cipher;
+    return artifact;
 }
 
 /**
  * {@inheritDoc}
  */
-int gnl_huffman_decode(const char *code, struct gnl_huffman_tree_cipher *cipher, char **dest) {
-    // initialize the destination
-    *dest = NULL;
+int gnl_huffman_tree_decode(struct gnl_huffman_tree_artifact *artifact, void **bytes, size_t *count) {
+    // validate parameters
+    GNL_NULL_CHECK(artifact, EINVAL, -1)
 
-    // start from the root of the cipher huffman tree
-    struct gnl_huffman_tree_node_t *node = cipher->root;
+    // initialize the destinations
+    *bytes = NULL;
+    *count = 0;
 
-    // the current offset of the destination
-    int offset = 0;
+    // start from the root of the artifact huffman tree
+    struct gnl_huffman_tree_node_t *node = artifact->root;
 
     // for each byte of the code
-    for (size_t i=0; i<cipher->count; i++) {
+    for (size_t i=0; i<artifact->count; i++) {
 
         // re-assign the current node based on
         // the code
-        if (code[i] == '0') {
+        if (artifact->code[i] == '0') {
             node = node->left;
         } else {
             node = node->right;
@@ -419,37 +446,39 @@ int gnl_huffman_decode(const char *code, struct gnl_huffman_tree_cipher *cipher,
         // if the node is a leaf, then it is time to decode
         if (is_leaf(node)) {
             // re-allocate memory for the destination
-            char *temp = realloc(*dest, (offset + 1) * sizeof(char));
+            char *temp = realloc(*bytes, (*count + 1) * sizeof(char));
             GNL_NULL_CHECK(temp, ENOMEM, -1)
 
             // re-assign the pointer
-            *dest = temp;
+            *bytes = temp;
 
             // actual decode: assign the byte to the
-            // current destination offset
-            (*dest)[offset++] = node->byte;
+            // current destination offset and increase
+            // the number of bytes
+            ((char *)(*bytes))[(*count)++] = node->byte;
 
             // reset the node
-            node = cipher->root;
+            node = artifact->root;
         }
     }
 
     // validate the decode
     int res = 0;
 
-    // if cipher->root != node, then the
-    // given cipher or code is invalid
-    if (cipher->root != node) {
+    // if artifact->root != node, then the
+    // given artifact or code is invalid
+    if (artifact->root != node) {
         errno = EINVAL;
-        free(*dest);
+        free(*bytes);
+        *count = 0;
 
         res = -1;
     }
 
     // free memory
-    free(cipher->code);
-    destroy_node(cipher->root);
-    free(cipher);
+    free(artifact->code);
+    destroy_node(artifact->root);
+    free(artifact);
 
     return res;
 }

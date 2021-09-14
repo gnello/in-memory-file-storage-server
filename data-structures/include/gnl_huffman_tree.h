@@ -15,9 +15,9 @@ struct gnl_huffman_tree_t {
 };
 
 /**
- * The huffman tree cipher to use for decoding.
+ * The huffman tree artifact to use for decoding.
  */
-struct gnl_huffman_tree_cipher;
+struct gnl_huffman_tree_artifact;
 
 /**
  * Build a huffman tree based on the given bytes.
@@ -28,38 +28,36 @@ struct gnl_huffman_tree_cipher;
  * @return      Returns an huffman tree instance on success,
  *              NULL otherwise.
  */
-struct gnl_huffman_tree_t *gnl_huffman_tree_init(const void *bytes, size_t count);
+extern struct gnl_huffman_tree_t *gnl_huffman_tree_init(const void *bytes, size_t count);
 
 /**
  * Destroy the given huffman tree.
  *
  * @param tree  The huffman tree to destroy.
  */
-void gnl_huffman_tree_destroy(struct gnl_huffman_tree_t *tree);
+extern void gnl_huffman_tree_destroy(struct gnl_huffman_tree_t *tree);
 
 /**
- * Encode the given bytes into dest using the Huffman data
- * compression algorithm.
+ * Encode the given bytes using the Huffman data compression algorithm.
  *
  * @param bytes The bytes to encode.
  * @param count The number of bytes to encode.
- * @param dest  The destination where to put the encoded bytes.
  *
- * @return      Return a gnl_huffman_tree_cipher struct to use for
+ * @return      Return a gnl_huffman_tree_artifact struct to use for
  *              decoding on success, NULL otherwise.
  */
-struct gnl_huffman_tree_cipher *gnl_huffman_encode(const void *bytes, size_t count, char **dest);
+extern struct gnl_huffman_tree_artifact *gnl_huffman_tree_encode(const void *bytes, size_t count);
 
 /**
- * Decode the given code into dest using the given cipher.
+ * Decode the given code into dest using the given artifact.
  *
- * @param code      The code to decode.
- * @param cipher    The cipher to use for decoding. It is returned from the
+ * @param artifact  The artifact to use for decoding. It is returned from the
  *                  encoding call.
- * @param dest      The destination where to put the decoded bytes.
+ * @param bytes     The destination where to put the decoded bytes.
+ * @param count     The destination where to put the number of bytes decoded.
  *
  * @return          Returns 0 on success, -1 otherwise.
  */
-int gnl_huffman_decode(const char *code, struct gnl_huffman_tree_cipher *cipher, char **dest);
+extern int gnl_huffman_tree_decode(struct gnl_huffman_tree_artifact *artifact, void **bytes, size_t *count);
 
 #endif //GNL_HUFFMAN_TREE_H
