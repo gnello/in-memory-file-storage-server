@@ -19,7 +19,7 @@ struct gnl_huffman_tree_node_t {
     int freq;
 
     // the byte
-    char byte;
+    unsigned char byte;
 };
 
 /**
@@ -34,7 +34,7 @@ struct gnl_huffman_tree_artifact {
     size_t count;
 
     // the encoded series
-    char *code;
+    unsigned char *code;
 };
 
 /**
@@ -45,7 +45,7 @@ struct gnl_huffman_tree_artifact {
  *
  * @return      The new node created on success, NULL otherwise.
  */
-static struct gnl_huffman_tree_node_t *create_node(int freq, char byte) {
+static struct gnl_huffman_tree_node_t *create_node(int freq, unsigned char byte) {
     // allocate memory
     struct gnl_huffman_tree_node_t *node = (struct gnl_huffman_tree_node_t *)malloc(sizeof(struct gnl_huffman_tree_node_t));
     GNL_NULL_CHECK(node, ENOMEM, NULL)
@@ -114,7 +114,7 @@ static int *calculate_frequencies(const void *bytes, size_t count) {
 
     // calculate the frequencies
     for (size_t i=0; i<count; i++) {
-        freq[(int)*((char *)bytes + i)]++;
+        freq[(int)*((unsigned char *)bytes + i)]++;
     }
 
     return freq;
@@ -232,7 +232,7 @@ static int tree_depth(struct gnl_huffman_tree_node_t *node) {
  *
  * @return              Returns 0 on success, -1 otherwise.
  */
-static int create_dictionary_recursive(struct gnl_huffman_tree_node_t *node, char **dictionary, char *code, int index) {
+static int create_dictionary_recursive(struct gnl_huffman_tree_node_t *node, char **dictionary, unsigned char *code, int index) {
     // validate parameters
     GNL_NULL_CHECK(node, EINVAL, -1)
     GNL_NULL_CHECK(dictionary, EINVAL, -1)
@@ -295,7 +295,7 @@ static int create_dictionary(struct gnl_huffman_tree_t *tree) {
     int depth = tree_depth(tree->root);
 
     // allocate memory for the code
-    char *code = malloc(depth * sizeof(char));
+    unsigned char *code = malloc(depth * sizeof(unsigned char));
     GNL_NULL_CHECK(code, ENOMEM, -1)
 
     create_dictionary_recursive(tree->root, tree->dictionary, code, 0);
@@ -370,6 +370,19 @@ void gnl_huffman_tree_destroy(struct gnl_huffman_tree_t *tree) {
 /**
  * {@inheritDoc}
  */
+void gnl_huffman_tree_destroy_artifact(struct gnl_huffman_tree_artifact *artifact) {
+    if (artifact == NULL) {
+        return;
+    }
+
+    free(artifact->code);
+    destroy_node(artifact->root);
+    free(artifact);
+}
+
+/**
+ * {@inheritDoc}
+ */
 struct gnl_huffman_tree_artifact *gnl_huffman_tree_encode(const void *bytes, size_t count) {
     // validate parameters
     GNL_NULL_CHECK(bytes, EINVAL, NULL)
@@ -390,13 +403,13 @@ struct gnl_huffman_tree_artifact *gnl_huffman_tree_encode(const void *bytes, siz
     // for each byte to encode
     for (size_t i=0; i<count; i++) {
         // get the single byte
-        char byte = *((char *)bytes + i);
+        unsigned char byte = *((unsigned char *)bytes + i);
 
         // get the size of the byte code
         int code_size = strlen(tree->dictionary[(int)byte]);
 
         // re-allocate memory
-        char *temp = realloc(artifact->code, (offset + code_size) * sizeof(char));
+        unsigned char *temp = realloc(artifact->code, (offset + code_size) * sizeof(unsigned char));
         GNL_NULL_CHECK(temp, ENOMEM, NULL)
 
         artifact->code = temp;
@@ -446,7 +459,7 @@ int gnl_huffman_tree_decode(struct gnl_huffman_tree_artifact *artifact, void **b
         // if the node is a leaf, then it is time to decode
         if (is_leaf(node)) {
             // re-allocate memory for the destination
-            char *temp = realloc(*bytes, (*count + 1) * sizeof(char));
+            unsigned char *temp = realloc(*bytes, (*count + 1) * sizeof(unsigned char));
             GNL_NULL_CHECK(temp, ENOMEM, -1)
 
             // re-assign the pointer
@@ -455,7 +468,7 @@ int gnl_huffman_tree_decode(struct gnl_huffman_tree_artifact *artifact, void **b
             // actual decode: assign the byte to the
             // current destination offset and increase
             // the number of bytes
-            ((char *)(*bytes))[(*count)++] = node->byte;
+            ((unsigned char *)(*bytes))[(*count)++] = node->byte;
 
             // reset the node
             node = artifact->root;
@@ -476,11 +489,19 @@ int gnl_huffman_tree_decode(struct gnl_huffman_tree_artifact *artifact, void **b
     }
 
     // free memory
-    free(artifact->code);
-    destroy_node(artifact->root);
-    free(artifact);
+    gnl_huffman_tree_destroy_artifact(artifact);
 
     return res;
+}
+
+/**
+ * {@inheritDoc}
+ */
+int gnl_huffman_tree_size(struct gnl_huffman_tree_artifact *artifact) {
+    // validate parameters
+    GNL_NULL_CHECK(artifact, EINVAL, -1)
+
+    return artifact->count;
 }
 
 #include <gnl_macro_end.h>

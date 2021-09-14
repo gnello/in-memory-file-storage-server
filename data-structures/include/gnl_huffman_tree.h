@@ -38,6 +38,13 @@ extern struct gnl_huffman_tree_t *gnl_huffman_tree_init(const void *bytes, size_
 extern void gnl_huffman_tree_destroy(struct gnl_huffman_tree_t *tree);
 
 /**
+ * Destroy the given artifact.
+ *
+ * @param artifact  The artifact to destroy.
+ */
+extern void gnl_huffman_tree_destroy_artifact(struct gnl_huffman_tree_artifact *artifact);
+
+/**
  * Encode the given bytes using the Huffman data compression algorithm.
  *
  * @param bytes The bytes to encode.
@@ -59,5 +66,15 @@ extern struct gnl_huffman_tree_artifact *gnl_huffman_tree_encode(const void *byt
  * @return          Returns 0 on success, -1 otherwise.
  */
 extern int gnl_huffman_tree_decode(struct gnl_huffman_tree_artifact *artifact, void **bytes, size_t *count);
+
+/**
+ * Get the size of the given artifact.
+ *
+ * @param artifact  The artifact of which get the size.
+ *
+ * @return          The size of the given artifact on success,
+ *                  -1 otherwise.
+ */
+extern int gnl_huffman_tree_size(struct gnl_huffman_tree_artifact *artifact);
 
 #endif //GNL_HUFFMAN_TREE_H

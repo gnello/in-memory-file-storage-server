@@ -2,6 +2,7 @@
 #include <errno.h>
 #include <time.h>
 #include <string.h>
+#include <gnl_huffman_tree.h>
 #include "../include/gnl_simfs_inode.h"
 #include <gnl_macro_beg.h>
 
@@ -42,11 +43,65 @@ static int has_different_pid(const void *el, const void *pid) {
 }
 
 /**
+ * Compress the given inode. This invocation will rewrite every
+ * bytes within the given inode, and will change the size of
+ * the inode.
+ *
+ * @param inode The inode to compress.
+ *
+ * @return      Returns 0 on success, -1 otherwise.
+ */
+static int compress(struct gnl_simfs_inode *inode) {
+    GNL_NULL_CHECK(inode, EINVAL, -1)
+
+    // compress
+    struct gnl_huffman_tree_artifact *artifact = gnl_huffman_tree_encode(inode->direct_ptr, inode->size);
+    GNL_NULL_CHECK(artifact, errno, -1)
+
+    // rewrite the inode
+    free(inode->direct_ptr);
+
+    inode->size = gnl_huffman_tree_size(artifact);
+    GNL_MINUS1_CHECK(inode->size, errno, -1)
+
+    inode->direct_ptr = artifact;
+
+    return 0;
+}
+
+/**
+ * Decompress the given inode.
+ *
+ * @param inode The inode to decompress.
+ *
+ * @return      Returns 0 on success, -1 otherwise.
+ */
+static int decompress(struct gnl_simfs_inode *inode) {
+    GNL_NULL_CHECK(inode, EINVAL, -1)
+
+    // get the artifact
+    struct gnl_huffman_tree_artifact *artifact = inode->direct_ptr;
+
+    void *bytes;
+    size_t count;
+
+    // decompress
+    int res = gnl_huffman_tree_decode(artifact, &bytes, &count);
+    GNL_MINUS1_CHECK(res, errno, -1)
+
+    // rewrite the inode
+    inode->size = count;
+    inode->direct_ptr = bytes;
+
+    return 0;
+}
+
+/**
  * Destroy the given inode. This method it supposed to be called with with_pointed_file=1
  * when the intention is to destroy the inode, with with_pointed_file=0 if the intention
- * is to destroy an its copy. This difference it is necessary because the copy of the inode
+ * is to destroy its copy. This difference it is necessary because the copy of the inode
  * contains a direct pointer to the original file within the inode from which the copy was
- * made, so prevents accidental deletions.
+ * made, so it prevents accidental deletions.
  *
  * @param inode             The inode instance to destroy.
  * @param with_pointed_file If > 0, an invocation to this method will delete
@@ -63,7 +118,7 @@ static void destroy_inode(struct gnl_simfs_inode *inode, int with_pointed_file) 
 
     // destroy the file pointer
     if (with_pointed_file > 0) {
-        free(inode->direct_ptr);
+        gnl_huffman_tree_destroy_artifact(inode->direct_ptr);
         inode->direct_ptr = NULL;
     }
 
@@ -380,6 +435,10 @@ int gnl_simfs_inode_read(struct gnl_simfs_inode *inode, void **buf, size_t *coun
     //validate the parameters
     GNL_NULL_CHECK(inode, EINVAL, -1)
 
+    // decompress the inode
+    int res = decompress(inode);
+    GNL_MINUS1_CHECK(res, errno, -1);
+
     // alloc the memory onto the buffer for the reading
     *buf = calloc(inode->size, 1);
     GNL_NULL_CHECK(*buf, ENOMEM, -1)
@@ -395,6 +454,10 @@ int gnl_simfs_inode_read(struct gnl_simfs_inode *inode, void **buf, size_t *coun
 
     // set the last status change timestamp of the inode
     inode->ctime = time(NULL);
+
+    // compress the inode
+    res = compress(inode);
+    GNL_MINUS1_CHECK(res, errno, -1);
 
     return 0;
 }
@@ -444,16 +507,24 @@ struct gnl_simfs_inode *gnl_simfs_inode_copy(const struct gnl_simfs_inode *inode
 int gnl_simfs_inode_fflush(struct gnl_simfs_inode *inode) {
     GNL_NULL_CHECK(inode, EINVAL, -1)
 
+    int res;
+
+    // decompress the inode
+    if (inode->direct_ptr != NULL) {
+        res = decompress(inode);
+        GNL_MINUS1_CHECK(res, errno, -1);
+    }
+
     // calculate the new size
     int new_size = inode->size + inode->buffer_size;
 
-    // realloc the memory onto the direct pointer for the writing
+    // re-alloc the memory onto the direct pointer for the writing
     void *temp = realloc(inode->direct_ptr, new_size);
 
     // do not handle errors but bubble it, if an
     // update fails we are ok with the fact that
     // realloc does not free the original pointer
-    GNL_NULL_CHECK(temp, errno, -1)
+    GNL_NULL_CHECK(temp, ENOMEM, -1)
 
     // update the original pointer if it has changed (or not)
     inode->direct_ptr = temp;
@@ -477,6 +548,10 @@ int gnl_simfs_inode_fflush(struct gnl_simfs_inode *inode) {
 
     // set the last status change timestamp of the inode
     inode->ctime = time(NULL);
+
+    // compress the inode
+    res = compress(inode);
+    GNL_MINUS1_CHECK(res, errno, -1);
 
     return 0;
 }

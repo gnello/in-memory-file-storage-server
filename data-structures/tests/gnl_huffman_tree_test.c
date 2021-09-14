@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <gnl_colorshell.h>
+#include <gnl_file_to_pointer.h>
 #include <gnl_assert.h>
 #include "../src/gnl_huffman_tree.c"
 
@@ -124,15 +125,15 @@ int can_decode_encoded() {
     size_t count;
     int res = gnl_huffman_tree_decode(artifact, &decoded_string, &count);
 
-    if (res == -1) { perror("aaa");
+    if (res == -1) {
         return -1;
     }
 
-    if (strcmp(str, decoded_string) != 0) { printf("ciao");
+    if (strcmp(str, decoded_string) != 0) {
         return -1;
     }
 
-    if (count != strlen(str) + 1) {printf("ciao b");
+    if (count != strlen(str) + 1) {
         return -1;
     }
 

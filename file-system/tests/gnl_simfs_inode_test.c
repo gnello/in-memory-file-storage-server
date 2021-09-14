@@ -3,6 +3,7 @@
 #include <time.h>
 #include <gnl_colorshell.h>
 #include <gnl_file_to_pointer.h>
+#include <gnl_huffman_tree.h>
 #include <gnl_assert.h>
 #include "../src/gnl_simfs_inode.c"
 
@@ -563,7 +564,7 @@ int can_read() {
 
     res = gnl_simfs_inode_read(inode, &buf, &count);
 
-    if (res == -1) {
+    if (res == -1) {;
         return -1;
     }
 
@@ -665,6 +666,11 @@ int can_fflush() {
         return -1;
     }
 
+    struct gnl_huffman_tree_artifact *artifact = gnl_huffman_tree_encode("string", 6);
+    if (artifact == NULL) {
+        return -1;
+    }
+
     res = gnl_simfs_inode_fflush(inode);
     if (res != 0) {
         return -1;
@@ -678,15 +684,27 @@ int can_fflush() {
         return -1;
     }
 
-    if (inode->size != 6) {
+    int artifact_size = gnl_huffman_tree_size(artifact);
+    if (inode->size != artifact_size) {
         return -1;
     }
 
-    char buf[7];
-    memcpy(buf, inode->direct_ptr, 6);
-    buf[6] = '\0';
+    char *bytes;
+    size_t count;
 
-    if (strcmp(buf, "string") != 0) {
+    res = gnl_huffman_tree_decode(artifact, (void *)&bytes, &count);
+    if (res != 0) {
+        return -1;
+    }
+
+    char *tmp = realloc(bytes, count + 1);
+    if (tmp == NULL) {
+        return -1;
+    }
+    bytes = tmp;
+    bytes[count] = '\0';
+
+    if (strcmp(bytes, "string") != 0) {
         return -1;
     }
 
@@ -700,7 +718,12 @@ int can_fflush() {
         return -1;
     }
 
-    if (inode->size != 6) {
+    if (inode->size != artifact_size) {
+        return -1;
+    }
+
+    artifact = gnl_huffman_tree_encode("stringanotherstringthefinalstring", 33);
+    if (artifact == NULL) {
         return -1;
     }
 
@@ -709,18 +732,28 @@ int can_fflush() {
         return -1;
     }
 
-    if (inode->size != 33) {
+    if (inode->size != gnl_huffman_tree_size(artifact)) {
         return -1;
     }
 
-    char buf2[34];
-    memcpy(buf2, inode->direct_ptr, 33);
-    buf2[33] = '\0';
+    free(bytes);
 
-    if (strcmp(buf2, "stringanotherstringthefinalstring") != 0) {
+    res = gnl_huffman_tree_decode(artifact, (void *)&bytes, &count);
+    if (res != 0) {
         return -1;
     }
 
+    tmp = realloc(bytes, count + 1);
+    if (tmp == NULL) {
+        return -1;
+    }
+    bytes = tmp;
+    bytes[count] = '\0';
+    if (strcmp(bytes, "stringanotherstringthefinalstring") != 0) {
+        return -1;
+    }
+
+    free(bytes);
     gnl_simfs_inode_destroy(inode);
 
     return 0;
