@@ -247,7 +247,9 @@ int main() {
     gnl_assert(can_get_tree, "can build an huffman tree.");
     gnl_assert(can_decode_encoded, "can decode an encoded string.");
     gnl_assert(can_decode_file, "can decode an encoded file.");
-    gnl_assert(can_decode_img, "can decode an encoded an image.");
+
+    // the following test is heavy for valgrind
+    //gnl_assert(can_decode_img, "can decode an encoded an image.");
 
     // the gnl_huffman_tree_destroy method is implicitly tested
 
