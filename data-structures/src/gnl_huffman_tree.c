@@ -30,11 +30,14 @@ struct gnl_huffman_tree_artifact {
     // the root node of the tree
     struct gnl_huffman_tree_node_t *root;
 
-    // the number of bytes in the encoded series
-    size_t count;
+    // the number of elements into the code array
+    size_t size;
+
+    // the number of bits set into the code array
+    size_t bit_count;
 
     // the encoded series
-    unsigned char *code;
+    int *code;
 };
 
 /**
@@ -399,30 +402,55 @@ struct gnl_huffman_tree_artifact *gnl_huffman_tree_encode(const void *bytes, siz
 
     // the current offset of the destination
     int offset = 0;
+    int bit_count = 0;
 
     // for each byte to encode
     for (size_t i=0; i<count; i++) {
+
         // get the single byte
         unsigned char byte = *((unsigned char *)bytes + i);
 
         // get the size of the byte code
-        int code_size = strlen(tree->dictionary[(int)byte]);
+        int code_len = strlen(tree->dictionary[(int)byte]);
 
-        // re-allocate memory
-        unsigned char *temp = realloc(artifact->code, (offset + code_size) * sizeof(unsigned char));
-        GNL_NULL_CHECK(temp, ENOMEM, NULL)
+        // for each code element of the current byte
+        for (size_t j=0; j<code_len; j++) {
 
-        artifact->code = temp;
+            // if we used all the 32 bits of an element,
+            // then allocate another element into the
+            // code array
+            if (bit_count % 32 == 0) {
 
-        // put the code of the byte into artifact->code
-        for (size_t j=0; j<code_size; j++) {
-            artifact->code[offset++] = tree->dictionary[(int)byte][j];
+                // increase the offset
+                offset++;
+
+                // re-allocate memory
+                int *temp = realloc(artifact->code, (offset) * sizeof(int));
+                GNL_NULL_CHECK(temp, ENOMEM, NULL)
+
+                artifact->code = temp;
+
+                // clear the bit array
+                artifact->code[offset - 1] = 0;
+            }
+
+            // if the code element is equal to 0, then set the
+            // next bit to 0, otherwise set it to 1
+            if (tree->dictionary[(int)byte][j] == '0') {
+                GNL_CLEAR_BIT(artifact->code, bit_count);
+            } else {
+                GNL_SET_BIT(artifact->code, bit_count);
+            }
+
+            // increase the bit index
+            bit_count++;
         }
     }
 
     // build the artifact
     artifact->root = tree->root;
-    artifact->count = offset;
+    artifact->size = offset;
+    artifact->bit_count = bit_count;
 
     // destroy the tree but preserve his nodes
     // for the artifact
@@ -446,11 +474,11 @@ int gnl_huffman_tree_decode(struct gnl_huffman_tree_artifact *artifact, void **b
     struct gnl_huffman_tree_node_t *node = artifact->root;
 
     // for each byte of the code
-    for (size_t i=0; i<artifact->count; i++) {
+    for (size_t i=0; i<artifact->bit_count; i++) {
 
         // re-assign the current node based on
-        // the code
-        if (artifact->code[i] == '0') {
+        // the current bit of the code
+        if (GNL_TEST_BIT(artifact->code, i) == 0) {
             node = node->left;
         } else {
             node = node->right;
@@ -501,7 +529,7 @@ int gnl_huffman_tree_size(struct gnl_huffman_tree_artifact *artifact) {
     // validate parameters
     GNL_NULL_CHECK(artifact, EINVAL, -1)
 
-    return artifact->count;
+    return artifact->size;
 }
 
 #include <gnl_macro_end.h>

@@ -46,4 +46,9 @@
     }                                               \
 }
 
+// credits to: http://www.mathcs.emory.edu/~cheung/Courses/255/Syllabus/1-C-intro/bit-array.html
+#define GNL_SET_BIT(a,k) ((a)[((k)/32)] |= (1 << ((k)%32)))
+#define GNL_CLEAR_BIT(a,k) ((a)[((k)/32)] &= ~(1 << ((k)%32)))
+#define GNL_TEST_BIT(a,k) ((a)[((k)/32)] & (1 << ((k)%32)))
+
 #endif //GNL_MACRO_BEG_H

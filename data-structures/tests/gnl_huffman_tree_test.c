@@ -121,6 +121,14 @@ int can_decode_encoded() {
         return -1;
     }
 
+    if (artifact->size >= strlen(str)) {
+        return -1;
+    }
+
+    if (artifact->bit_count == 0) {
+        return -1;
+    }
+
     void *decoded_string;
     size_t count;
     int res = gnl_huffman_tree_decode(artifact, &decoded_string, &count);
@@ -142,12 +150,58 @@ int can_decode_encoded() {
     return 0;
 }
 
+int can_decode_file() {
+    long size;
+    char *content = NULL;
+
+    int res = gnl_file_to_pointer("./testfile.txt", &content, &size);
+    if (res == -1) {
+        return -1;
+    }
+
+    struct gnl_huffman_tree_artifact *artifact = gnl_huffman_tree_encode(content, size);
+
+    if (artifact == NULL) {
+        return -1;
+    }
+
+    if (artifact->code == NULL) {
+        return -1;
+    }
+
+    if (artifact->size > size) {
+        return -1;
+    }
+
+    void *decoded;
+    size_t count;
+    res = gnl_huffman_tree_decode(artifact, &decoded, &count);
+
+    if (res == -1) {
+        return -1;
+    }
+
+    if (memcmp(decoded, content, count) != 0) {
+        return -1;
+    }
+
+    if (count != size) {
+        return -1;
+    }
+
+    free(decoded);
+    free(content);
+
+    return 0;
+}
+
 int main() {
     gnl_printf_yellow("> gnl_huffman_tree test:\n\n");
 
     gnl_assert(can_calculate_frequencies, "can calculate the frequencies of a string.");
     gnl_assert(can_get_tree, "can build an huffman tree.");
     gnl_assert(can_decode_encoded, "can decode an encoded string.");
+    gnl_assert(can_decode_file, "can decode an encoded file.");
 
     // the gnl_huffman_tree_destroy method is implicitly tested
 

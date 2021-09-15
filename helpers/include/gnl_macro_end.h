@@ -4,6 +4,10 @@
 #undef GNL_CALLOC
 #undef GNL_NULL_CHECK
 #undef GNL_MINUS1_CHECK
+#undef GNL_TO_INT
+#undef GNL_SET_BIT
+#undef GNL_CLEAR_BIT
+#undef GNL_TEST_BIT
 #undef GNL_MACRO_BEG_H
 
 #endif //GNL_MACRO_BEG_H
