@@ -47,10 +47,8 @@ extern int gnl_fss_api_open_file(const char *pathname, int flags);
  * Read a file from the server.
  *
  * @param pathname  The location of the file on the server.
- * @param buf       The pointer to the file read from the server, it should be
- *                  initially NULL.
- * @param size      The size in bytes of the file read from the server, it should be
- *                  initially NULL.
+ * @param buf       The pointer to the file read from the server.
+ * @param size      The size in bytes of the file read from the server.
  *
  * @return          Returns 0 on success, -1 otherwise.
  */

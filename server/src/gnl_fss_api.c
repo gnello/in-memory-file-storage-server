@@ -136,11 +136,13 @@ int gnl_fss_api_close_connection(const char *sockname) {
         socket_service_connection_active = 0;
     }
 
-    // reset the openFile(pathname, O_CREATE|O_LOCK) check
-    open_with_create_lock_flags = 0;
-
     // destroy the file descriptor table
     gnl_ternary_search_tree_destroy(&file_descriptor_table, NULL);
+
+    // if success reset the openFile(pathname, O_CREATE|O_LOCK) check
+    if (res == 0) {
+        open_with_create_lock_flags = 0;
+    }
 
     // all the open file will be close by the server as soon
     // as he received the "close connection" socket message
@@ -171,7 +173,7 @@ int gnl_fss_api_open_file(const char *pathname, int flags) {
     switch (response->type) {
 
         case GNL_SOCKET_RESPONSE_ERROR:
-            // an error happen, get the errno
+            // an error happen, set the errno
             errno = response->payload.error->number;
             res = -1;
             break;
@@ -212,7 +214,6 @@ int gnl_fss_api_open_file(const char *pathname, int flags) {
 int gnl_fss_api_read_file(const char *pathname, void **buf, size_t *size) {
     // validate the parameters
     GNL_NULL_CHECK(pathname, EINVAL, -1)
-    GNL_MINUS1_CHECK((-1 * (*buf != NULL)), EINVAL, -1)
 
     // get the fd bound to the given pathname
     void *fd_raw = gnl_ternary_search_tree_get(file_descriptor_table, pathname);
@@ -234,7 +235,7 @@ int gnl_fss_api_read_file(const char *pathname, void **buf, size_t *size) {
     switch (response->type) {
 
         case GNL_SOCKET_RESPONSE_ERROR:
-            // an error happen, get the errno
+            // an error happen, set the errno
             errno = response->payload.error->number;
             res = -1;
             break;
@@ -259,8 +260,10 @@ int gnl_fss_api_read_file(const char *pathname, void **buf, size_t *size) {
     // free the memory
     gnl_socket_response_destroy(response);
 
-    // reset the openFile(pathname, O_CREATE|O_LOCK) check
-    open_with_create_lock_flags = 0;
+    // if success reset the openFile(pathname, O_CREATE|O_LOCK) check
+    if (res == 0) {
+        open_with_create_lock_flags = 0;
+    }
 
     return res;
 }
@@ -287,7 +290,7 @@ int gnl_fss_api_read_N_files(int N, const char *dirname) {
     switch (response->type) {
 
         case GNL_SOCKET_RESPONSE_ERROR:
-            // an error happen, get the errno
+            // an error happen, set the errno
             errno = response->payload.error->number;
             res = -1;
             break;
@@ -307,7 +310,7 @@ int gnl_fss_api_read_N_files(int N, const char *dirname) {
                 // start reading the file
                 char *filename = file->string;
 
-                // open the file on the server (with lock)
+                // open the file on the server
                 res = gnl_fss_api_open_file(filename, 0);
                 if (res == -1) {
                     break;
@@ -366,8 +369,10 @@ int gnl_fss_api_read_N_files(int N, const char *dirname) {
     // free the memory
     gnl_socket_response_destroy(response);
 
-    // reset the openFile(pathname, O_CREATE|O_LOCK) check
-    open_with_create_lock_flags = 0;
+    // if success reset the openFile(pathname, O_CREATE|O_LOCK) check
+    if (res == 0) {
+        open_with_create_lock_flags = 0;
+    }
 
     return res;
 }
@@ -394,7 +399,21 @@ int gnl_fss_api_write_file(const char *pathname, const char *dirname) {
 
     GNL_MINUS1_CHECK(res, errno, -1)
 
-    //TODO: spostare il codice successivo nella append_to_file
+    // send the file through the "append" call
+    res = gnl_fss_api_append_to_file(pathname, file, size, dirname);
+
+    // free memory
+    free(file);
+
+    return res;
+}
+
+/**
+ * {@inheritDoc}
+ */
+int gnl_fss_api_append_to_file(const char *pathname, void *buf, size_t size, const char *dirname) {
+    // validate the parameters
+    GNL_NULL_CHECK(pathname, EINVAL, -1)
 
     // get the fd bound to the given pathname
     void *fd_raw = gnl_ternary_search_tree_get(file_descriptor_table, pathname);
@@ -403,23 +422,20 @@ int gnl_fss_api_write_file(const char *pathname, const char *dirname) {
     int fd = *(int *)fd_raw;
 
     // create the request to send to the server
-    struct gnl_socket_request *request = gnl_socket_request_init(GNL_SOCKET_REQUEST_WRITE, 3, fd, size, file);
+    struct gnl_socket_request *request = gnl_socket_request_init(GNL_SOCKET_REQUEST_WRITE, 3, fd, size, buf);
     GNL_NULL_CHECK(request, errno, -1)
 
     // send the request and get the response from the server
     struct gnl_socket_response *response = send_and_destroy_request(request);
 
-    // free memory
-    free(file);
-
     // check the response
     GNL_NULL_CHECK(response, errno, -1)
 
-    res = 0;
+    int res = 0;
     switch (response->type) {
 
         case GNL_SOCKET_RESPONSE_ERROR:
-            // an error happen, get the errno
+            // an error happen, set the errno
             errno = response->payload.error->number;
             res = -1;
             break;
@@ -453,17 +469,6 @@ int gnl_fss_api_write_file(const char *pathname, const char *dirname) {
 /**
  * {@inheritDoc}
  */
-int gnl_fss_api_append_to_file(const char *pathname, void *buf, size_t size, const char *dirname) {
-
-    // reset the openFile(pathname, O_CREATE|O_LOCK) check
-    open_with_create_lock_flags = 0;
-
-    return 0;
-}
-
-/**
- * {@inheritDoc}
- */
 int gnl_fss_api_lock_file(const char *pathname) {
     // validate the parameters
     GNL_NULL_CHECK(pathname, EINVAL, -1)
@@ -488,7 +493,7 @@ int gnl_fss_api_lock_file(const char *pathname) {
     switch (response->type) {
 
         case GNL_SOCKET_RESPONSE_ERROR:
-            // an error happen, get the errno
+            // an error happen, set the errno
             errno = response->payload.error->number;
             res = -1;
             break;
@@ -506,8 +511,10 @@ int gnl_fss_api_lock_file(const char *pathname) {
     // free the memory
     gnl_socket_response_destroy(response);
 
-    // reset the openFile(pathname, O_CREATE|O_LOCK) check
-    open_with_create_lock_flags = 0;
+    // if success reset the openFile(pathname, O_CREATE|O_LOCK) check
+    if (res == 0) {
+        open_with_create_lock_flags = 0;
+    }
 
     return res;
 }
@@ -539,7 +546,7 @@ int gnl_fss_api_unlock_file(const char *pathname) {
     switch (response->type) {
 
         case GNL_SOCKET_RESPONSE_ERROR:
-            // an error happen, get the errno
+            // an error happen, set the errno
             errno = response->payload.error->number;
             res = -1;
             break;
@@ -557,8 +564,10 @@ int gnl_fss_api_unlock_file(const char *pathname) {
     // free the memory
     gnl_socket_response_destroy(response);
 
-    // reset the openFile(pathname, O_CREATE|O_LOCK) check
-    open_with_create_lock_flags = 0;
+    // if success reset the openFile(pathname, O_CREATE|O_LOCK) check
+    if (res == 0) {
+        open_with_create_lock_flags = 0;
+    }
 
     return res;
 }
@@ -591,7 +600,7 @@ int gnl_fss_api_close_file(const char *pathname) {
     switch (response->type) {
 
         case GNL_SOCKET_RESPONSE_ERROR:
-            // an error happen, get the errno
+            // an error happen, set the errno
             errno = response->payload.error->number;
             res = -1;
             break;
@@ -612,8 +621,10 @@ int gnl_fss_api_close_file(const char *pathname) {
     // free the memory
     gnl_socket_response_destroy(response);
 
-    // reset the openFile(pathname, O_CREATE|O_LOCK) check
-    open_with_create_lock_flags = 0;
+    // if success reset the openFile(pathname, O_CREATE|O_LOCK) check
+    if (res == 0) {
+        open_with_create_lock_flags = 0;
+    }
 
     return res;
 }
@@ -639,7 +650,7 @@ int gnl_fss_api_remove_file(const char *pathname) {
     switch (response->type) {
 
         case GNL_SOCKET_RESPONSE_ERROR:
-            // an error happen, get the errno
+            // an error happen, set the errno
             errno = response->payload.error->number;
             res = -1;
             break;
@@ -657,8 +668,10 @@ int gnl_fss_api_remove_file(const char *pathname) {
     // free the memory
     gnl_socket_response_destroy(response);
 
-    // reset the openFile(pathname, O_CREATE|O_LOCK) check
-    open_with_create_lock_flags = 0;
+    // if success reset the openFile(pathname, O_CREATE|O_LOCK) check
+    if (res == 0) {
+        open_with_create_lock_flags = 0;
+    }
 
     return res;
 }
