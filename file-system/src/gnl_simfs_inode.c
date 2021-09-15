@@ -61,9 +61,11 @@ static int compress(struct gnl_simfs_inode *inode) {
     // rewrite the inode
     free(inode->direct_ptr);
 
+    // assign the new compressed size to the inode
     inode->size = gnl_huffman_tree_size(artifact);
     GNL_MINUS1_CHECK(inode->size, errno, -1)
 
+    // rewrite the direct pointer with the compressed object
     inode->direct_ptr = artifact;
 
     return 0;
@@ -89,7 +91,8 @@ static int decompress(struct gnl_simfs_inode *inode) {
     int res = gnl_huffman_tree_decode(artifact, &bytes, &count);
     GNL_MINUS1_CHECK(res, errno, -1)
 
-    // rewrite the inode
+    // rewrite the inode with the actual
+    // decompressed values
     inode->size = count;
     inode->direct_ptr = bytes;
 
