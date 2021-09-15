@@ -138,9 +138,9 @@ static int gnl_simfs_rts_fflush_inode(struct gnl_simfs_file_system *file_system,
     int size = gnl_simfs_file_table_size(file_system->file_table);
     GNL_MINUS1_CHECK(size, errno, -1);
 
-    gnl_logger_debug(file_system->logger, "File flush on entry \"%s\" succeeded, the heap size has now %d bytes left",
-                     inode->name, file_system->memory_limit - size);
-
+    gnl_logger_debug(file_system->logger, "File flush on entry \"%s\" succeeded", inode->name);
+    gnl_logger_debug(file_system->logger, "Inode compressed into %d bytes", inode->size);
+    gnl_logger_debug(file_system->logger, "The heap size has now %d bytes left", file_system->memory_limit - size);
     return 0;
 }
 

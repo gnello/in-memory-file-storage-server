@@ -577,6 +577,23 @@ int can_read() {
     }
 
     free(buf);
+
+    // read twice
+    res = gnl_simfs_inode_read(inode, &buf, &count);
+
+    if (res == -1) {;
+        return -1;
+    }
+
+    if (size != count) {
+        return -1;
+    }
+
+    if (memcmp(content, buf, size) != 0) {
+        return -1;
+    }
+
+    free(buf);
     free(content);
     gnl_simfs_inode_destroy(inode);
 
