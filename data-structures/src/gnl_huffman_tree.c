@@ -139,7 +139,7 @@ static struct gnl_min_heap_t *create_min_heap(int *freq) {
     int res;
 
     // for each byte
-    for (size_t i=0; i<255; i++) {
+    for (size_t i=0; i<256; i++) {
 
         if (freq[i] > 0) {
             struct gnl_huffman_tree_node_t *node = create_node(freq[i], i);

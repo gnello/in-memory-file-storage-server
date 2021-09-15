@@ -195,6 +195,51 @@ int can_decode_file() {
     return 0;
 }
 
+int can_decode_img() {
+    long size;
+    char *content = NULL;
+
+    int res = gnl_file_to_pointer("./states-of-a-programmer.png", &content, &size);
+    if (res == -1) {
+        return -1;
+    }
+
+    struct gnl_huffman_tree_artifact *artifact = gnl_huffman_tree_encode(content, size);
+
+    if (artifact == NULL) {
+        return -1;
+    }
+
+    if (artifact->code == NULL) {
+        return -1;
+    }
+
+    if (artifact->size > size) {
+        return -1;
+    }
+
+    void *decoded;
+    size_t count;
+    res = gnl_huffman_tree_decode(artifact, &decoded, &count);
+
+    if (res == -1) {
+        return -1;
+    }
+
+    if (memcmp(decoded, content, count) != 0) {
+        return -1;
+    }
+
+    if (count != size) {
+        return -1;
+    }
+
+    free(decoded);
+    free(content);
+
+    return 0;
+}
+
 int main() {
     gnl_printf_yellow("> gnl_huffman_tree test:\n\n");
 
@@ -202,6 +247,7 @@ int main() {
     gnl_assert(can_get_tree, "can build an huffman tree.");
     gnl_assert(can_decode_encoded, "can decode an encoded string.");
     gnl_assert(can_decode_file, "can decode an encoded file.");
+    gnl_assert(can_decode_img, "can decode an encoded an image.");
 
     // the gnl_huffman_tree_destroy method is implicitly tested
 
