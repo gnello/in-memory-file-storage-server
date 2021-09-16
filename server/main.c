@@ -53,13 +53,14 @@ int main(int argc, char * argv[]) {
     }
 
     // run the server
+    int res = 0;
     if (gnl_fss_server_start(config) != 0) {
         perror("Error from the server");
 
-        return -1;
+        res = -1;
     }
 
     gnl_fss_config_destroy(config);
 
-    return 0;
+    return res;
 }

@@ -86,15 +86,13 @@ static int handle_signals() {
 static struct gnl_fss_thread_pool *create_thread_pool(int size, struct gnl_simfs_file_system *file_system,
         const struct gnl_fss_config *config, const struct gnl_logger *logger) {
 
-    int res = gnl_logger_debug(logger, "creating the thread pool with %d workers...", size);
-    GNL_MINUS1_CHECK(res, errno, NULL)
+    gnl_logger_debug(logger, "creating the thread pool with %d workers...", size);
 
     // create the working config
     struct gnl_fss_thread_pool *thread_pool = gnl_fss_thread_pool_init(size, file_system, config);
     GNL_NULL_CHECK(thread_pool, errno, NULL)
 
-    res = gnl_logger_info(logger, "created the thread pool with %d workers", size);
-    GNL_MINUS1_CHECK(res, errno, NULL)
+    gnl_logger_info(logger, "created the thread pool with %d workers", size);
 
     return thread_pool;
 }
@@ -112,8 +110,7 @@ static int create_server(const char *socket_name, const struct gnl_logger *logge
     int res;
     int fd_skt;
 
-    res = gnl_logger_debug(logger, "server is starting...");
-    GNL_MINUS1_CHECK(res, errno, -1)
+    gnl_logger_debug(logger, "server is starting...");
 
     // create socket address
     struct sockaddr_un sa;
@@ -125,8 +122,7 @@ static int create_server(const char *socket_name, const struct gnl_logger *logge
     GNL_MINUS1_CHECK(fd_skt, errno, -1)
 
     // check first access of the file log
-    res = gnl_logger_debug(logger, "socket created with id %d", fd_skt);
-    GNL_MINUS1_CHECK(res, errno, -1)
+    gnl_logger_debug(logger, "socket created with id %d", fd_skt);
 
     // bind the address
     res = bind(fd_skt, (struct sockaddr *)&sa, sizeof(sa));
@@ -369,14 +365,12 @@ int gnl_fss_server_start(const struct gnl_fss_config *config) {
     gnl_logger_info(logger, "server is starting");
 
     // instantiate the file_system TODO: non controllare il res
-    int res = gnl_logger_debug(logger, "starting the file system...");
-    GNL_MINUS1_CHECK(res, errno, -1)
+    gnl_logger_debug(logger, "starting the file system...");
 
     struct gnl_simfs_file_system *file_system = gnl_simfs_file_system_init(config->capacity, config->limit, config->log_filepath, config->log_level);
     GNL_NULL_CHECK(logger, errno, -1)
 
-    res = gnl_logger_debug(logger, "file system started");
-    GNL_MINUS1_CHECK(res, errno, -1)
+    gnl_logger_debug(logger, "file system started");
 
     // start the thread pool
     struct gnl_fss_thread_pool *thread_pool = create_thread_pool(config->thread_workers, file_system, config, logger);
@@ -386,42 +380,45 @@ int gnl_fss_server_start(const struct gnl_fss_config *config) {
         return -1;
     }
 
+    // return value
+    int res;
+
     // socket connection file descriptor
     int fd_skt;
 
     // create the server
     fd_skt = create_server(socket_name, logger);
-    if (fd_skt == -1) {
+    if (fd_skt >= 0) {
+
+        // run the server
+        res = run_server(fd_skt, thread_pool, logger);
+
+        if (res == -1) {
+            gnl_logger_error(logger, "error running the server: %s", strerror(errno));
+        }
+    } else {
         gnl_logger_error(logger, "error creating the server: %s", strerror(errno));
 
-        // destroy the thread pool
-        gnl_fss_thread_pool_destroy(thread_pool);
-
-        // destroy the logger
-        gnl_logger_destroy(logger);
-
-        return -1;
-    }
-
-    // run the server
-    res = run_server(fd_skt, thread_pool, logger);
-    if (res == -1) {
-        gnl_logger_error(logger, "error running the server: %s", strerror(errno));
-
-        return -1;
+        res = -1;
     }
 
     // if you reach this point means that the server execution
     // is terminated (due to an error or a signal), so free memory
     gnl_fss_thread_pool_destroy(thread_pool);
     gnl_simfs_file_system_destroy(file_system);
-    close(fd_skt);
-    unlink(socket_name);
+
+    // remove the socket file only if we own the socket file,
+    // this prevents accidentally deletions, for example if
+    // another server is using the socket file
+    if (fd_skt >= 0) {
+        close(fd_skt);
+        unlink(socket_name);
+    }
 
     gnl_logger_info(logger, "server has been shut down.");
     gnl_logger_destroy(logger);
 
-    return 0;
+    return res;
 }
 
 #undef GNL_FSS_SERVER_BUFFER_LEN
