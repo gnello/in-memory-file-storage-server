@@ -61,10 +61,6 @@ static int wait_unlock(struct gnl_simfs_file_system *file_system, struct gnl_fss
             fd = request->payload.write->number;
             break;
 
-        case GNL_SOCKET_REQUEST_APPEND:
-            //fd = request->payload.append->number;
-            break;
-
         case GNL_SOCKET_REQUEST_LOCK:
             fd = request->payload.lock->number;
             break;
@@ -221,10 +217,6 @@ static struct gnl_socket_response *handle_request(struct gnl_simfs_file_system *
             if (res == 0) {
                 response = gnl_socket_response_init(GNL_SOCKET_RESPONSE_OK, 0);
             }
-            break;
-
-        case GNL_SOCKET_REQUEST_APPEND:
-            //res = gnl_simfs_file_system_append(file_system, request->payload.append->string, request->payload.append->bytes);
             break;
 
         case GNL_SOCKET_REQUEST_LOCK:

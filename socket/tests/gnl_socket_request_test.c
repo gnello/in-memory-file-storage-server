@@ -657,22 +657,6 @@ int can_to_string_write() {
     GNL_TEST_REQUEST_NNB_TO_STRING(GNL_SOCKET_REQUEST_WRITE)
 }
 
-int can_init_empty_append() {
-    GNL_TEST_EMPTY_REQUEST_SNB(GNL_SOCKET_REQUEST_APPEND, request->payload.append)
-}
-
-int can_init_args_append() {
-    GNL_TEST_REQUEST_SNB_ARGS(GNL_SOCKET_REQUEST_APPEND, request->payload.append)
-}
-
-int can_from_string_append() {
-    GNL_TEST_REQUEST_SNB_FROM_STRING(GNL_SOCKET_REQUEST_APPEND, request->payload.append)
-}
-
-int can_to_string_append() {
-    GNL_TEST_REQUEST_SNB_TO_STRING(GNL_SOCKET_REQUEST_APPEND)
-}
-
 int can_init_empty_lock() {
     GNL_TEST_EMPTY_REQUEST_N(GNL_SOCKET_REQUEST_LOCK, request->payload.lock)
 }
@@ -827,11 +811,6 @@ int main() {
     gnl_assert(can_init_args_write, "can init a GNL_SOCKET_REQUEST_WRITE request type with args.");
     gnl_assert(can_from_string_write, "can create from string a GNL_SOCKET_REQUEST_WRITE request type message.");
     gnl_assert(can_to_string_write, "can format to string a GNL_SOCKET_REQUEST_WRITE request type.");
-
-    gnl_assert(can_init_empty_append, "can init an empty GNL_SOCKET_REQUEST_APPEND request type.");
-    gnl_assert(can_init_args_append, "can init a GNL_SOCKET_REQUEST_APPEND request type with args.");
-    gnl_assert(can_from_string_append, "can create from string a GNL_SOCKET_REQUEST_APPEND request type message.");
-    gnl_assert(can_to_string_append, "can format to string a GNL_SOCKET_REQUEST_APPEND request type.");
 
     gnl_assert(can_init_empty_lock, "can init an empty GNL_SOCKET_REQUEST_LOCK request type.");
     gnl_assert(can_init_args_lock, "can init a GNL_SOCKET_REQUEST_LOCK request type with args.");

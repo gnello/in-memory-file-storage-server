@@ -17,7 +17,6 @@ enum gnl_socket_request_type {
     GNL_SOCKET_REQUEST_READ,
     GNL_SOCKET_REQUEST_READ_N,
     GNL_SOCKET_REQUEST_WRITE,
-    GNL_SOCKET_REQUEST_APPEND,
     GNL_SOCKET_REQUEST_LOCK,
     GNL_SOCKET_REQUEST_UNLOCK,
     GNL_SOCKET_REQUEST_CLOSE,
@@ -34,7 +33,6 @@ struct gnl_socket_request {
         struct gnl_message_n *read;
         struct gnl_message_n *read_N;
         struct gnl_message_nnb *write;
-        struct gnl_message_snb *append;
         struct gnl_message_n *lock;
         struct gnl_message_n *unlock;
         struct gnl_message_n *close;
@@ -53,7 +51,6 @@ struct gnl_socket_request {
  *              - GNL_SOCKET_REQUEST_READ: int fd
  *              - GNL_SOCKET_RESPONSE_READ_N: int number_of_files_to_read
  *              - GNL_SOCKET_RESPONSE_WRITE: int fd, size_t size, char *bytes
- *              - GNL_SOCKET_RESPONSE_APPEND: char *pathname, char *bytes
  *              - GNL_SOCKET_REQUEST_LOCK: int fd
  *              - GNL_SOCKET_REQUEST_UNLOCK: int fd
  *              - GNL_SOCKET_REQUEST_CLOSE: int fd

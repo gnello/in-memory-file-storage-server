@@ -144,11 +144,6 @@ int gnl_socket_request_get_type(struct gnl_socket_request *request, char **dest)
             strcpy(*dest, "WRITE");
             break;
 
-        case GNL_SOCKET_REQUEST_APPEND:
-        GNL_CALLOC(*dest, 7, -1);
-            strcpy(*dest, "APPEND");
-            break;
-
         case GNL_SOCKET_REQUEST_LOCK:
         GNL_CALLOC(*dest, 5, -1);
             strcpy(*dest, "LOCK");
@@ -229,10 +224,6 @@ struct gnl_socket_request *gnl_socket_request_init(enum gnl_socket_request_type 
             GNL_REQUEST_NNB_INIT(num, socket_request->payload.write, a_list)
             break;
 
-        case GNL_SOCKET_REQUEST_APPEND:
-            GNL_REQUEST_SNB_INIT(num, socket_request->payload.append, a_list)
-            break;
-
         case GNL_SOCKET_REQUEST_LOCK:
             GNL_REQUEST_N_INIT(num, socket_request->payload.lock, a_list)
             break;
@@ -284,10 +275,6 @@ void gnl_socket_request_destroy(struct gnl_socket_request *request) {
 
         case GNL_SOCKET_REQUEST_WRITE:
             gnl_message_nnb_destroy(request->payload.write);
-            break;
-
-        case GNL_SOCKET_REQUEST_APPEND:
-            gnl_message_snb_destroy(request->payload.append);
             break;
 
         case GNL_SOCKET_REQUEST_LOCK:
@@ -347,10 +334,6 @@ struct gnl_socket_request *gnl_socket_request_from_string(const char *message, e
             GNL_REQUEST_NNB_READ_MESSAGE(message, request->payload.write, type);
             break;
 
-        case GNL_SOCKET_REQUEST_APPEND:
-            GNL_REQUEST_SNB_READ_MESSAGE(message, request->payload.append, type);
-            break;
-
         case GNL_SOCKET_REQUEST_LOCK:
             GNL_REQUEST_N_READ_MESSAGE(message, request->payload.lock, type);
             break;
@@ -403,10 +386,6 @@ size_t gnl_socket_request_to_string(const struct gnl_socket_request *request, ch
 
         case GNL_SOCKET_REQUEST_WRITE:
             message_len = gnl_message_nnb_to_string(request->payload.write, dest);
-            break;
-
-        case GNL_SOCKET_REQUEST_APPEND:
-            message_len = gnl_message_snb_to_string(request->payload.append, dest);
             break;
 
         case GNL_SOCKET_REQUEST_LOCK:
