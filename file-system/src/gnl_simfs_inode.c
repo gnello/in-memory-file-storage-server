@@ -3,7 +3,6 @@
 #include <time.h>
 #include <string.h>
 #include <gnl_huffman_tree.h>
-#include "../../data-structures/src/gnl_huffman_tree.c"
 #include "../include/gnl_simfs_inode.h"
 #include <gnl_macro_beg.h>
 
