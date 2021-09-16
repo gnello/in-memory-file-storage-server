@@ -48,6 +48,16 @@ static int has_different_pid(const void *el, const void *pid) {
  * bytes within the given inode, and will change the size of
  * the inode.
  *
+ * Make sure to work on the original inode here, because of the compress and decompress
+ * implementation of the inode. The implementation will change the inode->direct_ptr
+ * address, so we want to change always the original inode instead of his copy
+ * to avoid troubles along compressing and decompressing. Without this, if you read
+ * on a copy, then you will decompress and free the original inode->direct_ptr, and
+ * set a new address for inode->direct_ptr. At the time of compressing, you will
+ * work on the new address of inode->direct_ptr of the copy. So, another subsequent
+ * read on a different copy will try to decompress the original inode->direct_ptr
+ * that it was freed by the precedent read, resulting in an undefined behaviour!
+ *
  * @param inode The inode to compress.
  *
  * @return      Returns 0 on success, -1 otherwise.
@@ -75,6 +85,16 @@ static int compress(struct gnl_simfs_inode *inode) {
 /**
  * Decompress the given inode.
  *
+ * Make sure to work on the original inode here, because of the compress and decompress
+ * implementation of the inode. The implementation will change the inode->direct_ptr
+ * address, so we want to change always the original inode instead of his copy
+ * to avoid troubles along compressing and decompressing. Without this, if you read
+ * on a copy, then you will decompress and free the original inode->direct_ptr, and
+ * set a new address for inode->direct_ptr. At the time of compressing, you will
+ * work on the new address of inode->direct_ptr of the copy. So, another subsequent
+ * read on a different copy will try to decompress the original inode->direct_ptr
+ * that it was freed by the precedent read, resulting in an undefined behaviour!
+ *
  * @param inode The inode to decompress.
  *
  * @return      Returns 0 on success, -1 otherwise.
@@ -87,7 +107,6 @@ static int decompress(struct gnl_simfs_inode *inode) {
 
     void *bytes;
     size_t count;
-
     // decompress
     int res = gnl_huffman_tree_decode(artifact, &bytes, &count);
     GNL_MINUS1_CHECK(res, errno, -1)

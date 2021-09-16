@@ -380,7 +380,7 @@ int gnl_simfs_file_system_write(struct gnl_simfs_file_system *file_system, int f
 /**
  * {@inheritDoc}
  */
-int gnl_simfs_file_system_read(struct gnl_simfs_file_system *file_system, int fd, void **buf, size_t *count,unsigned int pid) {
+int gnl_simfs_file_system_read(struct gnl_simfs_file_system *file_system, int fd, void **buf, size_t *count, unsigned int pid) {
     // acquire the lock
     GNL_SIMFS_LOCK_ACQUIRE(-1, pid)
 
@@ -414,7 +414,7 @@ int gnl_simfs_file_system_read(struct gnl_simfs_file_system *file_system, int fd
     //TODO: da qui in poi in caso di errore non lasciare lo stato della struct corrotto
 
     // read the file into the given buf
-    int res = gnl_simfs_inode_read(inode_copy, buf, count);
+    int res = gnl_simfs_rts_read_inode(file_system, inode_copy, buf, count);
     GNL_SIMFS_MINUS1_CHECK(res, errno, -1, pid)
 
     gnl_logger_debug(file_system->logger, "Read: %d bytes read from file descriptor %d's inode", *count, fd);

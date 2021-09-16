@@ -141,6 +141,40 @@ static int gnl_simfs_rts_fflush_inode(struct gnl_simfs_file_system *file_system,
     gnl_logger_debug(file_system->logger, "File flush on entry \"%s\" succeeded", inode->name);
     gnl_logger_debug(file_system->logger, "Inode compressed into %d bytes", inode->size);
     gnl_logger_debug(file_system->logger, "The heap size has now %d bytes left", file_system->memory_limit - size);
+
+    return 0;
+}
+
+/**
+ * Read the file within the original node of the given inode_copy.
+ *
+ * @param file_system   The file system instance where the file table resides.
+ * @param inode_copy    The copy of the inode to read.
+ * @param buf           The buffer pointer where to write the read data.
+ * @param count         The count of bytes read.
+ *
+ * @return              Returns 0 on success, -1 otherwise.
+ */
+static int gnl_simfs_rts_read_inode(struct gnl_simfs_file_system *file_system, struct gnl_simfs_inode *inode_copy,
+        void **buf, size_t *count) {
+    // validate the parameters
+    GNL_NULL_CHECK(file_system, EINVAL, -1)
+    GNL_NULL_CHECK(inode_copy, EINVAL, -1)
+
+    gnl_logger_debug(file_system->logger, "Reading inode of file entry \"%s\" from the file table", inode_copy->name);
+
+    // search the key in the file table
+    struct gnl_simfs_inode *inode = gnl_simfs_file_table_get(file_system->file_table, inode_copy->name);
+
+    // if the key is not present return an error
+    GNL_NULL_CHECK(inode, errno, -1)
+
+    // read the file into the given buf
+    int res = gnl_simfs_inode_read(inode, buf, count);
+    GNL_MINUS1_CHECK(res, errno, -1);
+
+    gnl_logger_debug(file_system->logger, "Read on entry \"%s\" succeeded", inode_copy->name);
+
     return 0;
 }
 
