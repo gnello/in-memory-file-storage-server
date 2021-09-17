@@ -87,6 +87,9 @@ static struct gnl_simfs_inode *gnl_simfs_rts_create_inode(struct gnl_simfs_file_
     GNL_MINUS1_CHECK(count, errno, NULL)
 
     if (count == file_system->files_limit) {
+        gnl_logger_debug(file_system->logger, "Creation of file \"%s\" failed, max number of files reached (%d/%d)",
+                         filename, count, file_system->files_limit);
+
         errno = EDQUOT;
         return NULL;
     }
@@ -96,6 +99,9 @@ static struct gnl_simfs_inode *gnl_simfs_rts_create_inode(struct gnl_simfs_file_
     GNL_MINUS1_CHECK(size, errno, NULL)
 
     if (size == file_system->memory_limit) {
+        gnl_logger_debug(file_system->logger, "Creation of file \"%s\" failed, max heap size reached (%d/%d)",
+                         filename, size, file_system->memory_limit);
+
         errno = EDQUOT;
         return NULL;
     }

@@ -316,6 +316,18 @@ int gnl_simfs_file_system_write(struct gnl_simfs_file_system *file_system, int f
     gnl_logger_debug(file_system->logger, "Write: pid %d is trying to write %d bytes in file descriptor %d", pid, count, fd);
 
     // check if there is enough space to write the file
+    if (count > file_system->memory_limit) {
+
+        gnl_logger_warn(file_system->logger, "Write on file descriptor %d failed, the file is too big."
+                                             "Memory limit: %d bytes, file size: %d bytes.", fd, file_system->memory_limit, count);
+
+        errno = E2BIG;
+        GNL_SIMFS_LOCK_RELEASE(-1, pid)
+
+        return -1;
+    }
+
+    // check if there is enough space left to write the file
     int size = gnl_simfs_file_table_size(file_system->file_table);
     GNL_SIMFS_MINUS1_CHECK(size, errno, -1, pid);
 
@@ -327,7 +339,7 @@ int gnl_simfs_file_system_write(struct gnl_simfs_file_system *file_system, int f
                                              "prevented heap size overflowing by %d bytes", fd, file_system->memory_limit,
                                              size, count - available_bytes);
 
-        errno = E2BIG;
+        errno = EDQUOT;
         GNL_SIMFS_LOCK_RELEASE(-1, pid)
 
         return -1;
