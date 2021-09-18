@@ -72,15 +72,14 @@ static int wait_unlock(struct gnl_simfs_file_system *file_system, struct gnl_fss
 
     // if we have only the fd, get the inode to get the "target"
     if (fd >= 0) {
-        struct gnl_simfs_inode *inode = NULL;
+        struct gnl_simfs_inode inode;
 
         // get the inode of the fd
-        int res = gnl_simfs_file_system_fstat(file_system, fd, inode, fd_c);
+        int res = gnl_simfs_file_system_fstat(file_system, fd, &inode, fd_c);
         GNL_MINUS1_CHECK(res, errno, -1)
-        GNL_NULL_CHECK(inode, errno, -1)
 
         // get the target
-        target = inode->name;
+        target = inode.name;
     }
 
     // put the target and the pid into the waiting list
@@ -163,6 +162,7 @@ static struct gnl_socket_response *handle_request(struct gnl_simfs_file_system *
             if (res >= 0) {
                 response = gnl_socket_response_init(GNL_SOCKET_RESPONSE_OK_FD, 1, res);
             }
+
             break; //TODO: se "muore" un client chiudere tutti i suoi files aperti (occhio ai lock)
 
         case GNL_SOCKET_REQUEST_READ_N:
@@ -410,7 +410,7 @@ static int handle_fd_c_response(struct gnl_fss_worker *worker, int fd_c,
             // recursive call, this is necessary if a broadcast waiting pid
             // is blocking another waiting pid. Without this call, if the first
             // waiting pid unlock the file on where another waiting pid is waiting,
-            // then the another waiting pid will wait forever
+            // then the another waiting pid will wait potentially forever
             handle_fd_c_response(worker, fd_c, popped_waiting_list_el->request, tmp_response);
 
             // free memory
