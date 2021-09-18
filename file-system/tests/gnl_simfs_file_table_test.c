@@ -16,7 +16,7 @@ int can_init_a_ft() {
         return -1;
     }
 
-    if (table->list != NULL) {
+    if (table->presence_list != NULL) {
         return -1;
     }
 
@@ -423,7 +423,7 @@ int can_get_count() {
 
 int can_get_list() {
     struct gnl_simfs_file_table *table = gnl_simfs_file_table_init();
-    if (table == NULL || table->list != NULL) {
+    if (table == NULL || table->presence_list != NULL) {
         return -1;
     }
 
