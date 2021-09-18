@@ -16,7 +16,7 @@ struct gnl_simfs_file_table {
 
     // the list of the filename present into the
     // file table
-    struct gnl_list_t *list;
+    struct gnl_list_t *presence_list;
 
     // the memory in bytes allocated by the file table
     unsigned long size;
@@ -53,7 +53,7 @@ struct gnl_simfs_file_table *gnl_simfs_file_table_init() {
     // instantiate the table to NULL, the table
     // space will be allocated on demand
     t->table = NULL;
-    t->list = NULL;
+    t->presence_list = NULL;
 
     // initialize the size
     t->size = 0;
@@ -72,8 +72,8 @@ void gnl_simfs_file_table_destroy(struct gnl_simfs_file_table *table) {
         return;
     }
 
-    // destroy the list
-    gnl_list_destroy(&(table->list), free);
+    // destroy the presence_list
+    gnl_list_destroy(&(table->presence_list), free);
 
     // destroy the ternary search tree
     gnl_ternary_search_tree_destroy(&(table->table), destroy_file_table_inode);
@@ -110,34 +110,34 @@ static struct gnl_list_t *gnl_simfs_file_table_list(struct gnl_simfs_file_table 
     GNL_NULL_CHECK(file_table, EINVAL, NULL)
 
     // create a deep copy of the file list
-    if (file_table->list == NULL) {
+    if (file_table->presence_list == NULL) {
         return NULL;
     }
 
-    struct gnl_list_t *current = file_table->list;
-    struct gnl_list_t *copy = NULL;
-    char *filename_list;
+    struct gnl_list_t *current = file_table->presence_list;
+    struct gnl_list_t *presence_list_copy = NULL;
+    char *filename_copy;
     int res;
 
     // for each element of the list...
     while (current != NULL) {
-        filename_list = (char *)current->el;
+        filename_copy = (char *)current->el;
 
         // copy the filename
-        char *filename = calloc((strlen(filename_list) + 1), sizeof(char));
+        char *filename = calloc((strlen(filename_copy) + 1), sizeof(char));
         GNL_NULL_CHECK(filename, ENOMEM, NULL)
 
-        strncpy(filename, filename_list, strlen(filename_list));
+        strncpy(filename, filename_copy, strlen(filename_copy));
 
         // insert the deep copy of the filename into the new list
-        res = gnl_list_append(&copy, filename);
+        res = gnl_list_append(&presence_list_copy, filename);
         GNL_MINUS1_CHECK(res, errno, NULL)
 
         // move on to the next element
         current = current->next;
     }
 
-    return copy;
+    return presence_list_copy;
 }
 
 /**
@@ -181,12 +181,12 @@ static struct gnl_simfs_inode *gnl_simfs_file_table_create(struct gnl_simfs_file
     GNL_NULL_CHECK(inode, errno, NULL)
 
     // put the filename into the list
-    char *filename_list = calloc(sizeof(char), (strlen(filename) + 1));
-    GNL_NULL_CHECK(filename_list, ENOMEM, NULL)
+    char *filename_copy = calloc(sizeof(char), (strlen(filename) + 1));
+    GNL_NULL_CHECK(filename_copy, ENOMEM, NULL)
 
-    strncpy(filename_list, filename, strlen(filename));
+    strncpy(filename_copy, filename, strlen(filename));
 
-    int res = gnl_list_append(&(file_table->list), filename_list);
+    int res = gnl_list_append(&(file_table->presence_list), filename_copy);
     GNL_MINUS1_CHECK(res, errno, NULL)
 
     // put the inode into the file table
@@ -269,7 +269,7 @@ static int gnl_simfs_file_table_remove(struct gnl_simfs_file_table *file_table, 
     int count = inode->size;
 
     // remove the filename
-    int res = gnl_list_delete(&(file_table->list), key, NULL, NULL);
+    int res = gnl_list_delete(&(file_table->presence_list), key, NULL, NULL);
     GNL_MINUS1_CHECK(res, errno, -1)
 
     // remove the file

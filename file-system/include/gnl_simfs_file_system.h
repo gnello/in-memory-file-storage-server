@@ -154,6 +154,20 @@ extern int gnl_simfs_file_system_unlock(struct gnl_simfs_file_system *file_syste
 extern struct gnl_list_t *gnl_simfs_file_system_ls(struct gnl_simfs_file_system *file_system, unsigned int pid);
 
 /**
+ * Get a copy of the inode of the given filename. The inode returned is put
+ * into the given buf.
+ *
+ * @param file_system   The file system instance where to get the inode.
+ * @param filename      The filename of the file to get the information.
+ * @param buf           The pointer to use to get the inode.
+ * @param pid           The id of the process who invoked this method.
+ *
+ * @return              Return 0 on success, -1 otherwise.
+ */
+extern int gnl_simfs_file_system_stat(struct gnl_simfs_file_system *file_system, const char *filename,
+        struct gnl_simfs_inode *buf, unsigned int pid);
+
+/**
  * Get a copy of the inode of the given fd. The inode returned is put
  * into the given buf.
  *

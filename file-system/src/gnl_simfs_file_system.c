@@ -280,7 +280,7 @@ int gnl_simfs_file_system_open(struct gnl_simfs_file_system *file_system, const 
         }
     }
 
-    // put the inode copy into the file descriptor table
+    // put the inode into the file descriptor table (the inode will be copied)
     int fd = gnl_simfs_file_descriptor_table_put(file_system->file_descriptor_table, inode, pid);
     GNL_SIMFS_MINUS1_CHECK(fd, errno, -1, pid)
 
@@ -316,7 +316,7 @@ int gnl_simfs_file_system_write(struct gnl_simfs_file_system *file_system, int f
     gnl_logger_debug(file_system->logger, "Write: pid %d is trying to write %d bytes in file descriptor %d", pid, count, fd);
 
     // check if there is enough space to write the file
-    if (count > file_system->memory_limit) {
+    if (count > file_system->memory_limit) { //TODO: se c'è compressione vanno contato i bytes compressi
 
         gnl_logger_warn(file_system->logger, "Write on file descriptor %d failed, the file is too big."
                                              "Memory limit: %d bytes, file size: %d bytes.", fd, file_system->memory_limit, count);
@@ -750,6 +750,55 @@ struct gnl_list_t *gnl_simfs_file_system_ls(struct gnl_simfs_file_system *file_s
 /**
  * {@inheritDoc}
  */
+int gnl_simfs_file_system_stat(struct gnl_simfs_file_system *file_system, const char *filename,
+                               struct gnl_simfs_inode *buf, unsigned int pid) {
+    // acquire the lock
+    GNL_SIMFS_LOCK_ACQUIRE(-1, pid)
+
+    // validate the parameters
+    GNL_SIMFS_NULL_CHECK(file_system, EINVAL, -1, pid)
+    GNL_SIMFS_NULL_CHECK(filename, EINVAL, -1, pid)
+
+    gnl_logger_debug(file_system->logger, "Stat: pid %d is trying to stat the file \"%s\"", pid, filename);
+
+    // get the inode of the filename
+    // search the file in the file table
+    struct gnl_simfs_inode *inode = gnl_simfs_rts_get_inode(file_system, filename);
+
+    // check getting error
+    if (inode == NULL) {
+        gnl_logger_debug(file_system->logger, "Stat failed: error on getting the inode of the file \"%s\": %s",
+                         filename, strerror(errno));
+
+        // let the errno bubble
+
+        GNL_SIMFS_LOCK_RELEASE(-1, pid)
+
+        return -1;
+    }
+
+    // copy the inode
+    buf->btime = inode->btime;
+    buf->mtime = inode->mtime;
+    buf->atime = inode->atime;
+    buf->ctime = inode->ctime;
+    buf->size = inode->size;
+    buf->reference_count = inode->reference_count;
+
+    GNL_CALLOC(buf->name, strlen(inode->name) + 1, -1)
+    strcpy(buf->name, inode->name);
+
+    gnl_logger_debug(file_system->logger, "Stat: stat of file \"%s\" succeeded", filename);
+
+    // release the lock
+    GNL_SIMFS_LOCK_RELEASE(-1, pid)
+
+    return 0;
+}
+
+/**
+ * {@inheritDoc}
+ */
 int gnl_simfs_file_system_fstat(struct gnl_simfs_file_system *file_system, int fd, struct gnl_simfs_inode *buf,
         unsigned int pid) {
     // acquire the lock
@@ -761,7 +810,7 @@ int gnl_simfs_file_system_fstat(struct gnl_simfs_file_system *file_system, int f
     // get the inode of the fd
     // search the file in the file descriptor table
     struct gnl_simfs_inode *inode = gnl_simfs_rts_get_inode_by_fd(file_system, fd, pid);
-    GNL_SIMFS_NULL_CHECK(inode, EINVAL, -1, pid)
+    GNL_SIMFS_NULL_CHECK(inode, errno, -1, pid)
 
     // copy the inode
     buf->btime = inode->btime;

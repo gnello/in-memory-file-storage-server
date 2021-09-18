@@ -171,7 +171,7 @@ static int gnl_simfs_rts_read_inode(struct gnl_simfs_file_system *file_system, s
 
     // search the key in the file table
     struct gnl_simfs_inode *inode = gnl_simfs_file_table_get(file_system->file_table, inode_copy->name);
-
+//TODO: se dopo si fa il fflush non è necessario leggere l'inode originale
     // if the key is not present return an error
     GNL_NULL_CHECK(inode, errno, -1)
 
