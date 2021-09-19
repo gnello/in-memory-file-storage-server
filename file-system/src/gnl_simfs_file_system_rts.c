@@ -92,7 +92,7 @@ static struct gnl_simfs_inode *gnl_simfs_rts_create_inode(struct gnl_simfs_file_
     GNL_MINUS1_CHECK(count, errno, NULL)
 
     if (count == file_system->files_limit) {
-        gnl_logger_debug(file_system->logger, "Creation of file \"%s\" failed, max number of files reached (%d/%d)",
+        gnl_logger_warn(file_system->logger, "Creation of file \"%s\" failed, max number of files reached (%d/%d)",
                          filename, count, file_system->files_limit);
 
         errno = EDQUOT;
@@ -104,7 +104,7 @@ static struct gnl_simfs_inode *gnl_simfs_rts_create_inode(struct gnl_simfs_file_
     GNL_MINUS1_CHECK(size, errno, NULL)
 
     if (size == file_system->memory_limit) {
-        gnl_logger_debug(file_system->logger, "Creation of file \"%s\" failed, max heap size reached (%d/%d)",
+        gnl_logger_warn(file_system->logger, "Creation of file \"%s\" failed, max heap size reached (%d/%d)",
                          filename, size, file_system->memory_limit);
 
         errno = EDQUOT;
@@ -138,7 +138,7 @@ static int gnl_simfs_rts_fflush_inode(struct gnl_simfs_file_system *file_system,
     // update the inode with the new entry
     int res = gnl_simfs_file_table_fflush(file_system->file_table, inode);
     if (res == -1) {
-        gnl_logger_debug(file_system->logger, "File flush on entry \"%s\" failed: %s", inode->name, strerror(errno));
+        gnl_logger_warn(file_system->logger, "File flush on entry \"%s\" failed: %s", inode->name, strerror(errno));
 
         //let the errno bubble
 
@@ -216,7 +216,7 @@ static int gnl_simfs_rts_remove_inode(struct gnl_simfs_file_system *file_system,
     // remove the file
     int res = gnl_simfs_file_table_remove(file_system->file_table, key);
     if (res == -1) {
-        gnl_logger_debug(file_system->logger, "Remove on entry \"%s\" failed: %s", key, strerror(errno));
+        gnl_logger_warn(file_system->logger, "Remove on entry \"%s\" failed: %s", key, strerror(errno));
 
         //let the errno bubble
 

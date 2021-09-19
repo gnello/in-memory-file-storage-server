@@ -178,7 +178,7 @@ int gnl_simfs_file_system_open(struct gnl_simfs_file_system *file_system, const 
 
     // check getting error
     if (inode == NULL && errno != ENOENT) {
-        gnl_logger_debug(file_system->logger, "Open failed: error on getting file \"%s\": %s", filename, strerror(errno));
+        gnl_logger_warn(file_system->logger, "Open failed: error on getting file \"%s\": %s", filename, strerror(errno));
 
         // let the errno bubble
 
@@ -192,7 +192,7 @@ int gnl_simfs_file_system_open(struct gnl_simfs_file_system *file_system, const 
 
         // if the file is present return an error
         if (inode != NULL) {
-            gnl_logger_debug(file_system->logger, "Open failed: GNL_SIMFS_O_CREATE flag provided but file \"%s\" "
+            gnl_logger_warn(file_system->logger, "Open failed: GNL_SIMFS_O_CREATE flag provided but file \"%s\" "
                                                   "already exists, returning with error", filename);
             errno = EEXIST;
 
@@ -208,7 +208,7 @@ int gnl_simfs_file_system_open(struct gnl_simfs_file_system *file_system, const 
 
             // if there is no replacement policy, then fail (with honor)
             if (file_system->replacement_policy == GNL_SIMFS_RP_NONE) {
-                gnl_logger_debug(file_system->logger, "Open failed: there is no space left to open a file and "
+                gnl_logger_warn(file_system->logger, "Open failed: there is no space left to open a file and "
                                                       "no replacement policy was specified.");
 
                 // let the errno bubble
@@ -229,7 +229,7 @@ int gnl_simfs_file_system_open(struct gnl_simfs_file_system *file_system, const 
     else {
         // if the file is not present return an error
         if (inode == NULL) {
-            gnl_logger_debug(file_system->logger, "Open failed: GNL_SIMFS_O_CREATE flag not provided but file \"%s\" "
+            gnl_logger_warn(file_system->logger, "Open failed: GNL_SIMFS_O_CREATE flag not provided but file \"%s\" "
                                                   "does not exist, returning with error", filename);
             errno = ENOENT;
 
@@ -247,7 +247,7 @@ int gnl_simfs_file_system_open(struct gnl_simfs_file_system *file_system, const 
     if (file_locked_by_pid > 0 && file_locked_by_pid != pid) {
         errno = EBUSY;
 
-        gnl_logger_debug(file_system->logger, "Open failed: file \"%s\" is locked by pid %d and it can "
+        gnl_logger_warn(file_system->logger, "Open failed: file \"%s\" is locked by pid %d and it can "
                                               "not be accessed", filename, file_locked_by_pid);
 
         GNL_SIMFS_LOCK_RELEASE(-1, pid)
@@ -292,7 +292,7 @@ int gnl_simfs_file_system_open(struct gnl_simfs_file_system *file_system, const 
         if (has_pending_locks > 0) {
             errno = EBUSY;
 
-            gnl_logger_debug(file_system->logger, "Open failed: GNL_SIMFS_O_LOCK flag not provided but file \"%s\" "
+            gnl_logger_warn(file_system->logger, "Open failed: GNL_SIMFS_O_LOCK flag not provided but file \"%s\" "
                                                   "is waiting to be locked", filename);
 
             GNL_SIMFS_LOCK_RELEASE(-1, pid)
@@ -391,7 +391,7 @@ int gnl_simfs_file_system_write(struct gnl_simfs_file_system *file_system, int f
     if (file_locked_by_pid > 0 && file_locked_by_pid != pid) {
         errno = EBUSY;
 
-        gnl_logger_debug(file_system->logger, "Write failed: file \"%s\" is locked by pid %d and it can not be "
+        gnl_logger_warn(file_system->logger, "Write failed: file \"%s\" is locked by pid %d and it can not be "
                                               "accessed", inode_copy->name, file_locked_by_pid);
 
         GNL_SIMFS_LOCK_RELEASE(-1, pid)
@@ -447,7 +447,7 @@ int gnl_simfs_file_system_read(struct gnl_simfs_file_system *file_system, int fd
     if (file_locked_by_pid > 0 && file_locked_by_pid != pid) {
         errno = EBUSY;
 
-        gnl_logger_debug(file_system->logger, "Read failed: file \"%s\" is locked by pid %d and it can not be "
+        gnl_logger_warn(file_system->logger, "Read failed: file \"%s\" is locked by pid %d and it can not be "
                                               "accessed", inode_copy->name, file_locked_by_pid);
 
         GNL_SIMFS_LOCK_RELEASE(-1, pid)
@@ -586,7 +586,7 @@ int gnl_simfs_file_system_remove(struct gnl_simfs_file_system *file_system, cons
     if (file_locked_by_pid == 0 || file_locked_by_pid != pid) {
         errno = EPERM;
 
-        gnl_logger_debug(file_system->logger, "Remove failed: file \"%s\" is not locked by pid %d", filename, pid);
+        gnl_logger_warn(file_system->logger, "Remove failed: file \"%s\" is not locked by pid %d", filename, pid);
 
         GNL_SIMFS_LOCK_RELEASE(-1, pid)
 
@@ -646,7 +646,7 @@ int gnl_simfs_file_system_lock(struct gnl_simfs_file_system *file_system, int fd
         else {
             errno = EBUSY;
 
-            gnl_logger_debug(file_system->logger, "Lock failed: file \"%s\" is locked by pid %d and it can "
+            gnl_logger_warn(file_system->logger, "Lock failed: file \"%s\" is locked by pid %d and it can "
                                                   "not be accessed", inode_copy->name, file_locked_by_pid);
 
             GNL_SIMFS_LOCK_RELEASE(-1, pid)
@@ -712,7 +712,7 @@ int gnl_simfs_file_system_unlock(struct gnl_simfs_file_system *file_system, int 
     if (file_locked_by_pid == 0) {
         errno = EPERM;
 
-        gnl_logger_debug(file_system->logger, "Unlock failed: file \"%s\" is already unlocked, it can not be "
+        gnl_logger_warn(file_system->logger, "Unlock failed: file \"%s\" is already unlocked, it can not be "
                                               "unlocked further by pid %d", inode_copy->name, pid);
 
         GNL_SIMFS_LOCK_RELEASE(-1, pid)
@@ -724,7 +724,7 @@ int gnl_simfs_file_system_unlock(struct gnl_simfs_file_system *file_system, int 
     if (file_locked_by_pid != pid) {
         errno = EBUSY;
 
-        gnl_logger_debug(file_system->logger, "Unlock failed: file \"%s\" is locked by pid %d and it can "
+        gnl_logger_warn(file_system->logger, "Unlock failed: file \"%s\" is locked by pid %d and it can "
                                               "not be accessed", inode_copy->name, file_locked_by_pid);
 
         GNL_SIMFS_LOCK_RELEASE(-1, pid)
@@ -799,7 +799,7 @@ int gnl_simfs_file_system_stat(struct gnl_simfs_file_system *file_system, const 
 
     // check getting error
     if (inode == NULL) {
-        gnl_logger_debug(file_system->logger, "Stat failed: error on getting the inode of the file \"%s\": %s",
+        gnl_logger_warn(file_system->logger, "Stat failed: error on getting the inode of the file \"%s\": %s",
                          filename, strerror(errno));
 
         // let the errno bubble
