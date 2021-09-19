@@ -202,7 +202,27 @@ int gnl_simfs_file_system_open(struct gnl_simfs_file_system *file_system, const 
         }
 
         // the file is not present, create it
-        inode = gnl_simfs_rts_create_inode(file_system, filename);
+        while ((inode = gnl_simfs_rts_create_inode(file_system, filename)) == NULL && errno == EDQUOT) {
+            // if this point is reached, then there is no space left
+            // into the file system
+
+            // if there is no replacement policy, then fail (with honor)
+            if (file_system->replacement_policy == GNL_SIMFS_RP_NONE) {
+                gnl_logger_debug(file_system->logger, "Open failed: there is no space left to open a file and "
+                                                      "no replacement policy was specified.");
+
+                // let the errno bubble
+
+                GNL_SIMFS_LOCK_RELEASE(-1, pid)
+
+                return -1;
+            }
+
+            // else evict a file
+            //TODO: evict
+        }
+
+        // check if there was an error different from EDQUOT
         GNL_SIMFS_NULL_CHECK(inode, errno, -1, pid)
     }
     // if the file must be present
@@ -329,21 +349,32 @@ int gnl_simfs_file_system_write(struct gnl_simfs_file_system *file_system, int f
     }
 
     // check if there is enough space left to write the file
-    int size = gnl_simfs_file_table_size(file_system->file_table);
-    GNL_SIMFS_MINUS1_CHECK(size, errno, -1, pid);
+    int available_bytes;
+    while (count > (available_bytes = get_available_bytes(file_system))) {
+        // check if there was an error on the get_available_bytes invocation
+        GNL_SIMFS_MINUS1_CHECK(available_bytes, errno, -1, pid);
 
-    int available_bytes = file_system->memory_limit - size;
-    if (count > available_bytes) {
+        // if this point is reached, then there is no space left
+        // into the file system to write count bytes
 
-        gnl_logger_warn(file_system->logger, "Write on file descriptor %d failed, max heap size reached."
-                                             "Memory limit: %d bytes, current heap size: %d bytes, "
-                                             "prevented heap size overflowing by %d bytes", fd, file_system->memory_limit,
-                                             size, count - available_bytes);
+        // if there is no replacement policy, then fail (with honor)
+        if (file_system->replacement_policy == GNL_SIMFS_RP_NONE) {
+            // get the heap size
+            int size = gnl_simfs_file_table_size(file_system->file_table);
 
-        errno = EDQUOT;
-        GNL_SIMFS_LOCK_RELEASE(-1, pid)
+            gnl_logger_warn(file_system->logger, "Write on file descriptor %d failed, max heap size reached."
+                                                 "Memory limit: %d bytes, current heap size: %d bytes, "
+                                                 "prevented heap size overflowing by %d bytes", fd, file_system->memory_limit,
+                                                 size, count - available_bytes);
 
-        return -1;
+            errno = EDQUOT;
+            GNL_SIMFS_LOCK_RELEASE(-1, pid)
+
+            return -1;
+        }
+
+        // else evict a file
+        //TODO: evict
     }
 
     // search the file in the file descriptor table

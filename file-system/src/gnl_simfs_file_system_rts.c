@@ -2,6 +2,7 @@
 #include <string.h>
 #include <pthread.h>
 #include <gnl_logger.h>
+#include "../include/gnl_simfs_file_system.h"
 #include "./gnl_simfs_file_table.c"
 #include "./gnl_simfs_file_descriptor_table.c"
 #include <gnl_macro_beg.h>
@@ -31,6 +32,10 @@ struct gnl_simfs_file_system {
 
     // the logger instance to use for logging
     struct gnl_logger *logger;
+
+    // the replacement policy to adopt in case the file system reaches
+    // the given memory_limit or the given file_limit
+    enum gnl_simfs_replacement_policy replacement_policy;
 };
 
 /**
@@ -301,6 +306,22 @@ static struct gnl_simfs_inode *gnl_simfs_rts_get_inode_by_fd(struct gnl_simfs_fi
     gnl_logger_debug(file_system->logger, "File descriptor %d is pointing the file \"%s\"", fd, inode->name);
 
     return inode;
+}
+
+/**
+ * Get the available bytes left on the heap for the given file system.
+ *
+ * @param file_system   The file system instance where to get the available
+ *                      bytes.
+ *
+ * @return              The number of available bytes in the file system
+ *                      on success, -1 otherwise.
+ */
+static int get_available_bytes(struct gnl_simfs_file_system *file_system) {
+    int size = gnl_simfs_file_table_size(file_system->file_table);
+    GNL_MINUS1_CHECK(size, errno, -1);
+
+    return file_system->memory_limit - size;
 }
 
 #include <gnl_macro_end.h>
