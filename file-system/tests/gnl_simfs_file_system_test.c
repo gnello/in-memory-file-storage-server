@@ -5,7 +5,7 @@
 #include "../src/gnl_simfs_file_system.c"
 
 int can_init_a_filesystem() {
-    struct gnl_simfs_file_system *fs = gnl_simfs_file_system_init(500, 100, NULL, NULL);
+    struct gnl_simfs_file_system *fs = gnl_simfs_file_system_init(500, 100, NULL, NULL, GNL_SIMFS_RP_NONE);
 
     if (fs == NULL) {
         return -1;
@@ -26,18 +26,18 @@ int can_init_a_filesystem() {
 }
 
 int can_open_o_create() {
-    struct gnl_simfs_file_system *fs = gnl_simfs_file_system_init(500, 100, NULL, NULL);
+    struct gnl_simfs_file_system *fs = gnl_simfs_file_system_init(500, 100, NULL, NULL, GNL_SIMFS_RP_NONE);
 
     if (fs == NULL) {
         return -1;
     }
 
-    int fd = gnl_simfs_file_system_open(fs, "/test/file_1", GNL_SIMFS_O_CREATE, 1);
+    int fd = gnl_simfs_file_system_open(fs, "/test/file_1", GNL_SIMFS_O_CREATE, 1, NULL);
     if (fd != 0) {
         return -1;
     }
 
-    fd = gnl_simfs_file_system_open(fs, "/test/file_2", GNL_SIMFS_O_CREATE, 1);
+    fd = gnl_simfs_file_system_open(fs, "/test/file_2", GNL_SIMFS_O_CREATE, 1, NULL);
     if (fd != 1) {
         return -1;
     }
@@ -48,18 +48,18 @@ int can_open_o_create() {
 }
 
 int can_not_open_o_create() {
-    struct gnl_simfs_file_system *fs = gnl_simfs_file_system_init(500, 100, NULL, NULL);
+    struct gnl_simfs_file_system *fs = gnl_simfs_file_system_init(500, 100, NULL, NULL, GNL_SIMFS_RP_NONE);
 
     if (fs == NULL) {
         return -1;
     }
 
-    int fd = gnl_simfs_file_system_open(fs, "/test/file_1", GNL_SIMFS_O_CREATE, 1);
+    int fd = gnl_simfs_file_system_open(fs, "/test/file_1", GNL_SIMFS_O_CREATE, 1, NULL);
     if (fd != 0) {
         return -1;
     }
 
-    fd = gnl_simfs_file_system_open(fs, "/test/file_1", GNL_SIMFS_O_CREATE, 1);
+    fd = gnl_simfs_file_system_open(fs, "/test/file_1", GNL_SIMFS_O_CREATE, 1, NULL);
     if (fd != -1) {
         return -1;
     }
@@ -74,23 +74,23 @@ int can_not_open_o_create() {
 }
 
 int can_not_open_files_limit() {
-    struct gnl_simfs_file_system *fs = gnl_simfs_file_system_init(500, 2, NULL, NULL);
+    struct gnl_simfs_file_system *fs = gnl_simfs_file_system_init(500, 2, NULL, NULL, GNL_SIMFS_RP_NONE);
 
     if (fs == NULL) {
         return -1;
     }
 
-    int fd = gnl_simfs_file_system_open(fs, "/test/file_1", GNL_SIMFS_O_CREATE, 1);
+    int fd = gnl_simfs_file_system_open(fs, "/test/file_1", GNL_SIMFS_O_CREATE, 1, NULL);
     if (fd != 0) {
         return -1;
     }
 
-    fd = gnl_simfs_file_system_open(fs, "/test/file_2", GNL_SIMFS_O_CREATE, 1);
+    fd = gnl_simfs_file_system_open(fs, "/test/file_2", GNL_SIMFS_O_CREATE, 1, NULL);
     if (fd != 1) {
         return -1;
     }
 
-    fd = gnl_simfs_file_system_open(fs, "/test/file_3", GNL_SIMFS_O_CREATE, 1);
+    fd = gnl_simfs_file_system_open(fs, "/test/file_3", GNL_SIMFS_O_CREATE, 1, NULL);
     if (fd != -1) {
         return -1;
     }
@@ -105,25 +105,25 @@ int can_not_open_files_limit() {
 }
 
 int can_not_open_max_files() {
-    struct gnl_simfs_file_system *fs = gnl_simfs_file_system_init(500, 2, NULL, NULL);
+    struct gnl_simfs_file_system *fs = gnl_simfs_file_system_init(500, 2, NULL, NULL, GNL_SIMFS_RP_NONE);
 
     if (fs == NULL) {
         return -1;
     }
 
-    int fd = gnl_simfs_file_system_open(fs, "/test/file_1", GNL_SIMFS_O_CREATE, 1);
+    int fd = gnl_simfs_file_system_open(fs, "/test/file_1", GNL_SIMFS_O_CREATE, 1, NULL);
     if (fd != 0) {
         return -1;
     }
 
     for (size_t i=1; i<10240; i++) {
-        fd = gnl_simfs_file_system_open(fs, "/test/file_1", 0, 1);
+        fd = gnl_simfs_file_system_open(fs, "/test/file_1", 0, 1, NULL);
         if (fd != i) {
             return -1;
         }
     }
 
-    fd = gnl_simfs_file_system_open(fs, "/test/file_1", 0, 1);
+    fd = gnl_simfs_file_system_open(fs, "/test/file_1", 0, 1, NULL);
     if (fd != -1) {
         return -1;
     }
@@ -138,13 +138,13 @@ int can_not_open_max_files() {
 }
 
 int can_not_open() {
-    struct gnl_simfs_file_system *fs = gnl_simfs_file_system_init(500, 100, NULL, NULL);
+    struct gnl_simfs_file_system *fs = gnl_simfs_file_system_init(500, 100, NULL, NULL, GNL_SIMFS_RP_NONE);
 
     if (fs == NULL) {
         return -1;
     }
 
-    int res = gnl_simfs_file_system_open(fs, "/test/file", 0, 1);
+    int res = gnl_simfs_file_system_open(fs, "/test/file", 0, 1, NULL);
     if (res != -1) {
         return -1;
     }
@@ -159,18 +159,18 @@ int can_not_open() {
 }
 
 int can_not_open_lock() {
-    struct gnl_simfs_file_system *fs = gnl_simfs_file_system_init(500, 100, NULL, NULL);
+    struct gnl_simfs_file_system *fs = gnl_simfs_file_system_init(500, 100, NULL, NULL, GNL_SIMFS_RP_NONE);
 
     if (fs == NULL) {
         return -1;
     }
 
-    int res = gnl_simfs_file_system_open(fs, "/test/file", GNL_SIMFS_O_CREATE | GNL_SIMFS_O_LOCK, 1);
+    int res = gnl_simfs_file_system_open(fs, "/test/file", GNL_SIMFS_O_CREATE | GNL_SIMFS_O_LOCK, 1, NULL);
     if (res == -1) {
         return -1;
     }
 
-    res = gnl_simfs_file_system_open(fs, "/test/file", 0, 2);
+    res = gnl_simfs_file_system_open(fs, "/test/file", 0, 2, NULL);
     if (res != -1) {
         return -1;
     }
@@ -185,18 +185,18 @@ int can_not_open_lock() {
 }
 
 int can_open() {
-    struct gnl_simfs_file_system *fs = gnl_simfs_file_system_init(500, 100, NULL, NULL);
+    struct gnl_simfs_file_system *fs = gnl_simfs_file_system_init(500, 100, NULL, NULL, GNL_SIMFS_RP_NONE);
 
     if (fs == NULL) {
         return -1;
     }
 
-    int res = gnl_simfs_file_system_open(fs, "/test/file", GNL_SIMFS_O_CREATE, 1);
+    int res = gnl_simfs_file_system_open(fs, "/test/file", GNL_SIMFS_O_CREATE, 1, NULL);
     if (res == -1) {
         return -1;
     }
 
-    int fd = gnl_simfs_file_system_open(fs, "/test/file", 0, 1);
+    int fd = gnl_simfs_file_system_open(fs, "/test/file", 0, 1, NULL);
     if (fd == -1) {
         return -1;
     }
@@ -207,13 +207,13 @@ int can_open() {
 }
 
 int can_write() {
-    struct gnl_simfs_file_system *fs = gnl_simfs_file_system_init(500, 100, NULL, NULL);
+    struct gnl_simfs_file_system *fs = gnl_simfs_file_system_init(500, 100, NULL, NULL, GNL_SIMFS_RP_NONE);
 
     if (fs == NULL) {
         return -1;
     }
 
-    int fd = gnl_simfs_file_system_open(fs, "/test/file", GNL_SIMFS_O_CREATE, 1);
+    int fd = gnl_simfs_file_system_open(fs, "/test/file", GNL_SIMFS_O_CREATE, 1, NULL);
     if (fd == -1) {
         return -1;
     }
@@ -226,7 +226,7 @@ int can_write() {
         return -1;
     }
 
-    res = gnl_simfs_file_system_write(fs, fd, content, size, 1);
+    res = gnl_simfs_file_system_write(fs, fd, content, size, 1, NULL);
     if (res == -1) {
         return -1;
     }
@@ -255,18 +255,18 @@ int can_write() {
 }
 
 int can_not_write_memory_limit() {
-    struct gnl_simfs_file_system *fs = gnl_simfs_file_system_init(1, 1, NULL, NULL);
+    struct gnl_simfs_file_system *fs = gnl_simfs_file_system_init(1, 1, NULL, NULL, GNL_SIMFS_RP_NONE);
 
     if (fs == NULL) {
         return -1;
     }
 
-    int fd = gnl_simfs_file_system_open(fs, "/test/file_1", GNL_SIMFS_O_CREATE, 1);
+    int fd = gnl_simfs_file_system_open(fs, "/test/file_1", GNL_SIMFS_O_CREATE, 1, NULL);
     if (fd != 0) {perror("cuaacu");
         return -1;
     }
 
-    int res = gnl_simfs_file_system_write(fs, fd, "ciao", 1048577, 1);
+    int res = gnl_simfs_file_system_write(fs, fd, "ciao", 1048577, 1, NULL);
     if (res != -1) {
         return -1;
     }

@@ -1,5 +1,7 @@
 #include <stdlib.h>
 #include <errno.h>
+#include <string.h>
+#include <gnl_simfs_file_system.h>
 #include "../include/gnl_fss_config.h"
 #include <gnl_macro_beg.h>
 
@@ -51,6 +53,54 @@ static int get_int_value_from_env(const char *name) {
     return value;
 }
 
+/**
+ * Get the real replacement policy value from the env.
+ *
+ * @param replacement_policy    The pointer where to write the replacement policy
+ *                              read from the env.
+ *
+ * @return                      Returns 0 on success, -1 otherwise.
+ */
+static int get_replacement_policy_from_env(enum gnl_simfs_replacement_policy *replacement_policy) {
+    char *rp = getenv("REPLACEMENT_POLICY");
+
+    int res = 0;
+
+    if ((strcmp("NONE", rp) == 0)) {
+        *replacement_policy = GNL_SIMFS_RP_NONE;
+    }
+
+    else if ((strcmp("FIFO", rp) == 0)) {
+        *replacement_policy = GNL_SIMFS_RP_FIFO;
+    }
+
+    else if ((strcmp("LIFO", rp) == 0)) {
+        *replacement_policy = GNL_SIMFS_RP_LIFO;
+    }
+
+    else if ((strcmp("LRU", rp) == 0)) {
+        *replacement_policy = GNL_SIMFS_RP_LRU;
+    }
+
+    else if ((strcmp("MRU", rp) == 0)) {
+        *replacement_policy = GNL_SIMFS_RP_MRU;
+    }
+
+    else if ((strcmp("LFU", rp) == 0)) {
+        *replacement_policy = GNL_SIMFS_RP_LFU;
+    }
+
+    else {
+        errno = EINVAL;
+        res = -1;
+    }
+
+    return res;
+}
+
+/**
+ * {@inheritDoc}
+ */
 struct gnl_fss_config *gnl_fss_config_init() {
     struct gnl_fss_config *config = (struct gnl_fss_config *)malloc(sizeof(struct gnl_fss_config));
     GNL_NULL_CHECK(config, ENOMEM, NULL);
@@ -58,7 +108,7 @@ struct gnl_fss_config *gnl_fss_config_init() {
     config->thread_workers = 10;
     config->capacity = 100;
     config->limit = 100;
-    config->replacement_policy = 0; //REPOL_FIFO;
+    config->replacement_policy = GNL_SIMFS_RP_NONE;
     config->socket = "/tmp/gnl_fss.sk";
     config->log_filepath = "/var/log/gnl_fss.log";
     config->log_level = "error";
@@ -66,6 +116,9 @@ struct gnl_fss_config *gnl_fss_config_init() {
     return config;
 }
 
+/**
+ * {@inheritDoc}
+ */
 struct gnl_fss_config *gnl_fss_config_init_from_env() {
     struct gnl_fss_config *config = (struct gnl_fss_config *)malloc(sizeof(struct gnl_fss_config));
     GNL_NULL_CHECK(config, ENOMEM, NULL);
@@ -79,8 +132,11 @@ struct gnl_fss_config *gnl_fss_config_init_from_env() {
     config->limit = get_int_value_from_env("LIMIT");
     GNL_MINUS1_CHECK_FREE_ON_ERROR(config, config->limit, EINVAL, NULL)
 
-    config->replacement_policy = get_int_value_from_env("REPLACEMENT_POLICY");
-    GNL_MINUS1_CHECK_FREE_ON_ERROR(config, config->limit, EINVAL, NULL)
+    enum gnl_simfs_replacement_policy rp;
+    int res = get_replacement_policy_from_env(&rp);
+    GNL_MINUS1_CHECK_FREE_ON_ERROR(config, res, errno, NULL)
+
+    config->replacement_policy = rp;
 
     config->socket = getenv("SOCKET");
     config->log_filepath = getenv("LOG_FILE");
@@ -89,6 +145,9 @@ struct gnl_fss_config *gnl_fss_config_init_from_env() {
     return config;
 }
 
+/**
+ * {@inheritDoc}
+ */
 void gnl_fss_config_destroy(struct gnl_fss_config *config) {
     if (config != NULL) {
         free(config);

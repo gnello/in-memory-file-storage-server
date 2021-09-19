@@ -61,7 +61,7 @@
  * {@inheritDoc}
  */
 struct gnl_simfs_file_system *gnl_simfs_file_system_init(unsigned int memory_limit, unsigned int files_limit,
-        const char *log_path, const char *log_level) {
+        const char *log_path, const char *log_level, enum gnl_simfs_replacement_policy replacement_policy) {
     struct gnl_simfs_file_system *fs = (struct gnl_simfs_file_system *)malloc(sizeof(struct gnl_simfs_file_system));
     GNL_NULL_CHECK(fs, ENOMEM, NULL)
 
@@ -148,7 +148,8 @@ void gnl_simfs_file_system_destroy(struct gnl_simfs_file_system *file_system) {
 /**
  * {@inheritDoc}
  */
-int gnl_simfs_file_system_open(struct gnl_simfs_file_system *file_system, const char *filename, int flags, unsigned int pid) {
+int gnl_simfs_file_system_open(struct gnl_simfs_file_system *file_system, const char *filename, int flags,
+        unsigned int pid,  struct gnl_list_t *evicted_list) {
     // acquire the lock
     GNL_SIMFS_LOCK_ACQUIRE(-1, pid)
 
@@ -305,7 +306,7 @@ int gnl_simfs_file_system_open(struct gnl_simfs_file_system *file_system, const 
  * {@inheritDoc}
  */
 int gnl_simfs_file_system_write(struct gnl_simfs_file_system *file_system, int fd, const void *buf, size_t count,
-        unsigned int pid) {
+        unsigned int pid, struct gnl_list_t *evicted_list) {
 
     // acquire the lock
     GNL_SIMFS_LOCK_ACQUIRE(-1, pid)

@@ -4,6 +4,7 @@
 #include <gnl_colorshell.h>
 #include <gnl_assert.h>
 #include <gnl_txtenv.h>
+#include <gnl_simfs_file_system.h>
 #include "../src/gnl_fss_config.c"
 
 int can_load_default() {
@@ -24,10 +25,9 @@ int can_load_default() {
         return -1;
     }
 
-    //TODO: sistemare
-//    if (config->replacement_policy != REPOL_FIFO) {
-//        return -1;
-//    }
+    if (config->replacement_policy != GNL_SIMFS_RP_NONE) {
+        return -1;
+    }
 
     if (strcmp(config->socket, "/tmp/gnl_fss.sk") != 0) {
         return -1;
@@ -68,10 +68,9 @@ int can_load_env() {
         return -1;
     }
 
-    //TODO: sistemare
-//    if (config->replacement_policy != REPOL_LFU) {
-//        return -1;
-//    }
+    if (config->replacement_policy != GNL_SIMFS_RP_FIFO) {
+        return -1;
+    }
 
     if (strcmp(config->socket, "/tmp/fss_test.sk") != 0) {
         return -1;

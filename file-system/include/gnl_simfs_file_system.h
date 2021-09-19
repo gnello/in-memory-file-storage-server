@@ -26,22 +26,22 @@ const int GNL_SIMFS_O_LOCK = 2;
 enum gnl_simfs_replacement_policy {
 
     // no file will be evicted
-    GNL_SIMFS_NONE,
+    GNL_SIMFS_RP_NONE,
 
     // evict the least recently created file
-    GNL_SIMFS_FIFO,
+    GNL_SIMFS_RP_FIFO,
 
     // evict the most recently created file
-    GNL_SIMFS_LIFO,
+    GNL_SIMFS_RP_LIFO,
 
     // evict the least recently used file
-    GNL_SIMFS_LRU,
+    GNL_SIMFS_RP_LRU,
 
     // evict the most recently used file
-    GNL_SIMFS_MRU,
+    GNL_SIMFS_RP_MRU,
 
     // evict the least often used file
-    GNL_SIMFS_LFU,
+    GNL_SIMFS_RP_LFU,
 };
 
 /**

@@ -3,6 +3,6 @@
 THREAD_WORKERS=test #this is invalid (should be a number value)
 CAPACITY= #this is also invalid (empty values are not allowed)
 LIMIT=45
-REPLACEMENT_POLICY=2
+REPLACEMENT_POLICY=FIFO
 SOCKET=/tmp/fss_test.sk
 LOG_FILE=/var/log/fss_test.log

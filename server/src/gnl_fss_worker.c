@@ -156,7 +156,7 @@ static struct gnl_socket_response *handle_request(struct gnl_simfs_file_system *
     //TODO: creare un metodo handler per ogni type che gestisca separatamente gli errori?
     switch (request->type) {
         case GNL_SOCKET_REQUEST_OPEN:
-            res = gnl_simfs_file_system_open(file_system, request->payload.open->string, request->payload.open->number, fd_c);
+            res = gnl_simfs_file_system_open(file_system, request->payload.open->string, request->payload.open->number, fd_c, NULL);
 
             // if success create an ok_fd response
             if (res >= 0) {
@@ -211,7 +211,8 @@ static struct gnl_socket_response *handle_request(struct gnl_simfs_file_system *
             break;
 
         case GNL_SOCKET_REQUEST_WRITE:
-            res = gnl_simfs_file_system_write(file_system, request->payload.write->number, request->payload.write->bytes, request->payload.write->count, fd_c);
+            res = gnl_simfs_file_system_write(file_system, request->payload.write->number,
+                                              request->payload.write->bytes, request->payload.write->count, fd_c, NULL);
 
             // if success create an ok response
             if (res == 0) {

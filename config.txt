@@ -9,11 +9,8 @@ CAPACITY=50
 # The maximum number of files stored by the File Storage Server.
 LIMIT=50
 
-# The maximum allowed size in bytes for a single file stored by the server. //TODO: rimuovere
-FILE_SIZE_LIMIT=2147483648
-
-# The storage replacement policy. Supported policies: 0-FIFO, 1-LRU, 2-LFU.
-REPLACEMENT_POLICY=0
+# The storage replacement policy. Supported policies: NONE, FIFO, LIFO, LRU, MRU, LFU.
+REPLACEMENT_POLICY=NONE
 
 # The absolute path of the socket file.
 #SOCKET=/var/run/LSOfilestorage.sk

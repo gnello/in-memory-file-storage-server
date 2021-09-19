@@ -367,7 +367,7 @@ int gnl_fss_server_start(const struct gnl_fss_config *config) {
     // instantiate the file_system TODO: non controllare il res
     gnl_logger_debug(logger, "starting the file system...");
 
-    struct gnl_simfs_file_system *file_system = gnl_simfs_file_system_init(config->capacity, config->limit, config->log_filepath, config->log_level);
+    struct gnl_simfs_file_system *file_system = gnl_simfs_file_system_init(config->capacity, config->limit, config->log_filepath, config->log_level, config->replacement_policy);
     GNL_NULL_CHECK(logger, errno, -1)
 
     gnl_logger_debug(logger, "file system started");
