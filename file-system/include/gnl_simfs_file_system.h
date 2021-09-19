@@ -17,6 +17,34 @@ const int GNL_SIMFS_O_CREATE = 1;
 const int GNL_SIMFS_O_LOCK = 2;
 
 /**
+ * The possible type of replacement policy to adopt
+ * in case the file system reaches the max heap or
+ * the max number of files. In this case one or more
+ * file/s will be evicted in accordance with the
+ * policy chosen.
+ */
+enum gnl_simfs_replacement_policy {
+
+    // no file will be evicted
+    GNL_SIMFS_NONE,
+
+    // evict the least recently created file
+    GNL_SIMFS_FIFO,
+
+    // evict the most recently created file
+    GNL_SIMFS_LIFO,
+
+    // evict the least recently used file
+    GNL_SIMFS_LRU,
+
+    // evict the most recently used file
+    GNL_SIMFS_MRU,
+
+    // evict the least often used file
+    GNL_SIMFS_LFU,
+};
+
+/**
  * The file system structure.
  */
 struct gnl_simfs_file_system;
@@ -24,20 +52,23 @@ struct gnl_simfs_file_system;
 /**
  * Create a new simple in-memory file system instance.
  *
- * @param memory_limit  The maximum memory allocable in megabyte by the file system.
- *                      If the underlying volume reaches this limit, it will be considered full.
- *                      If 0, the file system will not be limited.
- * @param files_limit   The maximum number of files that can be handled by the file system.
- *                      If 0, the file system can handle virtually an infinite number of files.
- * @param log_path      The log path where to write the log. If NULL is passed, no logging
- *                      will be performed.
- * @param log_level     The wanted log level. Accepted values: NULL, trace, debug, info, warn, error.
+ * @param memory_limit          The maximum memory allocable in megabyte by the file system.
+ *                              If the underlying volume reaches this limit, it will be considered full.
+ *                              If 0, the file system will not be limited.
+ * @param files_limit           The maximum number of files that can be handled by the file system.
+ *                              If 0, the file system can handle virtually an infinite number of files.
+ * @param log_path              The log path where to write the log. If NULL is passed, no logging
+ *                              will be performed.
+ * @param log_level             The wanted log level. Accepted values: NULL, trace, debug, info, warn, error.
+ * @param replacement_policy    The replacement policy to adopt in case the file system reaches the given
+ *                              memory_limit or the given file_limit. In this case one or more file/s will be
+ *                              evicted in accordance with the policy chosen.
  *
- * @return              Returns the new gnl_simfs_file_system created on success,
- *                      NULL otherwise.
+ * @return                      Returns the new gnl_simfs_file_system created on success,
+ *                              NULL otherwise.
  */
 extern struct gnl_simfs_file_system *gnl_simfs_file_system_init(unsigned int memory_limit, unsigned int file_limit,
-        const char *log_path, const char *log_level);
+        const char *log_path, const char *log_level, enum gnl_simfs_replacement_policy replacement_policy);
 
 /**
  * Destroy the given file system. Every file into it will be lost, all the allocated memory
@@ -58,11 +89,15 @@ extern void gnl_simfs_file_system_destroy(struct gnl_simfs_file_system *file_sys
  *                      if GNL_SIMFS_O_LOCK is given, the file will be opened in
  *                      locked mode.
  * @param pid           The id of the process who invoked this method.
+ * @param evicted_list  The pointer to the list where to put the eventual evicted
+ *                      files in accordance with the replacement policy given at
+ *                      the moment of the file system initialization.
  *
  * @return              Returns a file descriptor referring to the opened file
  *                      on success, -1 otherwise.
  */
-extern int gnl_simfs_file_system_open(struct gnl_simfs_file_system *file_system, const char *filename, int flags, unsigned int pid);
+extern int gnl_simfs_file_system_open(struct gnl_simfs_file_system *file_system, const char *filename, int flags,
+        unsigned int pid, struct gnl_list_t *evicted_list);
 
 /**
  * Write up to count bytes from the buffer starting at buf to the file referred to by
@@ -73,11 +108,14 @@ extern int gnl_simfs_file_system_open(struct gnl_simfs_file_system *file_system,
  * @param buf           The buffer pointer containing the data to write.
  * @param count         The count of bytes to write.
  * @param pid           The id of the process who invoked this method.
+ * @param evicted_list  The pointer to the list where to put the eventual evicted
+ *                      files in accordance with the replacement policy given at
+ *                      the moment of the file system initialization.
  *
  * @return              Return 0 on success, -1 otherwise.
  */
 extern int gnl_simfs_file_system_write(struct gnl_simfs_file_system *file_system, int fd, const void *buf, size_t count,
-        unsigned int pid);
+        unsigned int pid, struct gnl_list_t *evicted_list);
 
 /**
  * Read the whole file pointed by the given file descriptor fd into buf, and
