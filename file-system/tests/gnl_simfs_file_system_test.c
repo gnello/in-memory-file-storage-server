@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <gnl_colorshell.h>
 #include <gnl_assert.h>
+#include <gnl_file_to_pointer.h>
 #include "../src/gnl_simfs_file_system.c"
 
 int can_init_a_filesystem() {
@@ -24,7 +25,7 @@ int can_init_a_filesystem() {
     return 0;
 }
 
-int can_open_file_o_create() {
+int can_open_o_create() {
     struct gnl_simfs_file_system *fs = gnl_simfs_file_system_init(500, 100, NULL, NULL);
 
     if (fs == NULL) {
@@ -46,7 +47,7 @@ int can_open_file_o_create() {
     return 0;
 }
 
-int can_not_open_file_o_create() {
+int can_not_open_o_create() {
     struct gnl_simfs_file_system *fs = gnl_simfs_file_system_init(500, 100, NULL, NULL);
 
     if (fs == NULL) {
@@ -136,7 +137,7 @@ int can_not_open_max_files() {
     return 0;
 }
 
-int can_not_open_file() {
+int can_not_open() {
     struct gnl_simfs_file_system *fs = gnl_simfs_file_system_init(500, 100, NULL, NULL);
 
     if (fs == NULL) {
@@ -157,18 +158,145 @@ int can_not_open_file() {
     return 0;
 }
 
+int can_not_open_lock() {
+    struct gnl_simfs_file_system *fs = gnl_simfs_file_system_init(500, 100, NULL, NULL);
+
+    if (fs == NULL) {
+        return -1;
+    }
+
+    int res = gnl_simfs_file_system_open(fs, "/test/file", GNL_SIMFS_O_CREATE | GNL_SIMFS_O_LOCK, 1);
+    if (res == -1) {
+        return -1;
+    }
+
+    res = gnl_simfs_file_system_open(fs, "/test/file", 0, 2);
+    if (res != -1) {
+        return -1;
+    }
+
+    if (errno != EBUSY) {
+        return -1;
+    }
+
+    gnl_simfs_file_system_destroy(fs);
+
+    return 0;
+}
+
+int can_open() {
+    struct gnl_simfs_file_system *fs = gnl_simfs_file_system_init(500, 100, NULL, NULL);
+
+    if (fs == NULL) {
+        return -1;
+    }
+
+    int res = gnl_simfs_file_system_open(fs, "/test/file", GNL_SIMFS_O_CREATE, 1);
+    if (res == -1) {
+        return -1;
+    }
+
+    int fd = gnl_simfs_file_system_open(fs, "/test/file", 0, 1);
+    if (fd == -1) {
+        return -1;
+    }
+
+    gnl_simfs_file_system_destroy(fs);
+
+    return 0;
+}
+
+int can_write() {
+    struct gnl_simfs_file_system *fs = gnl_simfs_file_system_init(500, 100, NULL, NULL);
+
+    if (fs == NULL) {
+        return -1;
+    }
+
+    int fd = gnl_simfs_file_system_open(fs, "/test/file", GNL_SIMFS_O_CREATE, 1);
+    if (fd == -1) {
+        return -1;
+    }
+
+    long size;
+    char *content = NULL;
+
+    int res = gnl_file_to_pointer("./testfile.txt", &content, &size);
+    if (res == -1) {
+        return -1;
+    }
+
+    res = gnl_simfs_file_system_write(fs, fd, content, size, 1);
+    if (res == -1) {
+        return -1;
+    }
+
+    void *buf;
+    size_t count;
+
+    res = gnl_simfs_file_system_read(fs, fd, &buf, &count, 1);
+    if (res == -1) {
+        return -1;
+    }
+
+    if (size != count) {
+        return -1;
+    }
+
+    if (memcmp(content, buf, size) != 0) {
+        return -1;
+    }
+
+    free(content);
+    free(buf);
+    gnl_simfs_file_system_destroy(fs);
+
+    return 0;
+}
+
+int can_not_write_memory_limit() {
+    struct gnl_simfs_file_system *fs = gnl_simfs_file_system_init(1, 1, NULL, NULL);
+
+    if (fs == NULL) {
+        return -1;
+    }
+
+    int fd = gnl_simfs_file_system_open(fs, "/test/file_1", GNL_SIMFS_O_CREATE, 1);
+    if (fd != 0) {perror("cuaacu");
+        return -1;
+    }
+
+    int res = gnl_simfs_file_system_write(fs, fd, "ciao", 1048577, 1);
+    if (res != -1) {
+        return -1;
+    }
+
+    if (errno != E2BIG) {
+        return -1;
+    }
+
+    gnl_simfs_file_system_destroy(fs);
+
+    return 0;
+}
+
 int main() {
     gnl_printf_yellow("> gnl_simfs_file_system test:\n\n");
 
     gnl_assert(can_init_a_filesystem, "can init a file system.");
 
-    gnl_assert(can_open_file_o_create, "can open a new file with GNL_SIMFS_O_CREATE flag.");
-    gnl_assert(can_not_open_file_o_create, "can not open an existing file with GNL_SIMFS_O_CREATE flag.");
+    gnl_assert(can_open_o_create, "can open a new file with GNL_SIMFS_O_CREATE flag.");
+    gnl_assert(can_not_open_o_create, "can not open an existing file with GNL_SIMFS_O_CREATE flag.");
 
     gnl_assert(can_not_open_files_limit, "can not open a new file if the volume is full.");
     gnl_assert(can_not_open_max_files, "can not open a new file if there are too many open files.");
-    gnl_assert(can_not_open_file, "can not open a file that does not exists.");
-    //gnl_assert(can_open_file, "can open a file that exists.");
+    gnl_assert(can_not_open, "can not open a file that does not exists.");
+    gnl_assert(can_not_open_lock, "can not open a file that is locked.");
+    gnl_assert(can_open, "can open a file that exists.");
+
+    gnl_assert(can_write, "can write (and read) a file."); // this method tests also the read method
+    gnl_assert(can_not_write_memory_limit, "can not write a file if there are no space left on the volume.");
+
 
     // the gnl_simfs_file_system_destroy method is implicitly tested in every assertion
 
