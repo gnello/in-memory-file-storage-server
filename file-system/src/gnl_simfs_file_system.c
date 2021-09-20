@@ -67,6 +67,7 @@ struct gnl_simfs_file_system *gnl_simfs_file_system_init(unsigned int memory_lim
 
     // convert the memory limit from Megabytes to bytes
     int ml = memory_limit * 1048576;
+    //int ml = 5000; //TODO: rimuovere dopo i test del rimpiazzamento
 
     // assign arguments
     fs->memory_limit = ml;
@@ -222,7 +223,7 @@ int gnl_simfs_file_system_open(struct gnl_simfs_file_system *file_system, const 
             }
 
             // else evict a file
-            res = gnl_simfs_rts_evict(file_system, evicted_list, pid);
+            res = gnl_simfs_rts_evict(file_system, evicted_list);
             GNL_SIMFS_MINUS1_CHECK(res, errno, -1, pid);
         }
 
@@ -343,7 +344,7 @@ int gnl_simfs_file_system_write(struct gnl_simfs_file_system *file_system, int f
     // check if there is enough space to write the file
     if (count > file_system->memory_limit) { //TODO: se c'è compressione vanno contato i bytes compressi
 
-        gnl_logger_warn(file_system->logger, "Write on file descriptor %d failed, the file is too big."
+        gnl_logger_warn(file_system->logger, "Write on file descriptor %d failed, the file is too big. "
                                              "Memory limit: %d bytes, file size: %d bytes.", fd, file_system->memory_limit, count);
 
         errno = E2BIG;
@@ -379,8 +380,10 @@ int gnl_simfs_file_system_write(struct gnl_simfs_file_system *file_system, int f
             return -1;
         }
 
+        gnl_logger_debug(file_system->logger, "No space available to write %d bytes, evicting some files", count);
+
         // else evict a file
-        res = gnl_simfs_rts_evict(file_system, evicted_list, pid);
+        res = gnl_simfs_rts_evict(file_system, evicted_list);
         GNL_SIMFS_MINUS1_CHECK(res, errno, -1, pid);
     }
 

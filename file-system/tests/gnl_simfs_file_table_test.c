@@ -192,7 +192,7 @@ int can_fflush() {
         return -1;
     }
 
-    if (gnl_simfs_file_table_size(table) <= 0 || gnl_simfs_file_table_size(table) != size) {
+    if (gnl_simfs_file_table_size(table) <= 0 || gnl_simfs_file_table_size(table) >= size) {
         return -1;
     }
 
@@ -298,7 +298,7 @@ int can_remove() {
         return -1;
     }
 
-    if (gnl_simfs_file_table_size(table) != size) {
+    if (gnl_simfs_file_table_size(table) >= size) {
         return -1;
     }
 
@@ -381,7 +381,7 @@ int can_get_size() {
         return -1;
     }
 
-    if (gnl_simfs_file_table_size(table) != size) {
+    if (gnl_simfs_file_table_size(table) >= size) {
         return -1;
     }
 

@@ -151,12 +151,13 @@ static struct gnl_socket_response *handle_request(struct gnl_simfs_file_system *
     struct gnl_list_t *list = NULL;
     struct gnl_list_t *current = NULL;
     char *tmp;
+    struct gnl_list_t *evicted_files = NULL;
 
     // handle the request with the correct handler
     //TODO: creare un metodo handler per ogni type che gestisca separatamente gli errori?
     switch (request->type) {
         case GNL_SOCKET_REQUEST_OPEN:
-            res = gnl_simfs_file_system_open(file_system, request->payload.open->string, request->payload.open->number, fd_c, NULL);
+            res = gnl_simfs_file_system_open(file_system, request->payload.open->string, request->payload.open->number, fd_c, &evicted_files);
 
             // if success create an ok_fd response
             if (res >= 0) {
@@ -212,7 +213,7 @@ static struct gnl_socket_response *handle_request(struct gnl_simfs_file_system *
 
         case GNL_SOCKET_REQUEST_WRITE:
             res = gnl_simfs_file_system_write(file_system, request->payload.write->number,
-                                              request->payload.write->bytes, request->payload.write->count, fd_c, NULL);
+                                              request->payload.write->bytes, request->payload.write->count, fd_c, &evicted_files);
 
             // if success create an ok response
             if (res == 0) {
@@ -264,6 +265,7 @@ static struct gnl_socket_response *handle_request(struct gnl_simfs_file_system *
 
     // free memory
     free(buf);
+    gnl_list_destroy(&evicted_files, free);
 
     if (res == -1) {
         response = gnl_socket_response_init(GNL_SOCKET_RESPONSE_ERROR, 1, errno);

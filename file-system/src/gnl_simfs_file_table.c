@@ -220,11 +220,11 @@ static int gnl_simfs_file_table_fflush(struct gnl_simfs_file_table *file_table, 
         return -1;
     }
 
-    // calculate the bytes that will be added into the heap by the fflush
-    int bytes_added = new_inode->buffer_size;
-
     // if bytes were added, write it and clear the buffer
-    if (bytes_added > 0) {
+    if (new_inode->buffer_size > 0) {
+
+        // get the current size of the inode
+        int inode_old_size = new_inode->size;
 
         // fflush the inode
         int res = gnl_simfs_inode_fflush(new_inode);
@@ -232,6 +232,9 @@ static int gnl_simfs_file_table_fflush(struct gnl_simfs_file_table *file_table, 
 
         // update the inode with the flushed one
         inode->direct_ptr = new_inode->direct_ptr;
+
+        // calculate the bytes added into the heap by the fflush
+        int bytes_added = new_inode->size - inode_old_size;
 
         // update the size
         inode->size += bytes_added;

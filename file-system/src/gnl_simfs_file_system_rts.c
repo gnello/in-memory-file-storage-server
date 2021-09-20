@@ -392,7 +392,7 @@ static struct gnl_min_heap_t *gnl_simfs_rts_build_victim_heap(struct gnl_simfs_f
 
     gnl_logger_debug(file_system->logger, "Min heap of victims built");
 
-    return 0;
+    return min_heap;
 }
 
 /**
@@ -401,18 +401,20 @@ static struct gnl_min_heap_t *gnl_simfs_rts_build_victim_heap(struct gnl_simfs_f
  * @param file_system   The file system instance to use to evict.
  * @param buf           The buffer pointer where to write the evicted data.
  * @param count         The count of bytes evicted.
- * @param pid           The id of the process who invoked this method.
  *
  * @return              Return 0 on success, -1 otherwise.
  */
-int gnl_simfs_rts_evict(struct gnl_simfs_file_system *file_system, struct gnl_list_t **evicted_list, int pid) {
+int gnl_simfs_rts_evict(struct gnl_simfs_file_system *file_system, struct gnl_list_t **evicted_list) {
     // validate the parameters
     GNL_NULL_CHECK(file_system, EINVAL, -1)
+    GNL_NULL_CHECK(evicted_list, EINVAL, -1)
 
     gnl_logger_debug(file_system->logger, "Start eviction");
+    gnl_logger_debug(file_system->logger, "Listing all the files in the filesystem");
 
     // get a list of files present into the file system
-    struct gnl_list_t *list = gnl_simfs_file_system_ls(file_system, pid);
+    struct gnl_list_t *list = gnl_simfs_file_table_list(file_system->file_table);
+    GNL_NULL_CHECK(list, errno, -1)
 
     // build the replacement_policy
     struct gnl_min_heap_t *min_heap = gnl_simfs_rts_build_victim_heap(file_system, list);
@@ -423,6 +425,9 @@ int gnl_simfs_rts_evict(struct gnl_simfs_file_system *file_system, struct gnl_li
     GNL_NULL_CHECK(victim_inode, errno, -1)
 
     gnl_logger_debug(file_system->logger, "Victim selected: \"%s\", %d bytes", victim_inode->name, victim_inode->size);
+
+    // free memory
+    gnl_min_heap_destroy(min_heap, NULL);
 
     // create an evicted file element
     struct gnl_simfs_evicted_file *evicted_file = malloc(sizeof(struct gnl_simfs_evicted_file));
