@@ -10,7 +10,7 @@ CAPACITY=50
 LIMIT=50
 
 # The storage replacement policy. Supported policies: NONE, FIFO, LIFO, LRU, MRU, LFU.
-REPLACEMENT_POLICY=NONE
+REPLACEMENT_POLICY=FIFO
 
 # The absolute path of the socket file.
 #SOCKET=/var/run/LSOfilestorage.sk

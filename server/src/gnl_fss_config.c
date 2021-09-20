@@ -3,6 +3,7 @@
 #include <string.h>
 #include <gnl_simfs_file_system.h>
 #include "../include/gnl_fss_config.h"
+#include <gnl_logger.h>
 #include <gnl_macro_beg.h>
 
 #define GNL_MINUS1_CHECK_FREE_ON_ERROR(ptr, value, error_code, return_value) {    \
@@ -141,6 +142,18 @@ struct gnl_fss_config *gnl_fss_config_init_from_env() {
     config->socket = getenv("SOCKET");
     config->log_filepath = getenv("LOG_FILE");
     config->log_level = getenv("LOG_LEVEL");
+
+    struct gnl_logger *logger = gnl_logger_init(config->log_filepath, "gnl_fss_config", config->log_level);
+    GNL_NULL_CHECK(logger, errno, NULL)
+
+    gnl_logger_debug(logger, "config loaded");
+    gnl_logger_debug(logger, "thread workers: %d", config->thread_workers);
+    gnl_logger_debug(logger, "capacity: %d megabytes", config->capacity);
+    gnl_logger_debug(logger, "files limit: %d", config->limit);
+    gnl_logger_debug(logger, "replacement policy: %s", getenv("REPLACEMENT_POLICY"));
+    gnl_logger_debug(logger, "socket filename: %s", getenv("SOCKET"));
+    gnl_logger_debug(logger, "log file: %s", getenv("LOG_FILE"));
+    gnl_logger_debug(logger, "log level: %s", getenv("LOG_LEVEL"));
 
     return config;
 }
