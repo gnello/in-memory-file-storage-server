@@ -155,6 +155,8 @@ struct gnl_fss_config *gnl_fss_config_init_from_env() {
     gnl_logger_debug(logger, "log file: %s", getenv("LOG_FILE"));
     gnl_logger_debug(logger, "log level: %s", getenv("LOG_LEVEL"));
 
+    gnl_logger_destroy(logger);
+    
     return config;
 }
 
