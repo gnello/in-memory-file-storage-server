@@ -80,6 +80,9 @@ struct gnl_simfs_file_system *gnl_simfs_file_system_init(unsigned int memory_lim
     fs->file_descriptor_table = gnl_simfs_file_descriptor_table_init(GNL_SIMFS_MAX_OPEN_FILES);
     GNL_NULL_CHECK(fs->file_descriptor_table, errno, NULL)
 
+    // initialize the replacement policy
+    fs->replacement_policy = replacement_policy;
+
     // initialize the logger
     if (log_path == NULL) {
         // if no log_path is given do not create a logger
@@ -149,7 +152,7 @@ void gnl_simfs_file_system_destroy(struct gnl_simfs_file_system *file_system) {
  * {@inheritDoc}
  */
 int gnl_simfs_file_system_open(struct gnl_simfs_file_system *file_system, const char *filename, int flags,
-        unsigned int pid,  struct gnl_list_t *evicted_list) {
+        unsigned int pid, struct gnl_list_t **evicted_list) {
     // acquire the lock
     GNL_SIMFS_LOCK_ACQUIRE(-1, pid)
 
@@ -219,7 +222,8 @@ int gnl_simfs_file_system_open(struct gnl_simfs_file_system *file_system, const 
             }
 
             // else evict a file
-            //TODO: evict
+            res = gnl_simfs_rts_evict(file_system, evicted_list, pid);
+            GNL_SIMFS_MINUS1_CHECK(res, errno, -1, pid);
         }
 
         // check if there was an error different from EDQUOT
@@ -326,7 +330,7 @@ int gnl_simfs_file_system_open(struct gnl_simfs_file_system *file_system, const 
  * {@inheritDoc}
  */
 int gnl_simfs_file_system_write(struct gnl_simfs_file_system *file_system, int fd, const void *buf, size_t count,
-        unsigned int pid, struct gnl_list_t *evicted_list) {
+        unsigned int pid, struct gnl_list_t **evicted_list) {
 
     // acquire the lock
     GNL_SIMFS_LOCK_ACQUIRE(-1, pid)
@@ -348,10 +352,12 @@ int gnl_simfs_file_system_write(struct gnl_simfs_file_system *file_system, int f
         return -1;
     }
 
+    int res;
+
     // check if there is enough space left to write the file
     int available_bytes;
-    while (count > (available_bytes = get_available_bytes(file_system))) {
-        // check if there was an error on the get_available_bytes invocation
+    while (count > (available_bytes = gnl_simfs_rts_available_bytes(file_system))) {
+        // check if there was an error on the gnl_simfs_rts_available_bytes invocation
         GNL_SIMFS_MINUS1_CHECK(available_bytes, errno, -1, pid);
 
         // if this point is reached, then there is no space left
@@ -374,7 +380,8 @@ int gnl_simfs_file_system_write(struct gnl_simfs_file_system *file_system, int f
         }
 
         // else evict a file
-        //TODO: evict
+        res = gnl_simfs_rts_evict(file_system, evicted_list, pid);
+        GNL_SIMFS_MINUS1_CHECK(res, errno, -1, pid);
     }
 
     // search the file in the file descriptor table
@@ -410,7 +417,7 @@ int gnl_simfs_file_system_write(struct gnl_simfs_file_system *file_system, int f
     // update the inode into the file table, this invocation is
     // mandatory because we are working on a copy of the inode,
     // so the original one needs to be updated with the modified copy
-    int res = gnl_simfs_rts_fflush_inode(file_system, inode_copy);
+    res = gnl_simfs_rts_fflush_inode(file_system, inode_copy);
     GNL_SIMFS_MINUS1_CHECK(res, errno, -1, pid)
 
     gnl_logger_debug(file_system->logger, "Write: write on file descriptor %d succeeded, inode updated", fd);
@@ -593,11 +600,18 @@ int gnl_simfs_file_system_remove(struct gnl_simfs_file_system *file_system, cons
         return -1;
     }
 
+    // get the inode size for later logging
+    int inode_size = inode->size;
+
     // remove the file
     int res = gnl_simfs_rts_remove_inode(file_system, filename);
     GNL_SIMFS_MINUS1_CHECK(res, errno, -1, pid)
 
+    // get the table size for logging
+    int size = gnl_simfs_file_table_size(file_system->file_table);
+
     gnl_logger_debug(file_system->logger, "Remove: remove of file \"%s\" succeeded, inode destoyed", filename);
+    gnl_logger_debug(file_system->logger, "Remove: new heap size %d bytes, %d bytes freed", size, inode_size);
 
     // release the lock
     GNL_SIMFS_LOCK_RELEASE(-1, pid)
@@ -764,7 +778,7 @@ struct gnl_list_t *gnl_simfs_file_system_ls(struct gnl_simfs_file_system *file_s
 
     // if an error occurred
     if (res == NULL && errno != 0) {
-        gnl_logger_error(file_system->logger, "ls: %s", strerror(errno));
+        gnl_logger_error(file_system->logger, "ls failed: %s", strerror(errno));
 
         GNL_SIMFS_LOCK_RELEASE(NULL, pid)
 

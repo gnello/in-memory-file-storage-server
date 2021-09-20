@@ -50,6 +50,20 @@ enum gnl_simfs_replacement_policy {
 struct gnl_simfs_file_system;
 
 /**
+ * The evicted file structure. This structure is
+ * returned as an element of the evicted list set during
+ * an open or write operations.
+ */
+struct gnl_simfs_evicted_file {
+
+    // the buffer of bytes evicted
+    void *bytes;
+
+    // the number of bytes evicted
+    size_t count;
+};
+
+/**
  * Create a new simple in-memory file system instance.
  *
  * @param memory_limit          The maximum memory allocable in megabyte by the file system.
@@ -97,7 +111,7 @@ extern void gnl_simfs_file_system_destroy(struct gnl_simfs_file_system *file_sys
  *                      on success, -1 otherwise.
  */
 extern int gnl_simfs_file_system_open(struct gnl_simfs_file_system *file_system, const char *filename, int flags,
-        unsigned int pid, struct gnl_list_t *evicted_list);
+        unsigned int pid, struct gnl_list_t **evicted_list);
 
 /**
  * Write up to count bytes from the buffer starting at buf to the file referred to by
@@ -115,7 +129,7 @@ extern int gnl_simfs_file_system_open(struct gnl_simfs_file_system *file_system,
  * @return              Return 0 on success, -1 otherwise.
  */
 extern int gnl_simfs_file_system_write(struct gnl_simfs_file_system *file_system, int fd, const void *buf, size_t count,
-        unsigned int pid, struct gnl_list_t *evicted_list);
+        unsigned int pid, struct gnl_list_t **evicted_list);
 
 /**
  * Read the whole file pointed by the given file descriptor fd into buf, and

@@ -39,7 +39,7 @@ struct gnl_simfs_file_system {
 };
 
 /**
- * Get the inode of the given filename.
+ * Get the original inode of the given filename.
  *
  * @param file_system   The file system instance where the file table resides.
  * @param filename      The filename of the file pointed by the inode to get.
@@ -52,7 +52,7 @@ static struct gnl_simfs_inode *gnl_simfs_rts_get_inode(struct gnl_simfs_file_sys
     GNL_NULL_CHECK(file_system, EINVAL, NULL)
     GNL_MINUS1_CHECK(-1 * (strlen(filename) == 0), EINVAL, NULL)
 
-    // get the inode of the filename
+    // get the original inode of the filename
     struct gnl_simfs_inode *inode = gnl_simfs_file_table_get(file_system->file_table, filename);
 
     // check getting error
@@ -317,11 +317,135 @@ static struct gnl_simfs_inode *gnl_simfs_rts_get_inode_by_fd(struct gnl_simfs_fi
  * @return              The number of available bytes in the file system
  *                      on success, -1 otherwise.
  */
-static int get_available_bytes(struct gnl_simfs_file_system *file_system) {
+static int gnl_simfs_rts_available_bytes(struct gnl_simfs_file_system *file_system) {
+    // validate the parameters
+    GNL_NULL_CHECK(file_system, EINVAL, -1)
+
     int size = gnl_simfs_file_table_size(file_system->file_table);
     GNL_MINUS1_CHECK(size, errno, -1);
 
     return file_system->memory_limit - size;
+}
+
+/**
+ * Build a min heap of victims in accordance with the given replacement policy.
+ *
+ * @param file_system   The file system instance to use to build a min heap of victims.
+ * @param list          The list of filename present into the file system.
+ *
+ * @return              Return the min heap of victims created on success,
+ *                      NULL otherwise.
+ */
+static struct gnl_min_heap_t *gnl_simfs_rts_build_victim_heap(struct gnl_simfs_file_system *file_system, struct gnl_list_t *list) {
+    // validate the parameters
+    GNL_NULL_CHECK(file_system, EINVAL, NULL)
+
+    gnl_logger_debug(file_system->logger, "Building the min heap of victims");
+
+    struct gnl_list_t *current = list;
+
+    // initialize the min heap
+    struct gnl_min_heap_t *min_heap = gnl_min_heap_init();
+    GNL_NULL_CHECK(min_heap, errno, NULL)
+
+    int res;
+
+    // scan the list
+    while (current != NULL) {
+        char *filename = (char *)current->el;
+
+        // get the original inode of the filename
+        struct gnl_simfs_inode *inode = gnl_simfs_rts_get_inode(file_system, filename);
+        GNL_NULL_CHECK(inode, errno, NULL)
+
+        int key;
+
+        // get the right key in accordance with the replacement policy
+        switch (file_system->replacement_policy) {
+            case GNL_SIMFS_RP_FIFO:
+                key = inode->btime;
+                break;
+            case GNL_SIMFS_RP_LIFO:
+                key = (-1 * inode->btime);
+                break;
+            case GNL_SIMFS_RP_LRU:
+                key = inode->ctime;
+                break;
+            case GNL_SIMFS_RP_MRU:
+                key = (-1 * inode->ctime);
+                break;
+            case GNL_SIMFS_RP_LFU:
+                key = inode->reference_count;
+                break;
+            default:
+                errno = EINVAL;
+                return NULL;
+                /* UNREACHED */
+        }
+
+        // insert the element into the min heap
+        res = gnl_min_heap_insert(min_heap, inode, key);
+        GNL_MINUS1_CHECK(res, errno, NULL)
+
+        current = current->next;
+    }
+
+    gnl_logger_debug(file_system->logger, "Min heap of victims built");
+
+    return 0;
+}
+
+/**
+ * Evict a file from the file system within the given replacement policy struct.
+ *
+ * @param file_system   The file system instance to use to evict.
+ * @param buf           The buffer pointer where to write the evicted data.
+ * @param count         The count of bytes evicted.
+ * @param pid           The id of the process who invoked this method.
+ *
+ * @return              Return 0 on success, -1 otherwise.
+ */
+int gnl_simfs_rts_evict(struct gnl_simfs_file_system *file_system, struct gnl_list_t **evicted_list, int pid) {
+    // validate the parameters
+    GNL_NULL_CHECK(file_system, EINVAL, -1)
+
+    gnl_logger_debug(file_system->logger, "Start eviction");
+
+    // get a list of files present into the file system
+    struct gnl_list_t *list = gnl_simfs_file_system_ls(file_system, pid);
+
+    // build the replacement_policy
+    struct gnl_min_heap_t *min_heap = gnl_simfs_rts_build_victim_heap(file_system, list);
+    GNL_NULL_CHECK(min_heap, errno, -1)
+
+    // get the victim inode
+    struct gnl_simfs_inode *victim_inode = gnl_min_heap_extract_min(min_heap);
+    GNL_NULL_CHECK(victim_inode, errno, -1)
+
+    gnl_logger_debug(file_system->logger, "Victim selected: \"%s\", %d bytes", victim_inode->name, victim_inode->size);
+
+    // create an evicted file element
+    struct gnl_simfs_evicted_file *evicted_file = malloc(sizeof(struct gnl_simfs_evicted_file));
+    GNL_NULL_CHECK(evicted_file, errno, -1)
+
+    // read the file into the evicted element
+    int res = gnl_simfs_rts_read_inode(file_system, victim_inode, &(evicted_file->bytes), &(evicted_file->count));
+    GNL_MINUS1_CHECK(res, errno, -1)
+
+    gnl_logger_debug(file_system->logger, "Victim inserted into the evicted list");
+
+    // add the evicted file into the list
+    res = gnl_list_insert(evicted_list, evicted_file);
+    GNL_MINUS1_CHECK(res, errno, -1)
+
+    // remove the file
+    res = gnl_simfs_rts_remove_inode(file_system, victim_inode->name);
+    GNL_MINUS1_CHECK(res, errno, -1)
+
+    gnl_logger_debug(file_system->logger, "Victim destroyed");
+    gnl_logger_debug(file_system->logger, "Eviction ended with success");
+
+    return 0;
 }
 
 #include <gnl_macro_end.h>
