@@ -142,20 +142,6 @@ struct gnl_fss_config *gnl_fss_config_init_from_env() {
     config->socket = getenv("SOCKET");
     config->log_filepath = getenv("LOG_FILE");
     config->log_level = getenv("LOG_LEVEL");
-
-    struct gnl_logger *logger = gnl_logger_init(config->log_filepath, "gnl_fss_config", config->log_level);
-    GNL_NULL_CHECK(logger, errno, NULL)
-
-    gnl_logger_debug(logger, "config loaded");
-    gnl_logger_debug(logger, "thread workers: %d", config->thread_workers);
-    gnl_logger_debug(logger, "capacity: %d megabytes", config->capacity);
-    gnl_logger_debug(logger, "files limit: %d", config->limit);
-    gnl_logger_debug(logger, "replacement policy: %s", getenv("REPLACEMENT_POLICY"));
-    gnl_logger_debug(logger, "socket filename: %s", getenv("SOCKET"));
-    gnl_logger_debug(logger, "log file: %s", getenv("LOG_FILE"));
-    gnl_logger_debug(logger, "log level: %s", getenv("LOG_LEVEL"));
-
-    gnl_logger_destroy(logger);
     
     return config;
 }

@@ -364,6 +364,15 @@ int gnl_fss_server_start(const struct gnl_fss_config *config) {
 
     gnl_logger_info(logger, "server is starting");
 
+    gnl_logger_debug(logger, "config loaded");
+    gnl_logger_debug(logger, "thread workers: %d", config->thread_workers);
+    gnl_logger_debug(logger, "capacity: %d megabytes", config->capacity);
+    gnl_logger_debug(logger, "files limit: %d", config->limit);
+    gnl_logger_debug(logger, "replacement policy: %d", config->replacement_policy);
+    gnl_logger_debug(logger, "socket filename: %s", config->socket);
+    gnl_logger_debug(logger, "log file: %s", config->log_filepath);
+    gnl_logger_debug(logger, "log level: %s", config->log_level);
+
     // instantiate the file_system TODO: non controllare il res
     gnl_logger_debug(logger, "starting the file system...");
 
