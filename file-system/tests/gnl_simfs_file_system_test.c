@@ -255,6 +255,14 @@ int can_write() {
 }
 
 int can_not_write_memory_limit() {
+    long size;
+    char *content = NULL;
+
+    int res = gnl_file_to_pointer("./very_big_testfile.txt", &content, &size);
+    if (res == -1) {
+        return -1;
+    }
+
     struct gnl_simfs_file_system *fs = gnl_simfs_file_system_init(1, 1, NULL, NULL, GNL_SIMFS_RP_NONE);
 
     if (fs == NULL) {
@@ -262,11 +270,11 @@ int can_not_write_memory_limit() {
     }
 
     int fd = gnl_simfs_file_system_open(fs, "/test/file_1", GNL_SIMFS_O_CREATE, 1, NULL);
-    if (fd != 0) {perror("cuaacu");
+    if (fd != 0) {
         return -1;
     }
 
-    int res = gnl_simfs_file_system_write(fs, fd, "ciao", 1048577, 1, NULL);
+    res = gnl_simfs_file_system_write(fs, fd, content, size, 1, NULL);
     if (res != -1) {
         return -1;
     }
@@ -275,6 +283,7 @@ int can_not_write_memory_limit() {
         return -1;
     }
 
+    free(content);
     gnl_simfs_file_system_destroy(fs);
 
     return 0;
@@ -295,8 +304,9 @@ int main() {
     gnl_assert(can_open, "can open a file that exists.");
 
     gnl_assert(can_write, "can write (and read) a file."); // this method tests also the read method
-    gnl_assert(can_not_write_memory_limit, "can not write a file if there are no space left on the volume.");
 
+    // the following test is heavy for valgrind
+    //gnl_assert(can_not_write_memory_limit, "can not write a file if there are no space left on the volume.");
 
     // the gnl_simfs_file_system_destroy method is implicitly tested in every assertion
 

@@ -3,6 +3,7 @@
 #include <string.h>
 #include <pthread.h>
 #include <gnl_logger.h>
+#include <gnl_huffman_tree.h>
 #include "../include/gnl_simfs_file_system.h"
 #include "./gnl_simfs_file_system_rts.c"
 #include <gnl_macro_beg.h>
@@ -66,8 +67,8 @@ struct gnl_simfs_file_system *gnl_simfs_file_system_init(unsigned int memory_lim
     GNL_NULL_CHECK(fs, ENOMEM, NULL)
 
     // convert the memory limit from Megabytes to bytes
-    int ml = memory_limit * 1048576;
-    //int ml = 5000; //TODO: rimuovere dopo i test del rimpiazzamento
+    //int ml = memory_limit * 1048576;
+    int ml = 500; //TODO: rimuovere dopo i test del rimpiazzamento
 
     // assign arguments
     fs->memory_limit = ml;
@@ -341,11 +342,26 @@ int gnl_simfs_file_system_write(struct gnl_simfs_file_system *file_system, int f
 
     gnl_logger_debug(file_system->logger, "Write: pid %d is trying to write %d bytes in file descriptor %d", pid, count, fd);
 
+    // compress the file to get the final size
+    struct gnl_huffman_tree_artifact *artifact = gnl_huffman_tree_encode(buf, count);
+    GNL_SIMFS_NULL_CHECK(artifact, errno, -1, pid)
+
+    int final_count = gnl_huffman_tree_size(artifact);
+    GNL_SIMFS_MINUS1_CHECK(final_count, errno, -1, pid)
+
+    // destroy the artifact
+    gnl_huffman_tree_destroy_artifact(artifact);
+
+    gnl_logger_debug(file_system->logger, "Write: file pointed by file descriptor %d compressed", fd);
+    gnl_logger_debug(file_system->logger, "Write: original size %d bytes", count);
+    gnl_logger_debug(file_system->logger, "Write: final size %d bytes", final_count);
+
     // check if there is enough space to write the file
-    if (count > file_system->memory_limit) { //TODO: se c'è compressione vanno contato i bytes compressi
+    if (final_count > file_system->memory_limit) {
 
         gnl_logger_warn(file_system->logger, "Write on file descriptor %d failed, the file is too big. "
-                                             "Memory limit: %d bytes, file size: %d bytes.", fd, file_system->memory_limit, count);
+                                             "Memory limit: %d bytes, file size (compressed): %d bytes.",
+                                             fd, file_system->memory_limit, final_count);
 
         errno = E2BIG;
         GNL_SIMFS_LOCK_RELEASE(-1, pid)
@@ -357,12 +373,12 @@ int gnl_simfs_file_system_write(struct gnl_simfs_file_system *file_system, int f
 
     // check if there is enough space left to write the file
     int available_bytes;
-    while (count > (available_bytes = gnl_simfs_rts_available_bytes(file_system))) {
+    while (final_count > (available_bytes = gnl_simfs_rts_available_bytes(file_system))) {
         // check if there was an error on the gnl_simfs_rts_available_bytes invocation
         GNL_SIMFS_MINUS1_CHECK(available_bytes, errno, -1, pid);
 
         // if this point is reached, then there is no space left
-        // into the file system to write count bytes
+        // into the file system to write final_count bytes
 
         // if there is no replacement policy, then fail (with honor)
         if (file_system->replacement_policy == GNL_SIMFS_RP_NONE) {
@@ -372,7 +388,7 @@ int gnl_simfs_file_system_write(struct gnl_simfs_file_system *file_system, int f
             gnl_logger_warn(file_system->logger, "Write on file descriptor %d failed, max heap size reached."
                                                  "Memory limit: %d bytes, current heap size: %d bytes, "
                                                  "prevented heap size overflowing by %d bytes", fd, file_system->memory_limit,
-                                                 size, count - available_bytes);
+                                                 size, final_count - available_bytes);
 
             errno = EDQUOT;
             GNL_SIMFS_LOCK_RELEASE(-1, pid)
@@ -380,7 +396,7 @@ int gnl_simfs_file_system_write(struct gnl_simfs_file_system *file_system, int f
             return -1;
         }
 
-        gnl_logger_debug(file_system->logger, "No space available to write %d bytes, evicting some files", count);
+        gnl_logger_debug(file_system->logger, "No space available to write %d bytes, evicting some files", final_count);
 
         // else evict a file
         res = gnl_simfs_rts_evict(file_system, evicted_list);
@@ -415,7 +431,7 @@ int gnl_simfs_file_system_write(struct gnl_simfs_file_system *file_system, int f
     int nwrite = gnl_simfs_inode_write(inode_copy, buf, count);
     GNL_SIMFS_MINUS1_CHECK(nwrite, errno, -1, pid)
 
-    gnl_logger_debug(file_system->logger, "Write: %d bytes written into file descriptor %d's inode", nwrite, fd);
+    gnl_logger_debug(file_system->logger, "Write: %d bytes written into file descriptor %d's inode buffer", nwrite, fd);
 
     // update the inode into the file table, this invocation is
     // mandatory because we are working on a copy of the inode,
@@ -423,7 +439,7 @@ int gnl_simfs_file_system_write(struct gnl_simfs_file_system *file_system, int f
     res = gnl_simfs_rts_fflush_inode(file_system, inode_copy);
     GNL_SIMFS_MINUS1_CHECK(res, errno, -1, pid)
 
-    gnl_logger_debug(file_system->logger, "Write: write on file descriptor %d succeeded, inode updated", fd);
+    gnl_logger_debug(file_system->logger, "Write: inode flushed, write on file descriptor %d succeeded", fd);
 
     // release the lock
     GNL_SIMFS_LOCK_RELEASE(-1, pid)

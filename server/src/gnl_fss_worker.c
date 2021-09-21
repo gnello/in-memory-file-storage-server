@@ -36,6 +36,11 @@ struct gnl_fss_worker {
     struct gnl_simfs_file_system *file_system;
 };
 
+static void destroy_gnl_simfs_evicted_file(void *ptr) {
+    free(((struct gnl_simfs_evicted_file *)ptr)->bytes);
+    free(ptr);
+}
+
 static int wait_unlock(struct gnl_simfs_file_system *file_system, struct gnl_fss_waiting_list *waiting_list,
         struct gnl_socket_request *request, int fd_c) {
 
@@ -265,7 +270,7 @@ static struct gnl_socket_response *handle_request(struct gnl_simfs_file_system *
 
     // free memory
     free(buf);
-    gnl_list_destroy(&evicted_files, free);
+    gnl_list_destroy(&evicted_files, destroy_gnl_simfs_evicted_file);
 
     if (res == -1) {
         response = gnl_socket_response_init(GNL_SOCKET_RESPONSE_ERROR, 1, errno);

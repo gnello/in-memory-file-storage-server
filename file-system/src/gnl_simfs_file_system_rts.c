@@ -226,8 +226,8 @@ static int gnl_simfs_rts_remove_inode(struct gnl_simfs_file_system *file_system,
     int size = gnl_simfs_file_table_size(file_system->file_table);
     GNL_MINUS1_CHECK(size, errno, -1);
 
-    gnl_logger_debug(file_system->logger, "Remove on entry \"%s\" succeeded, %d bytes freed, the heap size has now %d bytes left",
-                     key, count, file_system->memory_limit - size);
+    gnl_logger_debug(file_system->logger, "Remove on entry \"%s\" succeeded, %d bytes freed, the heap size "
+                                          "has now %d bytes left", key, count, file_system->memory_limit - size);
 
     return 0;
 }
@@ -420,6 +420,9 @@ int gnl_simfs_rts_evict(struct gnl_simfs_file_system *file_system, struct gnl_li
     struct gnl_min_heap_t *min_heap = gnl_simfs_rts_build_victim_heap(file_system, list);
     GNL_NULL_CHECK(min_heap, errno, -1)
 
+    // free memory
+    gnl_list_destroy(&list, free);
+
     // get the victim inode
     struct gnl_simfs_inode *victim_inode = gnl_min_heap_extract_min(min_heap);
     GNL_NULL_CHECK(victim_inode, errno, -1)
@@ -443,9 +446,18 @@ int gnl_simfs_rts_evict(struct gnl_simfs_file_system *file_system, struct gnl_li
     res = gnl_list_insert(evicted_list, evicted_file);
     GNL_MINUS1_CHECK(res, errno, -1)
 
+    // copy the filename
+    char *filename;
+    GNL_CALLOC(filename, strlen(victim_inode->name) + 1, -1)
+
+    strncpy(filename, victim_inode->name, strlen(victim_inode->name));
+
     // remove the file
-    res = gnl_simfs_rts_remove_inode(file_system, victim_inode->name);
+    res = gnl_simfs_rts_remove_inode(file_system, filename);
     GNL_MINUS1_CHECK(res, errno, -1)
+
+    // free memory
+    free(filename);
 
     gnl_logger_debug(file_system->logger, "Victim destroyed");
     gnl_logger_debug(file_system->logger, "Eviction ended with success");
