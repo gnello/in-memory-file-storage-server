@@ -68,7 +68,6 @@ struct gnl_simfs_file_system *gnl_simfs_file_system_init(unsigned int memory_lim
 
     // convert the memory limit from Megabytes to bytes
     int ml = memory_limit * 1048576;
-    //int ml = 500; //TODO: rimuovere dopo i test del rimpiazzamento
 
     // assign arguments
     fs->memory_limit = ml;
