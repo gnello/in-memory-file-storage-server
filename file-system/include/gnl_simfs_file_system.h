@@ -56,6 +56,9 @@ struct gnl_simfs_file_system;
  */
 struct gnl_simfs_evicted_file {
 
+    // the name of the file evicted
+    char *name;
+
     // the buffer of bytes evicted
     void *bytes;
 

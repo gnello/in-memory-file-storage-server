@@ -436,6 +436,9 @@ int gnl_simfs_rts_evict(struct gnl_simfs_file_system *file_system, struct gnl_li
     struct gnl_simfs_evicted_file *evicted_file = malloc(sizeof(struct gnl_simfs_evicted_file));
     GNL_NULL_CHECK(evicted_file, errno, -1)
 
+    GNL_CALLOC(evicted_file->name, strlen(victim_inode->name) + 1, -1)
+    strncpy(evicted_file->name, victim_inode->name, strlen(victim_inode->name));
+
     // read the file into the evicted element
     int res = gnl_simfs_rts_read_inode(file_system, victim_inode, &(evicted_file->bytes), &(evicted_file->count));
     GNL_MINUS1_CHECK(res, errno, -1)
@@ -446,18 +449,9 @@ int gnl_simfs_rts_evict(struct gnl_simfs_file_system *file_system, struct gnl_li
     res = gnl_list_insert(evicted_list, evicted_file);
     GNL_MINUS1_CHECK(res, errno, -1)
 
-    // copy the filename
-    char *filename;
-    GNL_CALLOC(filename, strlen(victim_inode->name) + 1, -1)
-
-    strncpy(filename, victim_inode->name, strlen(victim_inode->name));
-
     // remove the file
-    res = gnl_simfs_rts_remove_inode(file_system, filename);
+    res = gnl_simfs_rts_remove_inode(file_system, evicted_file->name);
     GNL_MINUS1_CHECK(res, errno, -1)
-
-    // free memory
-    free(filename);
 
     gnl_logger_debug(file_system->logger, "Victim destroyed");
     gnl_logger_debug(file_system->logger, "Eviction ended with success");

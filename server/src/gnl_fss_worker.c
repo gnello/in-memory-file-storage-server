@@ -44,6 +44,7 @@ struct gnl_fss_worker {
  *              by the list implementation.
  */
 static void destroy_gnl_simfs_evicted_file(void *ptr) {
+    free(((struct gnl_simfs_evicted_file *)ptr)->name);
     free(((struct gnl_simfs_evicted_file *)ptr)->bytes);
     free(ptr);
 }
@@ -230,6 +231,35 @@ static struct gnl_socket_response *handle_request(struct gnl_simfs_file_system *
             // if success create an ok response
             if (res == 0) {
                 response = gnl_socket_response_init(GNL_SOCKET_RESPONSE_OK, 0);
+            }
+
+            // if at least one file was evicted from the file system
+            if (evicted_files != NULL) {
+                response = gnl_socket_response_init(GNL_SOCKET_RESPONSE_OK_FILE_LIST, 0);
+                current = evicted_files;
+
+                while (current != NULL) {
+                    // add the element to the response
+                    tmp = (char *)current->el;
+                    res = gnl_socket_response_add_file(response, tmp, (strlen(tmp) + 1), tmp);
+
+                    // if an error occurred, then stop
+                    if (res == -1) {
+                        gnl_socket_response_destroy(response);
+                        break;
+                    }
+
+                    // move on to the next element
+                    current = current->next;
+                }
+
+                gnl_list_destroy(&list, free);
+            }
+                // else if no file are present (the function returned NULL
+                // but no errors occurred, i.e. errno == 0)
+            else if (errno == 0) {
+                response = gnl_socket_response_init(GNL_SOCKET_RESPONSE_OK, 0);
+                res = 0;
             }
             break;
 
