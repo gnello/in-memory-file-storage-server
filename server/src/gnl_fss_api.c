@@ -369,12 +369,16 @@ int gnl_fss_api_read_N_files(int N, const char *dirname) {
     // free the memory
     gnl_socket_response_destroy(response);
 
-    // if success reset the openFile(pathname, O_CREATE|O_LOCK) check
-    if (res == 0) {
-        open_with_create_lock_flags = 0;
+    // if there was an error, then stop
+    if (res == -1) {
+        return -1;
     }
 
-    return res;
+    // if success, then reset the openFile(pathname, O_CREATE|O_LOCK) check
+    open_with_create_lock_flags = 0;
+
+    // return the number of files read
+    return file_read_count;
 }
 
 /**
@@ -432,6 +436,8 @@ int gnl_fss_api_append_to_file(const char *pathname, void *buf, size_t size, con
     GNL_NULL_CHECK(response, errno, -1)
 
     int res = 0;
+    struct gnl_message_snb *file = NULL;
+
     switch (response->type) {
 
         case GNL_SOCKET_RESPONSE_ERROR:
@@ -446,6 +452,17 @@ int gnl_fss_api_append_to_file(const char *pathname, void *buf, size_t size, con
 
         case GNL_SOCKET_RESPONSE_OK_FILE_LIST:
             // success but one or more files were evicted
+
+            // for each received file
+            while ((file = (struct gnl_message_snb *)gnl_queue_dequeue(response->payload.ok_file_list->queue)) != NULL) {
+
+                // if a dirname was provided, then save the file
+                if (dirname != NULL) {
+                    //TODO: save the file
+                }
+
+                gnl_message_snb_destroy(file);
+            }
             break;
 
         default:

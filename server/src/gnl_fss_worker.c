@@ -163,7 +163,7 @@ static struct gnl_socket_response *handle_request(struct gnl_simfs_file_system *
     struct gnl_list_t *list = NULL;
     struct gnl_list_t *current = NULL;
     char *tmp;
-    struct gnl_list_t *evicted_files = NULL;
+    struct gnl_simfs_evicted_file *evicted_file = NULL;
 
     // handle the request with the correct handler
     //TODO: creare un metodo handler per ogni type che gestisca separatamente gli errori?
@@ -225,40 +225,38 @@ static struct gnl_socket_response *handle_request(struct gnl_simfs_file_system *
 
         case GNL_SOCKET_REQUEST_WRITE:
             res = gnl_simfs_file_system_write(file_system, request->payload.write->number,
-                                              request->payload.write->bytes, request->payload.write->count, fd_c, &evicted_files);
+                                              request->payload.write->bytes, request->payload.write->count, fd_c, &list);
 
             // if success create an ok response
             if (res == 0) {
-                response = gnl_socket_response_init(GNL_SOCKET_RESPONSE_OK, 0);
-            }
 
-            // if at least one file was evicted from the file system
-            if (evicted_files != NULL) {
-                response = gnl_socket_response_init(GNL_SOCKET_RESPONSE_OK_FILE_LIST, 0);
-                current = evicted_files;
+                // if no file was evicted from the file system
+                if (list == NULL) {
+                    response = gnl_socket_response_init(GNL_SOCKET_RESPONSE_OK, 0);
+                }
+                // if at least one file was evicted from the file system
+                else {
+                    response = gnl_socket_response_init(GNL_SOCKET_RESPONSE_OK_FILE_LIST, 0);
+                    current = list;
 
-                while (current != NULL) {
-                    // add the element to the response
-                    tmp = (char *)current->el;
-                    res = gnl_socket_response_add_file(response, tmp, (strlen(tmp) + 1), tmp);
+                    while (current != NULL) {
+                        // add the element to the response
+                        evicted_file = (struct gnl_simfs_evicted_file *) current->el;
+                        res = gnl_socket_response_add_file(response, evicted_file->name, evicted_file->count,
+                                                           evicted_file->bytes);
 
-                    // if an error occurred, then stop
-                    if (res == -1) {
-                        gnl_socket_response_destroy(response);
-                        break;
+                        // if an error occurred, then stop
+                        if (res == -1) {
+                            gnl_socket_response_destroy(response);
+                            break;
+                        }
+
+                        // move on to the next element
+                        current = current->next;
                     }
 
-                    // move on to the next element
-                    current = current->next;
+                    gnl_list_destroy(&list, destroy_gnl_simfs_evicted_file);
                 }
-
-                gnl_list_destroy(&list, free);
-            }
-                // else if no file are present (the function returned NULL
-                // but no errors occurred, i.e. errno == 0)
-            else if (errno == 0) {
-                response = gnl_socket_response_init(GNL_SOCKET_RESPONSE_OK, 0);
-                res = 0;
             }
             break;
 
@@ -306,7 +304,6 @@ static struct gnl_socket_response *handle_request(struct gnl_simfs_file_system *
 
     // free memory
     free(buf);
-    gnl_list_destroy(&evicted_files, destroy_gnl_simfs_evicted_file);
 
     if (res == -1) {
         response = gnl_socket_response_init(GNL_SOCKET_RESPONSE_ERROR, 1, errno);
