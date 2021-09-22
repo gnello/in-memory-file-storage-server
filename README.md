@@ -4,7 +4,7 @@
 Simple In Memory File Storage Server case study.  
 
 Concepts involved: data-structures, concurrency (multi-thread), locks, condition variables, pipes, sockets, 
-master-worker design pattern, signals handling and file system. 
+master-worker design pattern, signals handling, file system and cache replacement policies. 
 
 This project it is far to be perfect, any suggestions or criticisms are welcome. Open an issue to suggest improvements 
 or to argue about something that does not add up to you, and I will be happy to answer.
