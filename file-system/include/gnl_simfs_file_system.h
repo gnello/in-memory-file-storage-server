@@ -102,16 +102,13 @@ extern void gnl_simfs_file_system_destroy(struct gnl_simfs_file_system *file_sys
  * @param flags         If GNL_SIMFS_O_CREATE is given, the file will be created,
  *                      if GNL_SIMFS_O_LOCK is given, the file will be opened in
  *                      locked mode.
- * @param pid           The id of the process who invoked this method.
- * @param evicted_list  The pointer to the list where to put the eventual evicted
- *                      files in accordance with the replacement policy given at
- *                      the moment of the file system initialization.
+ * @param pid           The id of the process who invoked this method.ì
  *
  * @return              Returns a file descriptor referring to the opened file
  *                      on success, -1 otherwise.
  */
 extern int gnl_simfs_file_system_open(struct gnl_simfs_file_system *file_system, const char *filename, int flags,
-        unsigned int pid, struct gnl_list_t **evicted_list);
+        unsigned int pid);
 
 /**
  * Write up to count bytes from the buffer starting at buf to the file referred to by

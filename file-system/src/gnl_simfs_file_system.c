@@ -153,8 +153,7 @@ void gnl_simfs_file_system_destroy(struct gnl_simfs_file_system *file_system) {
 /**
  * {@inheritDoc}
  */
-int gnl_simfs_file_system_open(struct gnl_simfs_file_system *file_system, const char *filename, int flags,
-        unsigned int pid, struct gnl_list_t **evicted_list) {
+int gnl_simfs_file_system_open(struct gnl_simfs_file_system *file_system, const char *filename, int flags, unsigned int pid) {
     // acquire the lock
     GNL_SIMFS_LOCK_ACQUIRE(-1, pid)
 
@@ -207,28 +206,7 @@ int gnl_simfs_file_system_open(struct gnl_simfs_file_system *file_system, const 
         }
 
         // the file is not present, create it
-        while ((inode = gnl_simfs_rts_create_inode(file_system, filename)) == NULL && errno == EDQUOT) {
-            // if this point is reached, then there is no space left
-            // into the file system
-
-            // if there is no replacement policy, then fail (with honor)
-            if (file_system->replacement_policy == GNL_SIMFS_RP_NONE) {
-                gnl_logger_warn(file_system->logger, "Open failed: there is no space left to open a file and "
-                                                      "no replacement policy was specified.");
-
-                // let the errno bubble
-
-                GNL_SIMFS_LOCK_RELEASE(-1, pid)
-
-                return -1;
-            }
-
-            // else evict a file
-            res = gnl_simfs_rts_evict(file_system, evicted_list);
-            GNL_SIMFS_MINUS1_CHECK(res, errno, -1, pid);
-        }
-
-        // check if there was an error different from EDQUOT
+        inode = gnl_simfs_rts_create_inode(file_system, filename);
         GNL_SIMFS_NULL_CHECK(inode, errno, -1, pid)
     }
     // if the file must be present

@@ -36,6 +36,13 @@ struct gnl_fss_worker {
     struct gnl_simfs_file_system *file_system;
 };
 
+/**
+ * Destroy a gnl_simfs_evicted_file struct element returned
+ * by the filesystem.
+ *
+ * @param ptr   The ptr to the element destroy passed
+ *              by the list implementation.
+ */
 static void destroy_gnl_simfs_evicted_file(void *ptr) {
     free(((struct gnl_simfs_evicted_file *)ptr)->bytes);
     free(ptr);
@@ -162,7 +169,7 @@ static struct gnl_socket_response *handle_request(struct gnl_simfs_file_system *
     //TODO: creare un metodo handler per ogni type che gestisca separatamente gli errori?
     switch (request->type) {
         case GNL_SOCKET_REQUEST_OPEN:
-            res = gnl_simfs_file_system_open(file_system, request->payload.open->string, request->payload.open->number, fd_c, &evicted_files);
+            res = gnl_simfs_file_system_open(file_system, request->payload.open->string, request->payload.open->number, fd_c);
 
             // if success create an ok_fd response
             if (res >= 0) {
