@@ -262,7 +262,7 @@ static void print_log(const char *op, const char *target, int res, const char *m
     va_list a_list;
     va_start(a_list, message);
 
-    print_row(op, target, res == 0 ? "OK" : "KO", res == 0 ? message : strerror(errno), a_list);
+    print_row(op, target, res >= 0 ? "OK" : "KO", res >= 0 ? message : strerror(errno), a_list);
 
     va_end(a_list);
 }

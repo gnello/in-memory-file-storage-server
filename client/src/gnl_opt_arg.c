@@ -565,17 +565,12 @@ int arg_R(const char *arg, const char *store_dirname) {
     // open the file on the server (with lock)
     res = gnl_fss_api_read_N_files(n, store_dirname);
 
-    print_log("Read N files", "", res, "N=%d", n);
+    print_log("Read N files", "", res, "N=%d, actual files read: %d", n, res);
 
     GNL_MINUS1_CHECK(res, errno, -1);
 
     return 0;
 }
-
-//
-//static int arg_t(const char* param) { //8
-//    return 0;
-//}
 
 #undef SOCKET_ATTEMPTS_INTERVAL
 #undef SOCKET_WAIT_SEC
