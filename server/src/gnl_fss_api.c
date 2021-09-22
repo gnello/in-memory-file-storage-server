@@ -313,6 +313,7 @@ int gnl_fss_api_read_N_files(int N, const char *dirname) {
                 // open the file on the server
                 res = gnl_fss_api_open_file(filename, 0);
                 if (res == -1) {
+                    // let the errno bubble
                     break;
                 }
 
@@ -344,6 +345,11 @@ int gnl_fss_api_read_N_files(int N, const char *dirname) {
                 // store the read file on disk
                 if (dirname != NULL) {
                     res = gnl_file_saver_save(filename, dirname, buf, size);
+
+                    if (res == -1) {
+                        // let the errno bubble
+                        break;
+                    }
                 }
 
                 //free memory
@@ -458,7 +464,12 @@ int gnl_fss_api_append_to_file(const char *pathname, void *buf, size_t size, con
 
                 // if a dirname was provided, then save the file
                 if (dirname != NULL) {
-                    //TODO: save the file
+                    res = gnl_file_saver_save(file->string, dirname, file->bytes, file->count);
+
+                    if (res == -1) {
+                        // let the errno bubble
+                        break;
+                    }
                 }
 
                 gnl_message_snb_destroy(file);
