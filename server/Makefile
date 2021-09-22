@@ -7,7 +7,7 @@ CC = gcc
 CFLAGS = -std=c99 -Wall -g -pedantic -D_POSIX_C_SOURCE=200809L
 
 # file-system library
-LIBS += -Wl,-rpath,$(ROOT)$(FILE_SYSTEM_LIB) -L$(ROOT)$(FILE_SYSTEM_LIB) -lgnl_simfs_file_system
+LIBS += -Wl,-rpath,$(ROOT)$(FILE_SYSTEM_LIB) -L$(ROOT)$(FILE_SYSTEM_LIB) -lgnl_simfs_file_system -lgnl_simfs_evicted_file
 INCLUDE += -I$(ROOT)$(FILE_SYSTEM_INCLUDE)
 
 # data-structures library

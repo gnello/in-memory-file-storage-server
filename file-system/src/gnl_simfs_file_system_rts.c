@@ -4,6 +4,7 @@
 #include <gnl_logger.h>
 #include "../include/gnl_simfs_file_system.h"
 #include "./gnl_simfs_file_table.c"
+#include "./gnl_simfs_evicted_file.c"
 #include "./gnl_simfs_file_descriptor_table.c"
 #include <gnl_macro_beg.h>
 
@@ -433,7 +434,7 @@ int gnl_simfs_rts_evict(struct gnl_simfs_file_system *file_system, struct gnl_li
     gnl_min_heap_destroy(min_heap, NULL);
 
     // create an evicted file element
-    struct gnl_simfs_evicted_file *evicted_file = malloc(sizeof(struct gnl_simfs_evicted_file));
+    struct gnl_simfs_evicted_file *evicted_file = gnl_simfs_evicted_file_init();
     GNL_NULL_CHECK(evicted_file, errno, -1)
 
     GNL_CALLOC(evicted_file->name, strlen(victim_inode->name) + 1, -1)
@@ -443,11 +444,11 @@ int gnl_simfs_rts_evict(struct gnl_simfs_file_system *file_system, struct gnl_li
     int res = gnl_simfs_rts_read_inode(file_system, victim_inode, &(evicted_file->bytes), &(evicted_file->count));
     GNL_MINUS1_CHECK(res, errno, -1)
 
-    gnl_logger_debug(file_system->logger, "Victim inserted into the evicted list");
-
     // add the evicted file into the list
     res = gnl_list_insert(evicted_list, evicted_file);
     GNL_MINUS1_CHECK(res, errno, -1)
+
+    gnl_logger_debug(file_system->logger, "Victim inserted into the evicted list");
 
     // remove the file
     res = gnl_simfs_rts_remove_inode(file_system, evicted_file->name);

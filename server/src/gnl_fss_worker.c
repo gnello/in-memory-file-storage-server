@@ -6,6 +6,7 @@
 #include <string.h>
 #include <gnl_message_n.h>
 #include <gnl_list_t.h>
+#include <gnl_simfs_evicted_file.h>
 #include "../include/gnl_fss_worker.h"
 #include <gnl_macro_beg.h>
 
@@ -44,9 +45,7 @@ struct gnl_fss_worker {
  *              by the list implementation.
  */
 static void destroy_gnl_simfs_evicted_file(void *ptr) {
-    free(((struct gnl_simfs_evicted_file *)ptr)->name);
-    free(((struct gnl_simfs_evicted_file *)ptr)->bytes);
-    free(ptr);
+    gnl_simfs_evicted_file_destroy(ptr);
 }
 
 static int wait_unlock(struct gnl_simfs_file_system *file_system, struct gnl_fss_waiting_list *waiting_list,

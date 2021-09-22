@@ -50,23 +50,6 @@ enum gnl_simfs_replacement_policy {
 struct gnl_simfs_file_system;
 
 /**
- * The evicted file structure. This structure is
- * returned as an element of the evicted list set during
- * an open or write operations.
- */
-struct gnl_simfs_evicted_file {
-
-    // the name of the file evicted
-    char *name;
-
-    // the buffer of bytes evicted
-    void *bytes;
-
-    // the number of bytes evicted
-    size_t count;
-};
-
-/**
  * Create a new simple in-memory file system instance.
  *
  * @param memory_limit          The maximum memory allocable in megabyte by the file system.

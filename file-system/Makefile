@@ -14,7 +14,7 @@ INCLUDE = -I$(ROOT)$(HELPERS_INCLUDE)
 LIBS = -Wl,-rpath,$(ROOT)$(DATA_STRUCTURES_LIB) -L$(ROOT)$(DATA_STRUCTURES_LIB) -lgnl_min_heap_t -lgnl_ternary_search_tree_t -lgnl_huffman_tree
 INCLUDE += -I$(ROOT)$(DATA_STRUCTURES_INCLUDE)
 
-TARGETS = gnl_simfs_file_system.so
+TARGETS = gnl_simfs_file_system.so gnl_simfs_evicted_file.so
 
 TARGETS_PATH = ./lib
 
