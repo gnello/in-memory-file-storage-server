@@ -2,42 +2,12 @@
 #include <string.h>
 #include <pthread.h>
 #include <gnl_logger.h>
-#include "../include/gnl_simfs_file_system.h"
+#include "../include/gnl_simfs_file_system_struct.h"
 #include "./gnl_simfs_file_table.c"
 #include "./gnl_simfs_evicted_file.c"
+#include "./gnl_simfs_monitor.c"
 #include "./gnl_simfs_file_descriptor_table.c"
 #include <gnl_macro_beg.h>
-
-/**
- * {@inheritDoc}
- */
-struct gnl_simfs_file_system {
-
-    // the file system file table, contains all the inodes of the
-    // files present into the file system
-    struct gnl_simfs_file_table *file_table;
-
-    // the number of files that can be handled by the file system
-    int files_limit;
-
-    // the memory allocable in bytes by the file system
-    unsigned long memory_limit;
-
-    // contains all the open files in a precisely time,
-    // the index is the file descriptor, the value is a
-    // copy of the inode of the file.
-    struct gnl_simfs_file_descriptor_table *file_descriptor_table;
-
-    // the lock of the file system
-    pthread_mutex_t mtx;
-
-    // the logger instance to use for logging
-    struct gnl_logger *logger;
-
-    // the replacement policy to adopt in case the file system reaches
-    // the given memory_limit or the given file_limit
-    enum gnl_simfs_replacement_policy replacement_policy;
-};
 
 /**
  * Get the original inode of the given filename.

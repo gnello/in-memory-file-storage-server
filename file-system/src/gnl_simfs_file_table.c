@@ -19,7 +19,7 @@ struct gnl_simfs_file_table {
     struct gnl_list_t *presence_list;
 
     // the memory in bytes allocated by the file table
-    unsigned long size;
+    unsigned long long size;
 
     // the counter of the files present in the file table
     int count;

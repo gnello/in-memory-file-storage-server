@@ -17,7 +17,7 @@ INCLUDE = -I$(HELPERS_PATH_INCLUDE)
 LIBS += -Wl,-rpath,$(ROOT)$(DATA_STRUCTURES_LIB) -L$(ROOT)$(DATA_STRUCTURES_LIB) -lgnl_list_t -lgnl_min_heap_t -lgnl_ternary_search_tree_t -lgnl_huffman_tree
 INCLUDE += -I$(ROOT)$(DATA_STRUCTURES_INCLUDE)
 
-TARGETS = gnl_simfs_inode_test gnl_simfs_file_descriptor_table_test gnl_simfs_file_table_test gnl_simfs_file_system_test
+TARGETS = gnl_simfs_inode_test gnl_simfs_file_descriptor_table_test gnl_simfs_file_table_test gnl_simfs_file_system_test gnl_simfs_monitor_test
 
 .PHONY: all clean tests tests-valgrind
 .SUFFIXES: .c .h
