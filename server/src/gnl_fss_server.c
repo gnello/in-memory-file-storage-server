@@ -366,7 +366,7 @@ int gnl_fss_server_start(const struct gnl_fss_config *config) {
 
     gnl_logger_debug(logger, "config loaded");
     gnl_logger_debug(logger, "thread workers: %d", config->thread_workers);
-    gnl_logger_debug(logger, "capacity: %d megabytes", config->capacity);
+    gnl_logger_debug(logger, "capacity: %d MB", config->capacity);
     gnl_logger_debug(logger, "files limit: %d", config->limit);
     gnl_logger_debug(logger, "replacement policy: %d", config->replacement_policy);
     gnl_logger_debug(logger, "socket filename: %s", config->socket);
@@ -412,7 +412,12 @@ int gnl_fss_server_start(const struct gnl_fss_config *config) {
     }
 
     // if you reach this point means that the server execution
-    // is terminated (due to an error or a signal), so free memory
+    // is terminated (due to an error or a signal)
+
+    // print the file system status
+    gnl_simfs_file_system_status(file_system);
+
+    // free memory
     gnl_fss_thread_pool_destroy(thread_pool);
     gnl_simfs_file_system_destroy(file_system);
 

@@ -1,3 +1,4 @@
+#include <stdio.h>
 #include <stdlib.h>
 #include <errno.h>
 #include <string.h>
@@ -66,11 +67,8 @@ struct gnl_simfs_file_system *gnl_simfs_file_system_init(unsigned int memory_lim
     struct gnl_simfs_file_system *fs = (struct gnl_simfs_file_system *)malloc(sizeof(struct gnl_simfs_file_system));
     GNL_NULL_CHECK(fs, ENOMEM, NULL)
 
-    // convert the memory limit from Megabytes to bytes
-    int ml = memory_limit * 1048576;
-
-    // assign arguments
-    fs->memory_limit = ml;
+    // assign arguments, convert the memory limit from Megabytes to bytes
+    fs->memory_limit = mb_to_bytes(memory_limit);
     fs->files_limit = files_limit;
 
     // initialize the file table
@@ -116,7 +114,12 @@ struct gnl_simfs_file_system *gnl_simfs_file_system_init(unsigned int memory_lim
     int res = pthread_mutex_init(&(fs->mtx), NULL);
     GNL_MINUS1_CHECK(res, errno, NULL)
 
-    gnl_logger_debug(fs->logger, "File system initialized. Memory limit: %d bytes, max storable files: %d.", fs->memory_limit, fs->files_limit);
+    // initialize the monitor
+    fs->monitor = gnl_simfs_monitor_init();
+    GNL_NULL_CHECK(fs->monitor, errno, NULL)
+
+    gnl_logger_debug(fs->logger, "File system initialized. Memory limit: %f MB, max storable files: %d.",
+                     bytes_to_mb(fs->memory_limit), fs->files_limit);
 
     return fs;
 }
@@ -139,6 +142,9 @@ void gnl_simfs_file_system_destroy(struct gnl_simfs_file_system *file_system) {
 
     // destroy the lock, proceed on error
     pthread_mutex_destroy(&(file_system->mtx));
+
+    // destroy the monitor
+    gnl_simfs_monitor_destroy(file_system->monitor);
 
     gnl_logger_debug(file_system->logger, "File system destroyed.");
 
@@ -337,8 +343,8 @@ int gnl_simfs_file_system_write(struct gnl_simfs_file_system *file_system, int f
     if (final_count > file_system->memory_limit) {
 
         gnl_logger_warn(file_system->logger, "Write on file descriptor %d failed, the file is too big. "
-                                             "Memory limit: %d bytes, file size (compressed): %d bytes.",
-                                             fd, file_system->memory_limit, final_count);
+                                             "Memory limit: %f MB, file size (compressed): %d bytes.",
+                                             fd, bytes_to_mb(file_system->memory_limit), final_count);
 
         errno = E2BIG;
         GNL_SIMFS_LOCK_RELEASE(-1, pid)
@@ -363,9 +369,10 @@ int gnl_simfs_file_system_write(struct gnl_simfs_file_system *file_system, int f
             int size = gnl_simfs_file_table_size(file_system->file_table);
 
             gnl_logger_warn(file_system->logger, "Write on file descriptor %d failed, max heap size reached."
-                                                 "Memory limit: %d bytes, current heap size: %d bytes, "
-                                                 "prevented heap size overflowing by %d bytes", fd, file_system->memory_limit,
-                                                 size, final_count - available_bytes);
+                                                 "Memory limit: %f MB, current heap size: %lld bytes (%f MB), "
+                                                 "prevented heap size overflowing by %d bytes", fd,
+                                                 bytes_to_mb(file_system->memory_limit), size, bytes_to_mb(size),
+                                                 final_count - available_bytes);
 
             errno = EDQUOT;
             GNL_SIMFS_LOCK_RELEASE(-1, pid)
@@ -607,7 +614,8 @@ int gnl_simfs_file_system_remove(struct gnl_simfs_file_system *file_system, cons
     int size = gnl_simfs_file_table_size(file_system->file_table);
 
     gnl_logger_debug(file_system->logger, "Remove: remove of file \"%s\" succeeded, inode destoyed", filename);
-    gnl_logger_debug(file_system->logger, "Remove: new heap size %d bytes, %d bytes freed", size, inode_size);
+    gnl_logger_debug(file_system->logger, "Remove: new heap size %ldd bytes (%f MB), %d bytes freed",
+                     size, bytes_to_mb(size), inode_size);
 
     // release the lock
     GNL_SIMFS_LOCK_RELEASE(-1, pid)
@@ -867,6 +875,67 @@ int gnl_simfs_file_system_fstat(struct gnl_simfs_file_system *file_system, int f
 
     // release the lock
     GNL_SIMFS_LOCK_RELEASE(-1, pid)
+
+    return 0;
+}
+
+/**
+ * {@inheritDoc}
+ */
+int gnl_simfs_file_system_status(struct gnl_simfs_file_system *file_system) {
+    // validate the parameters
+    GNL_NULL_CHECK(file_system, EINVAL, -1)
+
+    printf("\n");
+    printf("File System status:\n");
+
+    printf("Memory limit: %f MB (%lld bytes)\n", bytes_to_mb(file_system->memory_limit),
+           file_system->memory_limit);
+    printf("File limit: %d\n", file_system->files_limit);
+
+    printf("Max files reached: %d\n", file_system->monitor->file_peak);
+    printf("Max megabytes reached: %f MB (%lld bytes)\n", bytes_to_mb(file_system->monitor->bytes_peak),
+           file_system->monitor->bytes_peak);
+    printf("Number of evictions: %d\n", file_system->monitor->file_evictions);
+
+    printf("Files stored: %d\n", file_system->monitor->file_counter);
+    printf("Heap size: %f MB (%lld bytes)\n", bytes_to_mb(file_system->monitor->bytes_counter),
+           file_system->monitor->bytes_counter);
+
+    printf("File list:\n");
+
+    // reset the errno
+    errno = 0;
+
+    struct gnl_list_t *list = gnl_simfs_file_table_list(file_system->file_table);
+
+    // check the result
+    if (list == NULL) {
+
+        // if an error occurred
+        if (errno != 0) {
+            perror("error on getting the files");
+
+            return -1;
+        }
+
+        printf("no files stored");
+        printf("\n");
+
+        return 0;
+    }
+
+    // print the file list
+    struct gnl_list_t *current = list;
+    while(current != NULL) {
+        printf("%s\n", (char *)current->el);
+
+        current = current->next;
+    }
+
+    printf("\n");
+
+    gnl_list_destroy(&list, free);
 
     return 0;
 }

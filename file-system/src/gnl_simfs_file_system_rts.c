@@ -9,6 +9,32 @@
 #include "./gnl_simfs_file_descriptor_table.c"
 #include <gnl_macro_beg.h>
 
+#define GNL_SIMFS_BYTES_IN_A_MEGABYTE 1048576
+
+/**
+ * Convert the given bytes into megabytes.
+ *
+ * @param bytes The bytes to convert.
+ *
+ * @return      Returns the megabytes value of
+ *              the given bytes.
+ */
+static double bytes_to_mb(double bytes) {
+    return bytes / GNL_SIMFS_BYTES_IN_A_MEGABYTE;
+}
+
+/**
+ * Convert the given megabytes into bytes.
+ *
+ * @param mb    The megabytes to convert.
+ *
+ * @return      Returns the bytes value of
+ *              the given megabytes.
+ */
+static double mb_to_bytes(unsigned long long mb) {
+    return mb * GNL_SIMFS_BYTES_IN_A_MEGABYTE;
+}
+
 /**
  * Get the original inode of the given filename.
  *
@@ -88,6 +114,10 @@ static struct gnl_simfs_inode *gnl_simfs_rts_create_inode(struct gnl_simfs_file_
 
     gnl_logger_debug(file_system->logger, "Created file \"%s\"", filename);
 
+    // track the event
+    int res = gnl_simfs_monitor_file_added(file_system->monitor);
+    GNL_MINUS1_CHECK(res, errno, NULL);
+
     return inode;
 }
 
@@ -120,9 +150,14 @@ static int gnl_simfs_rts_fflush_inode(struct gnl_simfs_file_system *file_system,
     int size = gnl_simfs_file_table_size(file_system->file_table);
     GNL_MINUS1_CHECK(size, errno, -1);
 
+    // track the event
+    res = gnl_simfs_monitor_bytes_added(file_system->monitor, inode->size);
+    GNL_MINUS1_CHECK(res, errno, -1);
+
     gnl_logger_debug(file_system->logger, "File flush on entry \"%s\" succeeded", inode->name);
     gnl_logger_debug(file_system->logger, "Inode compressed into %d bytes", inode->size);
-    gnl_logger_debug(file_system->logger, "The heap size has now %d bytes left", file_system->memory_limit - size);
+    gnl_logger_debug(file_system->logger, "The heap size has now %lld bytes (%f MB) left",
+                     file_system->memory_limit - size, bytes_to_mb(file_system->memory_limit - size));
 
     return 0;
 }
@@ -194,11 +229,20 @@ static int gnl_simfs_rts_remove_inode(struct gnl_simfs_file_system *file_system,
         return -1;
     }
 
+    // track the event
+    res = gnl_simfs_monitor_bytes_removed(file_system->monitor, count);
+    GNL_MINUS1_CHECK(res, errno, -1);
+
+    res = gnl_simfs_monitor_file_removed(file_system->monitor);
+    GNL_MINUS1_CHECK(res, errno, -1);
+
+    // get the new file table size for logging
     int size = gnl_simfs_file_table_size(file_system->file_table);
     GNL_MINUS1_CHECK(size, errno, -1);
 
     gnl_logger_debug(file_system->logger, "Remove on entry \"%s\" succeeded, %d bytes freed, the heap size "
-                                          "has now %d bytes left", key, count, file_system->memory_limit - size);
+                                          "has now %lld bytes (%f MB) left", key, count, file_system->memory_limit - size,
+                                          bytes_to_mb(file_system->memory_limit - size));
 
     return 0;
 }
@@ -381,6 +425,11 @@ int gnl_simfs_rts_evict(struct gnl_simfs_file_system *file_system, struct gnl_li
     GNL_NULL_CHECK(evicted_list, EINVAL, -1)
 
     gnl_logger_debug(file_system->logger, "Start eviction");
+
+    // track the event
+    int res = gnl_simfs_monitor_eviction_started(file_system->monitor);
+    GNL_MINUS1_CHECK(res, errno, -1);
+
     gnl_logger_debug(file_system->logger, "Listing all the files in the filesystem");
 
     // get a list of files present into the file system
@@ -411,7 +460,7 @@ int gnl_simfs_rts_evict(struct gnl_simfs_file_system *file_system, struct gnl_li
     strncpy(evicted_file->name, victim_inode->name, strlen(victim_inode->name));
 
     // read the file into the evicted element
-    int res = gnl_simfs_rts_read_inode(file_system, victim_inode, &(evicted_file->bytes), &(evicted_file->count));
+    res = gnl_simfs_rts_read_inode(file_system, victim_inode, &(evicted_file->bytes), &(evicted_file->count));
     GNL_MINUS1_CHECK(res, errno, -1)
 
     // add the evicted file into the list
@@ -429,5 +478,7 @@ int gnl_simfs_rts_evict(struct gnl_simfs_file_system *file_system, struct gnl_li
 
     return 0;
 }
+
+#undef GNL_SIMFS_BYTES_IN_A_MEGABYTE
 
 #include <gnl_macro_end.h>

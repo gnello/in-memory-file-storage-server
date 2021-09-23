@@ -216,4 +216,13 @@ extern int gnl_simfs_file_system_stat(struct gnl_simfs_file_system *file_system,
 extern int gnl_simfs_file_system_fstat(struct gnl_simfs_file_system *file_system, int fd, struct gnl_simfs_inode *buf,
         unsigned int pid);
 
+/**
+ * Print the file system status into the stdout.
+ *
+ * @param file_system   The file system instance where to get the status.
+ *
+ * @return              Return 0 on success, -1 otherwise.
+ */
+extern int gnl_simfs_file_system_status(struct gnl_simfs_file_system *file_system);
+
 #endif //GNL_SIMFS_FILE_SYSTEM_H
