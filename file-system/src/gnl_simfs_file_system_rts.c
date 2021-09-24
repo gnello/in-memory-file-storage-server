@@ -37,58 +37,6 @@ static double mb_to_bytes(unsigned long long mb) {
 }
 
 /**
- * Get the string representation of the given replacement policy.
- * The output string dest will be written with the string type of
- * the given replacement policy.
- *
- * @param rp    The replacement policy.
- * @param dest  The pointer where to put the string representation.
- *
- * @return      Return 0 on success, -1 otherwise.
- */
-static int gnl_simfs_rts_replacement_policy_to_string(enum gnl_simfs_replacement_policy rp, char **dest) {
-    switch (rp) {
-
-        case GNL_SIMFS_RP_NONE:
-            GNL_CALLOC(*dest, 5, -1);
-            strcpy(*dest, "NONE");
-            break;
-
-        case GNL_SIMFS_RP_FIFO:
-            GNL_CALLOC(*dest, 5, -1);
-            strcpy(*dest, "FIFO");
-            break;
-
-        case GNL_SIMFS_RP_LIFO:
-            GNL_CALLOC(*dest, 5, -1);
-            strcpy(*dest, "LIFO");
-            break;
-
-        case GNL_SIMFS_RP_LRU:
-            GNL_CALLOC(*dest, 4, -1);
-            strcpy(*dest, "LRU");
-            break;
-
-        case GNL_SIMFS_RP_MRU:
-            GNL_CALLOC(*dest, 4, -1);
-            strcpy(*dest, "MRU");
-            break;
-
-        case GNL_SIMFS_RP_LFU:
-            GNL_CALLOC(*dest, 4, -1);
-            strcpy(*dest, "LFU");
-            break;
-
-        default:
-            errno = EINVAL;
-            return -1;
-            /* UNREACHED */
-    }
-
-    return 0;
-}
-
-/**
  * Get the original inode of the given filename.
  *
  * @param file_system   The file system instance where the file table resides.

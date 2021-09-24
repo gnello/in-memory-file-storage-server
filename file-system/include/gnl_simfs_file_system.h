@@ -225,4 +225,16 @@ extern int gnl_simfs_file_system_fstat(struct gnl_simfs_file_system *file_system
  */
 extern int gnl_simfs_file_system_status(struct gnl_simfs_file_system *file_system);
 
+/**
+ * Get the string representation of the replacement policy of the
+ * given file system. The output string dest will be written with
+ * the string type of the replacement policy.
+ *
+ * @param file_system   The file system instance.
+ * @param dest          The pointer where to put the string representation.
+ *
+ * @return              Return 0 on success, -1 otherwise.
+ */
+extern int gnl_simfs_file_system_get_replacement_policy(struct gnl_simfs_file_system *file_system, char **dest);
+
 #endif //GNL_SIMFS_FILE_SYSTEM_H

@@ -365,13 +365,6 @@ int gnl_fss_server_start(const struct gnl_fss_config *config) {
     gnl_logger_info(logger, "server is starting");
 
     gnl_logger_debug(logger, "config loaded");
-    gnl_logger_debug(logger, "thread workers: %d", config->thread_workers);
-    gnl_logger_debug(logger, "capacity: %d MB", config->capacity);
-    gnl_logger_debug(logger, "files limit: %d", config->limit);
-    gnl_logger_debug(logger, "replacement policy: %d", config->replacement_policy);
-    gnl_logger_debug(logger, "socket filename: %s", config->socket);
-    gnl_logger_debug(logger, "log file: %s", config->log_filepath);
-    gnl_logger_debug(logger, "log level: %s", config->log_level);
 
     // instantiate the file_system
     gnl_logger_debug(logger, "starting the file system...");
@@ -381,6 +374,21 @@ int gnl_fss_server_start(const struct gnl_fss_config *config) {
 
     gnl_logger_debug(logger, "file system started");
 
+    char *dest;
+    int res = gnl_simfs_file_system_get_replacement_policy(file_system, &dest);
+    GNL_MINUS1_CHECK(res, errno, -1);
+
+    gnl_logger_debug(logger, "thread workers: %d", config->thread_workers);
+    gnl_logger_debug(logger, "capacity: %d MB", config->capacity);
+    gnl_logger_debug(logger, "files limit: %d", config->limit);
+    gnl_logger_debug(logger, "replacement policy: %s", dest);
+    gnl_logger_debug(logger, "socket filename: %s", config->socket);
+    gnl_logger_debug(logger, "log file: %s", config->log_filepath);
+    gnl_logger_debug(logger, "log level: %s", config->log_level);
+
+    // free memory
+    free(dest);
+
     // start the thread pool
     struct gnl_fss_thread_pool *thread_pool = create_thread_pool(config->thread_workers, file_system, config, logger);
     if (thread_pool == NULL) {
@@ -388,9 +396,6 @@ int gnl_fss_server_start(const struct gnl_fss_config *config) {
 
         return -1;
     }
-
-    // return value
-    int res;
 
     // socket connection file descriptor
     int fd_skt;

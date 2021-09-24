@@ -887,7 +887,7 @@ int gnl_simfs_file_system_status(struct gnl_simfs_file_system *file_system) {
     GNL_NULL_CHECK(file_system, EINVAL, -1)
 
     char *dest;
-    int res = gnl_simfs_rts_replacement_policy_to_string(file_system->replacement_policy, &dest);
+    int res = gnl_simfs_file_system_get_replacement_policy(file_system, &dest);
     GNL_MINUS1_CHECK(res, errno, -1);
 
     printf("\n");
@@ -943,6 +943,54 @@ int gnl_simfs_file_system_status(struct gnl_simfs_file_system *file_system) {
     printf("\n");
 
     gnl_list_destroy(&list, free);
+
+    return 0;
+}
+
+/**
+ * {@inheritDoc}
+ */
+int gnl_simfs_file_system_get_replacement_policy(struct gnl_simfs_file_system *file_system, char **dest) {
+    // validate the parameters
+    GNL_NULL_CHECK(file_system, EINVAL, -1)
+
+    switch (file_system->replacement_policy) {
+
+        case GNL_SIMFS_RP_NONE:
+        GNL_CALLOC(*dest, 5, -1);
+            strcpy(*dest, "NONE");
+            break;
+
+        case GNL_SIMFS_RP_FIFO:
+        GNL_CALLOC(*dest, 5, -1);
+            strcpy(*dest, "FIFO");
+            break;
+
+        case GNL_SIMFS_RP_LIFO:
+        GNL_CALLOC(*dest, 5, -1);
+            strcpy(*dest, "LIFO");
+            break;
+
+        case GNL_SIMFS_RP_LRU:
+        GNL_CALLOC(*dest, 4, -1);
+            strcpy(*dest, "LRU");
+            break;
+
+        case GNL_SIMFS_RP_MRU:
+        GNL_CALLOC(*dest, 4, -1);
+            strcpy(*dest, "MRU");
+            break;
+
+        case GNL_SIMFS_RP_LFU:
+        GNL_CALLOC(*dest, 4, -1);
+            strcpy(*dest, "LFU");
+            break;
+
+        default:
+            errno = EINVAL;
+            return -1;
+            /* UNREACHED */
+    }
 
     return 0;
 }
