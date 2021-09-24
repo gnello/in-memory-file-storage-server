@@ -2,6 +2,7 @@
 #include <string.h>
 #include <pthread.h>
 #include <gnl_logger.h>
+#include "../include/gnl_simfs_file_system.h"
 #include "../include/gnl_simfs_file_system_struct.h"
 #include "./gnl_simfs_file_table.c"
 #include "./gnl_simfs_evicted_file.c"
@@ -33,6 +34,58 @@ static double bytes_to_mb(double bytes) {
  */
 static double mb_to_bytes(unsigned long long mb) {
     return mb * GNL_SIMFS_BYTES_IN_A_MEGABYTE;
+}
+
+/**
+ * Get the string representation of the given replacement policy.
+ * The output string dest will be written with the string type of
+ * the given replacement policy.
+ *
+ * @param rp    The replacement policy.
+ * @param dest  The pointer where to put the string representation.
+ *
+ * @return      Return 0 on success, -1 otherwise.
+ */
+static int gnl_simfs_rts_replacement_policy_to_string(enum gnl_simfs_replacement_policy rp, char **dest) {
+    switch (rp) {
+
+        case GNL_SIMFS_RP_NONE:
+            GNL_CALLOC(*dest, 5, -1);
+            strcpy(*dest, "NONE");
+            break;
+
+        case GNL_SIMFS_RP_FIFO:
+            GNL_CALLOC(*dest, 5, -1);
+            strcpy(*dest, "FIFO");
+            break;
+
+        case GNL_SIMFS_RP_LIFO:
+            GNL_CALLOC(*dest, 5, -1);
+            strcpy(*dest, "LIFO");
+            break;
+
+        case GNL_SIMFS_RP_LRU:
+            GNL_CALLOC(*dest, 4, -1);
+            strcpy(*dest, "LRU");
+            break;
+
+        case GNL_SIMFS_RP_MRU:
+            GNL_CALLOC(*dest, 4, -1);
+            strcpy(*dest, "MRU");
+            break;
+
+        case GNL_SIMFS_RP_LFU:
+            GNL_CALLOC(*dest, 4, -1);
+            strcpy(*dest, "LFU");
+            break;
+
+        default:
+            errno = EINVAL;
+            return -1;
+            /* UNREACHED */
+    }
+
+    return 0;
 }
 
 /**

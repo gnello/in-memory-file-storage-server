@@ -886,6 +886,10 @@ int gnl_simfs_file_system_status(struct gnl_simfs_file_system *file_system) {
     // validate the parameters
     GNL_NULL_CHECK(file_system, EINVAL, -1)
 
+    char *dest;
+    int res = gnl_simfs_rts_replacement_policy_to_string(file_system->replacement_policy, &dest);
+    GNL_MINUS1_CHECK(res, errno, -1);
+
     printf("\n");
     printf("File System status:\n");
 
@@ -896,7 +900,10 @@ int gnl_simfs_file_system_status(struct gnl_simfs_file_system *file_system) {
     printf("Max files reached: %d\n", file_system->monitor->file_peak);
     printf("Max megabytes reached: %f MB (%lld bytes)\n", bytes_to_mb(file_system->monitor->bytes_peak),
            file_system->monitor->bytes_peak);
-    printf("Number of evictions: %d\n", file_system->monitor->file_evictions);
+    printf("Number of evictions (replacement policy: %s): %d\n", dest, file_system->monitor->file_evictions);
+
+    // free memory
+    free(dest);
 
     printf("Files stored: %d\n", file_system->monitor->file_counter);
     printf("Heap size: %f MB (%lld bytes)\n", bytes_to_mb(file_system->monitor->bytes_counter),
