@@ -384,7 +384,7 @@ int gnl_socket_service_send_response(int fd, struct gnl_socket_response *respons
     }
 
     // send the request message through the socket
-    size_t nwrite = write_protocol_message(fd, message, response->type, bytes);
+    size_t nwrite = write_protocol_message(fd, message, gnl_socket_response_type(response), bytes);
 
     // free memory
     free(message);

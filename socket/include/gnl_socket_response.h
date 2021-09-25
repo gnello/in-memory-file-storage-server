@@ -35,15 +35,7 @@ enum gnl_socket_response_type {
 /**
  * The socket response.
  */
-struct gnl_socket_response {
-    enum gnl_socket_response_type type;
-    union {
-        struct gnl_message_nq *ok_file_list;
-        struct gnl_message_snb *ok_file;
-        struct gnl_message_n *ok_fd;
-        struct gnl_message_n *error;
-    } payload;
-};
+struct gnl_socket_response;
 
 /**
  * Create a socket response struct with the given type and arguments.
@@ -60,7 +52,7 @@ struct gnl_socket_response {
  * @return      Returns a gnl_socket_response struct on success,
  *              NULL otherwise.
  */
-struct gnl_socket_response *gnl_socket_response_init(enum gnl_socket_response_type type, int num, ...);
+extern struct gnl_socket_response *gnl_socket_response_init(enum gnl_socket_response_type type, int num, ...);
 
 /**
  * Destroy the socket response.
@@ -81,7 +73,9 @@ extern void gnl_socket_response_destroy(struct gnl_socket_response *response);
 extern int gnl_socket_response_get_type(struct gnl_socket_response *response, char **dest);
 
 /**
- * Read the file descriptor from the given response.
+ * Read the file descriptor from the given GNL_SOCKET_RESPONSE_OK_FD response.
+ * If the response is not a GNL_SOCKET_RESPONSE_OK_FD response,
+ * this invocation will fail.
  *
  * @param response  The socket response.
  *
@@ -91,7 +85,9 @@ extern int gnl_socket_response_get_type(struct gnl_socket_response *response, ch
 extern int gnl_socket_response_get_fd(struct gnl_socket_response *response);
 
 /**
- * Get the error code of the given response.
+ * Get the error code of the given GNL_SOCKET_RESPONSE_ERROR response.
+ * If the response is not a GNL_SOCKET_RESPONSE_ERROR response,
+ * this invocation will fail.
  *
  * @param response  The socket response,
  *
@@ -99,6 +95,16 @@ extern int gnl_socket_response_get_fd(struct gnl_socket_response *response);
  *                  -1 otherwise.
  */
 extern int gnl_socket_response_get_error(struct gnl_socket_response *response);
+
+/**
+ * Get the type code of the given response.
+ *
+ * @param response  The socket response,
+ *
+ * @return          Returns the response type code on success,
+ *                  -1 otherwise.
+ */
+extern int gnl_socket_response_type(struct gnl_socket_response *response);
 
 /**
  * Get a string that represent the given response.
@@ -147,5 +153,29 @@ extern int gnl_socket_response_add_file(struct gnl_socket_response *response, co
  *                  information on success, NULL otherwise.
  */
 extern struct gnl_message_snb *gnl_socket_response_get_file(struct gnl_socket_response *response);
+
+/**
+ * Get the count of bytes from the given GNL_SOCKET_RESPONSE_OK_FILE response.
+ * If the response is not a GNL_SOCKET_RESPONSE_OK_FILE response,
+ * this invocation will fail.
+ *
+ * @param response  The response from where to get the count.
+ *
+ * @return          Returns the response count of bytes on success,
+ *                  NULL otherwise.
+ */
+extern size_t gnl_socket_response_get_size(struct gnl_socket_response *response);
+
+/**
+ * Get the bytes from the given GNL_SOCKET_RESPONSE_OK_FILE response.
+ * If the response is not a GNL_SOCKET_RESPONSE_OK_FILE response,
+ * this invocation will fail.
+ *
+ * @param response  The response from where to get the bytes.
+ *
+ * @return          Returns the response bytes on success,
+ *                  NULL otherwise.
+ */
+extern void *gnl_socket_response_get_bytes(struct gnl_socket_response *response);
 
 #endif //GNL_SOCKET_RESPONSE_H

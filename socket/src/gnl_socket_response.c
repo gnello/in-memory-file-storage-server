@@ -29,6 +29,19 @@
 /**
  * {@inheritDoc}
  */
+struct gnl_socket_response {
+    enum gnl_socket_response_type type;
+    union {
+        struct gnl_message_nq *ok_file_list;
+        struct gnl_message_snb *ok_file;
+        struct gnl_message_n *ok_fd;
+        struct gnl_message_n *error;
+    } payload;
+};
+
+/**
+ * {@inheritDoc}
+ */
 int gnl_socket_response_get_type(struct gnl_socket_response *response, char **dest) {
     if (response == NULL) {
         errno = EINVAL;
@@ -180,7 +193,6 @@ void gnl_socket_response_destroy(struct gnl_socket_response *response) {
 /**
  * {@inheritDoc}
  */
-//TODO: scrivere test
 int gnl_socket_response_get_fd(struct gnl_socket_response *response) {
     GNL_NULL_CHECK(response, EINVAL, -1)
 
@@ -196,7 +208,6 @@ int gnl_socket_response_get_fd(struct gnl_socket_response *response) {
 /**
  * {@inheritDoc}
  */
-//TODO: aggiungere test dopo aver scritto la enum
 int gnl_socket_response_get_error(struct gnl_socket_response *response) {
     GNL_NULL_CHECK(response, EINVAL, -1)
 
@@ -207,6 +218,15 @@ int gnl_socket_response_get_error(struct gnl_socket_response *response) {
     errno = EINVAL;
 
     return -1;
+}
+
+/**
+ * {@inheritDoc}
+ */
+int gnl_socket_response_type(struct gnl_socket_response *response) {
+    GNL_NULL_CHECK(response, EINVAL, -1)
+
+    return response->type;
 }
 
 /**
@@ -345,6 +365,36 @@ struct gnl_message_snb *gnl_socket_response_get_file(struct gnl_socket_response 
     }
 
     return gnl_message_nq_dequeue(response->payload.ok_file_list);
+}
+
+/**
+ * {@inheritDoc}
+ */
+size_t gnl_socket_response_get_size(struct gnl_socket_response *response) {
+    GNL_NULL_CHECK(response, EINVAL, -1)
+
+    if (response->type != GNL_SOCKET_RESPONSE_OK_FILE) {
+        errno = EINVAL;
+
+        return -1;
+    }
+
+    return response->payload.ok_file->count;
+}
+
+/**
+ * {@inheritDoc}
+ */
+void *gnl_socket_response_get_bytes(struct gnl_socket_response *response) {
+    GNL_NULL_CHECK(response, EINVAL, NULL)
+
+    if (response->type != GNL_SOCKET_RESPONSE_OK_FILE) {
+        errno = EINVAL;
+
+        return NULL;
+    }
+
+    return response->payload.ok_file->bytes;
 }
 
 #undef MAX_DIGITS_CHAR

@@ -378,7 +378,7 @@ static struct gnl_socket_response *handle_fd_c_request(struct gnl_fss_worker *wo
     }
 
     // if the target file of the request is locked
-    if (response->type == GNL_SOCKET_RESPONSE_ERROR && response->payload.error->number == EBUSY) {
+    if (gnl_socket_response_type(response) == GNL_SOCKET_RESPONSE_ERROR && gnl_socket_response_get_error(response) == EBUSY) {
         gnl_logger_debug(logger, "EBUSY response received, client %d will be put into the waiting list", fd_c);
 
         // put the client into the waiting list
@@ -429,7 +429,7 @@ static int handle_fd_c_response(struct gnl_fss_worker *worker, int fd_c,
     struct gnl_logger *logger = worker->logger;
 
     // check if there is any waiting pid
-    if (request->type == GNL_SOCKET_REQUEST_UNLOCK && response->type == GNL_SOCKET_RESPONSE_OK) {
+    if (request->type == GNL_SOCKET_REQUEST_UNLOCK && gnl_socket_response_type(response) == GNL_SOCKET_RESPONSE_OK) {
 
         gnl_logger_debug(logger, "broadcast to waiting pid");
 
@@ -475,7 +475,7 @@ static int handle_fd_c_response(struct gnl_fss_worker *worker, int fd_c,
     // if this check is false, then the request was stored
     // into the waiting list, and we can not destroy it, if it
     // is true we can destroy it
-    if (response->type != GNL_SOCKET_RESPONSE_ERROR || errno != EBUSY) {
+    if (gnl_socket_response_type(response) != GNL_SOCKET_RESPONSE_ERROR || errno != EBUSY) {
         gnl_socket_request_destroy(request);
     }
 

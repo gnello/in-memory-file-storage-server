@@ -170,11 +170,14 @@ int gnl_fss_api_open_file(const char *pathname, int flags) {
     unsigned int *fd_copy = NULL;
 
     // handle the response
-    switch (response->type) {
+    switch (gnl_socket_response_type(response)) {
 
         case GNL_SOCKET_RESPONSE_ERROR:
-            // an error happen, set the errno
-            errno = response->payload.error->number;
+            // an error occurred, set the errno
+            res = gnl_socket_response_get_error(response);
+            GNL_MINUS1_CHECK(res, errno, -1)
+
+            errno = res;
             res = -1;
             break;
 
@@ -232,23 +235,26 @@ int gnl_fss_api_read_file(const char *pathname, void **buf, size_t *size) {
     int res = 0;
 
     // handle the response
-    switch (response->type) {
+    switch (gnl_socket_response_type(response)) {
 
         case GNL_SOCKET_RESPONSE_ERROR:
-            // an error happen, set the errno
-            errno = response->payload.error->number;
+            // an error occurred, set the errno
+            res = gnl_socket_response_get_error(response);
+            GNL_MINUS1_CHECK(res, errno, -1)
+            
+            errno = res;
             res = -1;
             break;
 
         case GNL_SOCKET_RESPONSE_OK_FILE:
             // get the size
-            *size = response->payload.ok_file->count;
+            *size = gnl_socket_response_get_size(response);
 
             // instantiate the buf
             GNL_CALLOC(*buf, *size, -1)
 
             // copy the received bytes into buf
-            memcpy(*buf, response->payload.ok_file->bytes, *size);
+            memcpy(*buf, gnl_socket_response_get_bytes(response), *size);
             break;
 
         default:
@@ -287,11 +293,14 @@ int gnl_fss_api_read_N_files(int N, const char *dirname) {
     int file_read_count = 0;
 
     // handle the response
-    switch (response->type) {
+    switch (gnl_socket_response_type(response)) {
 
         case GNL_SOCKET_RESPONSE_ERROR:
-            // an error happen, set the errno
-            errno = response->payload.error->number;
+            // an error occurred, set the errno
+            res = gnl_socket_response_get_error(response);
+            GNL_MINUS1_CHECK(res, errno, -1)
+
+            errno = res;
             res = -1;
             break;
 
@@ -302,7 +311,7 @@ int gnl_fss_api_read_N_files(int N, const char *dirname) {
         case GNL_SOCKET_RESPONSE_OK_FILE_LIST:
 
             // for each received file
-            while ((file = (struct gnl_message_snb *)gnl_queue_dequeue(response->payload.ok_file_list->queue)) != NULL) {
+            while ((file = gnl_socket_response_get_file(response)) != NULL) {
 
                 // increase the counter
                 file_read_count++;
@@ -444,11 +453,14 @@ int gnl_fss_api_append_to_file(const char *pathname, void *buf, size_t size, con
     int res = 0;
     struct gnl_message_snb *file = NULL;
 
-    switch (response->type) {
+    switch (gnl_socket_response_type(response)) {
 
         case GNL_SOCKET_RESPONSE_ERROR:
-            // an error happen, set the errno
-            errno = response->payload.error->number;
+            // an error occurred, set the errno
+            res = gnl_socket_response_get_error(response);
+            GNL_MINUS1_CHECK(res, errno, -1)
+
+            errno = res;
             res = -1;
             break;
 
@@ -460,7 +472,7 @@ int gnl_fss_api_append_to_file(const char *pathname, void *buf, size_t size, con
             // success but one or more files were evicted
 
             // for each received file
-            while ((file = (struct gnl_message_snb *)gnl_queue_dequeue(response->payload.ok_file_list->queue)) != NULL) {
+            while ((file = gnl_socket_response_get_file(response)) != NULL) {
 
                 // if a dirname was provided, then save the file
                 if (dirname != NULL) {
@@ -518,11 +530,14 @@ int gnl_fss_api_lock_file(const char *pathname) {
     int res = 0;
 
     // handle the response
-    switch (response->type) {
+    switch (gnl_socket_response_type(response)) {
 
         case GNL_SOCKET_RESPONSE_ERROR:
-            // an error happen, set the errno
-            errno = response->payload.error->number;
+            // an error occurred, set the errno
+            res = gnl_socket_response_get_error(response);
+            GNL_MINUS1_CHECK(res, errno, -1)
+
+            errno = res;
             res = -1;
             break;
 
@@ -571,11 +586,14 @@ int gnl_fss_api_unlock_file(const char *pathname) {
     int res = 0;
 
     // handle the response
-    switch (response->type) {
+    switch (gnl_socket_response_type(response)) {
 
         case GNL_SOCKET_RESPONSE_ERROR:
-            // an error happen, set the errno
-            errno = response->payload.error->number;
+            // an error occurred, set the errno
+            res = gnl_socket_response_get_error(response);
+            GNL_MINUS1_CHECK(res, errno, -1)
+
+            errno = res;
             res = -1;
             break;
 
@@ -625,11 +643,14 @@ int gnl_fss_api_close_file(const char *pathname) {
     int tmp_res;
 
     // handle the response
-    switch (response->type) {
+    switch (gnl_socket_response_type(response)) {
 
         case GNL_SOCKET_RESPONSE_ERROR:
-            // an error happen, set the errno
-            errno = response->payload.error->number;
+            // an error occurred, set the errno
+            res = gnl_socket_response_get_error(response);
+            GNL_MINUS1_CHECK(res, errno, -1)
+
+            errno = res;
             res = -1;
             break;
 
@@ -675,11 +696,14 @@ int gnl_fss_api_remove_file(const char *pathname) {
     int res = 0;
 
     // handle the response
-    switch (response->type) {
+    switch (gnl_socket_response_type(response)) {
 
         case GNL_SOCKET_RESPONSE_ERROR:
-            // an error happen, set the errno
-            errno = response->payload.error->number;
+            // an error occurred, set the errno
+            res = gnl_socket_response_get_error(response);
+            GNL_MINUS1_CHECK(res, errno, -1)
+
+            errno = res;
             res = -1;
             break;
 
