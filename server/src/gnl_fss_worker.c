@@ -619,7 +619,16 @@ void *gnl_fss_worker_handle(void* args) {
                                              "error ignored", strerror(errno));
                 }
 
-                //TODO: chiudere tutti i file aperti e unlockarli
+                gnl_logger_debug(logger, "client %d removed from the waiting list", fd_c);
+
+                // remove the client session from the file system
+                res = gnl_simfs_file_system_remove_session(worker->file_system, fd_c);
+                if (res == -1) {
+                    gnl_logger_error(logger, "error during the removing of the client fd %d session "
+                                             "from the file system: %s, error ignored", strerror(errno));
+                }
+
+                gnl_logger_debug(logger, "client %d session removed from the file system", fd_c);
 
                 // close the client file descriptor
                 res = close(fd_c);
