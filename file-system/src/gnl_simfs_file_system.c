@@ -542,8 +542,8 @@ int gnl_simfs_file_system_close(struct gnl_simfs_file_system *file_system, int f
     gnl_logger_debug(file_system->logger, "Close: entry \"%s\" found, closing file", inode->name);
 
     // get if the file is locked information
-    res = gnl_simfs_inode_is_file_locked(inode);
-    GNL_SIMFS_MINUS1_CHECK(res, errno, -1, pid)
+//    res = gnl_simfs_inode_is_file_locked(inode);
+//    GNL_SIMFS_MINUS1_CHECK(res, errno, -1, pid)
 
     // remove lock if pid owns it
 //    if (res > 0 && res == pid) {
@@ -1012,6 +1012,8 @@ int gnl_simfs_file_system_remove_session(struct gnl_simfs_file_system *file_syst
 
     int res = gnl_simfs_file_descriptor_table_remove_pid(file_system->file_descriptor_table, pid);
     GNL_SIMFS_MINUS1_CHECK(res, errno, -1, pid)
+
+    //TODO: eventually decrease the inode reference count
 
     // unlock the inodes locked by pid
     gnl_logger_debug(file_system->logger, "Remove session: unlocking every files locked by pid %d", pid);
