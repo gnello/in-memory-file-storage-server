@@ -898,15 +898,15 @@ int gnl_simfs_file_system_status(struct gnl_simfs_file_system *file_system) {
     printf("File limit: %d\n", file_system->files_limit);
 
     printf("Max files reached: %d\n", file_system->monitor->file_peak);
-    printf("Max megabytes reached: %f MB (%lld bytes)\n", bytes_to_mb(file_system->monitor->bytes_peak),
+    printf("Max heap size reached: %f MB (%lld bytes)\n", bytes_to_mb(file_system->monitor->bytes_peak),
            file_system->monitor->bytes_peak);
     printf("Number of evictions (replacement policy: %s): %d\n", dest, file_system->monitor->file_evictions);
 
     // free memory
     free(dest);
 
-    printf("Files stored: %d\n", file_system->monitor->file_counter);
-    printf("Heap size: %f MB (%lld bytes)\n", bytes_to_mb(file_system->monitor->bytes_counter),
+    printf("Files stored at exit: %d\n", file_system->monitor->file_counter);
+    printf("Heap size at exit: %f MB (%lld bytes)\n", bytes_to_mb(file_system->monitor->bytes_counter),
            file_system->monitor->bytes_counter);
 
     printf("File list:\n");

@@ -73,6 +73,40 @@ struct gnl_simfs_file_descriptor_table *gnl_simfs_file_descriptor_table_init(uns
 }
 
 /**
+ * Remove the given fd from the given file descriptor table.
+ *
+ * @param table The file descriptor table instance from where delete the file descriptor.
+ * @param fd    The file descriptor to remove from the given file descriptor table.
+ *
+ * @return      Return 0 on success, -1 otherwise.
+ */
+static int remove_fd(struct gnl_simfs_file_descriptor_table *table, unsigned int fd) {
+    GNL_NULL_CHECK(table, EINVAL, -1)
+
+    // remove the file descriptor
+    gnl_simfs_inode_copy_destroy(table->table[fd]->inode);
+    free(table->table[fd]);
+    table->table[fd] = NULL;
+
+    // Add the removed file descriptor into the free index map
+
+    // make a deep copy of the fd
+    unsigned int *fd_copy = malloc(sizeof(int));
+    GNL_NULL_CHECK(fd_copy, ENOMEM, -1)
+
+    *fd_copy = fd;
+
+    // add the deep copy into the free index map
+    int res = gnl_min_heap_insert(table->free_index_map, fd_copy, fd);
+    GNL_MINUS1_CHECK(res, errno, -1)
+
+    // decrease the table size
+    table->size--;
+
+    return 0;
+}
+
+/**
  * {@inheritDoc}
  */
 void gnl_simfs_file_descriptor_table_destroy(struct gnl_simfs_file_descriptor_table *table) {
@@ -248,29 +282,30 @@ int gnl_simfs_file_descriptor_table_remove(struct gnl_simfs_file_descriptor_tabl
     }
 
     // remove the file descriptor
-    gnl_simfs_inode_copy_destroy(table->table[fd]->inode);
-    free(table->table[fd]);
-    table->table[fd] = NULL;
+    return remove_fd(table, fd);
+}
 
-    // if the fd is the maximum active file descriptor decrease it by one TODO: valutare se rimuovere
-//    if (fd == table->max_fd) {
-//        table->max_fd--;
-//    }
-//    // else add the removed file descriptor into the free index map
-//    else {
-        // make a deep copy of the fd
-        unsigned int *fd_copy = malloc(sizeof(int));
-        GNL_NULL_CHECK(fd_copy, ENOMEM, -1)
+/**
+ * {@inheritDoc}
+ */
+int gnl_simfs_file_descriptor_table_remove_pid(struct gnl_simfs_file_descriptor_table *table, unsigned int pid) {
+    GNL_NULL_CHECK(table, EINVAL, -1)
 
-        *fd_copy = fd;
+    int res;
 
-        // add the deep copy into the free index map
-        int res = gnl_min_heap_insert(table->free_index_map, fd_copy, fd);
-        GNL_MINUS1_CHECK(res, errno, -1)
-    //}
+    for (size_t i=0; i<=table->max_fd; i++) {
+        // check that the i-th file descriptor is owned by the given pid
+        if (table->table[i] == NULL || table->table[i]->owner != pid) {
+            continue;
+        }
 
-    // decrease the table size
-    table->size--;
+        // remove the file descriptor
+        res = remove_fd(table, i);
+        if (res == -1) {
+            // let the errno bubble
+            return -1;
+        }
+    }
 
     return 0;
 }

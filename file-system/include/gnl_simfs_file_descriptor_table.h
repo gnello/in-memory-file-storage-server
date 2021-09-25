@@ -53,6 +53,17 @@ extern int gnl_simfs_file_descriptor_table_remove(struct gnl_simfs_file_descript
         unsigned int pid);
 
 /**
+ * Remove all the file descriptors owned by the given pid from the given file
+ * descriptor table. It will not delete the associated inodes.
+ *
+ * @param table The file descriptor table instance from where delete the file descriptors.
+ * @param pid   The id of the process that invoked this method, it should be the owner of the entry.
+ *
+ * @return      Return 0 on success, -1 otherwise.
+ */
+extern int gnl_simfs_file_descriptor_table_remove_pid(struct gnl_simfs_file_descriptor_table *table, unsigned int pid);
+
+/**
  * Get a file descriptor inode from the given file descriptor table.
  *
  * @param table The file descriptor table instance from where to get the file descriptor.
