@@ -1,6 +1,5 @@
 #include <errno.h>
 #include <string.h>
-#include <pthread.h>
 #include <gnl_logger.h>
 #include "../include/gnl_simfs_file_system.h"
 #include "../include/gnl_simfs_file_system_struct.h"

@@ -237,4 +237,16 @@ extern int gnl_simfs_file_system_status(struct gnl_simfs_file_system *file_syste
  */
 extern int gnl_simfs_file_system_get_replacement_policy(struct gnl_simfs_file_system *file_system, char **dest);
 
+/**
+ * Clean the file descriptor table and unlock the files locked by the
+ * given pid. This function should be called if a pid ends his session
+ * within the given file system.
+ *
+ * @param file_system   The file system instance to use to clean the pid session.
+ * @param pid           The pid to remove from the file system.
+ *
+ * @return              Returns 0 on success, -1 otherwise.
+ */
+extern int gnl_simfs_file_system_remove_session(struct gnl_simfs_file_system *file_system, unsigned int pid);
+
 #endif //GNL_SIMFS_FILE_SYSTEM_H

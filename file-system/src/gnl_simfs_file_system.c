@@ -995,6 +995,68 @@ int gnl_simfs_file_system_get_replacement_policy(struct gnl_simfs_file_system *f
     return 0;
 }
 
+/**
+ * {@inheritDoc}
+ */
+int gnl_simfs_file_system_remove_session(struct gnl_simfs_file_system *file_system, unsigned int pid) {
+    // acquire the lock
+    GNL_SIMFS_LOCK_ACQUIRE(-1, pid)
+
+    // validate the parameters
+    GNL_SIMFS_NULL_CHECK(file_system, EINVAL, -1, pid)
+
+    gnl_logger_debug(file_system->logger, "Remove session: removing pid %d session from the file system", pid);
+
+    // remove the inodes of pid from the file descriptor table
+    gnl_logger_debug(file_system->logger, "Remove session: removing pid %d open files", pid);
+
+    int res = gnl_simfs_file_descriptor_table_remove_pid(file_system->file_descriptor_table, pid);
+    GNL_SIMFS_MINUS1_CHECK(res, errno, -1, pid)
+
+    // unlock the inodes locked by pid
+    gnl_logger_debug(file_system->logger, "Remove session: unlocking every files locked by pid %d", pid);
+
+    // get a list of files present into the file system
+    struct gnl_list_t *list = gnl_simfs_file_table_list(file_system->file_table);
+    GNL_SIMFS_NULL_CHECK(list, errno, -1, pid)
+
+    struct gnl_list_t *current = list;
+
+    // scan the list
+    while (current != NULL) {
+        char *filename = (char *)current->el;
+
+        // get the original inode of the filename
+        struct gnl_simfs_inode *inode = gnl_simfs_rts_get_inode(file_system, filename);
+        GNL_SIMFS_NULL_CHECK(inode, errno, -1, pid)
+
+        // if the given pid locked the inode, then unlock it
+        if (gnl_simfs_inode_is_file_locked(inode) == pid) {
+            res = gnl_simfs_inode_file_unlock(inode, pid);
+
+            if (res == -1) {
+                // let the errno bubble
+                return -1;
+            }
+
+            gnl_logger_debug(file_system->logger, "Remove session: unlocked file \"%s\" previously locked by pid %d",
+                             inode->name, pid);
+        }
+
+        current = current->next;
+    }
+
+    // free memory
+    gnl_list_destroy(&list, free);
+
+    gnl_logger_debug(file_system->logger, "Remove session: remove session of pid %d succeeded", pid);
+
+    // release the lock
+    GNL_SIMFS_LOCK_RELEASE(-1, pid)
+
+    return 0;
+}
+
 #undef GNL_SIMFS_MAX_OPEN_FILES
 
 #undef GNL_SIMFS_LOCK_ACQUIRE
