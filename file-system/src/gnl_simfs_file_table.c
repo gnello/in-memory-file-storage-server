@@ -44,6 +44,20 @@ static void destroy_file_table_inode(void *ptr) {
 }
 
 /**
+ * Compare two string elements.
+ *
+ * @param a The actual string element.
+ * @param b The expected string element.
+ *
+ * @return  Returns 0 if a==b, if a > b returns a value
+ *          greater than zero, if a < b returns a value
+ *          less than 0.
+ */
+static int compare_string(const void *a, const void *b) {
+    return strcmp(a, b);
+}
+
+/**
  * {@inheritDoc}
  */
 struct gnl_simfs_file_table *gnl_simfs_file_table_init() {
@@ -272,7 +286,7 @@ static int gnl_simfs_file_table_remove(struct gnl_simfs_file_table *file_table, 
     int count = inode->size;
 
     // remove the filename
-    int res = gnl_list_delete(&(file_table->presence_list), key, NULL, NULL);
+    int res = gnl_list_delete(&(file_table->presence_list), key, compare_string, free);
     GNL_MINUS1_CHECK(res, errno, -1)
 
     // remove the file
