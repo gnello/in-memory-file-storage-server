@@ -42,7 +42,7 @@ struct gnl_socket_response {
 /**
  * {@inheritDoc}
  */
-int gnl_socket_response_get_type(struct gnl_socket_response *response, char **dest) {
+int gnl_socket_response_get_type(const struct gnl_socket_response *response, char **dest) {
     if (response == NULL) {
         errno = EINVAL;
 
@@ -193,7 +193,7 @@ void gnl_socket_response_destroy(struct gnl_socket_response *response) {
 /**
  * {@inheritDoc}
  */
-int gnl_socket_response_get_fd(struct gnl_socket_response *response) {
+int gnl_socket_response_get_fd(const struct gnl_socket_response *response) {
     GNL_NULL_CHECK(response, EINVAL, -1)
 
     if (response->type == GNL_SOCKET_RESPONSE_OK_FD) {
@@ -208,7 +208,7 @@ int gnl_socket_response_get_fd(struct gnl_socket_response *response) {
 /**
  * {@inheritDoc}
  */
-int gnl_socket_response_get_error(struct gnl_socket_response *response) {
+int gnl_socket_response_get_error(const struct gnl_socket_response *response) {
     GNL_NULL_CHECK(response, EINVAL, -1)
 
     if (response->type == GNL_SOCKET_RESPONSE_ERROR) {
@@ -223,7 +223,7 @@ int gnl_socket_response_get_error(struct gnl_socket_response *response) {
 /**
  * {@inheritDoc}
  */
-int gnl_socket_response_type(struct gnl_socket_response *response) {
+int gnl_socket_response_type(const struct gnl_socket_response *response) {
     GNL_NULL_CHECK(response, EINVAL, -1)
 
     return response->type;
@@ -370,7 +370,7 @@ struct gnl_message_snb *gnl_socket_response_get_file(struct gnl_socket_response 
 /**
  * {@inheritDoc}
  */
-size_t gnl_socket_response_get_size(struct gnl_socket_response *response) {
+size_t gnl_socket_response_get_size(const struct gnl_socket_response *response) {
     GNL_NULL_CHECK(response, EINVAL, -1)
 
     if (response->type != GNL_SOCKET_RESPONSE_OK_FILE) {
@@ -385,7 +385,7 @@ size_t gnl_socket_response_get_size(struct gnl_socket_response *response) {
 /**
  * {@inheritDoc}
  */
-void *gnl_socket_response_get_bytes(struct gnl_socket_response *response) {
+void *gnl_socket_response_get_bytes(const struct gnl_socket_response *response) {
     GNL_NULL_CHECK(response, EINVAL, NULL)
 
     if (response->type != GNL_SOCKET_RESPONSE_OK_FILE) {

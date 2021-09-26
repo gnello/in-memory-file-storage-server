@@ -1,7 +1,6 @@
 #include <time.h>
 #include <errno.h>
 #include <string.h>
-#include <gnl_queue_t.h>
 #include <gnl_file_saver.h>
 #include <gnl_socket_request.h>
 #include <gnl_socket_response.h>

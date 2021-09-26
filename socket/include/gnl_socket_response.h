@@ -70,7 +70,7 @@ extern void gnl_socket_response_destroy(struct gnl_socket_response *response);
  *
  * @return          Returns 0 on success, -1 otherwise.
  */
-extern int gnl_socket_response_get_type(struct gnl_socket_response *response, char **dest);
+extern int gnl_socket_response_get_type(const struct gnl_socket_response *response, char **dest);
 
 /**
  * Read the file descriptor from the given GNL_SOCKET_RESPONSE_OK_FD response.
@@ -82,7 +82,7 @@ extern int gnl_socket_response_get_type(struct gnl_socket_response *response, ch
  * @return          The response file descriptor on success,
  *                  -1 otherwise.
  */
-extern int gnl_socket_response_get_fd(struct gnl_socket_response *response);
+extern int gnl_socket_response_get_fd(const struct gnl_socket_response *response);
 
 /**
  * Get the error code of the given GNL_SOCKET_RESPONSE_ERROR response.
@@ -94,7 +94,7 @@ extern int gnl_socket_response_get_fd(struct gnl_socket_response *response);
  * @return          Returns the response error code on success,
  *                  -1 otherwise.
  */
-extern int gnl_socket_response_get_error(struct gnl_socket_response *response);
+extern int gnl_socket_response_get_error(const struct gnl_socket_response *response);
 
 /**
  * Get the type code of the given response.
@@ -104,7 +104,7 @@ extern int gnl_socket_response_get_error(struct gnl_socket_response *response);
  * @return          Returns the response type code on success,
  *                  -1 otherwise.
  */
-extern int gnl_socket_response_type(struct gnl_socket_response *response);
+extern int gnl_socket_response_type(const struct gnl_socket_response *response);
 
 /**
  * Get a string that represent the given response.
@@ -164,7 +164,7 @@ extern struct gnl_message_snb *gnl_socket_response_get_file(struct gnl_socket_re
  * @return          Returns the response count of bytes on success,
  *                  NULL otherwise.
  */
-extern size_t gnl_socket_response_get_size(struct gnl_socket_response *response);
+extern size_t gnl_socket_response_get_size(const struct gnl_socket_response *response);
 
 /**
  * Get the bytes from the given GNL_SOCKET_RESPONSE_OK_FILE response.
@@ -176,6 +176,6 @@ extern size_t gnl_socket_response_get_size(struct gnl_socket_response *response)
  * @return          Returns the response bytes on success,
  *                  NULL otherwise.
  */
-extern void *gnl_socket_response_get_bytes(struct gnl_socket_response *response);
+extern void *gnl_socket_response_get_bytes(const struct gnl_socket_response *response);
 
 #endif //GNL_SOCKET_RESPONSE_H

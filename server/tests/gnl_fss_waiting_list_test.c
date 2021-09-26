@@ -60,11 +60,11 @@ int can_push_new() {
                 return -1;
             }
 
-            if (enqueued_el->request->type != GNL_SOCKET_REQUEST_READ) {
+            if (gnl_socket_request_type(enqueued_el->request) != GNL_SOCKET_REQUEST_READ) {
                 return -1;
             }
 
-            if (enqueued_el->request->payload.write->number != 99) {
+            if (gnl_socket_request_get_fd(enqueued_el->request) != 99) {
                 return -1;
             }
 
@@ -150,11 +150,11 @@ int can_push_new_two() {
                 return -1;
             }
 
-            if (enqueued_el1->request->type != GNL_SOCKET_REQUEST_READ) {
+            if (gnl_socket_request_type(enqueued_el1->request) != GNL_SOCKET_REQUEST_READ) {
                 return -1;
             }
 
-            if (enqueued_el1->request->payload.write->number != 99) {
+            if (gnl_socket_request_get_fd(enqueued_el1->request) != 99) {
                 return -1;
             }
 
@@ -162,11 +162,11 @@ int can_push_new_two() {
                 return -1;
             }
 
-            if (enqueued_el2->request->type != GNL_SOCKET_REQUEST_LOCK) {
+            if (gnl_socket_request_type(enqueued_el2->request) != GNL_SOCKET_REQUEST_LOCK) {
                 return -1;
             }
 
-            if (enqueued_el2->request->payload.write->number != 55) {
+            if (gnl_socket_request_get_fd(enqueued_el2->request) != 55) {
                 return -1;
             }
 
@@ -255,21 +255,21 @@ int can_push_new_two_different() {
             }
 
             if (enqueued_el->pid == pid1) {
-                if (enqueued_el->request->type != GNL_SOCKET_REQUEST_READ) {
+                if (gnl_socket_request_type(enqueued_el->request) != GNL_SOCKET_REQUEST_READ) {
                     return -1;
                 }
 
-                if (enqueued_el->request->payload.write->number != 99) {
+                if (gnl_socket_request_get_fd(enqueued_el->request) != 99) {
                     return -1;
                 }
             }
 
             if (enqueued_el->pid == pid2) {
-                if (enqueued_el->request->type != GNL_SOCKET_REQUEST_LOCK) {
+                if (gnl_socket_request_type(enqueued_el->request) != GNL_SOCKET_REQUEST_LOCK) {
                     return -1;
                 }
 
-                if (enqueued_el->request->payload.write->number != 55) {
+                if (gnl_socket_request_get_fd(enqueued_el->request) != 55) {
                     return -1;
                 }
             }
@@ -407,11 +407,11 @@ int can_pop() {
         return -1;
     }
 
-    if (popped_el->request->type != GNL_SOCKET_REQUEST_LOCK) {
+    if (gnl_socket_request_type(popped_el->request) != GNL_SOCKET_REQUEST_LOCK) {
         return -1;
     }
 
-    if (popped_el->request->payload.lock->number != 55) {
+    if (gnl_socket_request_get_fd(popped_el->request) != 55) {
         return -1;
     }
 
@@ -440,11 +440,11 @@ int can_pop_empty() {
         return -1;
     }
 
-    if (popped_el->request->type != GNL_SOCKET_REQUEST_READ) {
+    if (gnl_socket_request_type(popped_el->request) != GNL_SOCKET_REQUEST_READ) {
         return -1;
     }
 
-    if (popped_el->request->payload.read->number != 99) {
+    if (gnl_socket_request_get_fd(popped_el->request) != 99) {
         return -1;
     }
 
@@ -488,11 +488,11 @@ int can_remove_pop() {
         return -1;
     }
 
-    if (popped_el->request->type != GNL_SOCKET_REQUEST_READ) {
+    if (gnl_socket_request_type(popped_el->request) != GNL_SOCKET_REQUEST_READ) {
         return -1;
     }
 
-    if (popped_el->request->payload.read->number != 99) {
+    if (gnl_socket_request_get_fd(popped_el->request) != 99) {
         return -1;
     }
 
@@ -544,11 +544,11 @@ int can_remove_two_pop() {
         return -1;
     }
 
-    if (popped_el->request->type != GNL_SOCKET_REQUEST_READ) {
+    if (gnl_socket_request_type(popped_el->request) != GNL_SOCKET_REQUEST_READ) {
         return -1;
     }
 
-    if (popped_el->request->payload.read->number != 99) {
+    if (gnl_socket_request_get_fd(popped_el->request) != 99) {
         return -1;
     }
 
@@ -564,11 +564,11 @@ int can_remove_two_pop() {
         return -1;
     }
 
-    if (popped_el->request->type != GNL_SOCKET_REQUEST_LOCK) {
+    if (gnl_socket_request_type(popped_el->request) != GNL_SOCKET_REQUEST_LOCK) {
         return -1;
     }
 
-    if (popped_el->request->payload.read->number != 55) {
+    if (gnl_socket_request_get_fd(popped_el->request) != 55) {
         return -1;
     }
 

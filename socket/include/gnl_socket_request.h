@@ -26,19 +26,7 @@ enum gnl_socket_request_type {
 /**
  * The socket request.
  */
-struct gnl_socket_request {
-    enum gnl_socket_request_type type;
-    union {
-        struct gnl_message_sn *open;
-        struct gnl_message_n *read;
-        struct gnl_message_n *read_N;
-        struct gnl_message_nnb *write;
-        struct gnl_message_n *lock;
-        struct gnl_message_n *unlock;
-        struct gnl_message_n *close;
-        struct gnl_message_s *remove;
-    } payload;
-};
+struct gnl_socket_request;
 
 /**
  * Create a socket request struct with the given type and arguments.
@@ -71,12 +59,12 @@ extern void gnl_socket_request_destroy(struct gnl_socket_request *request);
  * Get the type of the given request. The output string dest will be
  * written with the string type of the given request.
  *
- * @param response  The request from where to get the type.
+ * @param request   The request from where to get the type.
  * @param dest      The destination where to write the string type.
  *
  * @return          Returns 0 on success, -1 otherwise.
  */
-extern int gnl_socket_request_get_type(struct gnl_socket_request *request, char **dest);
+extern int gnl_socket_request_get_type(const struct gnl_socket_request *request, char **dest);
 
 /**
  * Get a string that represent the given request.
@@ -99,5 +87,74 @@ extern size_t gnl_socket_request_to_string(const struct gnl_socket_request *requ
  *                  NULL otherwise.
  */
 extern struct gnl_socket_request *gnl_socket_request_from_string(const char *message, enum gnl_socket_request_type type);
+
+/**
+ * Get the type code of the given request.
+ *
+ * @param request   The socket request.
+ *
+ * @return          Returns the request type code on success,
+ *                  -1 otherwise.
+ */
+extern int gnl_socket_request_type(const struct gnl_socket_request *request);
+
+/**
+ * Read the file descriptor from the given GNL_SOCKET_REQUEST_READ, GNL_SOCKET_REQUEST_WRITE,
+ * GNL_SOCKET_REQUEST_LOCK, GNL_SOCKET_REQUEST_UNLOCK, or GNL_SOCKET_REQUEST_CLOSE request.
+ * If the request is not one of the above requests, this invocation will fail.
+ *
+ * @param request   The socket request.
+ *
+ * @return          The request file descriptor on success,
+ *                  -1 otherwise.
+ */
+extern int gnl_socket_request_get_fd(const struct gnl_socket_request *request);
+
+/**
+ * Read the filename from the given GNL_SOCKET_REQUEST_OPEN or GNL_SOCKET_REQUEST_REMOVE request.
+ * If the request is not one of the above requests, this invocation will fail.
+ *
+ * @param request   The socket request.
+ *
+ * @return          The request filename on success,
+ *                  -1 otherwise.
+ */
+extern char *gnl_socket_request_get_filename(const struct gnl_socket_request *request);
+
+/**
+ * Read the flags from the given GNL_SOCKET_REQUEST_OPEN request.
+ * If the request is not a GNL_SOCKET_REQUEST_OPEN request,
+ * this invocation will fail.
+ *
+ * @param request   The socket request.
+ *
+ * @return          The request flags on success,
+ *                  -1 otherwise.
+ */
+extern int gnl_socket_request_get_flags(const struct gnl_socket_request *request);
+
+/**
+ * Get the count of bytes from the given GNL_SOCKET_REQUEST_WRITE request.
+ * If the request is not a GNL_SOCKET_REQUEST_WRITE request,
+ * this invocation will fail.
+ *
+ * @param request   The request from where to get the count.
+ *
+ * @return          Returns the request count of bytes on success,
+ *                  NULL otherwise.
+ */
+extern size_t gnl_socket_request_get_size(const struct gnl_socket_request *request);
+
+/**
+ * Get the bytes from the given GNL_SOCKET_REQUEST_WRITE request.
+ * If the request is not a GNL_SOCKET_REQUEST_WRITE request,
+ * this invocation will fail.
+ *
+ * @param request   The request from where to get the bytes.
+ *
+ * @return          Returns the request bytes on success,
+ *                  NULL otherwise.
+ */
+extern void *gnl_socket_request_get_bytes(const struct gnl_socket_request *request);
 
 #endif //GNL_SOCKET_REQUEST_H

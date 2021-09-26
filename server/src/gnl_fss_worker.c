@@ -60,21 +60,15 @@ static int wait_unlock(struct gnl_simfs_file_system *file_system, struct gnl_fss
     int fd = -1;
 
     // get the target
-    switch (request->type) {
+    switch (gnl_socket_request_type(request)) {
         case GNL_SOCKET_REQUEST_OPEN:
-            target = request->payload.open->string;
+            target = gnl_socket_request_get_filename(request);
             break;
 
         case GNL_SOCKET_REQUEST_READ:
-            fd = request->payload.read->number;
-            break;
-
         case GNL_SOCKET_REQUEST_WRITE:
-            fd = request->payload.write->number;
-            break;
-
         case GNL_SOCKET_REQUEST_LOCK:
-            fd = request->payload.lock->number;
+            fd = gnl_socket_request_get_fd(request);
             break;
 
         default:
@@ -110,9 +104,9 @@ static struct gnl_fss_waiting_list_el *get_waiting_unlock(struct gnl_simfs_file_
     int fd = -1;
 
     // get the target
-    switch (request->type) {
+    switch (gnl_socket_request_type(request)) {
         case GNL_SOCKET_REQUEST_UNLOCK:
-            fd = request->payload.unlock->number;
+            fd = gnl_socket_request_get_fd(request);
             break;
 
         default:
@@ -165,18 +159,24 @@ static struct gnl_socket_response *handle_request(struct gnl_simfs_file_system *
     char *tmp;
     struct gnl_simfs_evicted_file *evicted_file = NULL;
 
+    int request_flags = gnl_socket_request_get_flags(request);
+    int request_fd = gnl_socket_request_get_fd(request);
+    char *request_filename = gnl_socket_request_get_filename(request);
+    size_t request_size = gnl_socket_request_get_size(request);
+    void *request_bytes = gnl_socket_request_get_bytes(request);
+
     // handle the request with the correct handler
     //TODO: creare un metodo handler per ogni type che gestisca separatamente gli errori?
-    switch (request->type) {
+    switch (gnl_socket_request_type(request)) {
         case GNL_SOCKET_REQUEST_OPEN:
-            res = gnl_simfs_file_system_open(file_system, request->payload.open->string, request->payload.open->number, fd_c);
+            res = gnl_simfs_file_system_open(file_system, request_filename, request_flags, fd_c);
 
             // if success create an ok_fd response
             if (res >= 0) {
                 response = gnl_socket_response_init(GNL_SOCKET_RESPONSE_OK_FD, 1, res);
             }
 
-            break; //TODO: se "muore" un client chiudere tutti i suoi files aperti (occhio ai lock)
+            break;
 
         case GNL_SOCKET_REQUEST_READ_N:
             errno = 0;
@@ -215,7 +215,7 @@ static struct gnl_socket_response *handle_request(struct gnl_simfs_file_system *
             break;
 
         case GNL_SOCKET_REQUEST_READ:
-            res = gnl_simfs_file_system_read(file_system, request->payload.read->number, &buf, &count, fd_c);
+            res = gnl_simfs_file_system_read(file_system, request_fd, &buf, &count, fd_c);
 
             // if success create an ok_file response
             if (res == 0) {
@@ -224,8 +224,7 @@ static struct gnl_socket_response *handle_request(struct gnl_simfs_file_system *
             break;
 
         case GNL_SOCKET_REQUEST_WRITE:
-            res = gnl_simfs_file_system_write(file_system, request->payload.write->number,
-                                              request->payload.write->bytes, request->payload.write->count, fd_c, &list);
+            res = gnl_simfs_file_system_write(file_system, request_fd, request_bytes, request_size, fd_c, &list);
 
             // if success create an ok response
             if (res == 0) {
@@ -261,7 +260,7 @@ static struct gnl_socket_response *handle_request(struct gnl_simfs_file_system *
             break;
 
         case GNL_SOCKET_REQUEST_LOCK:
-            res = gnl_simfs_file_system_lock(file_system, request->payload.lock->number, fd_c);
+            res = gnl_simfs_file_system_lock(file_system, request_fd, fd_c);
 
             // if success create an ok response
             if (res == 0) {
@@ -270,7 +269,7 @@ static struct gnl_socket_response *handle_request(struct gnl_simfs_file_system *
             break;
 
         case GNL_SOCKET_REQUEST_UNLOCK:
-            res = gnl_simfs_file_system_unlock(file_system, request->payload.unlock->number, fd_c);
+            res = gnl_simfs_file_system_unlock(file_system, request_fd, fd_c);
 
             // if success create an ok response
             if (res == 0) {
@@ -279,7 +278,7 @@ static struct gnl_socket_response *handle_request(struct gnl_simfs_file_system *
             break;
 
         case GNL_SOCKET_REQUEST_CLOSE:
-            res = gnl_simfs_file_system_close(file_system, request->payload.close->number, fd_c);
+            res = gnl_simfs_file_system_close(file_system, request_fd, fd_c);
 
             // if success create an ok response
             if (res == 0) {
@@ -288,7 +287,7 @@ static struct gnl_socket_response *handle_request(struct gnl_simfs_file_system *
             break;
 
         case GNL_SOCKET_REQUEST_REMOVE:
-            res = gnl_simfs_file_system_remove(file_system, request->payload.remove->string, fd_c);
+            res = gnl_simfs_file_system_remove(file_system, request_filename, fd_c);
 
             // if success create an ok response
             if (res == 0) {
@@ -429,7 +428,7 @@ static int handle_fd_c_response(struct gnl_fss_worker *worker, int fd_c,
     struct gnl_logger *logger = worker->logger;
 
     // check if there is any waiting pid
-    if (request->type == GNL_SOCKET_REQUEST_UNLOCK && gnl_socket_response_type(response) == GNL_SOCKET_RESPONSE_OK) {
+    if (gnl_socket_request_type(request) == GNL_SOCKET_REQUEST_UNLOCK && gnl_socket_response_type(response) == GNL_SOCKET_RESPONSE_OK) {
 
         gnl_logger_debug(logger, "broadcast to waiting pid");
 

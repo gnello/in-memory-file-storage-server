@@ -316,7 +316,7 @@ int gnl_socket_service_send_request(const struct gnl_socket_connection *connecti
     }
 
     // send the request message through the socket
-    size_t nwrite = write_protocol_message(connection->fd, message, request->type, bytes);
+    size_t nwrite = write_protocol_message(connection->fd, message, gnl_socket_request_type(request), bytes);
 
     // free memory
     free(message);

@@ -6,7 +6,6 @@
 #include <gnl_message_s.h>
 #include <gnl_message_n.h>
 #include <gnl_message_sn.h>
-#include <gnl_message_snb.h>
 #include <gnl_message_nnb.h>
 #include <gnl_macro_beg.h>
 #include "../include/gnl_socket_request.h"
@@ -116,7 +115,24 @@
 /**
  * {@inheritDoc}
  */
-int gnl_socket_request_get_type(struct gnl_socket_request *request, char **dest) {
+struct gnl_socket_request {
+    enum gnl_socket_request_type type;
+    union {
+        struct gnl_message_sn *open;
+        struct gnl_message_n *read;
+        struct gnl_message_n *read_N;
+        struct gnl_message_nnb *write;
+        struct gnl_message_n *lock;
+        struct gnl_message_n *unlock;
+        struct gnl_message_n *close;
+        struct gnl_message_s *remove;
+    } payload;
+};
+
+/**
+ * {@inheritDoc}
+ */
+int gnl_socket_request_get_type(const struct gnl_socket_request *request, char **dest) {
     if (request == NULL) {
         errno = EINVAL;
 
@@ -418,6 +434,131 @@ size_t gnl_socket_request_to_string(const struct gnl_socket_request *request, ch
     }
 
     return message_len;
+}
+
+/**
+ * {@inheritDoc}
+ */
+int gnl_socket_request_type(const struct gnl_socket_request *request) {
+    GNL_NULL_CHECK(request, EINVAL, -1)
+
+    return request->type;
+}
+
+/**
+ * {@inheritDoc}
+ */
+int gnl_socket_request_get_fd(const struct gnl_socket_request *request) {
+    GNL_NULL_CHECK(request, EINVAL, -1)
+
+    int fd = -1;
+
+    switch (request->type) {
+
+        case GNL_SOCKET_REQUEST_READ:
+            fd = request->payload.read->number;
+            break;
+
+        case GNL_SOCKET_REQUEST_WRITE:
+            fd = request->payload.write->number;
+            break;
+
+        case GNL_SOCKET_REQUEST_LOCK:
+            fd = request->payload.lock->number;
+            break;
+
+        case GNL_SOCKET_REQUEST_UNLOCK:
+            fd = request->payload.unlock->number;
+            break;
+
+        case GNL_SOCKET_REQUEST_CLOSE:
+            fd = request->payload.close->number;
+            break;
+
+        default:
+            errno = EINVAL;
+            break;
+    }
+
+    return fd;
+}
+
+/**
+ * {@inheritDoc}
+ */
+char *gnl_socket_request_get_filename(const struct gnl_socket_request *request) {
+    GNL_NULL_CHECK(request, EINVAL, NULL)
+
+    char *filename = NULL;
+
+    switch (request->type) {
+
+        case GNL_SOCKET_REQUEST_OPEN:
+            filename = request->payload.open->string;
+            break;
+
+        case GNL_SOCKET_REQUEST_REMOVE:
+            filename = request->payload.remove->string;
+            break;
+
+        default:
+            errno = EINVAL;
+            break;
+    }
+
+    return filename;
+}
+
+/**
+ * {@inheritDoc}
+ */
+int gnl_socket_request_get_flags(const struct gnl_socket_request *request) {
+    GNL_NULL_CHECK(request, EINVAL, -1)
+
+    int flags = 0;
+
+    switch (request->type) {
+
+        case GNL_SOCKET_REQUEST_OPEN:
+            flags = request->payload.open->number;
+            break;
+
+        default:
+            errno = EINVAL;
+            break;
+    }
+
+    return flags;
+}
+
+/**
+ * {@inheritDoc}
+ */
+size_t gnl_socket_request_get_size(const struct gnl_socket_request *request) {
+    GNL_NULL_CHECK(request, EINVAL, -1)
+
+    if (request->type != GNL_SOCKET_REQUEST_WRITE) {
+        errno = EINVAL;
+
+        return -1;
+    }
+
+    return request->payload.write->count;
+}
+
+/**
+ * {@inheritDoc}
+ */
+void *gnl_socket_request_get_bytes(const struct gnl_socket_request *request) {
+    GNL_NULL_CHECK(request, EINVAL, NULL)
+
+    if (request->type != GNL_SOCKET_REQUEST_WRITE) {
+        errno = EINVAL;
+
+        return NULL;
+    }
+
+    return request->payload.write->bytes;
 }
 
 #undef MAX_DIGITS_CHAR
