@@ -39,6 +39,7 @@ tests:
 	echo "\nRunning socket suite test...\n\n"
 	./gnl_socket_service_test_server &
 	$(foreach test,$(TARGETS),./$(test);)
+	kill -9 $$(ps aux | grep "gnl_socket_service_test_server" | awk 'NR==1{print $$2}')
 
 tests-valgrind:
 	echo "\nRunning socket suite test...\n\n"
