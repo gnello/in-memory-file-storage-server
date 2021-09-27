@@ -170,6 +170,14 @@ int gnl_simfs_file_system_open(struct gnl_simfs_file_system *file_system, const 
 
     gnl_logger_debug(file_system->logger, "Open: pid %d is trying to open the file \"%s\"", pid, filename);
 
+    if (GNL_SIMFS_O_CREATE & flags) {
+        gnl_logger_debug(file_system->logger, "Open: O_CREATE flag set");
+    }
+
+    if (GNL_SIMFS_O_LOCK & flags) {
+        gnl_logger_debug(file_system->logger, "Open: O_LOCK flag set");
+    }
+
     // check if we can open a file
     if (gnl_simfs_file_descriptor_table_size(file_system->file_descriptor_table) == GNL_SIMFS_MAX_OPEN_FILES) {
         errno = ENFILE;

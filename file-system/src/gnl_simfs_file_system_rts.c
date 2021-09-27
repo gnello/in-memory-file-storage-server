@@ -114,6 +114,12 @@ static struct gnl_simfs_inode *gnl_simfs_rts_create_inode(struct gnl_simfs_file_
 
     gnl_logger_debug(file_system->logger, "Created file \"%s\"", filename);
 
+    // log the new file table count
+    count = gnl_simfs_file_table_count(file_system->file_table);
+    GNL_MINUS1_CHECK(count, errno, NULL);
+
+    gnl_logger_debug(file_system->logger, "The file system has now %d files", count);
+
     // track the event
     int res = gnl_simfs_monitor_file_added(file_system->monitor);
     GNL_MINUS1_CHECK(res, errno, NULL);
@@ -156,8 +162,7 @@ static int gnl_simfs_rts_fflush_inode(struct gnl_simfs_file_system *file_system,
 
     gnl_logger_debug(file_system->logger, "File flush on entry \"%s\" succeeded", inode->name);
     gnl_logger_debug(file_system->logger, "Inode compressed into %d bytes", inode->size);
-    gnl_logger_debug(file_system->logger, "The heap size has now %lld bytes (%f MB) left",
-                     file_system->memory_limit - size, bytes_to_mb(file_system->memory_limit - size));
+    gnl_logger_debug(file_system->logger, "The heap size is now %f MB (%lld bytes)", bytes_to_mb(size), size);
 
     return 0;
 }
@@ -240,10 +245,8 @@ static int gnl_simfs_rts_remove_inode(struct gnl_simfs_file_system *file_system,
     int size = gnl_simfs_file_table_size(file_system->file_table);
     GNL_MINUS1_CHECK(size, errno, -1);
 
-    gnl_logger_debug(file_system->logger, "Remove on entry \"%s\" succeeded, %d bytes freed, the heap size "
-                                          "has now %lld bytes (%f MB) left", key, count, file_system->memory_limit - size,
-                                          bytes_to_mb(file_system->memory_limit - size));
-
+    gnl_logger_debug(file_system->logger, "Remove on entry \"%s\" succeeded, %d bytes freed", key, count);
+    gnl_logger_debug(file_system->logger, "The heap size is now %f MB (%lld bytes)", bytes_to_mb(size), size);
     return 0;
 }
 

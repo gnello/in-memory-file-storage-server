@@ -357,7 +357,7 @@ int gnl_fss_server_start(const struct gnl_fss_config *config) {
     // install the signal handler
     handle_signals();
 
-    // instantiate the logger for the server TODO: move in a thread (push su coda che chiama i metodi del log)
+    // instantiate the logger for the server
     struct gnl_logger *logger;
     logger = gnl_logger_init(config->log_filepath, "gnl_fss_server", config->log_level);
     GNL_NULL_CHECK(logger, errno, -1)
