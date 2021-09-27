@@ -295,7 +295,7 @@ int gnl_simfs_file_descriptor_table_remove_pid(struct gnl_simfs_file_descriptor_
 
     for (size_t i=0; i<=table->max_fd; i++) {
         // check that the i-th file descriptor is owned by the given pid
-        if (table->table[i] == NULL || table->table[i]->owner != pid) {
+        if (table->size == 0 || table->table[i] == NULL || table->table[i]->owner != pid) {
             continue;
         }
 

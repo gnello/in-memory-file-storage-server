@@ -615,7 +615,7 @@ void *gnl_fss_worker_handle(void* args) {
                 // check if there was an error
                 if (res == -1) {
                     gnl_logger_error(logger, "error during the removing of pid %d from the waiting list: %s, "
-                                             "error ignored", strerror(errno));
+                                             "error ignored", fd_c, strerror(errno));
                 }
 
                 gnl_logger_debug(logger, "client %d removed from the waiting list", fd_c);
@@ -624,7 +624,7 @@ void *gnl_fss_worker_handle(void* args) {
                 res = gnl_simfs_file_system_remove_session(worker->file_system, fd_c);
                 if (res == -1) {
                     gnl_logger_error(logger, "error during the removing of the client fd %d session "
-                                             "from the file system: %s, error ignored", strerror(errno));
+                                             "from the file system: %s, error ignored", fd_c, strerror(errno));
                 }
 
                 gnl_logger_debug(logger, "client %d session removed from the file system", fd_c);
@@ -633,7 +633,7 @@ void *gnl_fss_worker_handle(void* args) {
                 res = close(fd_c);
                 if (res == -1) {
                     gnl_logger_error(logger, "error during the closing of the client fd %d: %s, error ignored",
-                                     strerror(errno));
+                                     fd_c, strerror(errno));
                 }
 
                 gnl_logger_debug(logger, "closed the connection with client %d", fd_c);

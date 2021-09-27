@@ -399,6 +399,7 @@ int gnl_fss_server_start(const struct gnl_fss_config *config) {
 
     // socket connection file descriptor
     int fd_skt;
+    int errno_main = 0;
 
     // create the server
     fd_skt = create_server(socket_name, logger);
@@ -408,12 +409,15 @@ int gnl_fss_server_start(const struct gnl_fss_config *config) {
         res = run_server(fd_skt, thread_pool, logger);
 
         if (res == -1) {
+            errno_main = errno;
+
             gnl_logger_error(logger, "error running the server: %s", strerror(errno));
         }
     } else {
-        gnl_logger_error(logger, "error creating the server: %s", strerror(errno));
-
+        errno_main = errno;
         res = -1;
+
+        gnl_logger_error(logger, "error creating the server: %s", strerror(errno));
     }
 
     // if you reach this point means that the server execution
@@ -436,6 +440,9 @@ int gnl_fss_server_start(const struct gnl_fss_config *config) {
 
     gnl_logger_info(logger, "server has been shut down.");
     gnl_logger_destroy(logger);
+
+    // set the errno
+    errno = errno_main;
 
     return res;
 }

@@ -13,7 +13,7 @@ INCLUDE += -I$(DATA_STRUCTURES_INCLUDE)
 TARGETS = server client
 TARGETS_PATH = ./
 
-.PHONY: all dev tests clean clean-dev server client helpers data-structures socket tests-valgrind message file-system
+.PHONY: all dev tests clean clean-dev server client helpers data-structures socket tests-valgrind message file-system test1
 
 TARGETS_ALL = client data-structures helpers message server socket file-system
 
@@ -82,3 +82,12 @@ clean:
 
 clean-dev: clean
 	$(foreach target,$(TARGETS_ALL),cd $(ROOT_DIR)/$(target)/tests && $(MAKE) clean;)
+	rm -f /tmp/LSOfilestorage_*.sk
+
+test1: server client
+	echo "\nRunning feature test...\n\n"
+	cd ./server && valgrind --leak-check=full ./main -f ../test/config-feature-test.txt &
+	cd test && ./feature_test.sh
+	kill -HUP $$(ps aux | grep "leak-check=full ./main -f ../test/config-feature-test.txt" | awk 'NR==1{print $$2}')
+	exit 0
+
