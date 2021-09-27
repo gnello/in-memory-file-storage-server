@@ -4,8 +4,8 @@
 
 /**
  * Save count bytes of the given buf into filename within dirname.
- * If the path specified into the given dirname does not exist, it will be
- * created.
+ * If the path specified into the given dirname does not exist, the
+ * function will return an error.
  *
  * @param filename  The name of the file to create.
  * @param dirname   The path where to create the file
