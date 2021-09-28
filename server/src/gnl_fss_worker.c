@@ -344,6 +344,42 @@ static int send_message_to_master(int pipe_channel, int fd_c) {
     return 0;
 }
 
+/**
+ * TODO: doc
+ * @param worker
+ * @param fd_c
+ * @return
+ */
+static int handle_error(struct gnl_fss_worker *worker, int fd_c) {
+    // validate the parameters
+    GNL_NULL_CHECK(worker, errno, -1)
+
+    gnl_logger_debug(worker->logger, "handling error for client %d", fd_c);
+
+    struct gnl_socket_response *response = gnl_socket_response_init(GNL_SOCKET_RESPONSE_ERROR, 1, errno);
+    GNL_NULL_CHECK(response, errno, -1)
+
+    // send the response message to the client
+    gnl_logger_debug(worker->logger, "send the response to client %d", fd_c);
+
+    int res = gnl_socket_service_send_response(fd_c, response);
+    GNL_MINUS1_CHECK(res, errno, -1)
+
+    gnl_logger_debug(worker->logger, "response sent to client %d", fd_c);
+
+    gnl_logger_debug(worker->logger, "sending message to master to listen again client %d requests", fd_c);
+    // send the message to the master to
+    // listen again the client requests
+    res = send_message_to_master(worker->pipe_channel, fd_c);
+    GNL_MINUS1_CHECK(res, errno, -1)
+
+    gnl_logger_debug(worker->logger, "message sent");
+
+    gnl_logger_debug(worker->logger, "error handled");
+
+    return 0;
+}
+
 static struct gnl_socket_response *handle_fd_c_request(struct gnl_fss_worker *worker, int fd_c, struct gnl_socket_request *request) {
     int res;
 
@@ -651,6 +687,9 @@ void *gnl_fss_worker_handle(void* args) {
                 // the request is not necessary anymore, destroy it
                 gnl_socket_request_destroy(request);
 
+                // handle the error
+                handle_error(worker, fd_c);
+
                 // resume loop
                 continue;
             }
@@ -664,7 +703,9 @@ void *gnl_fss_worker_handle(void* args) {
                 gnl_logger_error(logger, "error during the handling of the client fd %d request: %s, "
                                          "request ignored", strerror(errno));
 
-                // TODO: inviare al client messaggio di errore oppure dire al master che abbiamo finito
+                // handle the error
+                handle_error(worker, fd_c);
+
                 // resume loop
                 continue;
             }
@@ -674,7 +715,8 @@ void *gnl_fss_worker_handle(void* args) {
                 gnl_logger_error(logger, "error during the handling of the response for the client fd %d: %s, "
                                          "response ignored", strerror(errno));
 
-                // TODO: inviare al client messaggio di errore oppure dire al master che abbiamo finito
+                // handle the error
+                handle_error(worker, fd_c);
             }
         }
     }
