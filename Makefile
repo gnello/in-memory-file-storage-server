@@ -96,3 +96,9 @@ test2: server client
 	cd test && ./replacement_policy_test.sh
 	kill -HUP $$(ps aux | grep "./main -f ../test/config-replacement-policy-test.txt" | awk 'NR==1{print $$2}')
 
+test3: server client
+	echo "\nRunning stressing test...\n\n"
+	cd ./server && ./main -f ../test/config-stressing-test.txt &
+	cd test && ./stressing_test.sh
+	kill -INT $$(ps aux | grep "./main -f ../test/config-stressing-test.txt" | awk 'NR==1{print $$2}')
+

@@ -1,0 +1,22 @@
+# Welcome to the File Storage Server configuration file.
+
+# The number of workers to span for the server (master-worker pattern implementation).
+THREAD_WORKERS=8
+
+# The capacity of the File Storage Server in MB.
+CAPACITY=32
+
+# The maximum number of files stored by the File Storage Server.
+LIMIT=100
+
+# The storage replacement policy. Supported policies: NONE, FIFO, LIFO, LRU, MRU, LFU.
+REPLACEMENT_POLICY=FIFO
+
+# The absolute path of the socket file.
+SOCKET=/tmp/LSOfilestorage_stressing_test.sk
+
+# The absolute path of the log file.
+LOG_FILE=/tmp/gnl_fss.log
+
+# The log level. Accepted values: trace, debug, info, warn, error.
+LOG_LEVEL=debug
