@@ -10,7 +10,7 @@ cd ../client/ || exit 1
 
 # run client 2, 3 (-r)
 ./main -f /tmp/LSOfilestorage_feature_test.sk -p -t 200 -r $SCRIPTPATH/dataset/simple-library/year-2038-problem.txt,$SCRIPTPATH/dataset/one-late-night.txt
-./main -f /tmp/LSOfilestorage_feature_test.sk -p -t 200 -r $SCRIPTPATH/dataset/reallyinterestingimage.zip,$SCRIPTPATH/dataset/simple-library/black-hole.txt -d /dev/null
+./main -f /tmp/LSOfilestorage_feature_test.sk -p -t 200 -r $SCRIPTPATH/dataset/reallyinterestingimage.zip,$SCRIPTPATH/dataset/simple-library/black-hole.txt -d /tmp
 
 # run client 4 (-R)
 ./main -f /tmp/LSOfilestorage_feature_test.sk -p -t 200 -R 5 -d /tmp/
