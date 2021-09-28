@@ -90,3 +90,9 @@ test1: server client
 	cd test && ./feature_test.sh
 	kill -HUP $$(ps aux | grep "leak-check=full ./main -f ../test/config-feature-test.txt" | awk 'NR==1{print $$2}')
 
+test2: server client
+	echo "\nRunning replacement policy test...\n\n"
+	cd ./server && ./main -f ../test/config-replacement-policy-test.txt &
+	cd test && ./replacement_policy_test.sh
+	kill -HUP $$(ps aux | grep "./main -f ../test/config-replacement-policy-test.txt" | awk 'NR==1{print $$2}')
+
