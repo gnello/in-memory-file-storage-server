@@ -30,7 +30,7 @@ static int gnl_opt_arg_send_file(const char *filename, const char *store_dirname
     // create and open the file on the server (with lock)
     res = gnl_fss_api_open_file(filename, O_CREATE | O_LOCK);
 
-    print_log("Open file with O_CREATE|O_LOCK flags", filename, res, NULL);
+    print_log("Open file", filename, res, "O_CREATE|O_LOCK flags set");
 
     GNL_MINUS1_CHECK(res, errno, -1);
 
@@ -96,8 +96,7 @@ static int gnl_opt_arg_remove_file(const char *filename) {
     // open the file on the server (with lock)
     res = gnl_fss_api_open_file(filename, O_LOCK);
 
-    print_log("Open file with O_LOCK flags", filename, res, NULL);
-
+    print_log("Open file", filename, res, "O_LOCK flags set");
     GNL_MINUS1_CHECK(res, errno, -1);
 
     // wait if we have to
@@ -145,7 +144,7 @@ static int gnl_opt_arg_lock_file(const char *filename) {
     // open the file on the server
     res = gnl_fss_api_open_file(filename, 0);
 
-    print_log("Open file with no flags", filename, res, NULL);
+    print_log("Open file", filename, res, "no flags was set");
 
     GNL_MINUS1_CHECK(res, errno, -1);
 
@@ -194,7 +193,7 @@ static int gnl_opt_arg_unlock_file(const char *filename) {
     // open the file on the server
     res = gnl_fss_api_open_file(filename, 0);
 
-    print_log("Open file with no flags", filename, res, NULL);
+    print_log("Open file", filename, res, "no flags was set");
 
     GNL_MINUS1_CHECK(res, errno, -1);
 
@@ -244,7 +243,7 @@ static int gnl_opt_arg_read_file(const char *filename, const char *store_dirname
     // open the file on the server
     res = gnl_fss_api_open_file(filename, 0);
 
-    print_log("Open file with no flags", filename, res, NULL);
+    print_log("Open file", filename, res, "no flags was set");
 
     GNL_MINUS1_CHECK(res, errno, -1);
 

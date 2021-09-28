@@ -235,7 +235,7 @@ static void print_command(const char command, const char *args) {
         return;
     }
 
-    printf("Executing command -%c %s:\n", command, args == NULL ? "" : args);
+    printf("\n\n\\ Executing command -%c %s:", command, args == NULL ? "" : args);
 }
 
 static void print_row(const char *op, const char *target, const char *res, const char *message, va_list a_list) {
@@ -251,7 +251,7 @@ static void print_row(const char *op, const char *target, const char *res, const
         vsnprintf(msg, sizeof(msg), message, a_list);
     }
 
-    printf("%s - %s - %s - %s\n", op, target, res, message == NULL ? "" : msg);
+    printf("\n|\n| Operation: %s\n| Target: %s\n| Status: %s\n| Info: %s", op, target, res, message == NULL ? "" : msg);
 }
 
 static void print_log(const char *op, const char *target, int res, const char *message, ...) {
@@ -276,7 +276,7 @@ static void wait_milliseconds() {
     ts.tv_sec = wait_milliseconds_value / 1000;
     ts.tv_nsec = (wait_milliseconds_value % 1000) * 1000000;
 
-    print_log("Wait", "", 0, "milliseconds=%d", wait_milliseconds_value);
+    print_log("Wait", "", 0, "waited %d milliseconds", wait_milliseconds_value);
 
     nanosleep(&ts, NULL);
 }
