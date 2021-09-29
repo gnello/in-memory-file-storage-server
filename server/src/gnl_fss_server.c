@@ -13,7 +13,7 @@
 #include "../include/gnl_fss_server.h"
 #include <gnl_macro_beg.h>
 
-#define GNL_FSS_SERVER_BUFFER_LEN 100
+#define GNL_FSS_SERVER_BUFFER_LEN 11
 
 volatile sig_atomic_t soft_termination = 0;
 volatile sig_atomic_t hard_termination = 0;
@@ -221,6 +221,8 @@ static int run_server(int fd_skt, struct gnl_fss_thread_pool *thread_pool, const
             }
 
             // if this point is reached then there is an error, return
+            gnl_logger_error(logger, "select (system call) returned with error: %s", strerror(errno));
+
             return -1;
         }
 
@@ -231,6 +233,8 @@ static int run_server(int fd_skt, struct gnl_fss_thread_pool *thread_pool, const
 
             // if the current fd is ready to be read...
             if (FD_ISSET(fd, &rdset)) {
+
+                gnl_logger_debug(logger, "select (system call) waked up by file descriptor %d", fd);
 
                 // if there is an incoming connection...
                 if (fd == fd_skt) {
@@ -246,7 +250,7 @@ static int run_server(int fd_skt, struct gnl_fss_thread_pool *thread_pool, const
                         res = close(fd_c);
                         GNL_MINUS1_CHECK(res, errno, -1)
 
-                        gnl_logger_debug(logger, "soft termination in progress, connection from client refused", fd_c);
+                        gnl_logger_debug(logger, "soft termination in progress, connection from client refused");
 
                         // resume for loop
                         continue;
@@ -273,7 +277,7 @@ static int run_server(int fd_skt, struct gnl_fss_thread_pool *thread_pool, const
                     memset(buf, 0, GNL_FSS_SERVER_BUFFER_LEN);
 
                     // read the client file descriptor from the channel
-                    nread = read(fd, buf, GNL_FSS_SERVER_BUFFER_LEN);
+                    nread = gnl_socket_service_readn(fd, buf, GNL_FSS_SERVER_BUFFER_LEN);
                     if (nread == -1) {
                         gnl_logger_error(logger, "error reading the message: %s", strerror(errno));
 
@@ -311,6 +315,8 @@ static int run_server(int fd_skt, struct gnl_fss_thread_pool *thread_pool, const
                     // put the client file descriptor back into the active file descriptors set
                     FD_SET(fd_c, &set);
 
+                    gnl_logger_debug(logger, "client %d put into the active file descriptors set", fd_c);
+
                     // update fd_num with the max file descriptor active index
                     if (fd_c > fd_num) {
                         fd_num = fd_c;
@@ -323,19 +329,24 @@ static int run_server(int fd_skt, struct gnl_fss_thread_pool *thread_pool, const
                     // remove the file descriptor from the active file descriptors set
                     FD_CLR(fd, &set);
 
+                    gnl_logger_debug(logger, "client %d removed from the active file descriptors set", fd);
+
                     // update fd_num
                     if (fd == fd_num) {
                         fd_num--;
                     }
 
                     // copy the file descriptor to prevent changes side effects
-                    int locked_fd = fd;
+                    int *fd_copy = malloc(sizeof(int));
+                    GNL_NULL_CHECK(fd_copy, ENOMEM, -1)
+
+                    *fd_copy = fd;
 
                     // pass the file descriptor to the thread pool
-                    res = gnl_fss_thread_pool_dispatch(thread_pool, &locked_fd);
+                    res = gnl_fss_thread_pool_dispatch(thread_pool, fd_copy);
                     GNL_MINUS1_CHECK(res, errno, -1)
 
-                    gnl_logger_debug(logger, "I/O request sent to the thread pool");
+                    gnl_logger_debug(logger, "I/O request from client %d sent to the thread pool", fd);
                 }
             }
         }

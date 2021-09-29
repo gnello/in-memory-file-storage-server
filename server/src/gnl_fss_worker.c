@@ -368,6 +368,7 @@ static int handle_error(struct gnl_fss_worker *worker, int fd_c) {
     gnl_logger_debug(worker->logger, "response sent to client %d", fd_c);
 
     gnl_logger_debug(worker->logger, "sending message to master to listen again client %d requests", fd_c);
+
     // send the message to the master to
     // listen again the client requests
     res = send_message_to_master(worker->pipe_channel, fd_c);
@@ -445,8 +446,17 @@ static struct gnl_socket_response *handle_fd_c_request(struct gnl_fss_worker *wo
 
         gnl_logger_debug(logger, "response sent to client %d", fd_c);
 
-        // send the message to the master
-        send_message_to_master(worker->pipe_channel, fd_c);
+        gnl_logger_debug(worker->logger, "sending message to master to listen again client %d requests", fd_c);
+
+        // send the message to the master to
+        // listen again the client requests
+        res = send_message_to_master(worker->pipe_channel, fd_c);
+
+        if (res == -1) {
+            gnl_logger_debug(worker->logger, "error sending the message: %s", strerror(errno));
+        } else {
+            gnl_logger_debug(worker->logger, "message sent");
+        }
     }
 
     return response;
@@ -623,6 +633,9 @@ void *gnl_fss_worker_handle(void* args) {
 
         // cast raw client file descriptor
         fd_c = *(int *)raw_fd_c;
+
+        // free memory
+        free(raw_fd_c);
 
         // if terminate message, put down the worker
         if (fd_c == GNL_FSS_WORKER_TERMINATE) {

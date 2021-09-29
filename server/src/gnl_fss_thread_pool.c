@@ -146,10 +146,19 @@ void gnl_fss_thread_pool_destroy(struct gnl_fss_thread_pool *thread_pool) {
     // send one termination message per worker into the thread pool
     gnl_logger_debug(thread_pool->logger, "sending a termination message to %d threads", thread_pool->size);
 
-    int termination_mex = GNL_FSS_WORKER_TERMINATE;
     int count = 0;
     for (size_t i=0; i<thread_pool->size; i++) {
-        res = gnl_fss_thread_pool_dispatch(thread_pool, (void *)&termination_mex);
+
+        // create the termination message
+        int *termination_mex = malloc(sizeof(int));
+        if (termination_mex == NULL) {
+            errno = ENOMEM;
+            return;
+        }
+
+        *termination_mex = GNL_FSS_WORKER_TERMINATE;
+
+        res = gnl_fss_thread_pool_dispatch(thread_pool, termination_mex);
 
         if (res != -1) {
             count++;
@@ -198,7 +207,7 @@ void gnl_fss_thread_pool_destroy(struct gnl_fss_thread_pool *thread_pool) {
 int gnl_fss_thread_pool_dispatch(struct gnl_fss_thread_pool *thread_pool, void *message) {
     GNL_NULL_CHECK(thread_pool, EINVAL, -1)
 
-    gnl_logger_debug(thread_pool->logger, "dispatching a message to the thread pool");
+    gnl_logger_debug(thread_pool->logger, "dispatching client %d message to the thread pool", *(int *)message);
 
     return gnl_ts_bb_queue_enqueue(thread_pool->worker_queue, message);
 }
