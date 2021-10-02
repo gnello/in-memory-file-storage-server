@@ -13,7 +13,7 @@ LIMIT=100
 REPLACEMENT_POLICY=FIFO
 
 # The absolute path of the socket file.
-SOCKET=/tmp/LSOfilestorage_stressing_test.sk
+SOCKET=/tmp/LSOfilestorage_stress_test.sk
 
 # The absolute path of the log file.
 LOG_FILE=/tmp/gnl_fss.log
