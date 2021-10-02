@@ -48,6 +48,14 @@ static void destroy_gnl_simfs_evicted_file(void *ptr) {
     gnl_simfs_evicted_file_destroy(ptr);
 }
 
+/**
+ * TODO: doc
+ * @param file_system
+ * @param waiting_list
+ * @param request
+ * @param fd_c
+ * @return
+ */
 static int wait_unlock(struct gnl_simfs_file_system *file_system, struct gnl_fss_waiting_list *waiting_list,
         struct gnl_socket_request *request, int fd_c) {
 
@@ -101,7 +109,7 @@ static struct gnl_fss_waiting_list_el *get_waiting_unlock(struct gnl_simfs_file_
     GNL_NULL_CHECK(request, EINVAL, NULL)
 
     char *target;
-    int fd = -1;
+    int fd;
 
     // get the target
     switch (gnl_socket_request_type(request)) {
@@ -125,7 +133,7 @@ static struct gnl_fss_waiting_list_el *get_waiting_unlock(struct gnl_simfs_file_
     GNL_CALLOC(target, strlen(inode.name) + 1, NULL)
     strncpy(target, inode.name, strlen(inode.name));
 
-    // put the target and the pid into the waiting list
+    // pop the target from the waiting list
     struct gnl_fss_waiting_list_el *el = gnl_fss_waiting_list_pop(waiting_list, target);
 
     // free memory
@@ -485,6 +493,7 @@ static int handle_fd_c_response(struct gnl_fss_worker *worker, int fd_c,
         errno = 0;
 
         // for each waiting pid
+        //TODO: una volta individuato il target non rifare sempre fstat, quindi dividere il metodo, uno prende il target, l'altro fa lo while
         while ((popped_waiting_list_el = get_waiting_unlock(worker->file_system, worker->waiting_list, request, fd_c)) != NULL) {
             broadcast++;
 
@@ -512,7 +521,7 @@ static int handle_fd_c_response(struct gnl_fss_worker *worker, int fd_c,
             if (errno == 0) {
                 gnl_logger_debug(logger, "no waiting pid to broadcast to");
             } else {
-                gnl_logger_debug(logger, "error during the broadcasting: %s", strerror(errno));
+                gnl_logger_warn(logger, "error during the broadcasting: %s", strerror(errno));
             }
         }
     }
