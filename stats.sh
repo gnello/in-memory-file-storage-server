@@ -10,7 +10,8 @@ function avg_op {
   TIMES=`grep -o "$1" $2 | wc -l`
 
   if [[ $TIMES -eq 0 ]]; then
-    return 0
+    AVG_OP_RESULT=0
+    return
   fi
 
   # get the array of op data
@@ -67,6 +68,7 @@ OPEN_LOCKS=`grep "Open: O_CREATE flag set" $LOG_PATH | wc -l`
 UNLOCKS=`grep "UNLOCK request" $LOG_PATH | wc -l`
 CLOSES=`grep "CLOSE request" $LOG_PATH | wc -l`
 EVICTIONS=`grep "Start eviction" $LOG_PATH | wc -l`
+REQUESTS_HANDLED=`grep "client [0-9]\+ request handled" $LOG_PATH | wc -l`
 
 # calculate the bytes read average
 avg_op "Read: [0-9]\+ bytes read" $LOG_PATH
@@ -97,7 +99,13 @@ echo "total \"close\" operations: $CLOSES"
 echo "total \"eviction\" operations: $EVICTIONS"
 echo "Maximum storage size reached: $MAX_STORAGE_MB MB"
 echo "Maximum storage files reached: $MAX_STORAGE_FILES"
+
 echo "Request handled per thread:"
-awk '/worker_[0-9]+.DEBUG client [0-9]+ request handled/ {arr[$3]++}END{for (a in arr) print a, arr[a]}' $LOG_PATH \
-| sort -g | sed 's/.DEBUG/:/' | sed 's/gnl_fss_//' | sed 's/_/ /'
+if [[ $REQUESTS_HANDLED -eq 0 ]]; then
+  echo "No requests handled"
+else
+  awk '/worker_[0-9]+.DEBUG client [0-9]+ request handled/ {arr[$3]++}END{for (a in arr) print a, arr[a]}' $LOG_PATH \
+  | sort -g | sed 's/.DEBUG/:/' | sed 's/gnl_fss_//' | sed 's/_/ /'
+fi
+
 echo "Maximum simultaneous connections reached: $MAX_CONN"
