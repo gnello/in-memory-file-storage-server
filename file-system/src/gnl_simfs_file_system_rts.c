@@ -142,6 +142,10 @@ static int gnl_simfs_rts_fflush_inode(struct gnl_simfs_file_system *file_system,
 
     gnl_logger_debug(file_system->logger, "Flushing inode of file entry \"%s\" into the file table", inode->name);
 
+    // get the current inode size to calculate
+    // the bytes that will be added
+    int old_size = inode->size;
+
     // update the inode with the new entry
     int res = gnl_simfs_file_table_fflush(file_system->file_table, inode);
     if (res == -1) {
@@ -152,13 +156,13 @@ static int gnl_simfs_rts_fflush_inode(struct gnl_simfs_file_system *file_system,
         return -1;
     }
 
+    // track the event calculating the bytes added
+    res = gnl_simfs_monitor_bytes_added(file_system->monitor, inode->size - old_size);
+    GNL_MINUS1_CHECK(res, errno, -1);
+
     // log the new file table size
     int size = gnl_simfs_file_table_size(file_system->file_table);
     GNL_MINUS1_CHECK(size, errno, -1);
-
-    // track the event
-    res = gnl_simfs_monitor_bytes_added(file_system->monitor, inode->size);
-    GNL_MINUS1_CHECK(res, errno, -1);
 
     gnl_logger_debug(file_system->logger, "File flush on entry \"%s\" succeeded", inode->name);
     gnl_logger_debug(file_system->logger, "Inode compressed into %d bytes", inode->size);
