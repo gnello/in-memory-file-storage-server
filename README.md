@@ -107,6 +107,9 @@ tests-valgrind-short | `make tests-valgrind-short`| Runs all the test suites wit
 tests-valgrind-error | `make tests-valgrind-error`| Runs all the test suites with valgrind and exit with an error if errors are found
 clean | `make clean`| Clean all the executable, library and object files
 clean-dev | `make clean-dev`| Clean all the executable, library and object files, including tests
+test1 | `make test1`| Run a feature test with the following server configuration: `THREAD_WORKERS=1`, `CAPACITY=128`, `LIMIT=10000`. This test will run some clients to test each possible client option.
+test2 | `make test2`| Run a replacement policy test with the following server configuration: `THREAD_WORKERS=4`, `CAPACITY=1`, `LIMIT=10`. The goal of this test is to show the replacement policy functionality through the server output at exit.
+test3 | `make test3`| Run a stress test with the following server configuration: `THREAD_WORKERS=8`, `CAPACITY=32`, `LIMIT=100`. This test will run several clients for 30 seconds, with a minimum of 10 simultaneous instances.
 
 ## License
 
