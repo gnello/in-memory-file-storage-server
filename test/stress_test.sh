@@ -1,7 +1,7 @@
 #!/bin/bash
 
 SCRIPTPATH="$( cd -- "$(dirname "$0")" >/dev/null 2>&1 || exit; pwd -P )"
-WAIT_SECS=10
+WAIT_SECS=30
 SIMULTANEOUS_CLIENTS=12
 ACTIVE_CLIENTS_PID=()
 
