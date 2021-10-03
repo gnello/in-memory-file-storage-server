@@ -80,8 +80,6 @@ function run_clients {
   done
 }
 
-#./main -f /tmp/LSOfilestorage_stress_test.sk -w ../test/dataset/generic/
-
 run_clients &
 RUN_CLIENTS_PID="$!"
 
