@@ -306,6 +306,13 @@ static int run_server(int fd_skt, struct gnl_fss_thread_pool *thread_pool, const
                         gnl_logger_debug(logger, "a client has gone away");
                         gnl_logger_debug(logger, "the server has now %d active connections", active_connections);
 
+                        // if we are in a "soft termination" and active_connections == 0,
+                        // then return
+                        if (soft_termination == 1 && active_connections == 0) {
+                            gnl_logger_debug(logger, "soft termination in progress, the server will shut down");
+                            return 0;
+                        }
+
                         // resume for loop
                         continue;
                     }
