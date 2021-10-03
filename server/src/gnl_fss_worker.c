@@ -518,7 +518,7 @@ static int handle_fd_c_response(struct gnl_fss_worker *worker, int fd_c,
             while ((popped_waiting_list_el = gnl_fss_waiting_list_pop(worker->waiting_list, target)) != NULL) {
                 broadcast++;
 
-                gnl_logger_debug(logger, "broadcast to pid %d", fd_c);
+                gnl_logger_debug(logger, "broadcast to pid %d", popped_waiting_list_el->pid);
 
                 struct gnl_socket_response *tmp_response = handle_fd_c_request(worker, popped_waiting_list_el->pid,
                                                                                popped_waiting_list_el->request);
@@ -701,7 +701,8 @@ void *gnl_fss_worker_handle(void* args) {
                                              "error ignored", fd_c, strerror(errno));
                 }
 
-                gnl_logger_debug(logger, "client %d removed from the waiting list", fd_c);
+                gnl_logger_debug(logger, "if client %d were present into the waiting list, then it was removed "
+                                         "from it", fd_c);
 
                 // remove the client session from the file system
                 res = gnl_simfs_file_system_remove_session(worker->file_system, fd_c);
