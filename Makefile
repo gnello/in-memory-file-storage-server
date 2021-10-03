@@ -88,7 +88,7 @@ test1: server client
 	echo "\nRunning feature test...\n\n"
 	cd ./server && valgrind --leak-check=full ./main -f ../test/config-feature-test.txt &
 	cd test && ./feature_test.sh
-	kill -HUP $$(ps aux | grep "leak-check=full ./main -f ../test/config-feature-test.txt" | awk 'NR==1{print $$2}')
+	kill -HUP $$(ps aux | grep "./main -f ../test/config-feature-test.txt" | awk 'NR==1{print $$2}')
 
 test2: server client
 	echo "\nRunning replacement policy test...\n\n"
