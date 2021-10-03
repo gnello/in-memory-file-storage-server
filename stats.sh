@@ -64,6 +64,7 @@ LOG_PATH=$1
 READS=`grep "READ request" $LOG_PATH | wc -l`
 WRITES=`grep "WRITE request" $LOG_PATH | wc -l`
 LOCKS=`grep "LOCK request" $LOG_PATH | wc -l`
+OPENS=`grep "OPEN request" $LOG_PATH | wc -l`
 OPEN_LOCKS=`grep "Open: O_CREATE flag set" $LOG_PATH | wc -l`
 UNLOCKS=`grep "UNLOCK request" $LOG_PATH | wc -l`
 CLOSES=`grep "CLOSE request" $LOG_PATH | wc -l`
@@ -93,7 +94,8 @@ MAX_CONN=$MAX_OP_RESULT
 echo "total \"read\" operations: $READS, average read bytes: $BYTES_READ_AVG"
 echo "total \"write\" operations: $WRITES, average written bytes: $BYTES_WRITTEN_AVG"
 echo "total \"lock\" operations: $LOCKS"
-echo "total \"open-lock\" operations: $OPEN_LOCKS"
+echo "total \"open\" operations: $OPENS"
+echo "total \"open-lock\" operations (of $OPENS): $OPEN_LOCKS"
 echo "total \"unlock\" operations: $UNLOCKS"
 echo "total \"close\" operations: $CLOSES"
 echo "total \"eviction\" operations: $EVICTIONS"
