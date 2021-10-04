@@ -5,20 +5,11 @@ WAIT_SECS=30
 SIMULTANEOUS_CLIENTS=12
 ACTIVE_CLIENTS_PID=()
 
+# list of files to send (credits to https://stackoverflow.com/questions/1767384/ls-command-how-can-i-get-a-recursive-full-path-listing-one-line-per-file)
+FILES=($(ls -laR dataset | grep '^-\|d' | awk ' /:$/&&f{s=$0;f=0} /:$/&&!f{sub(/:$/,"");s=$0;f=1;next} NF&&f{ print s"/"$9 }' | grep '.txt\|.jpg\|.zip\|.png'))
+
 # change directory to the client directory
 cd ../client/ || exit 1
-
-# list of files to send
-FILES=(\
-"generic/little-prince-excerpt.txt" \
-"generic/lorem-ipsum.txt" \
-"generic/meme.jpg" \
-"generic/one-late-night.txt" \
-"generic/reallyinterestingimage.zip" \
-"generic/simple-library/black-hole.txt" \
-"generic/simple-library/states-of-a-programmer.png" \
-"generic/simple-library/year-2038-problem.txt" \
-)
 
 # if the position i is equal to 1, then the
 # respectively file in $FILES at position i
@@ -63,7 +54,7 @@ function run_clients {
       FILE=${FILES[$FILE_INDEX]}
 
       # if the file was already sent, remove it
-      WRITE_COMMAND="-W ../test/dataset/$FILE"
+      WRITE_COMMAND="-W ../test/$FILE"
       if [[ ${FILES_SENT[$FILE_INDEX]} -eq 1 ]]; then
         WRITE_COMMAND=""
       fi
@@ -72,11 +63,12 @@ function run_clients {
       FILES_SENT[$FILE_INDEX]=1
 
       # run the client
-      ./main -f /tmp/LSOfilestorage_stress_test.sk -t 0 $WRITE_COMMAND -r $SCRIPTPATH/dataset/$FILE -R 10 &
+      ./main -f /tmp/LSOfilestorage_stress_test.sk -t 0 $WRITE_COMMAND -r $SCRIPTPATH/$FILE -R 3 -l $SCRIPTPATH/$FILE -u $SCRIPTPATH/$FILE &
 
       # update the active clients pid array
       ACTIVE_CLIENTS_PID+=($!)
     fi
+
   done
 }
 
@@ -86,3 +78,4 @@ RUN_CLIENTS_PID="$!"
 sleep $WAIT_SECS
 
 kill -9 $RUN_CLIENTS_PID
+#kill $(ps aux | grep 'stress' | awk '{print $2}')

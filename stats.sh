@@ -71,6 +71,7 @@ CLOSES=`grep "CLOSE request" $LOG_PATH | wc -l`
 EVICTIONS=`grep "Start eviction" $LOG_PATH | wc -l`
 BROADCASTS_AFTER_LOCK=`grep "broadcast to pid [0-9]\+" $LOG_PATH | wc -l`
 REQUESTS_HANDLED=`grep "client [0-9]\+ request handled" $LOG_PATH | wc -l`
+DEADLOCK_AVOIDED=`grep "deadlock avoided" $LOG_PATH | wc -l`
 
 # calculate the bytes read average
 avg_op "Read: [0-9]\+ bytes read" $LOG_PATH
@@ -96,11 +97,12 @@ echo "total \"read\" operations: $READS, average read bytes: $BYTES_READ_AVG"
 echo "total \"write\" operations: $WRITES, average written bytes: $BYTES_WRITTEN_AVG"
 echo "total \"lock\" operations: $LOCKS"
 echo "total \"open\" operations: $OPENS"
-echo "total \"open-lock\" operations (of $OPENS): $OPEN_LOCKS"
+echo "total \"open-lock\" operations (of $OPENS opens): $OPEN_LOCKS"
 echo "total \"unlock\" operations: $UNLOCKS"
 echo "total \"close\" operations: $CLOSES"
 echo "total \"eviction\" operations: $EVICTIONS"
 echo "total \"broadcasts\" operations after waiting a lock: $BROADCASTS_AFTER_LOCK"
+echo "total deadlocks avoided: $DEADLOCK_AVOIDED"
 echo "Maximum storage size reached: $MAX_STORAGE_MB MB"
 echo "Maximum storage files reached: $MAX_STORAGE_FILES"
 

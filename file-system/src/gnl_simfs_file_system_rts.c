@@ -282,6 +282,7 @@ static int gnl_simfs_rts_wait_file_to_be_lockable(struct gnl_simfs_file_system *
     }
 
     int test, res;
+
     while ((test = (gnl_simfs_inode_has_refs(inode) && gnl_simfs_inode_has_other_pid_refs(inode, pid) == 1)) > 0) {
         GNL_MINUS1_CHECK(test, errno, -1)
 

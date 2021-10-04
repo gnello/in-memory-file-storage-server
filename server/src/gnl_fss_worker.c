@@ -527,7 +527,14 @@ static int handle_fd_c_response(struct gnl_fss_worker *worker, int fd_c,
                 // is blocking another waiting pid. Without this call, if the first
                 // waiting pid unlock the file on where another waiting pid is waiting,
                 // then the another waiting pid will wait potentially forever
-                handle_fd_c_response(worker, popped_waiting_list_el->pid, popped_waiting_list_el->request, tmp_response);
+                res = handle_fd_c_response(worker, popped_waiting_list_el->pid, popped_waiting_list_el->request, tmp_response);
+                if (res == -1) {
+                    gnl_logger_error(logger, "error during the handling of the response for the client fd %d: %s, "
+                                             "response ignored", popped_waiting_list_el->pid, strerror(errno));
+
+                    // handle the error
+                    handle_error(worker, popped_waiting_list_el->pid);
+                }
 
                 // free memory
                 free(popped_waiting_list_el);
