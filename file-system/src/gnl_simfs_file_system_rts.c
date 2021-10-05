@@ -301,6 +301,47 @@ static int gnl_simfs_rts_wait_file_to_be_lockable(struct gnl_simfs_file_system *
 }
 
 /**
+ * TODO doc
+ * @param file_system
+ * @param inode
+ * @param filename
+ * @param pid
+ * @return
+ */
+static int gnl_simfs_rts_lock_inode(struct gnl_simfs_file_system *file_system, struct gnl_simfs_inode *inode, int pid) {
+
+    // validate the parameters
+    GNL_NULL_CHECK(file_system, EINVAL, -1)
+    GNL_NULL_CHECK(inode, EINVAL, -1)
+
+    // check if there are pending locks, since the intention
+    // here is to lock the inode, if the inode is not
+    // locked and there are pending locks, then this check prevents
+    // the occurring of a deadlock
+    int res = gnl_simfs_inode_has_pending_locks(inode);
+    GNL_MINUS1_CHECK(-1 * res, EDEADLK, -1)
+
+    // increase the pending locks count of the inode
+    // to inform that a lock is pending
+    res = gnl_simfs_inode_increase_pending_locks(inode);
+    GNL_MINUS1_CHECK(res, errno, -1)
+
+    // check if the file can be locked: if not, wait for it
+    res = gnl_simfs_rts_wait_file_to_be_lockable(file_system, inode, pid);
+    GNL_MINUS1_CHECK(res, errno, -1)
+
+    // lock the file
+    res = gnl_simfs_inode_file_lock(inode, pid);
+    GNL_MINUS1_CHECK(res, errno, -1)
+
+    // decrease the pending_locks count
+    res = gnl_simfs_inode_decrease_pending_locks(inode);
+    GNL_MINUS1_CHECK(res, errno, -1)
+
+    return 0;
+}
+
+/**
  * Return the inode referred by the given fd from the file descriptor table.
  *
  * @param file_system   The file system instance where the file table resides.
