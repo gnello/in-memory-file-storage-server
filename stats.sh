@@ -68,6 +68,7 @@ OPEN_LOCKS=`grep "Open: O_CREATE flag set" $LOG_PATH | wc -l`
 LOCKS=`grep -w "LOCK request" $LOG_PATH | wc -l`
 UNLOCKS=`grep "UNLOCK request" $LOG_PATH | wc -l`
 CLOSES=`grep "CLOSE request" $LOG_PATH | wc -l`
+REMOVES=`grep "REMOVE request" $LOG_PATH | wc -l`
 EVICTIONS=`grep "Start eviction" $LOG_PATH | wc -l`
 BROADCASTS_AFTER_LOCK=`grep "broadcast to pid [0-9]\+" $LOG_PATH | wc -l`
 REQUESTS_HANDLED=`grep "client [0-9]\+ request handled" $LOG_PATH | wc -l`
@@ -100,6 +101,7 @@ echo "total \"open\" operations: $OPENS"
 echo "total \"open-lock\" operations (of $OPENS opens): $OPEN_LOCKS"
 echo "total \"unlock\" operations: $UNLOCKS"
 echo "total \"close\" operations: $CLOSES"
+echo "total \"remove\" operations: $REMOVES"
 echo "total \"eviction\" operations: $EVICTIONS"
 echo "total \"broadcasts\" operations after waiting a lock: $BROADCASTS_AFTER_LOCK"
 echo "total deadlocks avoided: $DEADLOCK_AVOIDED"
