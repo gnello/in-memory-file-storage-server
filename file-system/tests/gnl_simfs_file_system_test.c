@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <string.h>
 #include <gnl_colorshell.h>
 #include <gnl_assert.h>
 #include <gnl_file_to_pointer.h>
@@ -289,6 +290,52 @@ int can_not_write_memory_limit() {
     return 0;
 }
 
+int can_remove_session() {
+    struct gnl_simfs_file_system *fs = gnl_simfs_file_system_init(1, 100, NULL, NULL, GNL_SIMFS_RP_NONE);
+
+    if (fs == NULL) {
+        return -1;
+    }
+
+    char *files[13] = {"/test/file_1", "/test/file_2", "/test/file_3"};
+
+    int res;
+    for (size_t i=0; i<3; i++) {
+        res = gnl_simfs_file_system_open(fs, files[i], GNL_SIMFS_O_CREATE | GNL_SIMFS_O_LOCK, 1);
+        if (res != i) {
+            return -1;
+        }
+    }
+
+    for (size_t i=0; i<3; i++) {
+        if (gnl_list_search(fs->file_table->presence_list, files[i], compare_string) == 0) {
+            return -1;
+        }
+
+        struct gnl_simfs_inode *inode = gnl_simfs_file_table_get(fs->file_table, files[i]);
+        if (inode == NULL || gnl_simfs_inode_is_file_locked(inode) == 0) {
+            return -1;
+        }
+    }
+
+    gnl_simfs_file_system_remove_session(fs, 1);
+
+    for (size_t i=0; i<3; i++) {
+        struct gnl_simfs_inode *inode = gnl_simfs_file_table_get(fs->file_table, files[i]);
+        if (inode == NULL || gnl_simfs_inode_is_file_locked(inode) > 0) {
+            return -1;
+        }
+
+        if (gnl_simfs_file_descriptor_table_get(fs->file_descriptor_table, i, 1) != NULL) {
+            return -1;
+        }
+    }
+
+    gnl_simfs_file_system_destroy(fs);
+
+    return 0;
+}
+
 int main() {
     gnl_printf_yellow("> gnl_simfs_file_system test:\n\n");
 
@@ -304,6 +351,7 @@ int main() {
     gnl_assert(can_open, "can open a file that exists.");
 
     gnl_assert(can_write, "can write (and read) a file."); // this method tests also the read method
+    gnl_assert(can_remove_session, "can remove a session of a pid."); // this method tests also the read method
 
     // the following test is heavy for valgrind
     //gnl_assert(can_not_write_memory_limit, "can not write a file if there are no space left on the volume.");
