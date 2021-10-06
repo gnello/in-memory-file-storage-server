@@ -531,10 +531,16 @@ int gnl_simfs_file_system_close(struct gnl_simfs_file_system *file_system, int f
         // if the file is not found it was surely deleted, ignore the
         // error and return success
         if (errno == ENOENT) {
+            gnl_logger_debug(file_system->logger, "Close: close on file descriptor %d succeeded, "
+                                                  "file descriptor %d destroyed, inode not found, it was probably "
+                                                  "deleted", fd, fd);
+
             res = 0;
         }
         // else propagate the errno
         else {
+            gnl_logger_error(file_system->logger, "Close failed: %s", strerror(errno));
+
             res = -1;
         }
 

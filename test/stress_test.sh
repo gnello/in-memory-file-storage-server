@@ -12,6 +12,9 @@ SIMULTANEOUS_CLIENTS=12
 # array of active clients pid
 ACTIVE_CLIENTS_PID=()
 
+# counter of the files created
+FILE_COUNTER=0
+
 # change directory to the client directory
 cd ../client/ || exit 1
 
@@ -29,8 +32,8 @@ function remove_pid {
 
 # generate a random file with a random size (max 15MB)
 function generate_file {
-  local FILENAME=$FILES_BASE_DIR/gnl_stress_test_$((1 + $RANDOM % 9999999999))
-  local BYTES=$((1 + $RANDOM % 15728640))
+  local FILENAME=$FILES_BASE_DIR/gnl_stress_test_$((FILE_COUNTER++))
+  local BYTES=$(((1 + $RANDOM) * (1 + $RANDOM % 32)))
   
   head -c $BYTES /dev/urandom > $FILENAME
   
@@ -64,7 +67,6 @@ function run_clients {
       -t 0 \
       -W $FILENAME \
       -r $FILENAME \
-      -R 3 \
       -l $FILENAME \
       -u $FILENAME \
       -l $FILENAME \

@@ -283,6 +283,180 @@ int can_get_null_on_an_empty_ternary_search_tree_get() {
     return 0;
 }
 
+int can_remove_2() {
+    struct gnl_ternary_search_tree_t *ternary_search_tree = NULL;
+
+    gnl_ternary_search_tree_put(&ternary_search_tree, "test", &test_int_el1);
+    gnl_ternary_search_tree_put(&ternary_search_tree, "different", &test_int_el1);
+    gnl_ternary_search_tree_put(&ternary_search_tree, "good", &test_int_el1);
+    gnl_ternary_search_tree_put(&ternary_search_tree, "mess", &test_int_el1);
+
+    void *res = gnl_ternary_search_tree_get(ternary_search_tree, "test");
+    if (res == NULL) {
+        return -1;
+    }
+
+    res = gnl_ternary_search_tree_get(ternary_search_tree, "different");
+    if (res == NULL) {
+        return -1;
+    }
+
+    res = gnl_ternary_search_tree_get(ternary_search_tree, "good");
+    if (res == NULL) {
+        return -1;
+    }
+
+    res = gnl_ternary_search_tree_get(ternary_search_tree, "mess");
+    if (res == NULL) {
+        return -1;
+    }
+
+    int delete_res = gnl_ternary_search_tree_remove(ternary_search_tree, "test", NULL);
+    if (delete_res != 0) {
+        return -1;
+    }
+
+    res = gnl_ternary_search_tree_get(ternary_search_tree, "test");
+    if (res != NULL) {
+        return -1;
+    }
+
+    res = gnl_ternary_search_tree_get(ternary_search_tree, "different");
+    if (res == NULL) {
+        return -1;
+    }
+
+    res = gnl_ternary_search_tree_get(ternary_search_tree, "good");
+    if (res == NULL) {
+        return -1;
+    }
+
+    res = gnl_ternary_search_tree_get(ternary_search_tree, "mess");
+    if (res == NULL) {
+        return -1;
+    }
+
+    gnl_ternary_search_tree_destroy(&ternary_search_tree, NULL);
+
+    return 0;
+}
+
+int can_remove_3() {
+    struct gnl_ternary_search_tree_t *ternary_search_tree = NULL;
+
+    gnl_ternary_search_tree_put(&ternary_search_tree, "test", &test_int_el1);
+    gnl_ternary_search_tree_put(&ternary_search_tree, "testa", &test_int_el1);
+    gnl_ternary_search_tree_put(&ternary_search_tree, "testab", &test_int_el1);
+    gnl_ternary_search_tree_put(&ternary_search_tree, "testabc", &test_int_el1);
+
+    void *res = gnl_ternary_search_tree_get(ternary_search_tree, "test");
+    if (res == NULL) {
+        return -1;
+    }
+
+    res = gnl_ternary_search_tree_get(ternary_search_tree, "testa");
+    if (res == NULL) {
+        return -1;
+    }
+
+    res = gnl_ternary_search_tree_get(ternary_search_tree, "testab");
+    if (res == NULL) {
+        return -1;
+    }
+
+    res = gnl_ternary_search_tree_get(ternary_search_tree, "testabc");
+    if (res == NULL) {
+        return -1;
+    }
+
+    int delete_res = gnl_ternary_search_tree_remove(ternary_search_tree, "test", NULL);
+    if (delete_res != 0) {
+        return -1;
+    }
+
+    res = gnl_ternary_search_tree_get(ternary_search_tree, "test");
+    if (res != NULL) {
+        return -1;
+    }
+
+    res = gnl_ternary_search_tree_get(ternary_search_tree, "testa");
+    if (res == NULL) {
+        return -1;
+    }
+
+    res = gnl_ternary_search_tree_get(ternary_search_tree, "testab");
+    if (res == NULL) {
+        return -1;
+    }
+
+    res = gnl_ternary_search_tree_get(ternary_search_tree, "testabc");
+    if (res == NULL) {
+        return -1;
+    }
+
+    gnl_ternary_search_tree_destroy(&ternary_search_tree, NULL);
+
+    return 0;
+}
+
+int can_remove_4() {
+    struct gnl_ternary_search_tree_t *ternary_search_tree = NULL;
+
+    gnl_ternary_search_tree_put(&ternary_search_tree, "testabc", &test_int_el1);
+    gnl_ternary_search_tree_put(&ternary_search_tree, "testab", &test_int_el1);
+    gnl_ternary_search_tree_put(&ternary_search_tree, "testa", &test_int_el1);
+    gnl_ternary_search_tree_put(&ternary_search_tree, "test", &test_int_el1);
+
+    void *res = gnl_ternary_search_tree_get(ternary_search_tree, "testabc");
+    if (res == NULL) {
+        return -1;
+    }
+
+    res = gnl_ternary_search_tree_get(ternary_search_tree, "testab");
+    if (res == NULL) {
+        return -1;
+    }
+
+    res = gnl_ternary_search_tree_get(ternary_search_tree, "testa");
+    if (res == NULL) {
+        return -1;
+    }
+
+    res = gnl_ternary_search_tree_get(ternary_search_tree, "test");
+    if (res == NULL) {
+        return -1;
+    }
+
+    int delete_res = gnl_ternary_search_tree_remove(ternary_search_tree, "testabc", NULL);
+    if (delete_res != 0) {
+        return -1;
+    }
+
+    res = gnl_ternary_search_tree_get(ternary_search_tree, "testabc");
+    if (res != NULL) {
+        return -1;
+    }
+
+    res = gnl_ternary_search_tree_get(ternary_search_tree, "testab");
+    if (res == NULL) {
+        return -1;
+    }
+
+    res = gnl_ternary_search_tree_get(ternary_search_tree, "testa");
+    if (res == NULL) {
+        return -1;
+    }
+
+    res = gnl_ternary_search_tree_get(ternary_search_tree, "test");
+    if (res == NULL) {
+        return -1;
+    }
+
+    gnl_ternary_search_tree_destroy(&ternary_search_tree, NULL);
+
+    return 0;
+}
+
 int can_pass_null_ternary_search_tree() {
     gnl_ternary_search_tree_put(NULL, NULL, NULL);
     gnl_ternary_search_tree_get(NULL, NULL);
@@ -312,6 +486,10 @@ int main() {
     gnl_assert(can_get_null_on_an_empty_ternary_search_tree_get, "can get null on empty ternary_search_tree get.");
 
     gnl_assert(can_pass_null_ternary_search_tree, "can give a null ternary_search_tree safely to the ternary_search_tree interface.");
+
+    gnl_assert(can_remove_2, "can remove a unique key.");
+    gnl_assert(can_remove_3, "can remove a prefix key of another longer key.");
+    gnl_assert(can_remove_4, "can remove a key with at least one other key as prefix key.");
 
     // the gnl_ternary_search_tree_get method is implicitly tested by the other tests
 
