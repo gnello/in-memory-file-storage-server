@@ -413,8 +413,6 @@ int gnl_simfs_file_system_write(struct gnl_simfs_file_system *file_system, int f
         return -1;
     }
 
-    //TODO: da qui in poi in caso di errore non lasciare lo stato della struct corrotto
-
     // write the given buf into the inode copy buffer
     int nwrite = gnl_simfs_inode_write(inode_copy, buf, count);
     GNL_SIMFS_MINUS1_CHECK(nwrite, errno, -1, pid)
@@ -468,8 +466,6 @@ int gnl_simfs_file_system_read(struct gnl_simfs_file_system *file_system, int fd
 
         return -1;
     }
-
-    //TODO: da qui in poi in caso di errore non lasciare lo stato della struct corrotto
 
     // read the file into the given buf
     int res = gnl_simfs_rts_read_inode(file_system, inode_copy, buf, count);
