@@ -43,8 +43,12 @@ tests:
 
 tests-valgrind:
 	echo "\nRunning socket suite test...\n\n"
+	./gnl_socket_service_test_server &
 	$(foreach test,$(TARGETS),echo "\n> running $(test) with valgrind...\n"; valgrind --leak-check=full --fair-sched=yes ./$(test); echo "\n";)
+	kill -9 $$(ps aux | grep "gnl_socket_service_test_server" | awk 'NR==1{print $$2}')
 
 tests-valgrind-short:
 	echo "\nRunning socket suite test...\n"
+	./gnl_socket_service_test_server &
 	$(foreach test,$(TARGETS),echo "> running $(test) with valgrind (shortened output)..."; valgrind --leak-check=full --fair-sched=yes --log-file="valgrind-short.txt" ./$(test) > /dev/null; cat valgrind-short.txt | grep "ERROR SUMMARY"; rm "valgrind-short.txt"; echo "\n";)
+	kill -9 $$(ps aux | grep "gnl_socket_service_test_server" | awk 'NR==1{print $$2}')
