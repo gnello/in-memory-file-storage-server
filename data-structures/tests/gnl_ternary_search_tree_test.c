@@ -457,6 +457,64 @@ int can_remove_4() {
     return 0;
 }
 
+int can_remove() {
+    struct gnl_ternary_search_tree_t *ternary_search_tree = NULL;
+
+    gnl_ternary_search_tree_put(&ternary_search_tree, "test_0", &test_int_el1);
+    gnl_ternary_search_tree_put(&ternary_search_tree, "test_1", &test_int_el2);
+    gnl_ternary_search_tree_put(&ternary_search_tree, "test_2", &test_int_el3);
+    gnl_ternary_search_tree_put(&ternary_search_tree, "test_3", &test_int_el4);
+
+    void *res = gnl_ternary_search_tree_get(ternary_search_tree, "test_0");
+    if (res == NULL || *(int *)res != test_int_el1) {
+        return -1;
+    }
+
+    res = gnl_ternary_search_tree_get(ternary_search_tree, "test_1");
+    if (res == NULL || *(int *)res != test_int_el2) {
+        return -1;
+    }
+
+    res = gnl_ternary_search_tree_get(ternary_search_tree, "test_2");
+    if (res == NULL || *(int *)res != test_int_el3) {
+        return -1;
+    }
+
+    res = gnl_ternary_search_tree_get(ternary_search_tree, "test_3");
+    if (res == NULL || *(int *)res != test_int_el4) {
+        return -1;
+    }
+
+    int delete_res = gnl_ternary_search_tree_remove(ternary_search_tree, "test_1", NULL);
+    if (delete_res != 0) {
+        return -1;
+    }
+
+    res = gnl_ternary_search_tree_get(ternary_search_tree, "test_1");
+    if (res != NULL) {
+        return -1;
+    }
+
+    res = gnl_ternary_search_tree_get(ternary_search_tree, "test_0");
+    if (res == NULL) {
+        return -1;
+    }
+
+    res = gnl_ternary_search_tree_get(ternary_search_tree, "test_2");
+    if (res == NULL) {
+        return -1;
+    }
+
+    res = gnl_ternary_search_tree_get(ternary_search_tree, "test_3");
+    if (res == NULL) {
+        return -1;
+    }
+
+    gnl_ternary_search_tree_destroy(&ternary_search_tree, NULL);
+
+    return 0;
+}
+
 int can_pass_null_ternary_search_tree() {
     gnl_ternary_search_tree_put(NULL, NULL, NULL);
     gnl_ternary_search_tree_get(NULL, NULL);
@@ -490,6 +548,8 @@ int main() {
     gnl_assert(can_remove_2, "can remove a unique key.");
     gnl_assert(can_remove_3, "can remove a prefix key of another longer key.");
     gnl_assert(can_remove_4, "can remove a key with at least one other key as prefix key.");
+
+    gnl_assert(can_remove, "can remove a key.");
 
     // the gnl_ternary_search_tree_get method is implicitly tested by the other tests
 

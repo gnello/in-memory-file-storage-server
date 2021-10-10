@@ -107,9 +107,7 @@ int gnl_ternary_search_tree_put(struct gnl_ternary_search_tree_t **t, const char
  * {@inheritDoc}
  */
 void *gnl_ternary_search_tree_get(struct gnl_ternary_search_tree_t *t, const char *key) {
-    if (t == NULL) {
-        return NULL;
-    }
+    GNL_NULL_CHECK(t, EINVAL, NULL)
 
     // if the given key is less than the tree key pick the left node
     if (*key < t->key) {
@@ -176,37 +174,36 @@ static int has_child(struct gnl_ternary_search_tree_t *t) {
  */
 static int remove_node(struct gnl_ternary_search_tree_t *t, const char *key, void (*destroy)(void *data)) {
 
-    // case 4: the given key has at least one other key as prefix key
-    if (*(key + 1) == '\0') {
-        // remove the data if present
-        if (t->data != NULL) {
-            if (destroy != NULL) {
-                destroy(t->data);
-            }
-
-            t->data = NULL;
-
-            // return 1 if the current node does not have any children node
-            return !has_child(t);
-        }
-        // the given key is not present in the tree
-        else {
-            return 0;
-        }
+    // case 3: the given key is a prefix key of another longer key
+    if (*key < t->key) {
+        remove_node(t->left, key, destroy);
     }
+    else if (*key > t->key) {
+        remove_node(t->right, key, destroy);
+    }
+    // case 1: the given key may not be present into the given tree
     else {
-        // case 3: the given key is a prefix key of another longer key
-        if (*key < t->key) {
-            remove_node(t->left, key, destroy);
-        }
-        else if (*key > t->key) {
-            remove_node(t->right, key, destroy);
-        }
-        // case 1: the given key may not be present into the given tree
-        else if (*key == t->key) {
+        // case 4: the given key has at least one other key as prefix key
+        if (*(key + 1) == '\0') {
+            // remove the data if present
+            if (t->key == *key && t->data != NULL) {
+                if (destroy != NULL) {
+                    destroy(t->data);
+                }
+
+                t->data = NULL;
+
+                // return 1 if the current node does not have any children node
+                return !has_child(t);
+            }
+                // the given key is not present in the tree
+            else {
+                return 0;
+            }
+        } else {
             // case 2: the given key is unique in the tree
             if (remove_node(t->mid, key + 1, destroy)) {
-                // delete the last node, it has no children nor is it part of any other string
+                // delete the last node, it has no children, nor it is part of any other string
                 free(t->mid);
                 t->mid = NULL;
 
