@@ -72,7 +72,7 @@ extern int gnl_simfs_file_descriptor_table_remove_pid(struct gnl_simfs_file_desc
  *
  * @return      Return the inode of the given fd on success, NULL otherwise.
  */
-extern struct gnl_simfs_inode *gnl_simfs_file_descriptor_table_get(struct gnl_simfs_file_descriptor_table *table,
+extern struct gnl_simfs_inode *gnl_simfs_file_descriptor_table_get(const struct gnl_simfs_file_descriptor_table *table,
         unsigned int fd, unsigned int pid);
 
 /**
@@ -83,6 +83,20 @@ extern struct gnl_simfs_inode *gnl_simfs_file_descriptor_table_get(struct gnl_si
  * @return  Returns the size of the given file descriptor table
  *          on success, -1 on failure.
  */
-extern int gnl_simfs_file_descriptor_table_size(struct gnl_simfs_file_descriptor_table *table);
+extern int gnl_simfs_file_descriptor_table_size(const struct gnl_simfs_file_descriptor_table *table);
+
+/**
+ * Get the number of times that the given pid put the given inode into
+ * the given file descriptor table.
+ *
+ * @param table The file descriptor table instance.
+ * @param inode The inode of which to get the pid opens.
+ * @param pid   The id of the process to get the size.
+ *
+ * @return  Returns the number of times the given pid put the given inode
+ *          on success, -1 on failure.
+ */
+extern int gnl_simfs_file_descriptor_table_pid_inode_size(const struct gnl_simfs_file_descriptor_table *table,
+        const struct gnl_simfs_inode *inode, unsigned int pid);
 
 #endif //GNL_SIMFS_FILE_DESCRIPTOR_TABLE_H

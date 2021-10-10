@@ -1011,14 +1011,6 @@ int gnl_simfs_file_system_remove_session(struct gnl_simfs_file_system *file_syst
 
     gnl_logger_debug(file_system->logger, "Remove session: removing pid %d session from the file system", pid);
 
-    // remove the inodes of pid from the file descriptor table
-    gnl_logger_debug(file_system->logger, "Remove session: removing pid %d open files", pid);
-
-    int res = gnl_simfs_file_descriptor_table_remove_pid(file_system->file_descriptor_table, pid);
-    GNL_SIMFS_MINUS1_CHECK(res, errno, -1, pid)
-
-    //TODO: eventually decrease the inode reference count
-
     // unlock the inodes locked by pid
     gnl_logger_debug(file_system->logger, "Remove session: unlocking every files locked by pid %d", pid);
 
@@ -1028,6 +1020,8 @@ int gnl_simfs_file_system_remove_session(struct gnl_simfs_file_system *file_syst
 
     struct gnl_list_t *current = list;
 
+    int res;
+
     // scan the list
     while (current != NULL) {
         char *filename = (char *)current->el;
@@ -1035,6 +1029,23 @@ int gnl_simfs_file_system_remove_session(struct gnl_simfs_file_system *file_syst
         // get the original inode of the filename
         struct gnl_simfs_inode *inode = gnl_simfs_rts_get_inode(file_system, filename);
         GNL_SIMFS_NULL_CHECK(inode, errno, -1, pid)
+
+        // get the number of open file by pid
+        int open_files = gnl_simfs_file_descriptor_table_pid_inode_size(file_system->file_descriptor_table, inode, pid);
+        GNL_SIMFS_MINUS1_CHECK(open_files, errno, -1, pid)
+
+        if (open_files > 0) {
+            // decrease refs
+            gnl_logger_debug(file_system->logger, "Remove session: decreasing refs of inode \"%s\" (%d refs)",
+                             filename, open_files);
+
+            while (open_files > 0) {
+                res = gnl_simfs_inode_decrease_refs(inode, pid);
+                GNL_SIMFS_MINUS1_CHECK(res, errno, -1, pid)
+
+                open_files--;
+            }
+        }
 
         // if the given pid locked the inode, then unlock it
         if (gnl_simfs_inode_is_file_locked(inode) == pid) {
@@ -1051,6 +1062,12 @@ int gnl_simfs_file_system_remove_session(struct gnl_simfs_file_system *file_syst
 
         current = current->next;
     }
+
+    // remove the inodes of pid from the file descriptor table
+    gnl_logger_debug(file_system->logger, "Remove session: removing pid %d open files", pid);
+
+    res = gnl_simfs_file_descriptor_table_remove_pid(file_system->file_descriptor_table, pid);
+    GNL_SIMFS_MINUS1_CHECK(res, errno, -1, pid)
 
     // free memory
     gnl_list_destroy(&list, free);

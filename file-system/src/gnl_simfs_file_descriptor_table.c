@@ -1,4 +1,5 @@
 #include <stdlib.h>
+#include <string.h>
 #include <errno.h>
 #include <gnl_min_heap_t.h>
 #include "../include/gnl_simfs_file_descriptor_table.h"
@@ -313,7 +314,7 @@ int gnl_simfs_file_descriptor_table_remove_pid(struct gnl_simfs_file_descriptor_
 /**
  * {@inheritDoc}
  */
-struct gnl_simfs_inode * gnl_simfs_file_descriptor_table_get(struct gnl_simfs_file_descriptor_table *table, unsigned int fd,
+struct gnl_simfs_inode * gnl_simfs_file_descriptor_table_get(const struct gnl_simfs_file_descriptor_table *table, unsigned int fd,
         unsigned int pid) {
     GNL_NULL_CHECK(table, EINVAL, NULL)
 
@@ -338,10 +339,34 @@ struct gnl_simfs_inode * gnl_simfs_file_descriptor_table_get(struct gnl_simfs_fi
 /**
  * {@inheritDoc}
  */
-int gnl_simfs_file_descriptor_table_size(struct gnl_simfs_file_descriptor_table *table) {
+int gnl_simfs_file_descriptor_table_size(const struct gnl_simfs_file_descriptor_table *table) {
     GNL_NULL_CHECK(table, EINVAL, -1)
 
     return table->size;
+}
+
+/**
+ * {@inheritDoc}
+ */
+int gnl_simfs_file_descriptor_table_pid_inode_size(const struct gnl_simfs_file_descriptor_table *table,
+                                                   const struct gnl_simfs_inode *inode, unsigned int pid) {
+    GNL_NULL_CHECK(table, EINVAL, -1)
+    GNL_NULL_CHECK(inode, EINVAL, -1)
+
+    int size = 0;
+
+    for (size_t i=0; i<=table->max_fd; i++) {
+        // check that the i-th file descriptor is equal to the given
+        // inode and owned by the given pid
+        if (table->size == 0 || table->table[i] == NULL || table->table[i]->owner != pid
+            || strcmp(table->table[i]->inode->name, inode->name) != 0) {
+            continue;
+        }
+
+        size++;
+    }
+
+    return size;
 }
 
 #include <gnl_macro_end.h>
