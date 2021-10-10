@@ -172,34 +172,28 @@ static int gnl_simfs_rts_fflush_inode(struct gnl_simfs_file_system *file_system,
 }
 
 /**
- * Read the file within the original node of the given inode_copy.
+ * Read the file within given inode.
  *
  * @param file_system   The file system instance where the file table resides.
- * @param inode_copy    The copy of the inode to read.
+ * @param inode         The inode to read.
  * @param buf           The buffer pointer where to write the read data.
  * @param count         The count of bytes read.
  *
  * @return              Returns 0 on success, -1 otherwise.
  */
-static int gnl_simfs_rts_read_inode(struct gnl_simfs_file_system *file_system, struct gnl_simfs_inode *inode_copy,
+static int gnl_simfs_rts_read_inode(struct gnl_simfs_file_system *file_system, struct gnl_simfs_inode *inode,
         void **buf, size_t *count) {
     // validate the parameters
     GNL_NULL_CHECK(file_system, EINVAL, -1)
-    GNL_NULL_CHECK(inode_copy, EINVAL, -1)
+    GNL_NULL_CHECK(inode, EINVAL, -1)
 
-    gnl_logger_debug(file_system->logger, "Reading inode of file entry \"%s\" from the file table", inode_copy->name);
-
-    // search the key in the file table
-    struct gnl_simfs_inode *inode = gnl_simfs_file_table_get(file_system->file_table, inode_copy->name);
-//TODO: se dopo si fa il fflush non è necessario leggere l'inode originale
-    // if the key is not present return an error
-    GNL_NULL_CHECK(inode, errno, -1)
+    gnl_logger_debug(file_system->logger, "Reading inode of file entry \"%s\" from the file table", inode->name);
 
     // read the file into the given buf
     int res = gnl_simfs_inode_read(inode, buf, count);
     GNL_MINUS1_CHECK(res, errno, -1);
 
-    gnl_logger_debug(file_system->logger, "Read on entry \"%s\" succeeded", inode_copy->name);
+    gnl_logger_debug(file_system->logger, "Read on entry \"%s\" succeeded", inode->name);
 
     return 0;
 }
@@ -301,12 +295,13 @@ static int gnl_simfs_rts_wait_file_to_be_lockable(struct gnl_simfs_file_system *
 }
 
 /**
- * TODO doc
- * @param file_system
- * @param inode
- * @param filename
- * @param pid
- * @return
+ * Lock the file pointed by the given inode,
+ *
+ * @param file_system   The file system instance where the given inode resides.
+ * @param inode         The inode pointing to the file to lock.
+ * @param pid           The current process id.
+ *
+ * @return              Returns 0 on success, -1 otherwise.
  */
 static int gnl_simfs_rts_lock_inode(struct gnl_simfs_file_system *file_system, struct gnl_simfs_inode *inode, int pid) {
 
