@@ -29,6 +29,7 @@ extern void gnl_min_heap_destroy(struct gnl_min_heap_t *mh, void (*destroy)(void
  *
  * @param mh    The min heap where to insert the element.
  * @param el    The element.
+ * @param key   The new key value of the element.
  *
  * @return int  Returns 0 on success, -1 otherwise.
  */
