@@ -196,7 +196,7 @@ static int remove_node(struct gnl_ternary_search_tree_t *t, const char *key, voi
                 // return 1 if the current node does not have any children node
                 return !has_child(t);
             }
-                // the given key is not present in the tree
+            // the given key is not present in the tree
             else {
                 return 0;
             }
