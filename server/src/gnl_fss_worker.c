@@ -49,14 +49,16 @@ static void destroy_gnl_simfs_evicted_file(void *ptr) {
 }
 
 /**
- * TODO: doc
- * @param file_system
- * @param waiting_list
- * @param request
- * @param fd_c
- * @return
+ * Subscribe the given client (fd_c) into the given waiting_list.
+ *
+ * @param file_system   The file system instance.
+ * @param waiting_list  The waiting list where to subscribe the client.
+ * @param request       The request of the client.
+ * @param fd_c          The client to subscribe.
+ *
+ * @return              Returns 0 on success, -1 otherwise.
  */
-static int wait_unlock(struct gnl_simfs_file_system *file_system, struct gnl_fss_waiting_list *waiting_list,
+static int waiting_list_subscribe(struct gnl_simfs_file_system *file_system, struct gnl_fss_waiting_list *waiting_list,
         struct gnl_socket_request *request, int fd_c) {
 
     // validate the parameters
@@ -101,19 +103,20 @@ static int wait_unlock(struct gnl_simfs_file_system *file_system, struct gnl_fss
 }
 
 /**
- * TODO: doc
- * @param file_system
- * @param waiting_list
- * @param request
- * @param fd_c
- * @return
+ * Get the filename pointed by the fd of the given GNL_SOCKET_REQUEST_UNLOCK request.
+ *
+ * @param file_system   The file system instance.
+ * @param request       The request of the client.
+ * @param fd_c          The client that owns the request.
+ *
+ * @return              Returns the target on success,
+ *                      NULL otherwise.
  */
-static char *get_waiting_unlock_target(struct gnl_simfs_file_system *file_system, struct gnl_fss_waiting_list *waiting_list,
-        struct gnl_socket_request *request, int fd_c) {
+static char *get_unlock_request_target(struct gnl_simfs_file_system *file_system, struct gnl_socket_request *request,
+        int fd_c) {
 
     // validate the parameters
     GNL_NULL_CHECK(file_system, EINVAL, NULL)
-    GNL_NULL_CHECK(waiting_list, EINVAL, NULL)
     GNL_NULL_CHECK(request, EINVAL, NULL)
 
     char *target;
@@ -148,12 +151,14 @@ static char *get_waiting_unlock_target(struct gnl_simfs_file_system *file_system
 }
 
 /**
- * TODO: doc
- * @param file_system
- * @param request
- * @param fd_c
- * @param waiting_list
- * @return
+ * Handle the given request.
+ *
+ * @param file_system   The file system instance.
+ * @param request       The request received from the client.
+ * @param fd_c          The client that owns the request.
+ *
+ * @return              Returns the response of the handled request on success,
+ *                      NULL otherwise.
  */
 static struct gnl_socket_response *handle_request(struct gnl_simfs_file_system *file_system,
         struct gnl_socket_request *request, int fd_c) {
@@ -171,6 +176,7 @@ static struct gnl_socket_response *handle_request(struct gnl_simfs_file_system *
     char *tmp;
     struct gnl_simfs_evicted_file *evicted_file = NULL;
 
+    // get the request parameters
     int request_flags = gnl_socket_request_get_flags(request);
     int request_fd = gnl_socket_request_get_fd(request);
     char *request_filename = gnl_socket_request_get_filename(request);
@@ -178,7 +184,6 @@ static struct gnl_socket_response *handle_request(struct gnl_simfs_file_system *
     void *request_bytes = gnl_socket_request_get_bytes(request);
 
     // handle the request with the correct handler
-    //TODO: creare un metodo handler per ogni type che gestisca separatamente gli errori?
     switch (gnl_socket_request_type(request)) {
         case GNL_SOCKET_REQUEST_OPEN:
             res = gnl_simfs_file_system_open(file_system, request_filename, request_flags, fd_c);
@@ -357,10 +362,14 @@ static int send_message_to_master(int pipe_channel, int fd_c) {
 }
 
 /**
- * TODO: doc
- * @param worker
- * @param fd_c
- * @return
+ * Send a GNL_SOCKET_RESPONSE_ERROR response to the given client and notify
+ * the master that the handling is done. The error number that will be sent
+ * is the error indicated by the errno value.
+ *
+ * @param worker    The worker configuration.
+ * @param fd_c      The client to which send the error response.
+ *
+ * @return          Returns 0 on success, -1 otherwise.
  */
 static int handle_error(struct gnl_fss_worker *worker, int fd_c) {
     // validate the parameters
@@ -394,12 +403,15 @@ static int handle_error(struct gnl_fss_worker *worker, int fd_c) {
 }
 
 /**
- * TODO: doc
- * @param worker
- * @param fd_c
- * @param request
- * @return
- */
+* Handle the given request.
+*
+* @param worker     The worker configuration.
+* @param fd_c       The client that owns the request.
+* @param request    The request received from the client.
+*
+* @return           Returns the response of the handled request on success,
+*                   NULL otherwise.
+*/
 static struct gnl_socket_response *handle_fd_c_request(struct gnl_fss_worker *worker, int fd_c, struct gnl_socket_request *request) {
     int res;
 
@@ -409,7 +421,7 @@ static struct gnl_socket_response *handle_fd_c_request(struct gnl_fss_worker *wo
 
     // get the logger
     struct gnl_logger *logger = worker->logger;
-    
+
     // get the request type
     char *request_type;
     res = gnl_socket_request_get_type(request, &request_type);
@@ -426,6 +438,17 @@ static struct gnl_socket_response *handle_fd_c_request(struct gnl_fss_worker *wo
     return handle_request(worker->file_system, request, fd_c);
 }
 
+/**
+ * Send the given response to the given client and notify the master
+ * that the handling is done.
+ *
+ * @param worker    The worker configuration.
+ * @param fd_c      The client that owns the request.
+ * @param request   The request received from the client.
+ * @param response  The response generated by the request handler.
+ *
+ * @return          Returns 0 on success, -1 otherwise.
+ */
 static int handle_fd_c_response(struct gnl_fss_worker *worker, int fd_c,
         struct gnl_socket_request *request, struct gnl_socket_response *response) {
 
@@ -450,7 +473,7 @@ static int handle_fd_c_response(struct gnl_fss_worker *worker, int fd_c,
         gnl_logger_debug(logger, "EBUSY response received, client %d will be put into the waiting list", fd_c);
 
         // put the client into the waiting list
-        res = wait_unlock(worker->file_system, worker->waiting_list, request, fd_c);
+        res = waiting_list_subscribe(worker->file_system, worker->waiting_list, request, fd_c);
         GNL_MINUS1_CHECK(res, errno, -1)
 
         gnl_logger_debug(logger, "client %d successfully put into the waiting list", fd_c);
@@ -470,10 +493,11 @@ static int handle_fd_c_response(struct gnl_fss_worker *worker, int fd_c,
 
         free(response_type);
 
-        // get the target TODO: migliorare doc
+        // if the request is a GNL_SOCKET_REQUEST_UNLOCK request, then get the target pointed by
+        // the request fd, it will be used later to broadcast the waiting list
         if (gnl_socket_request_type(request) == GNL_SOCKET_REQUEST_UNLOCK && gnl_socket_response_type(response) == GNL_SOCKET_RESPONSE_OK) {
             // get the target
-            target = get_waiting_unlock_target(worker->file_system, worker->waiting_list, request, fd_c);
+            target = get_unlock_request_target(worker->file_system, request, fd_c);
         }
 
         // send the response message to the client
