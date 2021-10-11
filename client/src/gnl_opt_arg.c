@@ -291,6 +291,44 @@ static int gnl_opt_arg_read_file(const char *filename, const char *store_dirname
 }
 
 /**
+ * Parse argument of -w opt from format dirname[,n=0].
+ *
+ * @param arg       The argument to parse.
+ * @param dirname   The destination where to write the parsed dirname.
+ * @param n         The destination where to write the parsed n.
+ *
+ * @return          Returns 0 on success, -1 otherwise.
+ */
+static int arg_w_parse_arg(const char* arg, char **dirname, int *n) {
+    char *tok;
+    char *copy_arg;
+    char *tmp;
+    char *string_n;
+
+    GNL_CALLOC(copy_arg, strlen(arg) + 1, -1);
+    strncpy(copy_arg, arg, strlen(arg));
+
+    // parse dirname
+    tmp = strtok_r(copy_arg, ",", &tok);
+
+    GNL_CALLOC(*dirname, strlen(tmp) + 1, -1);
+    strncpy(*dirname, tmp, strlen(tmp));
+
+    // parse n
+    string_n = strtok_r(NULL, ",", &tok);
+
+    if (string_n != NULL) {
+        GNL_TO_INT(*n, string_n, -1)
+    } else {
+        *n = 0;
+    }
+
+    free(copy_arg);
+
+    return 0;
+}
+
+/**
  * {@inheritDoc}
  */
 void arg_h(const char* program_name) { //7
@@ -359,44 +397,6 @@ int arg_f_start(const char* socket_name) { //3
  */
 int arg_f_end(const char* socket_name) { //3
     return gnl_fss_api_close_connection(socket_name);
-}
-
-/**
- * Parse argument of -w opt from format dirname[,n=0].
- *
- * @param arg       The argument to parse.
- * @param dirname   The destination where to write the parsed dirname.
- * @param n         The destination where to write the parsed n.
- *
- * @return          Returns 0 on success, -1 otherwise.
- */
-static int arg_w_parse_arg(const char* arg, char **dirname, int *n) {
-    char *tok;
-    char *copy_arg;
-    char *tmp;
-    char *string_n;
-
-    GNL_CALLOC(copy_arg, strlen(arg) + 1, -1);
-    strncpy(copy_arg, arg, strlen(arg));
-
-    // parse dirname
-    tmp = strtok_r(copy_arg, ",", &tok);
-
-    GNL_CALLOC(*dirname, strlen(tmp) + 1, -1);
-    strncpy(*dirname, tmp, strlen(tmp));
-
-    // parse n
-    string_n = strtok_r(NULL, ",", &tok);
-
-    if (string_n != NULL) {
-        GNL_TO_INT(*n, string_n, -1)
-    } else {
-        *n = 0;
-    }
-
-    free(copy_arg);
-
-    return 0;
 }
 
 /**

@@ -57,6 +57,62 @@ extern int arg_w(const char *arg, const char *store_dirname);
  */
 extern int arg_W(const char *arg, const char *store_dirname);
 
-//TODO: completare doc
+/**
+ * Remove the given files from the server.
+ *
+ * @param arg   The arg has the format: file1[,file2]. It is a
+ *              list of files that will be removed from the server.
+ *
+ * @return      Returns 0 on success, -1 otherwise.
+ */
+extern int arg_c(const char *arg);
+
+/**
+ * Lock the given files on the server.
+ *
+ * @param arg   The arg has the format: file1[,file2]. It is a
+ *              list of files that will be locked on the server.
+ *
+ * @return      Returns 0 on success, -1 otherwise.
+ */
+extern int arg_l(const char *arg);
+
+/**
+ * Unlock the given files on the server.
+ *
+ * @param arg   The arg has the format: file1[,file2]. It is a
+ *              list of files that will be locked on the server.
+ *
+ * @return      Returns 0 on success, -1 otherwise.
+ */
+extern int arg_u(const char *arg);
+
+/**
+ * Read the given files from the server.
+ *
+ * @param arg           The arg has the format: file1[,file2]. It is a
+ *                      list of files that will be read from the server.
+ * @param store_dirname The path where to store the read files from
+ *                      the server.
+ *
+ * @return              Returns 0 on success, -1 otherwise.
+ */
+extern int arg_r(const char *arg, const char *store_dirname);
+
+/**
+ * Read the given number of files from the server. If te given number
+ * was not specified, or it is equal to 0, then will be read all the
+ * files present into the server.
+ *
+ * @param arg           The arg has the format: [N=0]. It is a
+ *                      number of files wanted to read from the server.
+ *                      If not specified, or if it is equal to 0, then
+ *                      will be read all the files present into the server.
+ * @param store_dirname The path where to store the read files from
+ *                      the server.
+ *
+ * @return              Returns 0 on success, -1 otherwise.
+ */
+extern int arg_R(const char *arg, const char *store_dirname);
 
 #endif //GNL_OPT_ARG_H
