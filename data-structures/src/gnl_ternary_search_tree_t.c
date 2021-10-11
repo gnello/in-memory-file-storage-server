@@ -186,7 +186,7 @@ static int remove_node(struct gnl_ternary_search_tree_t *t, const char *key, voi
         // case 4: the given key has at least one other key as prefix key
         if (*(key + 1) == '\0') {
             // remove the data if present
-            if (t->key == *key && t->data != NULL) {
+            if (t->data != NULL) {
                 if (destroy != NULL) {
                     destroy(t->data);
                 }
