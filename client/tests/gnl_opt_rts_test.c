@@ -6,6 +6,21 @@
 #include <gnl_queue_t.h>
 #include "../src/gnl_opt_rts.c"
 
+int count = 0;
+
+/**
+ * Increase a counter on each invocation.
+ *
+ * @param string    A string.
+ *
+ * @return          Returns always 0.
+ */
+static int count_elements(const char *string) {
+    count++;
+
+    return 0;
+}
+
 int can_scan_dir() {
     char *expected[6] = {
         "./testdir/testfile1.txt",
@@ -103,12 +118,96 @@ int can_not_scan_dir_neg() {
     return 0;
 }
 
+int can_set_wait_milliseconds() {
+    if (wait_milliseconds_value != 0) {
+        return -1;
+    }
+
+    set_wait_milliseconds(10);
+
+    if (wait_milliseconds_value != 10) {
+        return -1;
+    }
+
+    return 0;
+}
+
+int can_wait_milliseconds() {
+    time_t start = time(NULL);
+
+    set_wait_milliseconds(3500);
+
+    wait_milliseconds();
+
+    time_t end = time(NULL);
+
+    if (end - start < 3) {
+        return -1;
+    }
+
+    return 0;
+}
+
+int can_enable_output() {
+    if (output != 0) {
+        return -1;
+    }
+
+    enable_output();
+
+    if (output != 1) {
+        return -1;
+    }
+
+    output = 0;
+
+    return 0;
+}
+
+int can_filename_arg_walk() {
+    if (count != 0) {
+        return -1;
+    }
+
+    filename_arg_walk("testdir/testfile1.txt,"
+                      "testdir/testfile2.txt,"
+                      "testdir/testdir1/testfile3.txt,"
+                      "testdir/testdir2/testfile4.txt,"
+                      "testdir/testdir2/testfile5.txt,"
+                      "testdir/testdir2/testfile6.txt,", count_elements);
+
+    if (count != 6) {
+        return -1;
+    }
+
+    return 0;
+}
+
+int can_not_print_command() {
+    print_command('t', "test");
+
+    char actual[100];
+
+    int res = fread(actual, 10, 1, stdout);
+
+    if (res > 0) {
+        return -1;
+    }
+
+    return 0;
+}
+
 int main() {
     gnl_printf_yellow("> gnl_opt_rts test:\n\n");
 
     gnl_assert(can_scan_dir, "can scan all files in a directory and in its sub directories.");
     gnl_assert(can_scan_dir_n, "can scan only n files in a directory and in its sub directories.");
     gnl_assert(can_not_scan_dir_neg, "can not scan a negative number of files in a directory and in its sub directories.");
+    gnl_assert(can_set_wait_milliseconds, "can set a time to wait between requests to the server.");
+    gnl_assert(can_wait_milliseconds, "can wait between requests to the server.");
+    gnl_assert(can_enable_output, "can enable output prints.");
+    gnl_assert(can_filename_arg_walk, "can apply a callback to a list of elements.");
+    gnl_assert(can_not_print_command, "can not print a command if enable output was not invoked.");
 
     printf("\n");
 }
