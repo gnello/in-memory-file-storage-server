@@ -79,10 +79,12 @@ tests-valgrind-error:
 
 clean:
 	$(foreach target,$(TARGETS_ALL),cd $(ROOT_DIR)/$(target) && $(MAKE) clean;)
+	rm -f /tmp/LSOfilestorage_*.sk
+	rm -f /tmp/gnl_fss*.log
+	rm -f /tmp/gnl_stress_test_*
 
 clean-dev: clean
 	$(foreach target,$(TARGETS_ALL),cd $(ROOT_DIR)/$(target)/tests && $(MAKE) clean;)
-	rm -f /tmp/LSOfilestorage_*.sk
 
 test1: server client
 	echo "\nRunning feature test...\n\n"
