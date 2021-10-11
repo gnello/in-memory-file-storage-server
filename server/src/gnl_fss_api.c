@@ -61,7 +61,7 @@ static struct gnl_socket_response *send_and_destroy_request(struct gnl_socket_re
 /**
  * {@inheritDoc}
  */
-int gnl_fss_api_open_connection(const char *sockname, int msec, const struct timespec abstime) {
+int openConnection(const char *sockname, int msec, const struct timespec abstime) {
     if (sockname == NULL || msec <= 0) {
         errno = EINVAL;
 
@@ -119,7 +119,7 @@ int gnl_fss_api_open_connection(const char *sockname, int msec, const struct tim
 /**
  * {@inheritDoc}
  */
-int gnl_fss_api_close_connection(const char *sockname) {
+int closeConnection(const char *sockname) {
     // validate the state
     if (!socket_service_connection_active
     || !gnl_socket_service_is_active(socket_service_connection)
@@ -152,7 +152,7 @@ int gnl_fss_api_close_connection(const char *sockname) {
 /**
  * {@inheritDoc}
  */
-int gnl_fss_api_open_file(const char *pathname, int flags) {
+int openFile(const char *pathname, int flags) {
     // validate the parameters
     GNL_NULL_CHECK(pathname, EINVAL, -1)
 
@@ -213,7 +213,7 @@ int gnl_fss_api_open_file(const char *pathname, int flags) {
 /**
  * {@inheritDoc}
  */
-int gnl_fss_api_read_file(const char *pathname, void **buf, size_t *size) {
+int readFile(const char *pathname, void **buf, size_t *size) {
     // validate the parameters
     GNL_NULL_CHECK(pathname, EINVAL, -1)
 
@@ -276,7 +276,7 @@ int gnl_fss_api_read_file(const char *pathname, void **buf, size_t *size) {
 /**
  * {@inheritDoc}
  */
-int gnl_fss_api_read_N_files(int N, const char *dirname) {
+int readNFiles(int N, const char *dirname) {
     // create the request to send to the server
     struct gnl_socket_request *request = gnl_socket_request_init(GNL_SOCKET_REQUEST_READ_N, 1, N);
     GNL_NULL_CHECK(request, ENOMEM, -1)
@@ -319,7 +319,7 @@ int gnl_fss_api_read_N_files(int N, const char *dirname) {
                 char *filename = file->string;
 
                 // open the file on the server
-                res = gnl_fss_api_open_file(filename, 0);
+                res = openFile(filename, 0);
                 if (res == -1) {
                     // let the errno bubble
                     break;
@@ -329,13 +329,13 @@ int gnl_fss_api_read_N_files(int N, const char *dirname) {
                 void *buf = NULL;
                 size_t size;
 
-                int res_read = gnl_fss_api_read_file(filename, &buf, &size);
+                int res_read = readFile(filename, &buf, &size);
                 int errno_read = errno;
 
                 // an eventual error during the read will be checked later
 
                 // close the file
-                int res_close = gnl_fss_api_close_file(filename);
+                int res_close = closeFile(filename);
                 int errno_close = errno;
 
                 // check if there was an error during the read
@@ -398,7 +398,7 @@ int gnl_fss_api_read_N_files(int N, const char *dirname) {
 /**
  * {@inheritDoc}
  */
-int gnl_fss_api_write_file(const char *pathname, const char *dirname) {
+int writeFile(const char *pathname, const char *dirname) {
     // check if the previous call was to the openFile
     // with the O_CREATE|O_LOCK flags
     if (open_with_create_lock_flags == 0) {
@@ -418,7 +418,7 @@ int gnl_fss_api_write_file(const char *pathname, const char *dirname) {
     GNL_MINUS1_CHECK(res, errno, -1)
 
     // send the file through the "append" call
-    res = gnl_fss_api_append_to_file(pathname, file, size, dirname);
+    res = appendToFile(pathname, file, size, dirname);
 
     // free memory
     free(file);
@@ -429,7 +429,7 @@ int gnl_fss_api_write_file(const char *pathname, const char *dirname) {
 /**
  * {@inheritDoc}
  */
-int gnl_fss_api_append_to_file(const char *pathname, void *buf, size_t size, const char *dirname) {
+int appendToFile(const char *pathname, void *buf, size_t size, const char *dirname) {
     // validate the parameters
     GNL_NULL_CHECK(pathname, EINVAL, -1)
 
@@ -508,7 +508,7 @@ int gnl_fss_api_append_to_file(const char *pathname, void *buf, size_t size, con
 /**
  * {@inheritDoc}
  */
-int gnl_fss_api_lock_file(const char *pathname) {
+int lockFile(const char *pathname) {
     // validate the parameters
     GNL_NULL_CHECK(pathname, EINVAL, -1)
 
@@ -564,7 +564,7 @@ int gnl_fss_api_lock_file(const char *pathname) {
 /**
  * {@inheritDoc}
  */
-int gnl_fss_api_unlock_file(const char *pathname) {
+int unlockFile(const char *pathname) {
     // validate the parameters
     GNL_NULL_CHECK(pathname, EINVAL, -1)
 
@@ -620,7 +620,7 @@ int gnl_fss_api_unlock_file(const char *pathname) {
 /**
  * {@inheritDoc}
  */
-int gnl_fss_api_close_file(const char *pathname) {
+int closeFile(const char *pathname) {
     // validate the parameters
     GNL_NULL_CHECK(pathname, EINVAL, -1)
 
@@ -680,7 +680,7 @@ int gnl_fss_api_close_file(const char *pathname) {
 /**
  * {@inheritDoc}
  */
-int gnl_fss_api_remove_file(const char *pathname) {
+int removeFile(const char *pathname) {
     // validate the parameters
     GNL_NULL_CHECK(pathname, EINVAL, -1)
 

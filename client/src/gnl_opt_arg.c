@@ -28,7 +28,7 @@ static int gnl_opt_arg_send_file(const char *filename, const char *store_dirname
     wait_milliseconds();
 
     // create and open the file on the server (with lock)
-    res = gnl_fss_api_open_file(filename, O_CREATE | O_LOCK);
+    res = openFile(filename, O_CREATE | O_LOCK);
 
     print_log("Open file", filename, res, "O_CREATE|O_LOCK flags set");
 
@@ -38,7 +38,7 @@ static int gnl_opt_arg_send_file(const char *filename, const char *store_dirname
     wait_milliseconds();
 
     // send the file to the server
-    int res_write = gnl_fss_api_write_file(filename, store_dirname);
+    int res_write = writeFile(filename, store_dirname);
     int errno_write = errno;
 
     //get the filename size
@@ -52,7 +52,7 @@ static int gnl_opt_arg_send_file(const char *filename, const char *store_dirname
     wait_milliseconds();
 
     // unlock the file
-    int res_unlock = gnl_fss_api_unlock_file(filename);
+    int res_unlock = unlockFile(filename);
     int errno_unlock = errno;
 
     print_log("Unlock file", filename, res_unlock, NULL);
@@ -63,7 +63,7 @@ static int gnl_opt_arg_send_file(const char *filename, const char *store_dirname
     wait_milliseconds();
 
     // close the file
-    int res_close = gnl_fss_api_close_file(filename);
+    int res_close = closeFile(filename);
     int errno_close = errno;
 
     print_log("Close file", filename, res_close, NULL);
@@ -94,7 +94,7 @@ static int gnl_opt_arg_remove_file(const char *filename) {
     wait_milliseconds();
 
     // open the file on the server (with lock)
-    res = gnl_fss_api_open_file(filename, O_LOCK);
+    res = openFile(filename, O_LOCK);
 
     print_log("Open file", filename, res, "O_LOCK flags set");
     GNL_MINUS1_CHECK(res, errno, -1);
@@ -103,7 +103,7 @@ static int gnl_opt_arg_remove_file(const char *filename) {
     wait_milliseconds();
 
     // remove the file from the server
-    int res_remove = gnl_fss_api_remove_file(filename);
+    int res_remove = removeFile(filename);
     int errno_remove = errno;
 
     print_log("Remove file", filename, res_remove, NULL);
@@ -114,7 +114,7 @@ static int gnl_opt_arg_remove_file(const char *filename) {
     wait_milliseconds();
 
     // close the file
-    int res_close = gnl_fss_api_close_file(filename);
+    int res_close = closeFile(filename);
     int errno_close = errno;
 
     print_log("Close file", filename, res_close, NULL);
@@ -142,7 +142,7 @@ static int gnl_opt_arg_lock_file(const char *filename) {
     wait_milliseconds();
 
     // open the file on the server
-    res = gnl_fss_api_open_file(filename, 0);
+    res = openFile(filename, 0);
 
     print_log("Open file", filename, res, "no flags was set");
 
@@ -152,7 +152,7 @@ static int gnl_opt_arg_lock_file(const char *filename) {
     wait_milliseconds();
 
     // lock the file
-    int res_lock = gnl_fss_api_lock_file(filename);
+    int res_lock = lockFile(filename);
     int errno_lock = errno;
 
     print_log("Lock file", filename, res_lock, NULL);
@@ -163,7 +163,7 @@ static int gnl_opt_arg_lock_file(const char *filename) {
     wait_milliseconds();
 
     // close the file
-    int res_close = gnl_fss_api_close_file(filename);
+    int res_close = closeFile(filename);
     int errno_close = errno;
 
     print_log("Close file", filename, res_close, NULL);
@@ -191,7 +191,7 @@ static int gnl_opt_arg_unlock_file(const char *filename) {
     wait_milliseconds();
 
     // open the file on the server
-    res = gnl_fss_api_open_file(filename, 0);
+    res = openFile(filename, 0);
 
     print_log("Open file", filename, res, "no flags was set");
 
@@ -201,7 +201,7 @@ static int gnl_opt_arg_unlock_file(const char *filename) {
     wait_milliseconds();
 
     // unlock the file
-    int res_unlock = gnl_fss_api_unlock_file(filename);
+    int res_unlock = unlockFile(filename);
     int errno_unlock = errno;
 
     print_log("Unlock file", filename, res_unlock, NULL);
@@ -212,7 +212,7 @@ static int gnl_opt_arg_unlock_file(const char *filename) {
     wait_milliseconds();
 
     // close the file
-    int res_close = gnl_fss_api_close_file(filename);
+    int res_close = closeFile(filename);
     int errno_close = errno;
 
     print_log("Close file", filename, res_close, NULL);
@@ -241,7 +241,7 @@ static int gnl_opt_arg_read_file(const char *filename, const char *store_dirname
     wait_milliseconds();
 
     // open the file on the server
-    res = gnl_fss_api_open_file(filename, 0);
+    res = openFile(filename, 0);
 
     print_log("Open file", filename, res, "no flags was set");
 
@@ -254,7 +254,7 @@ static int gnl_opt_arg_read_file(const char *filename, const char *store_dirname
     // wait if we have to
     wait_milliseconds();
 
-    int res_read = gnl_fss_api_read_file(filename, &buf, &size);
+    int res_read = readFile(filename, &buf, &size);
     int errno_read = errno;
 
     print_log("Read file", filename, res_read, "%d bytes read", size);
@@ -265,7 +265,7 @@ static int gnl_opt_arg_read_file(const char *filename, const char *store_dirname
     wait_milliseconds();
 
     // close the file
-    int res_close = gnl_fss_api_close_file(filename);
+    int res_close = closeFile(filename);
     int errno_close = errno;
 
     print_log("Close file", filename, res_close, NULL);
@@ -385,7 +385,7 @@ int arg_f_start(const char* socket_name) { //3
 
     print_command('f', socket_name);
 
-    int res = gnl_fss_api_open_connection(socket_name, SOCKET_ATTEMPTS_INTERVAL, tim);
+    int res = openConnection(socket_name, SOCKET_ATTEMPTS_INTERVAL, tim);
 
     print_log("Connect to socket", socket_name, res, NULL);
 
@@ -396,7 +396,7 @@ int arg_f_start(const char* socket_name) { //3
  * {@inheritDoc}
  */
 int arg_f_end(const char* socket_name) { //3
-    return gnl_fss_api_close_connection(socket_name);
+    return closeConnection(socket_name);
 }
 
 /**
@@ -562,7 +562,7 @@ int arg_R(const char *arg, const char *store_dirname) {
     wait_milliseconds();
 
     // open the file on the server (with lock)
-    res = gnl_fss_api_read_N_files(n, store_dirname);
+    res = readNFiles(n, store_dirname);
 
     print_log("Read N files", "", res, "N=%d, actual files read: %d", n, res);
 

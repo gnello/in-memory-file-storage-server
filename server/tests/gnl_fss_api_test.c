@@ -14,7 +14,7 @@ int can_not_connect() {
     tim.tv_sec = 0;
     tim.tv_nsec = 1000000;
 
-    return !gnl_fss_api_open_connection(SOCKET_NAME, 100, tim);
+    return !openConnection(SOCKET_NAME, 100, tim);
 }
 
 int can_connect() {
@@ -27,9 +27,9 @@ int can_connect() {
     tim.tv_sec = 0;
     tim.tv_nsec = 1000000;
 
-    res = gnl_fss_api_open_connection(SOCKET_NAME, 100, tim);
+    res = openConnection(SOCKET_NAME, 100, tim);
 
-    gnl_fss_api_close_connection(SOCKET_NAME);
+    closeConnection(SOCKET_NAME);
 
     return res;
 }
@@ -40,7 +40,7 @@ int can_not_accept_null_socket() {
     tim.tv_nsec = 1000000;
 
     char *null_socket_name = NULL;
-    int res = gnl_fss_api_open_connection(null_socket_name, 100, tim);
+    int res = openConnection(null_socket_name, 100, tim);
 
     if (res == 0) {
         return -1;
@@ -58,7 +58,7 @@ int can_not_accept_0_msec() {
     tim.tv_sec = 0;
     tim.tv_nsec = 1000000;
 
-    int res = gnl_fss_api_open_connection(SOCKET_NAME, 0, tim);
+    int res = openConnection(SOCKET_NAME, 0, tim);
 
     if (res == 0) {
         return -1;
@@ -76,7 +76,7 @@ int can_not_accept_negative_msec() {
     tim.tv_sec = 0;
     tim.tv_nsec = 1000000;
 
-    int res = gnl_fss_api_open_connection(SOCKET_NAME, -10, tim);
+    int res = openConnection(SOCKET_NAME, -10, tim);
 
     if (res == 0) {
         return -1;
@@ -99,10 +99,10 @@ int can_not_connect_twice() {
     tim.tv_sec = 0;
     tim.tv_nsec = 1000000;
 
-    res = gnl_fss_api_open_connection(SOCKET_NAME, 100, tim);
+    res = openConnection(SOCKET_NAME, 100, tim);
     GNL_MINUS1_CHECK(res, errno, -1)
 
-    res = gnl_fss_api_open_connection(SOCKET_NAME, 100, tim);
+    res = openConnection(SOCKET_NAME, 100, tim);
     if (res == 0) {
         return -1;
     }
@@ -111,7 +111,7 @@ int can_not_connect_twice() {
         return -1;
     }
 
-    gnl_fss_api_close_connection(SOCKET_NAME);
+    closeConnection(SOCKET_NAME);
 
     return 0;
 }
@@ -119,7 +119,7 @@ int can_not_connect_twice() {
 int can_not_close() {
     mock_gnl_socket_service_set_close_connection_result(-1);
 
-    return !gnl_fss_api_close_connection(SOCKET_NAME);
+    return !closeConnection(SOCKET_NAME);
 }
 
 int can_not_close_different() {
@@ -129,12 +129,12 @@ int can_not_close_different() {
     tim.tv_sec = 0;
     tim.tv_nsec = 1000000;
 
-    int res = gnl_fss_api_open_connection(SOCKET_NAME, 100, tim);
+    int res = openConnection(SOCKET_NAME, 100, tim);
     GNL_MINUS1_CHECK(res, errno, -1)
 
     mock_gnl_socket_service_set_close_connection_result(0);
 
-    res = gnl_fss_api_close_connection("./tmp2.ssk");
+    res = closeConnection("./tmp2.ssk");
     if (res == 0) {
         return -1;
     }
@@ -143,7 +143,7 @@ int can_not_close_different() {
         return -1;
     }
 
-    return gnl_fss_api_close_connection(SOCKET_NAME);
+    return closeConnection(SOCKET_NAME);
 }
 
 int can_close() {
@@ -153,18 +153,18 @@ int can_close() {
     tim.tv_sec = 0;
     tim.tv_nsec = 1000000;
 
-    int res = gnl_fss_api_open_connection(SOCKET_NAME, 100, tim);
+    int res = openConnection(SOCKET_NAME, 100, tim);
     GNL_MINUS1_CHECK(res, errno, -1)
 
     mock_gnl_socket_service_set_close_connection_result(0);
 
-    return gnl_fss_api_close_connection(SOCKET_NAME);
+    return closeConnection(SOCKET_NAME);
 }
 
 int main() {
     gnl_printf_yellow("> gnl_fss_api test:\n\n");
 
-    // gnl_fss_api_open_connection
+    // openConnection
     gnl_assert(can_not_connect, "can not connect to a socket.");
     gnl_assert(can_connect, "can connect to a socket.");
     gnl_assert(can_not_accept_null_socket, "can not accept a null socket name to open a socket connection.");
@@ -172,12 +172,12 @@ int main() {
     gnl_assert(can_not_accept_negative_msec, "can not accept a msec value less than zero to open a socket connection.");
     gnl_assert(can_not_connect_twice, "can not connect to a socket more than once per time.");
 
-    // gnl_fss_api_close_connection
+    // closeConnection
     gnl_assert(can_not_close, "can not close a connection to a socket.");
     gnl_assert(can_not_close_different, "can not close a connection to a different socket.");
     gnl_assert(can_close, "can close a connection to a socket.");
 
-    // gnl_fss_api_open_file
+    // openFile
 
     printf("\n");
 }
