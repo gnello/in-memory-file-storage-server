@@ -13,7 +13,11 @@ INCLUDE += -I$(DATA_STRUCTURES_INCLUDE)
 TARGETS = server client
 TARGETS_PATH = ./
 
-.PHONY: all dev tests clean clean-dev server client helpers data-structures socket tests-valgrind message file-system test1
+.PHONY: all client server message socket \
+		file-system helpers data-structures \
+		dev tests tests-failure tests-valgrind \
+		tests-valgrind-short tests-valgrind-error \
+		clean clean-dev test1 test2 test3
 
 TARGETS_ALL = client data-structures helpers message server socket file-system
 
