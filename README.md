@@ -14,9 +14,9 @@ or to argue about something that does not add up to you, and I will be happy to 
 - [Filesystem](doc/filesystem.md)
 
 ## Installation
-This project is totally conform to POSIX, this means that you do not need any extra library to use it
-except for those already present in your operating system.
-To install the project it is sufficient to follow the following simple commands:
+This project uses libraries conform to the POSIX standard, this means that you should not need any extra library to use 
+it, except for those already present in your operating system.
+To install the project it is sufficient to run in a terminal the following simple commands:
 
 ```bash
 git clone git@github.com:gnello/in-memory-file-storage-server.git # clone the project
