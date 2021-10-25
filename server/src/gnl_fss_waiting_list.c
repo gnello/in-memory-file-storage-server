@@ -75,8 +75,7 @@ struct gnl_fss_waiting_list_internal_el {
     // the target
     char *target;
 
-    // the thread-safe non-blocking queue, it
-    // used to store the waiting pid
+    // the queue where to store the waiting pid
     struct gnl_queue_t *queue;
 };
 
