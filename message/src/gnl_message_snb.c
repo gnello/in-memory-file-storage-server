@@ -107,8 +107,9 @@ int gnl_message_snb_from_string(const char *message, struct gnl_message_snb *mes
     strncpy(message_snb->string, message + MAX_DIGITS_INT, string_len);
 
     // get the bytes length
-    char bytes_len_string[MAX_DIGITS_INT];
+    char bytes_len_string[MAX_DIGITS_INT + 1];
     strncpy(bytes_len_string, message + MAX_DIGITS_INT + string_len, MAX_DIGITS_INT);
+    bytes_len_string[MAX_DIGITS_INT] = '\0';
 
     char *ptr = NULL;
     message_snb->count = strtol(bytes_len_string, &ptr, 10);

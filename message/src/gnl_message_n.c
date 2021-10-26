@@ -76,8 +76,9 @@ int gnl_message_n_from_string(const char *message, struct gnl_message_n *message
     }
 
     // get the number
-    char message_N[MAX_DIGITS_INT];
+    char message_N[MAX_DIGITS_INT + 1];
     strncpy(message_N, message, MAX_DIGITS_INT);
+    message_N[MAX_DIGITS_INT] = '\0';
 
     // reset the errno value
     errno = 0;

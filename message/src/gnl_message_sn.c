@@ -92,17 +92,18 @@ int gnl_message_sn_from_string(const char *message, struct gnl_message_sn *messa
     strncpy(message_sn->string, message + MAX_DIGITS_INT, string_len);
 
     // get the number
-    char message_N[MAX_DIGITS_INT];
-    strncpy(message_N, message + MAX_DIGITS_INT + string_len, MAX_DIGITS_INT);
+    char message_SN[MAX_DIGITS_INT + 1];
+    strncpy(message_SN, message + MAX_DIGITS_INT + string_len, MAX_DIGITS_INT);
+    message_SN[MAX_DIGITS_INT] = '\0';
 
     // reset the errno value
     errno = 0;
 
     char *ptr = NULL;
-    message_sn->number = strtol(message_N, &ptr, 10);
+    message_sn->number = strtol(message_SN, &ptr, 10);
 
     // if no digits found
-    if (message_N == ptr || errno != 0) {
+    if (message_SN == ptr || errno != 0) {
         errno = EINVAL;
         free(ptr);
 
