@@ -133,8 +133,9 @@ int gnl_message_nq_from_string(const char *message, struct gnl_message_nq *messa
     GNL_NULL_CHECK(message, EINVAL, -1)
 
     // get the number
-    char message_NQ[MAX_DIGITS_INT];
+    char message_NQ[MAX_DIGITS_INT + 1];
     strncpy(message_NQ, message, MAX_DIGITS_INT);
+    message_NQ[MAX_DIGITS_INT] = '\0';
 
     // reset the errno value
     errno = 0;

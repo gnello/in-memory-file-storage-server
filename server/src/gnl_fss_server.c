@@ -6,7 +6,6 @@
 #include <errno.h>
 #include <sys/select.h>
 #include <signal.h>
-#include <bits/sigaction.h>
 #include <gnl_logger.h>
 #include "gnl_fss_thread_pool.c"
 #include <gnl_simfs_file_system.h>
